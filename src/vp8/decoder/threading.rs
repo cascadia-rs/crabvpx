@@ -669,13 +669,13 @@ unsafe extern "C" fn vpx_atomic_store_release(
     mut atomic: *mut vpx_atomic_int,
     mut value: ::core::ffi::c_int,
 ) {
-    ::core::intrinsics::atomic_store_release(&raw mut (*atomic).value, value);
+    (*(&raw mut (*atomic).value as *const core::sync::atomic::AtomicI32)).store(value, core::sync::atomic::Ordering::Release);
 }
 #[inline]
 unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int {
-    return ::core::intrinsics::atomic_load_acquire(&raw const (*atomic).value);
+    return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
 }
 #[inline]
 unsafe extern "C" fn vp8_atomic_spin_wait(

@@ -12,24 +12,6 @@
 pub mod vp8 {
     pub mod common {
         pub mod alloccommon;
-        pub mod arm {
-            pub mod loopfilter_arm;
-            pub mod neon {
-                pub mod bilinearpredict_neon;
-                pub mod copymem_neon;
-                pub mod dc_only_idct_add_neon;
-                pub mod dequant_idct_neon;
-                pub mod dequantizeb_neon;
-                pub mod idct_blk_neon;
-                pub mod iwalsh_neon;
-                pub mod loopfiltersimplehorizontaledge_neon;
-                pub mod loopfiltersimpleverticaledge_neon;
-                pub mod mbloopfilter_neon;
-                pub mod shortidct4x4llm_neon;
-                pub mod sixtappredict_neon;
-                pub mod vp8_loopfilter_neon;
-            } // mod neon
-        } // mod arm
         pub mod blockd;
         pub mod dequantize;
         pub mod entropy;
@@ -76,9 +58,6 @@ pub mod vpx {
 } // mod vpx
 pub mod vpx_config;
 pub mod vpx_dsp {
-    pub mod arm {
-        pub mod intrapred_neon;
-    } // mod arm
     pub mod bitreader;
     pub mod bitreader_buffer;
     pub mod intrapred;

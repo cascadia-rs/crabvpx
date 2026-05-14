@@ -626,11 +626,11 @@ pub unsafe extern "C" fn vpx_codec_control_(
         entry = (*(*ctx).iface).ctrl_maps;
         while (*entry).fn_0.is_some() {
             if (*entry).ctrl_id == 0 || (*entry).ctrl_id == ctrl_id {
-                let mut ap: ::core::ffi::VaListImpl;
+                let mut ap: ::core::ffi::VaList;
                 ap = args.clone();
                 res = (*entry).fn_0.expect("non-null function pointer")(
                     (*ctx).priv_0 as *mut vpx_codec_alg_priv_t,
-                    ap.as_va_list(),
+                    ap,
                 );
                 break;
             } else {
@@ -652,7 +652,7 @@ pub unsafe extern "C" fn vpx_internal_error(
     mut fmt: *const ::core::ffi::c_char,
     mut args: ...
 ) {
-    let mut ap: ::core::ffi::VaListImpl;
+    let mut ap: ::core::ffi::VaList;
     (*info).error_code = error;
     (*info).has_detail = 0 as ::core::ffi::c_int;
     if !fmt.is_null() {
@@ -663,7 +663,7 @@ pub unsafe extern "C" fn vpx_internal_error(
             &raw mut (*info).detail as *mut ::core::ffi::c_char,
             sz.wrapping_sub(1 as size_t),
             fmt,
-            ap.as_va_list(),
+            ap,
         );
         (*info).detail[sz.wrapping_sub(1 as size_t) as usize] = '\0' as i32 as ::core::ffi::c_char;
     }

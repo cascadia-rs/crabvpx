@@ -1048,7 +1048,7 @@ pub const MAX_PARTITIONS: ::core::ffi::c_int = 9 as ::core::ffi::c_int;
 unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int {
-    return ::core::intrinsics::atomic_load_acquire(&raw const (*atomic).value);
+    return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
 }
 unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi::c_int {
     let mut priv_0: *mut vpx_codec_alg_priv_t = vpx_calloc(
@@ -1608,7 +1608,7 @@ unsafe extern "C" fn vp8_set_reference(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
 ) -> vpx_codec_err_t {
-    let mut data: *mut vpx_ref_frame_t = args.arg::<*mut vpx_ref_frame_t>();
+    let mut data: *mut vpx_ref_frame_t = args.next_arg::<*mut vpx_ref_frame_t>();
     if !data.is_null() {
         let mut frame: *mut vpx_ref_frame_t = data;
         let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
@@ -1660,7 +1660,7 @@ unsafe extern "C" fn vp8_get_reference(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
 ) -> vpx_codec_err_t {
-    let mut data: *mut vpx_ref_frame_t = args.arg::<*mut vpx_ref_frame_t>();
+    let mut data: *mut vpx_ref_frame_t = args.next_arg::<*mut vpx_ref_frame_t>();
     if !data.is_null() {
         let mut frame: *mut vpx_ref_frame_t = data;
         let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
@@ -1712,7 +1712,7 @@ unsafe extern "C" fn vp8_get_quantizer(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
 ) -> vpx_codec_err_t {
-    let arg: *mut ::core::ffi::c_int = args.arg::<*mut ::core::ffi::c_int>();
+    let arg: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
     let mut pbi: *mut VP8D_COMP = (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
     if arg.is_null() {
         return VPX_CODEC_INVALID_PARAM;
@@ -1733,7 +1733,7 @@ unsafe extern "C" fn vp8_get_last_ref_updates(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
 ) -> vpx_codec_err_t {
-    let mut update_info: *mut ::core::ffi::c_int = args.arg::<*mut ::core::ffi::c_int>();
+    let mut update_info: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
     if !update_info.is_null() {
         let mut pbi: *mut VP8D_COMP =
             (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
@@ -1752,7 +1752,7 @@ unsafe extern "C" fn vp8_get_last_ref_frame(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
 ) -> vpx_codec_err_t {
-    let mut ref_info: *mut ::core::ffi::c_int = args.arg::<*mut ::core::ffi::c_int>();
+    let mut ref_info: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
     if !ref_info.is_null() {
         let mut pbi: *mut VP8D_COMP =
             (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
@@ -1795,7 +1795,7 @@ unsafe extern "C" fn vp8_get_frame_corrupted(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
 ) -> vpx_codec_err_t {
-    let mut corrupted: *mut ::core::ffi::c_int = args.arg::<*mut ::core::ffi::c_int>();
+    let mut corrupted: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
     let mut pbi: *mut VP8D_COMP =
         (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
     if !corrupted.is_null() && !pbi.is_null() {
@@ -1813,7 +1813,7 @@ unsafe extern "C" fn vp8_set_decryptor(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
 ) -> vpx_codec_err_t {
-    let mut init: *mut vpx_decrypt_init = args.arg::<*mut vpx_decrypt_init>();
+    let mut init: *mut vpx_decrypt_init = args.next_arg::<*mut vpx_decrypt_init>();
     if !init.is_null() {
         (*ctx).decrypt_cb = (*init).decrypt_cb;
         (*ctx).decrypt_state = (*init).decrypt_state;

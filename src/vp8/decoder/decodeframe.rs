@@ -744,7 +744,7 @@ pub const QINDEX_RANGE: ::core::ffi::c_int = MAXQ + 1 as ::core::ffi::c_int;
 unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int {
-    return ::core::intrinsics::atomic_load_acquire(&raw const (*atomic).value);
+    return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
 }
 #[inline]
 unsafe extern "C" fn intra_prediction_down_copy(
