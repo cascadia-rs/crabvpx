@@ -38,3 +38,9 @@ When transpiling code that heavily uses platform-specific intrinsics (like ARM N
 use std::arch::aarch64::*;
 ```
 Note: Use `std::arch` instead of `core::arch` to avoid missing feature gates like `stdarch_aarch64` that might arise if trying to import directly from `core`.
+
+## 5. SIMD Translation Strategy (`std::simd` vs. FFI)
+While it might seem tempting to rewrite the hardware-specific C intrinsics or Assembly using Rust's portable `std::simd`, it is generally not recommended for a "Lift and Shift" migration of a heavily optimized codec like `libvpx`:
+- **Performance:** Video codecs rely on complex data shuffles, swizzles, and saturating math operations that map perfectly to specific hardware instructions (e.g., ARM Neon `vtbl` or x86 `pshufb`). `std::simd` is hardware-agnostic and may struggle to compile these operations down to the same optimal instructions, potentially causing significant performance regressions.
+- **Stability:** The `std::simd` API is currently nightly-only and unstable.
+- **Strategy:** It is far safer and more performant to keep the existing, battle-tested Assembly and C-intrinsic files. We compile them using the `cc` crate in `build.rs` and link to them from the transpiled Rust code via FFI. If a pure Rust rewrite is desired in the future, it is better to rewrite using the architecture-specific intrinsics in `core::arch::*` (like `aarch64` or `x86_64`) rather than portable `std::simd`.
