@@ -30,6 +30,42 @@ Updating each file from raw `c2rust` output to compilable, "correct" Unsafe Rust
     *   Replacing direct raw pointer member accesses with `&raw const` or `&raw mut` where appropriate to prevent strict aliasing violations and undefined behavior (UB).
 *   **Scaling the Effort:** Doing this for the 67 VP8 decoding files is a tedious but manageable manual task. Scaling this up to 522 files for full `libvpx` would be a massive undertaking, likely requiring custom scripting or sed replacements to handle the repetitive fixes (especially atomics).
 
+### Unsafe Usage Analysis
+A programmatic analysis of the `c2rust` generated codebase reveals the following scale of unsafety:
+
+- **Total Unsafe Blocks (`unsafe { ... }`):** 386
+- **Total Unsafe Functions (`unsafe fn`):** 635
+
+#### Top 10 Most Complex Files (by Unsafe Blocks)
+| File | Unsafe Blocks |
+|---|---|
+| `src/vpx_dsp/intrapred.rs` | 69 |
+| `src/vp8/decoder/decodemv.rs` | 23 |
+| `src/vp8/vp8_dx_iface.rs` | 22 |
+| `src/vp8/decoder/decodeframe.rs` | 20 |
+| `src/vp8/common/loopfilter_filters.rs` | 18 |
+| `src/vp8/decoder/threading.rs` | 16 |
+| `src/vp8/decoder/onyxd_if.rs` | 16 |
+| `src/vp8/common/reconinter.rs` | 16 |
+| `src/vp8/common/filter.rs` | 14 |
+| `src/vpx/src/vpx_encoder.rs` | 12 |
+
+#### Top 10 Most Complex Files (by Unsafe Functions)
+| File | Unsafe Functions |
+|---|---|
+| `src/vpx_dsp/intrapred.rs` | 70 |
+| `src/vp8/vp8_dx_iface.rs` | 60 |
+| `src/vpx/src/vpx_encoder.rs` | 33 |
+| `src/vp8/decoder/decodeframe.rs` | 31 |
+| `src/vpx/src/vpx_codec.rs` | 30 |
+| `src/vpx/src/vpx_decoder.rs` | 28 |
+| `src/vpx_scale/generic/vpx_scale.rs` | 27 |
+| `src/vpx_util/vpx_thread.rs` | 26 |
+| `src/vp8/decoder/decodemv.rs` | 26 |
+| `src/vp8/common/reconintra.rs` | 24 |
+
+These files represent the highest risk and effort areas for manual refactoring to safe Rust.
+
 ## 4. Required Expertise
 
 Successfully navigating this project requires a high level of specialized expertise:
