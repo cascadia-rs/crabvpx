@@ -58,7 +58,7 @@ impl Drop for Vp8Decoder {
 }
 
 impl Decoder for Vp8Decoder {
-    type Frame = (); // We can expand this to a safe Image struct later.
+    type Frame = String;
     type Error = String;
 
     fn init(&mut self) -> Result<(), Self::Error> {
@@ -112,7 +112,24 @@ impl Decoder for Vp8Decoder {
         if img.is_null() {
             Ok(None)
         } else {
-            Ok(Some(()))
+            let img = unsafe { &*img };
+            let mut context = md5::Context::new();
+
+            // Y, U, V planes
+            for plane in 0..3 {
+                let data = img.planes[plane];
+                let stride = img.stride[plane] as usize;
+                let w = if plane == 0 { img.d_w } else { (img.d_w + 1) >> 1 };
+                let h = if plane == 0 { img.d_h } else { (img.d_h + 1) >> 1 };
+
+                for row in 0..h {
+                    let row_ptr = unsafe { data.add(row as usize * stride) };
+                    let row_data = unsafe { core::slice::from_raw_parts(row_ptr, w as usize) };
+                    context.consume(row_data);
+                }
+            }
+
+            Ok(Some(format!("{:x}", context.compute())))
         }
     }
 }

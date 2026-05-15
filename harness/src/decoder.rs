@@ -12,7 +12,7 @@ pub mod ffi {
 pub trait VideoDecoder {
     fn init(&mut self) -> Result<(), String>;
     fn decode_frame(&mut self, payload: &[u8]) -> Result<(), String>;
-    fn get_frame(&mut self) -> Result<Option<()>, String>;
+    fn get_frame(&mut self) -> Result<Option<String>, String>;
 }
 
 #[cfg(not(feature = "rust"))]
@@ -28,6 +28,26 @@ impl LibVpxOracleDecoder {
             ctx: unsafe { std::mem::zeroed() },
             initialized: false,
         }
+    }
+
+    unsafe fn calculate_md5(img: *const ffi::vpx_image_t) -> String {
+        let mut context = md5::Context::new();
+        let img = &*img;
+
+        for plane in 0..3 {
+            let data = img.planes[plane];
+            let stride = img.stride[plane] as usize;
+            let w = if plane == 0 { img.d_w } else { (img.d_w + 1) >> 1 };
+            let h = if plane == 0 { img.d_h } else { (img.d_h + 1) >> 1 };
+
+            for row in 0..h {
+                let row_ptr = data.add(row as usize * stride);
+                let row_data = std::slice::from_raw_parts(row_ptr, w as usize);
+                context.consume(row_data);
+            }
+        }
+
+        format!("{:x}", context.compute())
     }
 }
 
@@ -84,7 +104,7 @@ impl VideoDecoder for LibVpxOracleDecoder {
         }
     }
 
-    fn get_frame(&mut self) -> Result<Option<()>, String> {
+    fn get_frame(&mut self) -> Result<Option<String>, String> {
         if !self.initialized {
             return Err("Decoder not initialized".to_string());
         }
@@ -95,7 +115,7 @@ impl VideoDecoder for LibVpxOracleDecoder {
         if img.is_null() {
             Ok(None)
         } else {
-            Ok(Some(()))
+            Ok(Some(unsafe { Self::calculate_md5(img) }))
         }
     }
 }
@@ -126,7 +146,7 @@ impl VideoDecoder for CrabVpxDecoder {
         self.inner.decode(payload)
     }
 
-    fn get_frame(&mut self) -> Result<Option<()>, String> {
+    fn get_frame(&mut self) -> Result<Option<String>, String> {
         use crabvpx::api::Decoder;
         self.inner.get_frame()
     }

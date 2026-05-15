@@ -46,11 +46,13 @@ def download_vectors(test_data_dir: Path):
     print(f"Checking for VP8 test vectors in {test_data_dir}...", flush=True)
 
     for vector in VP8_VECTORS:
-        target = test_data_dir / vector
-        if not target.exists():
-            print(f"Downloading {vector}...", flush=True)
-            url = f"{BASE_URL}/{vector}"
-            subprocess.run(["curl", "-S", "-s", "-L", "-o", str(target), url], check=True)
+        for ext in ["", ".md5"]:
+            file_name = vector + ext
+            target = test_data_dir / file_name
+            if not target.exists():
+                print(f"Downloading {file_name}...", flush=True)
+                url = f"{BASE_URL}/{file_name}"
+                subprocess.run(["curl", "-S", "-s", "-L", "-o", str(target), url], check=True)
 
 
 def run_cargo(harness_dir: Path, args: List[str], features: str = None):

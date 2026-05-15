@@ -12,6 +12,7 @@ rust = ["dep:crabvpx"]
 clap = { version = "4.5", features = ["derive"] }
 indicatif = "0.17"
 crabvpx = { path = "../", optional = true }
+md5 = "0.7"
 
 [build-dependencies]
 bindgen = "0.69"
