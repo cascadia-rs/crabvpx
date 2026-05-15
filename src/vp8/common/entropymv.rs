@@ -6,7 +6,7 @@ pub struct mv_context {
 }
 pub type MV_CONTEXT = mv_context;
 #[unsafe(no_mangle)]
-pub static mut vp8_mv_update_probs: [MV_CONTEXT; 2] = [
+pub static vp8_mv_update_probs: [MV_CONTEXT; 2] = [
     mv_context {
         prob: [
             237 as ::core::ffi::c_int as vp8_prob,

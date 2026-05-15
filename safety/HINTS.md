@@ -15,6 +15,7 @@
 - **Bitstream Parser**: Refactored `GetSigned` in `src/vp8/decoder/detokenize.rs` to delegate to `vp8dx_decode_bool(br, 128)`, eliminating manual C-style bitstream arithmetic and ensuring all bool decoding passes through `SafeBoolDecoder`.
 - **Safe Multithreading Allocation**: Replaced legacy `vpx_calloc` and `vpx_memalign` calls with `Box::into_raw(vec![...].into_boxed_slice())` and `AlignedBox::new()` for thread management allocations (`h_decoding_thread`, `h_event_start_decoding`, `de_thread_data`, `mb_row_di`) in `src/vp8/decoder/threading.rs`.
 - **Safe Temporary Buffer Allocation**: Replaced legacy `vpx_calloc`, `vpx_malloc`, and `vpx_memalign` calls with `Box::into_raw(vec![...].into_boxed_slice())` and `AlignedBox::new()` for multithreading temporary buffers (`mt_yabove_row`, `mt_uabove_row`, `mt_vabove_row`, `mt_yleft_col`, `mt_uleft_col`, `mt_vleft_col`, `mt_current_mb_col`) in `src/vp8/decoder/threading.rs`.
+- **Motion Vector Decoding**: Refactored `read_mvcontexts` in `src/vp8/decoder/decodemv.rs` to use safe slice indexing and iterators instead of raw pointer arithmetic. Converted `vp8_mv_update_probs` in `src/vp8/common/entropymv.rs` to safe public static, eliminating FFI imports. Reduced unsafe count by 1.
 
 ## Architectural Quirks to Watch Out For
 - **c2rust Duplication**: Functions that were `static inline` in C headers (specifically `vp8dx_decode_bool` from `dboolhuff.h`) were duplicated by `c2rust` into every Rust module that called them. (Resolved for `vp8dx_decode_bool`).
