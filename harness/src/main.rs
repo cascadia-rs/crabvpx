@@ -7,6 +7,7 @@ use indicatif::{ProgressBar, ProgressStyle};
 use ivf::IvfParser;
 use std::fs;
 use std::path::PathBuf;
+use std::time::{Duration, Instant};
 
 #[cfg(not(feature = "rust"))]
 use decoder::LibVpxOracleDecoder as ActiveDecoder;
@@ -24,6 +25,10 @@ struct Args {
     /// Directory containing .ivf files
     #[arg(short, long)]
     dir: PathBuf,
+
+    /// Run extensive performance benchmarking
+    #[arg(short, long)]
+    benchmark: bool,
 }
 
 fn main() {
@@ -60,6 +65,8 @@ fn main() {
     );
 
     let mut successful_decodes = 0;
+    let mut total_decode_time = Duration::ZERO;
+    let mut total_frames = 0;
 
     for file in &ivf_files {
         pb.set_message(file.file_name().unwrap().to_string_lossy().into_owned());
@@ -73,29 +80,82 @@ fn main() {
             }
         };
 
-        let mut decoder = ActiveDecoder::new();
-        if let Err(e) = decoder.init() {
-            pb.println(format!("Failed to initialize decoder for {:?}: {}", file, e));
-            pb.inc(1);
-            continue;
-        }
-
-        let mut success = true;
+        let mut frames = Vec::new();
         while let Ok(Some(frame)) = ivf.next_frame() {
-            if let Err(_) = decoder.decode_frame(&frame.payload) {
-                success = false;
-                break;
-            }
-            if let Err(_) = decoder.get_frame() {
-                success = false;
-                break;
-            }
+            frames.push(frame);
         }
 
-        if success {
-            successful_decodes += 1;
+        if args.benchmark {
+            // Warmup
+            let mut decoder = ActiveDecoder::new();
+            if decoder.init().is_ok() {
+                for frame in &frames {
+                    let _ = decoder.decode_frame(&frame.payload);
+                    let _ = decoder.get_frame();
+                }
+            }
+
+            let iterations = 10;
+            let mut iter_times = Vec::with_capacity(iterations);
+            let mut success = true;
+
+            for _ in 0..iterations {
+                let mut decoder = ActiveDecoder::new();
+                if decoder.init().is_err() {
+                    success = false;
+                    break;
+                }
+
+                let start = Instant::now();
+                for frame in &frames {
+                    if decoder.decode_frame(&frame.payload).is_err() || decoder.get_frame().is_err() {
+                        success = false;
+                        break;
+                    }
+                }
+                iter_times.push(start.elapsed());
+                if !success { break; }
+            }
+
+            if success {
+                successful_decodes += 1;
+                let sum: Duration = iter_times.iter().sum();
+                total_decode_time += sum / (iterations as u32);
+                total_frames += frames.len() as u32;
+                
+                let min = iter_times.iter().min().unwrap();
+                let max = iter_times.iter().max().unwrap();
+                let avg = sum / (iterations as u32);
+                pb.println(format!("{:?}: avg {:?}, min {:?}, max {:?}", file.file_name().unwrap(), avg, min, max));
+            } else {
+                pb.println(format!("Decoding failed for {:?}", file));
+            }
+
         } else {
-            pb.println(format!("Decoding failed for {:?}", file));
+            let mut decoder = ActiveDecoder::new();
+            if let Err(e) = decoder.init() {
+                pb.println(format!("Failed to initialize decoder for {:?}: {}", file, e));
+                pb.inc(1);
+                continue;
+            }
+
+            let mut success = true;
+            let start = Instant::now();
+            for frame in &frames {
+                if decoder.decode_frame(&frame.payload).is_err() || decoder.get_frame().is_err() {
+                    success = false;
+                    break;
+                }
+            }
+            let elapsed = start.elapsed();
+
+            if success {
+                successful_decodes += 1;
+                total_decode_time += elapsed;
+                total_frames += frames.len() as u32;
+            } else {
+                pb.println(format!("Decoding failed for {:?}", file));
+            }
         }
 
         pb.inc(1);
@@ -103,10 +163,17 @@ fn main() {
 
     pb.finish_with_message("Done");
 
+    let avg_time_per_frame = if total_frames > 0 {
+        total_decode_time.as_secs_f64() * 1000.0 / (total_frames as f64)
+    } else {
+        0.0
+    };
+
     println!(
-        "\n{} out of {} vectors decoded successfully by the {} decoder.",
+        "\n{} out of {} vectors decoded successfully by the {} decoder in {:.2} ms/frame.",
         successful_decodes,
         ivf_files.len(),
-        DECODER_NAME
+        DECODER_NAME,
+        avg_time_per_frame
     );
 }
