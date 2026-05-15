@@ -34,10 +34,12 @@ I need you to build a standalone Rust CLI tool that tests the original, pristine
         4. Retrieve the uncompressed YUV frame using `vpx_codec_get_frame`.
         5. Destroy the decoder context when finished.
 
-4.  **CLI & Progress Tracking:**
+4.  **CLI, Progress Tracking, & Performance:**
     *   Use `clap` to take a directory path containing `.ivf` files as an argument.
     *   Use the `indicatif` crate to display a rich, live progress bar as the tool crunches through the test vectors.
-    *   The CLI should output a final report: "X out of Y vectors decoded successfully by the C Oracle."
+    *   Implement lightweight performance tracking by default (e.g., simple timing of the decode calls) to catch severe regressions early.
+    *   Add an optional `--extensive-perf` flag for rigorous statistical benchmarking (using `criterion` or similar) to verify the decoder's speed against the original C baseline.
+    *   The CLI should output a final report: "X out of Y vectors decoded successfully by the C Oracle in Z ms/frame."
 
 5.  **Architecture for the Future:**
     *   Structure the code so that an `Interface` or `Trait` defines a `VideoDecoder`.

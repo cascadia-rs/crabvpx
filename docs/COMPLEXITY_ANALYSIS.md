@@ -184,6 +184,7 @@ Instead of porting the upstream Google Test (gtest) C++ framework, we can build 
 *   **Total Confidence:** If every frame of every test vector matches bit-for-bit, we have absolute mathematical confidence that our idiomatic Rust refactoring has not introduced regressions.
 *   **Fast Iteration:** We can run `cargo test` natively without wrestling with complex C++ test build configurations (like gtest integrations).
 *   **Fuzzing Ready:** By having both decoders exposed to Rust, we can trivially hook them up to `cargo fuzz` (libFuzzer). We generate random corrupted packets, feed them to both decoders, and assert that if the C decoder errors out, the Rust decoder also safely errors out without crashing or panicking.
+*   **Performance Benchmarking:** By running the same vectors through both decoders, the harness can inherently track performance. We can do lightweight timing by default to catch severe regressions, and offer an `--extensive-perf` flag to run statistically significant benchmarks (e.g., using `criterion`) to ensure the idiomatic Rust matches the speed of the optimized C code.
 
 ## 9. The "Zero-Regression" Baseline & Progress Tracking
 
