@@ -24,14 +24,14 @@ This will install `just` via `cargo`.
 
 We use a unified interface for our common tasks. Once `just` is installed, you can use the following commands:
 
-- **`just harness`**: Runs the differential test harness. This verifies the Rust implementation against the C Oracle using official VP8 test vectors.
+- **`just compare`**: Runs differential testing. This verifies the Rust implementation against the C Oracle using official VP8 test vectors.
 - **`just bench`**: Runs statistical performance benchmarks and generates a distribution analysis.
 - **`just analyze`**: Runs a complexity analysis to track technical debt (unsafe blocks, `static mut`, etc.).
 - **`just clean`**: Cleans build artifacts for both Rust and C components.
 
 ### Legacy Support
 
-If you prefer not to use `just`, or are in an environment where it isn't available, the `Makefile` in the root directory provides a backwards-compatible wrapper for these commands (e.g., `make harness`).
+If you prefer not to use `just`, or are in an environment where it isn't available, the `Makefile` in the root directory provides a backwards-compatible wrapper for these commands (e.g., `make compare`).
 
 ## Project Structure
 

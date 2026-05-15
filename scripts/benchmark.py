@@ -59,10 +59,10 @@ def calculate_stats(times: List[float]) -> Tuple[float, float]:
     return avg, sigma
 
 
-def run_harness(root_dir: Path, runs: int) -> str:
-    """Executes the run_harness.py script and captures its output."""
+def run_compare(root_dir: Path, runs: int) -> str:
+    """Executes the compare.py script and captures its output."""
     print(f"Running performance benchmark ({runs} runs)...")
-    script_path = root_dir / "scripts" / "run_harness.py"
+    script_path = root_dir / "scripts" / "compare.py"
     try:
         proc = subprocess.run(
             [sys.executable, str(script_path), "-b", "--runs", str(runs)],
@@ -72,7 +72,7 @@ def run_harness(root_dir: Path, runs: int) -> str:
         )
         return proc.stdout
     except subprocess.CalledProcessError as err:
-        print(f"Error: Harness failed with exit code {err.returncode}")
+        print(f"Error: Comparison failed with exit code {err.returncode}")
         print(err.stderr)
         sys.exit(1)
 
@@ -187,7 +187,7 @@ def main():
     args = parser.parse_args()
 
     root_dir = Path(__file__).resolve().parent.parent
-    output = run_harness(root_dir, args.runs)
+    output = run_compare(root_dir, args.runs)
     results = extract_metrics(output)
     
     if "oracle" not in results or "rust" not in results:

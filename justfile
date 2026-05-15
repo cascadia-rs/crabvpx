@@ -4,9 +4,9 @@
 default:
     @just --list
 
-# Run the differential test harness (Oracle vs Rust)
-harness *args:
-    ./scripts/run_harness.py {{args}}
+# Run differential testing (Oracle vs Rust)
+compare *args:
+    ./scripts/compare.py {{args}}
 
 # Run performance benchmarks with statistical distribution
 bench *args:
