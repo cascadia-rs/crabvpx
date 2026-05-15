@@ -551,26 +551,11 @@ unsafe extern "C" fn GetSigned(
     mut br: *mut BOOL_DECODER,
     mut value_to_sign: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int { unsafe {
-    let mut split: ::core::ffi::c_int = ((*br).range.wrapping_add(1 as ::core::ffi::c_uint)
-        >> 1 as ::core::ffi::c_int) as ::core::ffi::c_int;
-    let mut bigsplit: VP8_BD_VALUE =
-        (split as VP8_BD_VALUE) << VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int;
-    let mut v: ::core::ffi::c_int = 0;
-    if (*br).count < 0 as ::core::ffi::c_int {
-        vp8dx_bool_decoder_fill(br);
-    }
-    if (*br).value < bigsplit {
-        (*br).range = split as ::core::ffi::c_uint;
-        v = value_to_sign;
+    if vp8dx_decode_bool(br, 128 as ::core::ffi::c_int) != 0 {
+        -value_to_sign
     } else {
-        (*br).range = (*br).range.wrapping_sub(split as ::core::ffi::c_uint);
-        (*br).value = (*br).value.wrapping_sub(bigsplit);
-        v = -value_to_sign;
+        value_to_sign
     }
-    (*br).range = (*br).range.wrapping_add((*br).range);
-    (*br).value = (*br).value.wrapping_add((*br).value);
-    (*br).count -= 1;
-    return v;
 }}
 unsafe extern "C" fn GetCoeffs(
     mut br: *mut BOOL_DECODER,
