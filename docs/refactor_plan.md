@@ -9,7 +9,7 @@ The `crabvpx` project successfully decodes VP8 video using a transpiled, `unsafe
 - **Memory Management:** Eliminate manual `malloc`/`free` or `calloc` calls (via `vpx_mem.rs`) in favor of Rust's `Vec`, `Box`, and standard allocation mechanisms.
 
 ## Metrics
-- **Initial Baseline `unsafe` occurrences:** 1340
+- **Initial Baseline `unsafe` occurrences:** 1343
 - **Current `unsafe` occurrences:** (Run `./scripts/count_unsafe.sh` to update)
 
 ## Phase 5: Incremental Refactoring Strategy

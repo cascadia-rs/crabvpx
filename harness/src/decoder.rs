@@ -102,29 +102,14 @@ impl VideoDecoder for LibVpxOracleDecoder {
 
 #[cfg(feature = "rust")]
 pub struct CrabVpxDecoder {
-    ctx: crabvpx::vpx::src::vpx_decoder::vpx_codec_ctx_t,
-    initialized: bool,
+    inner: crabvpx::api::Vp8Decoder,
 }
 
 #[cfg(feature = "rust")]
 impl CrabVpxDecoder {
     pub fn new() -> Self {
         Self {
-            ctx: unsafe { std::mem::zeroed() },
-            initialized: false,
-        }
-    }
-}
-
-#[cfg(feature = "rust")]
-impl Drop for CrabVpxDecoder {
-    fn drop(&mut self) {
-        if self.initialized {
-            unsafe {
-                crabvpx::vpx::src::vpx_codec::vpx_codec_destroy(
-                    &mut self.ctx as *mut _ as *mut crabvpx::vpx::src::vpx_codec::vpx_codec_ctx_t
-                );
-            }
+            inner: crabvpx::api::Vp8Decoder::new(),
         }
     }
 }
@@ -132,59 +117,17 @@ impl Drop for CrabVpxDecoder {
 #[cfg(feature = "rust")]
 impl VideoDecoder for CrabVpxDecoder {
     fn init(&mut self) -> Result<(), String> {
-        let res = unsafe {
-            crabvpx::vpx::src::vpx_decoder::vpx_codec_dec_init_ver(
-                &mut self.ctx,
-                crabvpx::vp8::vp8_dx_iface::vpx_codec_vp8_dx() as *const _,
-                std::ptr::null(),
-                0,
-                crabvpx::vpx::src::vpx_decoder::VPX_DECODER_ABI_VERSION,
-            )
-        };
-        if res == crabvpx::vpx::src::vpx_decoder::VPX_CODEC_OK {
-            self.initialized = true;
-            Ok(())
-        } else {
-            Err(format!("vpx_codec_dec_init_ver failed: {}", res))
-        }
+        use crabvpx::api::Decoder;
+        self.inner.init()
     }
 
     fn decode_frame(&mut self, payload: &[u8]) -> Result<(), String> {
-        if !self.initialized {
-            return Err("Decoder not initialized".to_string());
-        }
-
-        let res = unsafe {
-            crabvpx::vpx::src::vpx_decoder::vpx_codec_decode(
-                &mut self.ctx,
-                payload.as_ptr(),
-                payload.len() as u32,
-                std::ptr::null_mut(),
-                0,
-            )
-        };
-
-        if res == crabvpx::vpx::src::vpx_decoder::VPX_CODEC_OK {
-            Ok(())
-        } else {
-            Err(format!("vpx_codec_decode failed: {}", res))
-        }
+        use crabvpx::api::Decoder;
+        self.inner.decode(payload)
     }
 
     fn get_frame(&mut self) -> Result<Option<()>, String> {
-        if !self.initialized {
-            return Err("Decoder not initialized".to_string());
-        }
-
-        let mut iter: crabvpx::vpx::src::vpx_decoder::vpx_codec_iter_t = std::ptr::null();
-        let img = unsafe {
-            crabvpx::vpx::src::vpx_decoder::vpx_codec_get_frame(&mut self.ctx, &mut iter)
-        };
-
-        if img.is_null() {
-            Ok(None)
-        } else {
-            Ok(Some(()))
-        }
+        use crabvpx::api::Decoder;
+        self.inner.get_frame()
     }
 }

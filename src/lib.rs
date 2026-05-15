@@ -10,6 +10,7 @@
 #![feature(extern_types)]
 #![feature(raw_ref_op)]
 
+pub mod api;
 pub mod vp8 {
     pub mod common {
         pub mod alloccommon;

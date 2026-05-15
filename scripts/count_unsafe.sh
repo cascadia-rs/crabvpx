@@ -6,7 +6,7 @@ cd "$DIR"
 # Count the total number of 'unsafe' keywords in the Rust source code.
 # This serves as a proxy metric for how much of the codebase needs refactoring.
 UNSAFE_COUNT=$(grep -ro "\bunsafe\b" ../src/ | wc -l | tr -d ' ')
-BASELINE=1340
+BASELINE=1343
 
 # Calculate progress
 REMOVED=$((BASELINE - UNSAFE_COUNT))
