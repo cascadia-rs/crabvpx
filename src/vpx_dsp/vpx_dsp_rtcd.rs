@@ -1,5 +1,4 @@
 unsafe extern "C" {
-    fn arm_cpu_caps() -> ::core::ffi::c_int;
     fn pthread_once(
         _: *mut pthread_once_t,
         _: Option<unsafe extern "C" fn() -> ()>,
@@ -12,27 +11,15 @@ pub struct _opaque_pthread_once_t {
     pub __opaque: [::core::ffi::c_char; 8],
 }
 pub type __darwin_pthread_once_t = _opaque_pthread_once_t;
-pub type pthread_once_t = __darwin_pthread_once_t;
-unsafe extern "C" fn setup_rtcd_internal() { unsafe {
-    let mut flags: ::core::ffi::c_int = arm_cpu_caps();
-}}
+pub type pthread_once_t = *mut ::core::ffi::c_void;
+unsafe extern "C" fn setup_rtcd_internal() {}
 pub const _PTHREAD_ONCE_SIG_init: ::core::ffi::c_int = 0x30b1bcba as ::core::ffi::c_int;
-unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) { unsafe {
-    static mut lock: pthread_once_t = _opaque_pthread_once_t {
-        __sig: _PTHREAD_ONCE_SIG_init as ::core::ffi::c_long,
-        __opaque: [
-            0 as ::core::ffi::c_int as ::core::ffi::c_char,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-    };
-    pthread_once(&raw mut lock, func as Option<unsafe extern "C" fn() -> ()>);
-}}
+unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
+    static INIT: std::sync::Once = std::sync::Once::new();
+    if let Some(f) = func {
+        INIT.call_once(|| f());
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dsp_rtcd() { unsafe {
     once(Some(setup_rtcd_internal as unsafe extern "C" fn() -> ()));

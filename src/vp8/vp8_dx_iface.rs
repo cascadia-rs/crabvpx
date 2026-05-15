@@ -692,10 +692,10 @@ pub struct mv_context {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info_n {
-    pub mblim: [[::core::ffi::c_uchar; 1]; 64],
-    pub blim: [[::core::ffi::c_uchar; 1]; 64],
-    pub lim: [[::core::ffi::c_uchar; 1]; 64],
-    pub hev_thr: [[::core::ffi::c_uchar; 1]; 4],
+    pub mblim: [[::core::ffi::c_uchar; 16]; 64],
+    pub blim: [[::core::ffi::c_uchar; 16]; 64],
+    pub lim: [[::core::ffi::c_uchar; 16]; 64],
+    pub hev_thr: [[::core::ffi::c_uchar; 16]; 4],
     pub lvl: [[[::core::ffi::c_uchar; 4]; 4]; 4],
     pub hev_thr_lut: [[::core::ffi::c_uchar; 64]; 2],
     pub mode_lf_lut: [::core::ffi::c_uchar; 10],
@@ -1048,7 +1048,7 @@ pub const MAX_PARTITIONS: ::core::ffi::c_int = 9 as ::core::ffi::c_int;
 unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int { unsafe {
-    return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
+return (*((&raw const (*atomic).value) as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
 }}
 unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi::c_int { unsafe {
     let mut priv_0: *mut vpx_codec_alg_priv_t = vpx_calloc(

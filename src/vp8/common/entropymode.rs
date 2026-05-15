@@ -152,10 +152,10 @@ pub const NORMAL_LOOPFILTER: LOOPFILTERTYPE = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info_n {
-    pub mblim: [[::core::ffi::c_uchar; 1]; 64],
-    pub blim: [[::core::ffi::c_uchar; 1]; 64],
-    pub lim: [[::core::ffi::c_uchar; 1]; 64],
-    pub hev_thr: [[::core::ffi::c_uchar; 1]; 4],
+    pub mblim: [[::core::ffi::c_uchar; 16]; 64],
+    pub blim: [[::core::ffi::c_uchar; 16]; 64],
+    pub lim: [[::core::ffi::c_uchar; 16]; 64],
+    pub hev_thr: [[::core::ffi::c_uchar; 16]; 4],
     pub lvl: [[[::core::ffi::c_uchar; 4]; 4]; 4],
     pub hev_thr_lut: [[::core::ffi::c_uchar; 64]; 2],
     pub mode_lf_lut: [::core::ffi::c_uchar; 10],

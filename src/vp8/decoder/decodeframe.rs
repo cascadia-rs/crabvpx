@@ -1,5 +1,5 @@
 unsafe extern "C" {
-    fn vp8_bilinear_predict16x16_neon(
+    fn vp8_bilinear_predict16x16_c(
         src_ptr: *mut ::core::ffi::c_uchar,
         src_pixels_per_line: ::core::ffi::c_int,
         xoffset: ::core::ffi::c_int,
@@ -7,7 +7,7 @@ unsafe extern "C" {
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_pitch: ::core::ffi::c_int,
     );
-    fn vp8_bilinear_predict4x4_neon(
+    fn vp8_bilinear_predict4x4_c(
         src_ptr: *mut ::core::ffi::c_uchar,
         src_pixels_per_line: ::core::ffi::c_int,
         xoffset: ::core::ffi::c_int,
@@ -15,7 +15,7 @@ unsafe extern "C" {
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_pitch: ::core::ffi::c_int,
     );
-    fn vp8_bilinear_predict8x4_neon(
+    fn vp8_bilinear_predict8x4_c(
         src_ptr: *mut ::core::ffi::c_uchar,
         src_pixels_per_line: ::core::ffi::c_int,
         xoffset: ::core::ffi::c_int,
@@ -23,7 +23,7 @@ unsafe extern "C" {
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_pitch: ::core::ffi::c_int,
     );
-    fn vp8_bilinear_predict8x8_neon(
+    fn vp8_bilinear_predict8x8_c(
         src_ptr: *mut ::core::ffi::c_uchar,
         src_pixels_per_line: ::core::ffi::c_int,
         xoffset: ::core::ffi::c_int,
@@ -31,20 +31,20 @@ unsafe extern "C" {
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_pitch: ::core::ffi::c_int,
     );
-    fn vp8_dc_only_idct_add_neon(
+    fn vp8_dc_only_idct_add_c(
         input_dc: ::core::ffi::c_short,
         pred_ptr: *mut ::core::ffi::c_uchar,
         pred_stride: ::core::ffi::c_int,
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_stride: ::core::ffi::c_int,
     );
-    fn vp8_dequant_idct_add_neon(
+    fn vp8_dequant_idct_add_c(
         input: *mut ::core::ffi::c_short,
         dq: *mut ::core::ffi::c_short,
         dest: *mut ::core::ffi::c_uchar,
         stride: ::core::ffi::c_int,
     );
-    fn vp8_dequant_idct_add_uv_block_neon(
+    fn vp8_dequant_idct_add_uv_block_c(
         q: *mut ::core::ffi::c_short,
         dq: *mut ::core::ffi::c_short,
         dst_u: *mut ::core::ffi::c_uchar,
@@ -52,15 +52,15 @@ unsafe extern "C" {
         stride: ::core::ffi::c_int,
         eobs: *mut ::core::ffi::c_char,
     );
-    fn vp8_dequant_idct_add_y_block_neon(
+    fn vp8_dequant_idct_add_y_block_c(
         q: *mut ::core::ffi::c_short,
         dq: *mut ::core::ffi::c_short,
         dst: *mut ::core::ffi::c_uchar,
         stride: ::core::ffi::c_int,
         eobs: *mut ::core::ffi::c_char,
     );
-    fn vp8_dequantize_b_neon(_: *mut blockd, DQC: *mut ::core::ffi::c_short);
-    fn vp8_short_inv_walsh4x4_neon(
+    fn vp8_dequantize_b_c(_: *mut blockd, DQC: *mut ::core::ffi::c_short);
+    fn vp8_short_inv_walsh4x4_c(
         input: *mut ::core::ffi::c_short,
         mb_dqcoeff: *mut ::core::ffi::c_short,
     );
@@ -68,7 +68,7 @@ unsafe extern "C" {
         input: *mut ::core::ffi::c_short,
         mb_dqcoeff: *mut ::core::ffi::c_short,
     );
-    fn vp8_sixtap_predict16x16_neon(
+    fn vp8_sixtap_predict16x16_c(
         src_ptr: *mut ::core::ffi::c_uchar,
         src_pixels_per_line: ::core::ffi::c_int,
         xoffset: ::core::ffi::c_int,
@@ -76,7 +76,7 @@ unsafe extern "C" {
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_pitch: ::core::ffi::c_int,
     );
-    fn vp8_sixtap_predict4x4_neon(
+    fn vp8_sixtap_predict4x4_c(
         src_ptr: *mut ::core::ffi::c_uchar,
         src_pixels_per_line: ::core::ffi::c_int,
         xoffset: ::core::ffi::c_int,
@@ -84,7 +84,7 @@ unsafe extern "C" {
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_pitch: ::core::ffi::c_int,
     );
-    fn vp8_sixtap_predict8x4_neon(
+    fn vp8_sixtap_predict8x4_c(
         src_ptr: *mut ::core::ffi::c_uchar,
         src_pixels_per_line: ::core::ffi::c_int,
         xoffset: ::core::ffi::c_int,
@@ -92,7 +92,7 @@ unsafe extern "C" {
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_pitch: ::core::ffi::c_int,
     );
-    fn vp8_sixtap_predict8x8_neon(
+    fn vp8_sixtap_predict8x8_c(
         src_ptr: *mut ::core::ffi::c_uchar,
         src_pixels_per_line: ::core::ffi::c_int,
         xoffset: ::core::ffi::c_int,
@@ -626,10 +626,10 @@ pub struct mv_context {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info_n {
-    pub mblim: [[::core::ffi::c_uchar; 1]; 64],
-    pub blim: [[::core::ffi::c_uchar; 1]; 64],
-    pub lim: [[::core::ffi::c_uchar; 1]; 64],
-    pub hev_thr: [[::core::ffi::c_uchar; 1]; 4],
+    pub mblim: [[::core::ffi::c_uchar; 16]; 64],
+    pub blim: [[::core::ffi::c_uchar; 16]; 64],
+    pub lim: [[::core::ffi::c_uchar; 16]; 64],
+    pub hev_thr: [[::core::ffi::c_uchar; 16]; 4],
     pub lvl: [[[::core::ffi::c_uchar; 4]; 4]; 4],
     pub hev_thr_lut: [[::core::ffi::c_uchar; 64]; 2],
     pub mode_lf_lut: [::core::ffi::c_uchar; 10],
@@ -744,7 +744,7 @@ pub const QINDEX_RANGE: ::core::ffi::c_int = MAXQ + 1 as ::core::ffi::c_int;
 unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int { unsafe {
-    return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
+return (*((&raw const (*atomic).value) as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
 }}
 #[inline]
 unsafe extern "C" fn intra_prediction_down_copy(
@@ -944,9 +944,9 @@ unsafe extern "C" fn decode_macroblock(
                 vp8_intra4x4_predict(Above, yleft, left_stride, b_mode, dst, dst_stride, top_left);
                 if (*xd).eobs[i as usize] != 0 {
                     if (*xd).eobs[i as usize] as ::core::ffi::c_int > 1 as ::core::ffi::c_int {
-                        vp8_dequant_idct_add_neon((*b).qcoeff, DQC, dst, dst_stride);
+                        vp8_dequant_idct_add_c((*b).qcoeff, DQC, dst, dst_stride);
                     } else {
-                        vp8_dc_only_idct_add_neon(
+                        vp8_dc_only_idct_add_c(
                             (*(*b).qcoeff.offset(0 as ::core::ffi::c_int as isize)
                                 as ::core::ffi::c_int
                                 * *DQC.offset(0 as ::core::ffi::c_int as isize)
@@ -983,11 +983,11 @@ unsafe extern "C" fn decode_macroblock(
                 if (*xd).eobs[24 as ::core::ffi::c_int as usize] as ::core::ffi::c_int
                     > 1 as ::core::ffi::c_int
                 {
-                    vp8_dequantize_b_neon(
+                    vp8_dequantize_b_c(
                         b_0 as *mut blockd,
                         &raw mut (*xd).dequant_y2 as *mut ::core::ffi::c_short,
                     );
-                    vp8_short_inv_walsh4x4_neon(
+                    vp8_short_inv_walsh4x4_c(
                         (*b_0).dqcoeff.offset(0 as ::core::ffi::c_int as isize)
                             as *mut ::core::ffi::c_short,
                         &raw mut (*xd).qcoeff as *mut ::core::ffi::c_short,
@@ -1019,7 +1019,7 @@ unsafe extern "C" fn decode_macroblock(
                 }
                 DQC_0 = &raw mut (*xd).dequant_y1_dc as *mut ::core::ffi::c_short;
             }
-            vp8_dequant_idct_add_y_block_neon(
+            vp8_dequant_idct_add_y_block_c(
                 &raw mut (*xd).qcoeff as *mut ::core::ffi::c_short,
                 DQC_0,
                 (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
@@ -1027,7 +1027,7 @@ unsafe extern "C" fn decode_macroblock(
                 &raw mut (*xd).eobs as *mut ::core::ffi::c_char,
             );
         }
-        vp8_dequant_idct_add_uv_block_neon(
+        vp8_dequant_idct_add_uv_block_c(
             (&raw mut (*xd).qcoeff as *mut ::core::ffi::c_short)
                 .offset((16 as ::core::ffi::c_int * 16 as ::core::ffi::c_int) as isize),
             &raw mut (*xd).dequant_uv as *mut ::core::ffi::c_short,
@@ -1800,7 +1800,7 @@ unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
     } else {
         if (*pc).use_bilinear_mc_filter == 0 {
             (*xd).subpixel_predict = Some(
-                vp8_sixtap_predict4x4_neon
+                vp8_sixtap_predict4x4_c
                     as unsafe extern "C" fn(
                         *mut ::core::ffi::c_uchar,
                         ::core::ffi::c_int,
@@ -1811,7 +1811,7 @@ unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
                     ) -> (),
             ) as vp8_subpix_fn_t;
             (*xd).subpixel_predict8x4 = Some(
-                vp8_sixtap_predict8x4_neon
+                vp8_sixtap_predict8x4_c
                     as unsafe extern "C" fn(
                         *mut ::core::ffi::c_uchar,
                         ::core::ffi::c_int,
@@ -1822,7 +1822,7 @@ unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
                     ) -> (),
             ) as vp8_subpix_fn_t;
             (*xd).subpixel_predict8x8 = Some(
-                vp8_sixtap_predict8x8_neon
+                vp8_sixtap_predict8x8_c
                     as unsafe extern "C" fn(
                         *mut ::core::ffi::c_uchar,
                         ::core::ffi::c_int,
@@ -1833,7 +1833,7 @@ unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
                     ) -> (),
             ) as vp8_subpix_fn_t;
             (*xd).subpixel_predict16x16 = Some(
-                vp8_sixtap_predict16x16_neon
+                vp8_sixtap_predict16x16_c
                     as unsafe extern "C" fn(
                         *mut ::core::ffi::c_uchar,
                         ::core::ffi::c_int,
@@ -1845,7 +1845,7 @@ unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
             ) as vp8_subpix_fn_t;
         } else {
             (*xd).subpixel_predict = Some(
-                vp8_bilinear_predict4x4_neon
+                vp8_bilinear_predict4x4_c
                     as unsafe extern "C" fn(
                         *mut ::core::ffi::c_uchar,
                         ::core::ffi::c_int,
@@ -1856,7 +1856,7 @@ unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
                     ) -> (),
             ) as vp8_subpix_fn_t;
             (*xd).subpixel_predict8x4 = Some(
-                vp8_bilinear_predict8x4_neon
+                vp8_bilinear_predict8x4_c
                     as unsafe extern "C" fn(
                         *mut ::core::ffi::c_uchar,
                         ::core::ffi::c_int,
@@ -1867,7 +1867,7 @@ unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
                     ) -> (),
             ) as vp8_subpix_fn_t;
             (*xd).subpixel_predict8x8 = Some(
-                vp8_bilinear_predict8x8_neon
+                vp8_bilinear_predict8x8_c
                     as unsafe extern "C" fn(
                         *mut ::core::ffi::c_uchar,
                         ::core::ffi::c_int,
@@ -1878,7 +1878,7 @@ unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
                     ) -> (),
             ) as vp8_subpix_fn_t;
             (*xd).subpixel_predict16x16 = Some(
-                vp8_bilinear_predict16x16_neon
+                vp8_bilinear_predict16x16_c
                     as unsafe extern "C" fn(
                         *mut ::core::ffi::c_uchar,
                         ::core::ffi::c_int,

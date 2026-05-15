@@ -4,25 +4,25 @@ unsafe extern "C" {
         __src: *const ::core::ffi::c_void,
         __n: size_t,
     ) -> *mut ::core::ffi::c_void;
-    fn vpx_d117_predictor_4x4_neon(
+    fn vpx_d117_predictor_4x4_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_d135_predictor_4x4_neon(
+    fn vpx_d135_predictor_4x4_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_d153_predictor_4x4_neon(
+    fn vpx_d153_predictor_4x4_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_d207_predictor_4x4_neon(
+    fn vpx_d207_predictor_4x4_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
@@ -40,7 +40,7 @@ unsafe extern "C" {
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_dc_predictor_4x4_neon(
+    fn vpx_dc_predictor_4x4_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
@@ -52,7 +52,7 @@ unsafe extern "C" {
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_tm_predictor_4x4_neon(
+    fn vpx_tm_predictor_4x4_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
@@ -92,11 +92,11 @@ static mut pred: [intra_pred_fn; 10] = [None; 10];
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() { unsafe {
     pred[B_DC_PRED as ::core::ffi::c_int as usize] = Some(
-        vpx_dc_predictor_4x4_neon
+        vpx_dc_predictor_4x4_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     pred[B_TM_PRED as ::core::ffi::c_int as usize] = Some(
-        vpx_tm_predictor_4x4_neon
+        vpx_tm_predictor_4x4_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     pred[B_VE_PRED as ::core::ffi::c_int as usize] = Some(
@@ -112,11 +112,11 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() { unsafe {
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     pred[B_RD_PRED as ::core::ffi::c_int as usize] = Some(
-        vpx_d135_predictor_4x4_neon
+        vpx_d135_predictor_4x4_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     pred[B_VR_PRED as ::core::ffi::c_int as usize] = Some(
-        vpx_d117_predictor_4x4_neon
+        vpx_d117_predictor_4x4_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     pred[B_VL_PRED as ::core::ffi::c_int as usize] = Some(
@@ -124,11 +124,11 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() { unsafe {
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     pred[B_HD_PRED as ::core::ffi::c_int as usize] = Some(
-        vpx_d153_predictor_4x4_neon
+        vpx_d153_predictor_4x4_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     pred[B_HU_PRED as ::core::ffi::c_int as usize] = Some(
-        vpx_d207_predictor_4x4_neon
+        vpx_d207_predictor_4x4_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
 }}
@@ -145,7 +145,7 @@ pub unsafe extern "C" fn vp8_intra4x4_predict(
     let mut Aboveb: [::core::ffi::c_uchar; 12] = [0; 12];
     let mut Above: *mut ::core::ffi::c_uchar =
         (&raw mut Aboveb as *mut ::core::ffi::c_uchar).offset(4 as ::core::ffi::c_int as isize);
-    let mut Left: [::core::ffi::c_uchar; 8] = [0; 8];
+    let mut Left: [::core::ffi::c_uchar; 4] = [0; 4];
     Left[0 as ::core::ffi::c_int as usize] = *yleft.offset(0 as ::core::ffi::c_int as isize);
     Left[1 as ::core::ffi::c_int as usize] = *yleft.offset(left_stride as isize);
     Left[2 as ::core::ffi::c_int as usize] =

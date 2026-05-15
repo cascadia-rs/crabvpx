@@ -4,24 +4,6 @@ unsafe extern "C" {
         __src: *const ::core::ffi::c_void,
         __n: size_t,
     ) -> *mut ::core::ffi::c_void;
-    fn vp8_copy_mem16x16_neon(
-        src: *mut ::core::ffi::c_uchar,
-        src_stride: ::core::ffi::c_int,
-        dst: *mut ::core::ffi::c_uchar,
-        dst_stride: ::core::ffi::c_int,
-    );
-    fn vp8_copy_mem8x4_neon(
-        src: *mut ::core::ffi::c_uchar,
-        src_stride: ::core::ffi::c_int,
-        dst: *mut ::core::ffi::c_uchar,
-        dst_stride: ::core::ffi::c_int,
-    );
-    fn vp8_copy_mem8x8_neon(
-        src: *mut ::core::ffi::c_uchar,
-        src_stride: ::core::ffi::c_int,
-        dst: *mut ::core::ffi::c_uchar,
-        dst_stride: ::core::ffi::c_int,
-    );
 }
 pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
@@ -383,7 +365,7 @@ unsafe extern "C" fn build_inter_predictors4b(
             dst_stride,
         );
     } else {
-        vp8_copy_mem8x8_neon(ptr, pre_stride, dst, dst_stride);
+        vp8_copy_mem8x8_c(ptr, pre_stride, dst, dst_stride);
     };
 }}
 unsafe extern "C" fn build_inter_predictors2b(
@@ -414,7 +396,7 @@ unsafe extern "C" fn build_inter_predictors2b(
             dst_stride,
         );
     } else {
-        vp8_copy_mem8x4_neon(ptr, pre_stride, dst, dst_stride);
+        vp8_copy_mem8x4_c(ptr, pre_stride, dst, dst_stride);
     };
 }}
 unsafe extern "C" fn build_inter_predictors_b(
@@ -513,8 +495,8 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mbuv(mut x: *mut MACROB
             8 as ::core::ffi::c_int,
         );
     } else {
-        vp8_copy_mem8x8_neon(uptr, pre_stride, upred_ptr, 8 as ::core::ffi::c_int);
-        vp8_copy_mem8x8_neon(vptr, pre_stride, vpred_ptr, 8 as ::core::ffi::c_int);
+        vp8_copy_mem8x8_c(uptr, pre_stride, upred_ptr, 8 as ::core::ffi::c_int);
+        vp8_copy_mem8x8_c(vptr, pre_stride, vpred_ptr, 8 as ::core::ffi::c_int);
     };
 }}
 #[unsafe(no_mangle)]
@@ -686,7 +668,7 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mby(
             dst_ystride,
         );
     } else {
-        vp8_copy_mem16x16_neon(ptr, pre_stride, dst_y, dst_ystride);
+        vp8_copy_mem16x16_c(ptr, pre_stride, dst_y, dst_ystride);
     };
 }}
 unsafe extern "C" fn clamp_mv_to_umv_border(mut mv: *mut MV, mut xd: *const MACROBLOCKD) { unsafe {
@@ -787,7 +769,7 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mb(
             dst_ystride,
         );
     } else {
-        vp8_copy_mem16x16_neon(ptr, pre_stride, dst_y, dst_ystride);
+        vp8_copy_mem16x16_c(ptr, pre_stride, dst_y, dst_ystride);
     }
     _16x16mv.as_mv.row = (_16x16mv.as_mv.row as ::core::ffi::c_int
         + (1 as ::core::ffi::c_int
@@ -843,8 +825,8 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mb(
             dst_uvstride,
         );
     } else {
-        vp8_copy_mem8x8_neon(uptr, pre_stride, dst_u, dst_uvstride);
-        vp8_copy_mem8x8_neon(vptr, pre_stride, dst_v, dst_uvstride);
+        vp8_copy_mem8x8_c(uptr, pre_stride, dst_u, dst_uvstride);
+        vp8_copy_mem8x8_c(vptr, pre_stride, dst_v, dst_uvstride);
     };
 }}
 unsafe extern "C" fn build_inter4x4_predictors_mb(mut x: *mut MACROBLOCKD) { unsafe {

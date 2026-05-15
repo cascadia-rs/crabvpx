@@ -277,10 +277,10 @@ pub const NORMAL_LOOPFILTER: LOOPFILTERTYPE = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info_n {
-    pub mblim: [[::core::ffi::c_uchar; 1]; 64],
-    pub blim: [[::core::ffi::c_uchar; 1]; 64],
-    pub lim: [[::core::ffi::c_uchar; 1]; 64],
-    pub hev_thr: [[::core::ffi::c_uchar; 1]; 4],
+    pub mblim: [[::core::ffi::c_uchar; 16]; 64],
+    pub blim: [[::core::ffi::c_uchar; 16]; 64],
+    pub lim: [[::core::ffi::c_uchar; 16]; 64],
+    pub hev_thr: [[::core::ffi::c_uchar; 16]; 4],
     pub lvl: [[[::core::ffi::c_uchar; 4]; 4]; 4],
     pub hev_thr_lut: [[::core::ffi::c_uchar; 64]; 2],
     pub mode_lf_lut: [::core::ffi::c_uchar; 10],
@@ -496,7 +496,7 @@ pub struct vp8_reader {
     pub decrypt_state: *mut ::core::ffi::c_void,
 }
 pub type VP8_BD_VALUE = size_t;
-pub type pthread_once_t = __darwin_pthread_once_t;
+pub type pthread_once_t = *mut ::core::ffi::c_void;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct frame_buffers {
@@ -505,29 +505,19 @@ pub struct frame_buffers {
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
 pub const _PTHREAD_ONCE_SIG_init: ::core::ffi::c_int = 0x30b1bcba as ::core::ffi::c_int;
 pub const NUM_YV12_BUFFERS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
-unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) { unsafe {
-    static mut lock: pthread_once_t = _opaque_pthread_once_t {
-        __sig: _PTHREAD_ONCE_SIG_init as ::core::ffi::c_long,
-        __opaque: [
-            0 as ::core::ffi::c_int as ::core::ffi::c_char,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-    };
-    pthread_once(&raw mut lock, func as Option<unsafe extern "C" fn() -> ()>);
-}}
+unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
+    static INIT: std::sync::Once = std::sync::Once::new();
+    if let Some(f) = func {
+        INIT.call_once(|| f());
+    }
+}
 unsafe extern "C" fn initialize_dec() { unsafe {
     static mut init_done: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     if init_done == 0 {
         vpx_dsp_rtcd();
         vp8_init_intra_predictors();
         ::core::ptr::write_volatile(
-            &raw mut init_done as *mut ::core::ffi::c_int,
+            &mut init_done as *mut ::core::ffi::c_int,
             1 as ::core::ffi::c_int,
         );
     }

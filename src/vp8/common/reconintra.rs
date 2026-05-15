@@ -1,83 +1,83 @@
 unsafe extern "C" {
-    fn vpx_dc_128_predictor_16x16_neon(
+    fn vpx_dc_128_predictor_16x16_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_dc_128_predictor_8x8_neon(
+    fn vpx_dc_128_predictor_8x8_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_dc_left_predictor_16x16_neon(
+    fn vpx_dc_left_predictor_16x16_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_dc_left_predictor_8x8_neon(
+    fn vpx_dc_left_predictor_8x8_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_dc_predictor_16x16_neon(
+    fn vpx_dc_predictor_16x16_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_dc_predictor_8x8_neon(
+    fn vpx_dc_predictor_8x8_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_dc_top_predictor_16x16_neon(
+    fn vpx_dc_top_predictor_16x16_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_dc_top_predictor_8x8_neon(
+    fn vpx_dc_top_predictor_8x8_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_h_predictor_16x16_neon(
+    fn vpx_h_predictor_16x16_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_h_predictor_8x8_neon(
+    fn vpx_h_predictor_8x8_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_tm_predictor_16x16_neon(
+    fn vpx_tm_predictor_16x16_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_tm_predictor_8x8_neon(
+    fn vpx_tm_predictor_8x8_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_v_predictor_16x16_neon(
+    fn vpx_v_predictor_16x16_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
         left: *const uint8_t,
     );
-    fn vpx_v_predictor_8x8_neon(
+    fn vpx_v_predictor_8x8_c(
         dst: *mut uint8_t,
         stride: ptrdiff_t,
         above: *const uint8_t,
@@ -310,7 +310,7 @@ pub const VPX_CS_BT_709: vpx_color_space = 2;
 pub const VPX_CS_BT_601: vpx_color_space = 1;
 pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
 pub type BLOCKD = blockd;
-pub type pthread_once_t = __darwin_pthread_once_t;
+pub type pthread_once_t = *mut ::core::ffi::c_void;
 pub type MB_PREDICTION_MODE = ::core::ffi::c_uint;
 pub const MB_MODE_COUNT: MB_PREDICTION_MODE = 10;
 pub const SPLITMV: MB_PREDICTION_MODE = 9;
@@ -331,93 +331,83 @@ pub const SIZE_8: C2RustUnnamed = 1;
 pub type C2RustUnnamed = ::core::ffi::c_uint;
 pub const NUM_SIZES: C2RustUnnamed = 2;
 pub const _PTHREAD_ONCE_SIG_init: ::core::ffi::c_int = 0x30b1bcba as ::core::ffi::c_int;
-unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) { unsafe {
-    static mut lock: pthread_once_t = _opaque_pthread_once_t {
-        __sig: _PTHREAD_ONCE_SIG_init as ::core::ffi::c_long,
-        __opaque: [
-            0 as ::core::ffi::c_int as ::core::ffi::c_char,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-    };
-    pthread_once(&raw mut lock, func as Option<unsafe extern "C" fn() -> ()>);
-}}
+unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
+    static INIT: std::sync::Once = std::sync::Once::new();
+    if let Some(f) = func {
+        INIT.call_once(|| f());
+    }
+}
 static mut pred: [[intra_pred_fn; 2]; 4] = [[None; 2]; 4];
 static mut dc_pred: [[[intra_pred_fn; 2]; 2]; 2] = [[[None; 2]; 2]; 2];
 unsafe extern "C" fn vp8_init_intra_predictors_internal() { unsafe {
     pred[V_PRED as ::core::ffi::c_int as usize][SIZE_16 as ::core::ffi::c_int as usize] = Some(
-        vpx_v_predictor_16x16_neon
+        vpx_v_predictor_16x16_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     )
         as intra_pred_fn;
     pred[H_PRED as ::core::ffi::c_int as usize][SIZE_16 as ::core::ffi::c_int as usize] = Some(
-        vpx_h_predictor_16x16_neon
+        vpx_h_predictor_16x16_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     )
         as intra_pred_fn;
     pred[TM_PRED as ::core::ffi::c_int as usize][SIZE_16 as ::core::ffi::c_int as usize] = Some(
-        vpx_tm_predictor_16x16_neon
+        vpx_tm_predictor_16x16_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     )
         as intra_pred_fn;
     dc_pred[0 as ::core::ffi::c_int as usize][0 as ::core::ffi::c_int as usize]
         [SIZE_16 as ::core::ffi::c_int as usize] = Some(
-        vpx_dc_128_predictor_16x16_neon
+        vpx_dc_128_predictor_16x16_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     dc_pred[0 as ::core::ffi::c_int as usize][1 as ::core::ffi::c_int as usize]
         [SIZE_16 as ::core::ffi::c_int as usize] = Some(
-        vpx_dc_top_predictor_16x16_neon
+        vpx_dc_top_predictor_16x16_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     dc_pred[1 as ::core::ffi::c_int as usize][0 as ::core::ffi::c_int as usize]
         [SIZE_16 as ::core::ffi::c_int as usize] = Some(
-        vpx_dc_left_predictor_16x16_neon
+        vpx_dc_left_predictor_16x16_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     dc_pred[1 as ::core::ffi::c_int as usize][1 as ::core::ffi::c_int as usize]
         [SIZE_16 as ::core::ffi::c_int as usize] = Some(
-        vpx_dc_predictor_16x16_neon
+        vpx_dc_predictor_16x16_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     pred[V_PRED as ::core::ffi::c_int as usize][SIZE_8 as ::core::ffi::c_int as usize] = Some(
-        vpx_v_predictor_8x8_neon
+        vpx_v_predictor_8x8_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     )
         as intra_pred_fn;
     pred[H_PRED as ::core::ffi::c_int as usize][SIZE_8 as ::core::ffi::c_int as usize] = Some(
-        vpx_h_predictor_8x8_neon
+        vpx_h_predictor_8x8_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     )
         as intra_pred_fn;
     pred[TM_PRED as ::core::ffi::c_int as usize][SIZE_8 as ::core::ffi::c_int as usize] = Some(
-        vpx_tm_predictor_8x8_neon
+        vpx_tm_predictor_8x8_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     )
         as intra_pred_fn;
     dc_pred[0 as ::core::ffi::c_int as usize][0 as ::core::ffi::c_int as usize]
         [SIZE_8 as ::core::ffi::c_int as usize] = Some(
-        vpx_dc_128_predictor_8x8_neon
+        vpx_dc_128_predictor_8x8_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     dc_pred[0 as ::core::ffi::c_int as usize][1 as ::core::ffi::c_int as usize]
         [SIZE_8 as ::core::ffi::c_int as usize] = Some(
-        vpx_dc_top_predictor_8x8_neon
+        vpx_dc_top_predictor_8x8_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     dc_pred[1 as ::core::ffi::c_int as usize][0 as ::core::ffi::c_int as usize]
         [SIZE_8 as ::core::ffi::c_int as usize] = Some(
-        vpx_dc_left_predictor_8x8_neon
+        vpx_dc_left_predictor_8x8_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     dc_pred[1 as ::core::ffi::c_int as usize][1 as ::core::ffi::c_int as usize]
         [SIZE_8 as ::core::ffi::c_int as usize] = Some(
-        vpx_dc_predictor_8x8_neon
+        vpx_dc_predictor_8x8_c
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
     vp8_init_intra4x4_predictors_internal();

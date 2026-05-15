@@ -1,18 +1,18 @@
 unsafe extern "C" {
-    fn vp8_dc_only_idct_add_neon(
+    fn vp8_dc_only_idct_add_c(
         input_dc: ::core::ffi::c_short,
         pred_ptr: *mut ::core::ffi::c_uchar,
         pred_stride: ::core::ffi::c_int,
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_stride: ::core::ffi::c_int,
     );
-    fn vp8_dequant_idct_add_neon(
+    fn vp8_dequant_idct_add_c(
         input: *mut ::core::ffi::c_short,
         dq: *mut ::core::ffi::c_short,
         dest: *mut ::core::ffi::c_uchar,
         stride: ::core::ffi::c_int,
     );
-    fn vp8_dequant_idct_add_uv_block_neon(
+    fn vp8_dequant_idct_add_uv_block_c(
         q: *mut ::core::ffi::c_short,
         dq: *mut ::core::ffi::c_short,
         dst_u: *mut ::core::ffi::c_uchar,
@@ -20,15 +20,15 @@ unsafe extern "C" {
         stride: ::core::ffi::c_int,
         eobs: *mut ::core::ffi::c_char,
     );
-    fn vp8_dequant_idct_add_y_block_neon(
+    fn vp8_dequant_idct_add_y_block_c(
         q: *mut ::core::ffi::c_short,
         dq: *mut ::core::ffi::c_short,
         dst: *mut ::core::ffi::c_uchar,
         stride: ::core::ffi::c_int,
         eobs: *mut ::core::ffi::c_char,
     );
-    fn vp8_dequantize_b_neon(_: *mut blockd, DQC: *mut ::core::ffi::c_short);
-    fn vp8_loop_filter_bh_neon(
+    fn vp8_dequantize_b_c(_: *mut blockd, DQC: *mut ::core::ffi::c_short);
+    fn vp8_loop_filter_bh_c(
         y_ptr: *mut ::core::ffi::c_uchar,
         u_ptr: *mut ::core::ffi::c_uchar,
         v_ptr: *mut ::core::ffi::c_uchar,
@@ -36,7 +36,7 @@ unsafe extern "C" {
         uv_stride: ::core::ffi::c_int,
         lfi: *mut loop_filter_info,
     );
-    fn vp8_loop_filter_bv_neon(
+    fn vp8_loop_filter_bv_c(
         y_ptr: *mut ::core::ffi::c_uchar,
         u_ptr: *mut ::core::ffi::c_uchar,
         v_ptr: *mut ::core::ffi::c_uchar,
@@ -44,7 +44,7 @@ unsafe extern "C" {
         uv_stride: ::core::ffi::c_int,
         lfi: *mut loop_filter_info,
     );
-    fn vp8_loop_filter_mbh_neon(
+    fn vp8_loop_filter_mbh_c(
         y_ptr: *mut ::core::ffi::c_uchar,
         u_ptr: *mut ::core::ffi::c_uchar,
         v_ptr: *mut ::core::ffi::c_uchar,
@@ -52,7 +52,7 @@ unsafe extern "C" {
         uv_stride: ::core::ffi::c_int,
         lfi: *mut loop_filter_info,
     );
-    fn vp8_loop_filter_mbv_neon(
+    fn vp8_loop_filter_mbv_c(
         y_ptr: *mut ::core::ffi::c_uchar,
         u_ptr: *mut ::core::ffi::c_uchar,
         v_ptr: *mut ::core::ffi::c_uchar,
@@ -60,27 +60,27 @@ unsafe extern "C" {
         uv_stride: ::core::ffi::c_int,
         lfi: *mut loop_filter_info,
     );
-    fn vp8_loop_filter_bhs_neon(
+    fn vp8_loop_filter_bhs_c(
         y_ptr: *mut ::core::ffi::c_uchar,
         y_stride: ::core::ffi::c_int,
         blimit: *const ::core::ffi::c_uchar,
     );
-    fn vp8_loop_filter_bvs_neon(
+    fn vp8_loop_filter_bvs_c(
         y_ptr: *mut ::core::ffi::c_uchar,
         y_stride: ::core::ffi::c_int,
         blimit: *const ::core::ffi::c_uchar,
     );
-    fn vp8_loop_filter_mbhs_neon(
+    fn vp8_loop_filter_simple_horizontal_edge_c(
         y_ptr: *mut ::core::ffi::c_uchar,
         y_stride: ::core::ffi::c_int,
         blimit: *const ::core::ffi::c_uchar,
     );
-    fn vp8_loop_filter_mbvs_neon(
+    fn vp8_loop_filter_simple_vertical_edge_c(
         y_ptr: *mut ::core::ffi::c_uchar,
         y_stride: ::core::ffi::c_int,
         blimit: *const ::core::ffi::c_uchar,
     );
-    fn vp8_short_inv_walsh4x4_neon(
+    fn vp8_short_inv_walsh4x4_c(
         input: *mut ::core::ffi::c_short,
         mb_dqcoeff: *mut ::core::ffi::c_short,
     );
@@ -88,6 +88,13 @@ unsafe extern "C" {
         input: *mut ::core::ffi::c_short,
         mb_dqcoeff: *mut ::core::ffi::c_short,
     );
+    fn pthread_create(
+        _: *mut pthread_t,
+        _: *const pthread_attr_t,
+        _: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> *mut ::core::ffi::c_void>,
+        _: *mut ::core::ffi::c_void,
+    ) -> ::core::ffi::c_int;
+    fn pthread_join(_: pthread_t, _: *mut *mut ::core::ffi::c_void) -> ::core::ffi::c_int;
     fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
     fn vpx_internal_error(
         info: *mut vpx_internal_error_info,
@@ -102,6 +109,8 @@ unsafe extern "C" {
     );
     fn vp8_setup_block_dptrs(x: *mut MACROBLOCKD);
     static mut mach_task_self_: mach_port_t;
+    fn semaphore_signal(semaphore: semaphore_t) -> kern_return_t;
+    fn semaphore_wait(semaphore: semaphore_t) -> kern_return_t;
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -112,6 +121,13 @@ unsafe extern "C" {
         __c: ::core::ffi::c_int,
         __len: size_t,
     ) -> *mut ::core::ffi::c_void;
+    fn semaphore_create(
+        task: task_t,
+        semaphore: *mut semaphore_t,
+        policy: ::core::ffi::c_int,
+        value: ::core::ffi::c_int,
+    ) -> kern_return_t;
+    fn semaphore_destroy(task: task_t, semaphore: semaphore_t) -> kern_return_t;
     fn vp8_mb_init_dequantizer(pbi: *mut VP8D_COMP, xd: *mut MACROBLOCKD);
     fn vpx_memalign(align: size_t, size: size_t) -> *mut ::core::ffi::c_void;
     fn vpx_malloc(size: size_t) -> *mut ::core::ffi::c_void;
@@ -401,7 +417,7 @@ pub struct _opaque_pthread_t {
 }
 pub type __darwin_pthread_attr_t = _opaque_pthread_attr_t;
 pub type __darwin_pthread_t = *mut _opaque_pthread_t;
-pub type pthread_attr_t = __darwin_pthread_attr_t;
+pub type pthread_attr_t = *mut ::core::ffi::c_void;
 pub type pthread_t = *mut ::core::ffi::c_void;
 pub type mach_port_t = __darwin_mach_port_t;
 #[derive(Copy, Clone)]
@@ -592,10 +608,10 @@ pub struct mv_context {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info_n {
-    pub mblim: [[::core::ffi::c_uchar; 1]; 64],
-    pub blim: [[::core::ffi::c_uchar; 1]; 64],
-    pub lim: [[::core::ffi::c_uchar; 1]; 64],
-    pub hev_thr: [[::core::ffi::c_uchar; 1]; 4],
+    pub mblim: [[::core::ffi::c_uchar; 16]; 64],
+    pub blim: [[::core::ffi::c_uchar; 16]; 64],
+    pub lim: [[::core::ffi::c_uchar; 16]; 64],
+    pub hev_thr: [[::core::ffi::c_uchar; 16]; 4],
     pub lvl: [[[::core::ffi::c_uchar; 4]; 4]; 4],
     pub hev_thr_lut: [[::core::ffi::c_uchar; 64]; 2],
     pub mode_lf_lut: [::core::ffi::c_uchar; 10],
@@ -659,7 +675,7 @@ unsafe extern "C" fn vpx_atomic_store_release(
 unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int { unsafe {
-    return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
+    return (*(atomic as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
 }}
 #[inline]
 unsafe extern "C" fn vp8_atomic_spin_wait(
@@ -667,7 +683,9 @@ unsafe extern "C" fn vp8_atomic_spin_wait(
     mut last_row_current_mb_col: *const vpx_atomic_int,
     nsync: ::core::ffi::c_int,
 ) { unsafe {
-    while mb_col > vpx_atomic_load_acquire(last_row_current_mb_col) - nsync {}
+    while mb_col > vpx_atomic_load_acquire(last_row_current_mb_col) - nsync {
+        std::thread::yield_now();
+    }
 }}
 #[inline]
 unsafe extern "C" fn intra_prediction_down_copy(
@@ -901,9 +919,9 @@ unsafe extern "C" fn mt_decode_macroblock(
                 vp8_intra4x4_predict(Above, yleft, left_stride, b_mode, dst, dst_stride, top_left);
                 if (*xd).eobs[i as usize] != 0 {
                     if (*xd).eobs[i as usize] as ::core::ffi::c_int > 1 as ::core::ffi::c_int {
-                        vp8_dequant_idct_add_neon((*b).qcoeff, DQC, dst, dst_stride);
+                        vp8_dequant_idct_add_c((*b).qcoeff, DQC, dst, dst_stride);
                     } else {
-                        vp8_dc_only_idct_add_neon(
+                        vp8_dc_only_idct_add_c(
                             (*(*b).qcoeff.offset(0 as ::core::ffi::c_int as isize)
                                 as ::core::ffi::c_int
                                 * *DQC.offset(0 as ::core::ffi::c_int as isize)
@@ -940,11 +958,11 @@ unsafe extern "C" fn mt_decode_macroblock(
                 if (*xd).eobs[24 as ::core::ffi::c_int as usize] as ::core::ffi::c_int
                     > 1 as ::core::ffi::c_int
                 {
-                    vp8_dequantize_b_neon(
+                    vp8_dequantize_b_c(
                         b_0 as *mut blockd,
                         &raw mut (*xd).dequant_y2 as *mut ::core::ffi::c_short,
                     );
-                    vp8_short_inv_walsh4x4_neon(
+                    vp8_short_inv_walsh4x4_c(
                         (*b_0).dqcoeff.offset(0 as ::core::ffi::c_int as isize)
                             as *mut ::core::ffi::c_short,
                         &raw mut (*xd).qcoeff as *mut ::core::ffi::c_short,
@@ -976,7 +994,7 @@ unsafe extern "C" fn mt_decode_macroblock(
                 }
                 DQC_0 = &raw mut (*xd).dequant_y1_dc as *mut ::core::ffi::c_short;
             }
-            vp8_dequant_idct_add_y_block_neon(
+            vp8_dequant_idct_add_y_block_c(
                 &raw mut (*xd).qcoeff as *mut ::core::ffi::c_short,
                 DQC_0,
                 (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
@@ -984,7 +1002,7 @@ unsafe extern "C" fn mt_decode_macroblock(
                 &raw mut (*xd).eobs as *mut ::core::ffi::c_char,
             );
         }
-        vp8_dequant_idct_add_uv_block_neon(
+        vp8_dequant_idct_add_uv_block_c(
             (&raw mut (*xd).qcoeff as *mut ::core::ffi::c_short)
                 .offset((16 as ::core::ffi::c_int * 16 as ::core::ffi::c_int) as isize),
             &raw mut (*xd).dequant_uv as *mut ::core::ffi::c_short,
@@ -1321,23 +1339,23 @@ unsafe extern "C" fn mt_decode_mb_rows(
                             [frame_type as usize][filter_level as usize]
                             as ::core::ffi::c_int;
                         lfi.mblim = &raw mut *(&raw mut (*lfi_n).mblim
-                            as *mut [::core::ffi::c_uchar; 1])
+                            as *mut [::core::ffi::c_uchar; 16])
                             .offset(filter_level as isize)
                             as *mut ::core::ffi::c_uchar;
                         lfi.blim = &raw mut *(&raw mut (*lfi_n).blim
-                            as *mut [::core::ffi::c_uchar; 1])
+                            as *mut [::core::ffi::c_uchar; 16])
                             .offset(filter_level as isize)
                             as *mut ::core::ffi::c_uchar;
                         lfi.lim = &raw mut *(&raw mut (*lfi_n).lim
-                            as *mut [::core::ffi::c_uchar; 1])
+                            as *mut [::core::ffi::c_uchar; 16])
                             .offset(filter_level as isize)
                             as *mut ::core::ffi::c_uchar;
                         lfi.hev_thr = &raw mut *(&raw mut (*lfi_n).hev_thr
-                            as *mut [::core::ffi::c_uchar; 1])
+                            as *mut [::core::ffi::c_uchar; 16])
                             .offset(hev_index as isize)
                             as *mut ::core::ffi::c_uchar;
                         if mb_col > 0 as ::core::ffi::c_int {
-                            vp8_loop_filter_mbv_neon(
+                            vp8_loop_filter_mbv_c(
                                 (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
                                 (*xd).dst.u_buffer as *mut ::core::ffi::c_uchar,
                                 (*xd).dst.v_buffer as *mut ::core::ffi::c_uchar,
@@ -1347,7 +1365,7 @@ unsafe extern "C" fn mt_decode_mb_rows(
                             );
                         }
                         if skip_lf == 0 {
-                            vp8_loop_filter_bv_neon(
+                            vp8_loop_filter_bv_c(
                                 (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
                                 (*xd).dst.u_buffer as *mut ::core::ffi::c_uchar,
                                 (*xd).dst.v_buffer as *mut ::core::ffi::c_uchar,
@@ -1357,7 +1375,7 @@ unsafe extern "C" fn mt_decode_mb_rows(
                             );
                         }
                         if mb_row > 0 as ::core::ffi::c_int {
-                            vp8_loop_filter_mbh_neon(
+                            vp8_loop_filter_mbh_c(
                                 (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
                                 (*xd).dst.u_buffer as *mut ::core::ffi::c_uchar,
                                 (*xd).dst.v_buffer as *mut ::core::ffi::c_uchar,
@@ -1367,7 +1385,7 @@ unsafe extern "C" fn mt_decode_mb_rows(
                             );
                         }
                         if skip_lf == 0 {
-                            vp8_loop_filter_bh_neon(
+                            vp8_loop_filter_bh_c(
                                 (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
                                 (*xd).dst.u_buffer as *mut ::core::ffi::c_uchar,
                                 (*xd).dst.v_buffer as *mut ::core::ffi::c_uchar,
@@ -1378,39 +1396,41 @@ unsafe extern "C" fn mt_decode_mb_rows(
                         }
                     } else {
                         if mb_col > 0 as ::core::ffi::c_int {
-                            vp8_loop_filter_mbvs_neon(
+                            vp8_loop_filter_simple_vertical_edge_c(
                                 (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
                                 recon_y_stride,
                                 &raw mut *(&raw mut (*lfi_n).mblim
-                                    as *mut [::core::ffi::c_uchar; 1])
+                                    as *mut [::core::ffi::c_uchar; 16])
                                     .offset(filter_level as isize)
                                     as *mut ::core::ffi::c_uchar,
                             );
                         }
                         if skip_lf == 0 {
-                            vp8_loop_filter_bvs_neon(
+                            vp8_loop_filter_bvs_c(
                                 (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
                                 recon_y_stride,
-                                &raw mut *(&raw mut (*lfi_n).blim as *mut [::core::ffi::c_uchar; 1])
+                                &raw mut *(&raw mut (*lfi_n).blim
+                                    as *mut [::core::ffi::c_uchar; 16])
                                     .offset(filter_level as isize)
                                     as *mut ::core::ffi::c_uchar,
                             );
                         }
                         if mb_row > 0 as ::core::ffi::c_int {
-                            vp8_loop_filter_mbhs_neon(
+                            vp8_loop_filter_simple_horizontal_edge_c(
                                 (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
                                 recon_y_stride,
                                 &raw mut *(&raw mut (*lfi_n).mblim
-                                    as *mut [::core::ffi::c_uchar; 1])
+                                    as *mut [::core::ffi::c_uchar; 16])
                                     .offset(filter_level as isize)
                                     as *mut ::core::ffi::c_uchar,
                             );
                         }
                         if skip_lf == 0 {
-                            vp8_loop_filter_bhs_neon(
+                            vp8_loop_filter_bhs_c(
                                 (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
                                 recon_y_stride,
-                                &raw mut *(&raw mut (*lfi_n).blim as *mut [::core::ffi::c_uchar; 1])
+                                &raw mut *(&raw mut (*lfi_n).blim
+                                    as *mut [::core::ffi::c_uchar; 16])
                                     .offset(filter_level as isize)
                                     as *mut ::core::ffi::c_uchar,
                             );
@@ -1624,7 +1644,7 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) { u
                 as *mut ::core::ffi::c_void;
             if crate::thread_shim::vp8_pthread_create(
                 (*pbi).h_decoding_thread.offset(ithread as isize) as *mut pthread_t,
-                ::core::ptr::null::<pthread_attr_t>() as *const ::core::ffi::c_void,
+                ::core::ptr::null::<::core::ffi::c_void>(),
                 Some(
                     thread_decoding_proc
                         as unsafe extern "C" fn(
