@@ -1,5 +1,5 @@
 use std::arch::aarch64::*;
-extern "C" {
+unsafe extern "C" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -38,6 +38,18 @@ unsafe extern "C" fn load_replicate_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t
     return vreinterpret_u8_u32(vdup_n_u32(a));
 }
 #[inline]
+unsafe extern "C" fn load_unaligned_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t {
+    let mut a: uint32_t = 0;
+    memcpy(
+        &raw mut a as *mut ::core::ffi::c_void,
+        buf as *const ::core::ffi::c_void,
+        4 as size_t,
+    );
+    let mut a_u32 = vdup_n_u32(0);
+    a_u32 = vset_lane_u32(a, a_u32, 0);
+    return vreinterpret_u8_u32(a_u32);
+}
+#[inline]
 unsafe extern "C" fn horizontal_add_uint8x4(a: uint8x8_t) -> uint16_t {
     return vaddlv_u8(a);
 }
@@ -61,7 +73,7 @@ unsafe extern "C" fn horizontal_add_uint16x8(a: uint16x8_t) -> uint32_t {
 unsafe extern "C" fn dc_sum_4(mut ref_0: *const uint8_t) -> uint16_t {
     return horizontal_add_uint8x4(load_unaligned_u8_4x1(ref_0));
 }
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_v_predictor_4x4_neon(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,

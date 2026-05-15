@@ -61,6 +61,9 @@ pub mod vpx {
 } // mod vpx
 pub mod vpx_config;
 pub mod vpx_dsp {
+    pub mod arm {
+        pub mod intrapred_neon;
+    } // mod arm
     pub mod bitreader;
     pub mod bitreader_buffer;
     pub mod intrapred;

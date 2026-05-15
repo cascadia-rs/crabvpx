@@ -52,18 +52,15 @@ use std::arch::aarch64::*;
 Note: Use `std::arch` instead of `core::arch` to avoid missing feature gates like `stdarch_aarch64` that might arise if trying to import directly from `core`.
 
 ## 5. SIMD Translation Strategy (`std::simd` vs. FFI vs. Intrinsics)
-
 While it might seem tempting to rewrite the hardware-specific C intrinsics or Assembly using Rust's portable `std::simd`, it is generally not recommended for a "Lift and Shift" migration of a heavily optimized codec like `libvpx`:
-
 - **Performance:** Video codecs rely on complex data shuffles, swizzles, and saturating math operations that map perfectly to specific hardware instructions (e.g., ARM Neon `vtbl` or x86 `pshufb`). `std::simd` is hardware-agnostic and may struggle to compile these operations down to the same optimal instructions, potentially causing significant performance regressions.
 - **Stability:** The `std::simd` API is currently nightly-only and unstable.
 
 **How `c2rust` Handles Optimizations:**
+1. **C Intrinsics (`_neon.c`, `_sse2.c`):** `c2rust` struggles heavily with complex macros and intrinsic headers (like `<arm_neon.h>`). While it generates the `.rs` files, it often **silently drops** the actual function implementations, resulting in empty `.rs` files and missing symbols during linking. **Do not rely on the transpiled `_neon.rs` files.**
+2. **Raw Assembly (`.asm` / `.S`):** `c2rust` *cannot* translate raw assembly files.
 
-1. **C Intrinsics (`_neon.c`, `_sse2.c`):** `c2rust` is surprisingly capable here! It successfully transpiled files containing C hardware intrinsics (like `<arm_neon.h>`) into pure Rust files (`_neon.rs`) using `core::arch` equivalents (e.g., `std::arch::aarch64`). This means we **do not need** to link the original C files or use FFI for these. We get the performance of SIMD in pure Rust!
-2. **Raw Assembly (`.asm` / `.S`):** `c2rust` *cannot* translate raw assembly files. If you want the optimizations contained in these files (which are primarily used for x86 in `libvpx`), you must keep the `.asm` files in the project, compile them using the `cc` crate in `build.rs` (with an assembler like `nasm`), and link to them from the transpiled Rust code via FFI (`extern "C"`).
-
-**Strategy:** Rely on the transpiled `core::arch` Rust files for C-intrinsic optimizations (which covers most of ARM/Apple Silicon). For raw assembly optimizations, link them via FFI. Avoid `std::simd` for this project.
+**Strategy:** Because `c2rust` fails to transpile the C-intrinsics and raw assembly, we **must** keep the original `_neon.c` and `.asm` files in the project. We compile them natively using the `cc` crate in `build.rs` and link to them from the transpiled Rust code via FFI (`extern "C"`). This preserves the critical hardware acceleration without forcing a manual rewrite of thousands of lines of SIMD code.
 
 ## 6. C-Flavored Rust and Binary Compatibility
 
