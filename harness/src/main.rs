@@ -68,6 +68,9 @@ fn main() {
     let mut total_decode_time = Duration::ZERO;
     let mut total_frames = 0;
 
+    let benchmark_iterations = 10;
+    let mut suite_iter_times = vec![Duration::ZERO; benchmark_iterations];
+
     for file in &ivf_files {
         pb.set_message(file.file_name().unwrap().to_string_lossy().into_owned());
         
@@ -95,11 +98,9 @@ fn main() {
                 }
             }
 
-            let iterations = 10;
-            let mut iter_times = Vec::with_capacity(iterations);
             let mut success = true;
 
-            for _ in 0..iterations {
+            for i in 0..benchmark_iterations {
                 let mut decoder = ActiveDecoder::new();
                 if decoder.init().is_err() {
                     success = false;
@@ -113,22 +114,13 @@ fn main() {
                         break;
                     }
                 }
-                iter_times.push(start.elapsed());
+                suite_iter_times[i] += start.elapsed();
                 if !success { break; }
             }
 
             if success {
                 successful_decodes += 1;
-                let sum: Duration = iter_times.iter().sum();
-                total_decode_time += sum / (iterations as u32);
                 total_frames += frames.len() as u32;
-                
-                let min = iter_times.iter().min().unwrap();
-                let max = iter_times.iter().max().unwrap();
-                let avg = sum / (iterations as u32);
-                pb.suspend(|| {
-                    println!("{:?}: avg {:?}, min {:?}, max {:?}", file.file_name().unwrap(), avg, min, max);
-                });
             } else {
                 pb.println(format!("Decoding failed for {:?}", file));
             }
@@ -165,17 +157,39 @@ fn main() {
 
     pb.finish_with_message("Done");
 
-    let avg_time_per_frame = if total_frames > 0 {
-        total_decode_time.as_secs_f64() * 1000.0 / (total_frames as f64)
-    } else {
-        0.0
-    };
+    if args.benchmark {
+        let min = suite_iter_times.iter().min().unwrap();
+        let max = suite_iter_times.iter().max().unwrap();
+        let sum: Duration = suite_iter_times.iter().sum();
+        let avg = sum / (benchmark_iterations as u32);
+        
+        let avg_time_per_frame = if total_frames > 0 {
+            avg.as_secs_f64() * 1000.0 / (total_frames as f64)
+        } else {
+            0.0
+        };
 
-    println!(
-        "\n{} out of {} vectors decoded successfully by the {} decoder in {:.2} ms/frame.",
-        successful_decodes,
-        ivf_files.len(),
-        DECODER_NAME,
-        avg_time_per_frame
-    );
+        println!(
+            "\n{} out of {} vectors decoded successfully by the {} decoder.",
+            successful_decodes,
+            ivf_files.len(),
+            DECODER_NAME
+        );
+        println!("OVERALL_SUITE_PERF: avg {:.2?}, min {:.2?}, max {:.2?}, {:.2} ms/frame", avg, min, max, avg_time_per_frame);
+
+    } else {
+        let avg_time_per_frame = if total_frames > 0 {
+            total_decode_time.as_secs_f64() * 1000.0 / (total_frames as f64)
+        } else {
+            0.0
+        };
+
+        println!(
+            "\n{} out of {} vectors decoded successfully by the {} decoder in {:.2} ms/frame.",
+            successful_decodes,
+            ivf_files.len(),
+            DECODER_NAME,
+            avg_time_per_frame
+        );
+    }
 }

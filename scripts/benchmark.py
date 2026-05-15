@@ -12,6 +12,7 @@ Clean code standards: methods < 20 lines, idiomatic Python, PEP8 compliant.
 import re
 import subprocess
 import sys
+from pathlib import Path
 from typing import Dict, Optional
 
 
@@ -27,7 +28,6 @@ def to_ms(val_str: str, unit: str) -> float:
 
 def parse_perf_line(line: str) -> Optional[Dict[str, float]]:
     """Parses a suite performance line into a dictionary of metrics."""
-    # Example: OVERALL_SUITE_PERF: avg 145.20ms, min 141.50ms, max 149.30ms, 0.12 ms/frame
     pattern = (
         r"avg\s+([0-9.]+)(ms|µs|s),\s*"
         r"min\s+([0-9.]+)(ms|µs|s),\s*"
@@ -46,12 +46,13 @@ def parse_perf_line(line: str) -> Optional[Dict[str, float]]:
     }
 
 
-def run_harness() -> str:
-    """Executes the run_harness.sh script and captures its output."""
-    print("--- Running Differential Performance Benchmark ---")
+def run_harness(root_dir: Path) -> str:
+    """Executes the run_harness.py script and captures its output."""
+    print("Running performance benchmark...")
+    script_path = root_dir / "scripts" / "run_harness.py"
     try:
         proc = subprocess.run(
-            ["./run_harness.sh", "-b"],
+            [sys.executable, str(script_path), "-b"],
             capture_output=True,
             text=True,
             check=True
@@ -88,11 +89,10 @@ def extract_metrics(output: str) -> Dict[str, Dict[str, float]]:
 def print_row(label: str, oracle_val: float, rust_val: float):
     """Prints a single row of the comparison table."""
     diff = ((rust_val - oracle_val) / oracle_val) * 100
-    # ANSI color codes: Green for speedup (negative diff), Red for regression (positive diff)
     color = "\033[32m" if diff <= 0 else "\033[31m"
     reset = "\033[0m"
 
-    print(f"{label:<15} | {oracle_val:>7.2f} ms | {rust_val:>7.2f} ms | "
+    print(f" {label:<15} | {oracle_val:>7.2f} ms | {rust_val:>7.2f} ms | "
           f"{color}{diff:>+8.2f} %{reset}")
 
 
@@ -101,24 +101,24 @@ def display_results(results: Dict[str, Dict[str, float]]):
     oracle = results["oracle"]
     rust = results["rust"]
 
-    print("\n" + "=" * 54)
-    print("🦀  CrabVPX Performance Analysis vs. C Oracle  🦀")
-    print("=" * 54)
-    print(f"{'Metric':<15} | {'C Oracle':<10} | {'CrabVPX':<10} | {'Diff (%)':<10}")
-    print("-" * 54)
+    print("\n CrabVPX Performance Analysis vs. C Oracle")
+    print("-" * 52)
+    print(f" {'Metric':<15} | {'C Oracle':<10} | {'CrabVPX':<10} | {'Diff (%)':<10}")
+    print("-" * 52)
 
     print_row("Suite Average", oracle["avg"], rust["avg"])
     print_row("Suite Min", oracle["min"], rust["min"])
     print_row("Suite Max", oracle["max"], rust["max"])
     print_row("Per Frame", oracle["ms_per_frame"], rust["ms_per_frame"])
 
-    print("=" * 54)
-    print("Note: Positive % indicates Rust regression (slower).")
+    print("-" * 52)
+    print(" Note: Positive % indicates Rust regression (slower).")
 
 
 def main():
     """Main entry point."""
-    output = run_harness()
+    root_dir = Path(__file__).resolve().parent.parent
+    output = run_harness(root_dir)
     results = extract_metrics(output)
     display_results(results)
 
