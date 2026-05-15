@@ -4,6 +4,12 @@
 default:
     @just --list
 
+# Configure and build the C Oracle (libvpx)
+configure:
+    git submodule update --init --recursive
+    cd libvpx && ./configure --enable-vp8 --enable-vp9 --enable-multithread --enable-postproc --enable-pic --enable-runtime-cpu-detect
+    cd libvpx && make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+
 # Run differential testing (Oracle vs Rust)
 compare *args:
     ./scripts/compare.py {{args}}
