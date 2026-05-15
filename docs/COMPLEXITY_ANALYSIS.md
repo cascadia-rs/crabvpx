@@ -44,6 +44,7 @@ Running the full pipeline (`./scripts/analyze_complexity.py --full-pipeline`) re
 
 - **Total Unsafe Blocks (`unsafe { ... }`):** 105
 - **Total Unsafe Functions (`unsafe fn`):** 4,509
+- **Total Global Mutable State (`static mut`):** 1,753
 
 #### Top 10 Most Complex Files (by Unsafe Blocks)
 | File | Count |
@@ -73,7 +74,21 @@ Running the full pipeline (`./scripts/analyze_complexity.py --full-pipeline`) re
 | `vp9/encoder/vp9_rdopt.rs` | 96 |
 | `vpx_dsp/arm/highbd_subpel_variance_neon.rs` | 86 |
 
-These files represent the highest risk and effort areas for manual refactoring to safe Rust. The overwhelming presence of unsafe functions in the VP9 encoder and hardware-specific DSP files (`variance.rs`, `intrapred.rs`, `sad.rs`) underscores why incremental, module-by-module porting is highly recommended over a monolithic rewrite.
+#### Top 10 Most Complex Files (by Global Mutable State)
+| File | Count |
+|---|---|
+| `vpx_dsp/vpx_dsp_rtcd.rs` | 143 |
+| `vpxenc.rs` | 138 |
+| `vp9/encoder/vp9_encoder.rs` | 110 |
+| `vp9/encoder/vp9_encodeframe.rs` | 82 |
+| `examples/vp9_spatial_svc_encoder.rs` | 48 |
+| `vpx_dsp/arm/highbd_subpel_variance_neon.rs` | 39 |
+| `vp9/encoder/vp9_dct.rs` | 38 |
+| `vpxdec.rs` | 37 |
+| `vp8/encoder/onyx_if.rs` | 37 |
+| `vp9/encoder/arm/neon/vp9_temporal_filter_neon.rs` | 36 |
+
+These files represent the highest risk and effort areas for manual refactoring to safe Rust. The overwhelming presence of unsafe functions in the VP9 encoder and hardware-specific DSP files (`variance.rs`, `intrapred.rs`, `sad.rs`), coupled with the massive amount of global mutable state (`static mut`) generated during translation, underscores why incremental, module-by-module porting is highly recommended over a monolithic rewrite.
 
 ## 4. Required Expertise
 

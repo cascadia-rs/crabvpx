@@ -56,7 +56,6 @@ def configure_libvpx(libvpx_path: Path) -> None:
         "--enable-postproc",
         "--enable-multithread",
         "--enable-experimental",
-        "--enable-spatial-svc",
     ]
     run_cmd(config_cmd, cwd=libvpx_path)
 
@@ -87,40 +86,40 @@ def run_c2rust(libvpx_path: Path) -> None:
     run_cmd(cmd, cwd=libvpx_path)
 
 
-def count_unsafe(file_path: Path) -> Tuple[int, int]:
+def count_unsafe(file_path: Path) -> Tuple[int, int, int]:
     """
-    Counts the number of 'unsafe {' blocks and 'unsafe fn' declarations.
-    Returns (unsafe_blocks_count, unsafe_functions_count).
+    Counts 'unsafe {' blocks, 'unsafe fn', and 'static mut' declarations.
+    Returns (unsafe_blocks_count, unsafe_functions_count, static_mut_count).
     """
-    blocks = 0
-    fns = 0
+    blocks = fns = statics = 0
     try:
         content = file_path.read_text(encoding='utf-8', errors='replace')
         blocks = len(re.findall(r"unsafe\s*\{", content))
         fns = len(re.findall(r"unsafe\s+(?:extern\s+\"[^\"]*\"\s+)?fn\s+", content))
+        statics = len(re.findall(r"static\s+mut\s+", content))
     except OSError as e:
         logging.warning("Failed to read %s: %s", file_path, e)
-    return blocks, fns
+    return blocks, fns, statics
 
 
-def gather_file_stats(src_dir: Path) -> List[Tuple[str, int, int]]:
+def gather_file_stats(src_dir: Path) -> List[Tuple[str, int, int, int]]:
     """Walks the directory to gather unsafe stats for all .rs files."""
     file_stats = []
     for path in src_dir.rglob("*.rs"):
         if "target" in path.parts or path.name in ("build.rs", "lib.rs"):
             continue
 
-        blocks, fns = count_unsafe(path)
-        if blocks > 0 or fns > 0:
+        blocks, fns, statics = count_unsafe(path)
+        if blocks > 0 or fns > 0 or statics > 0:
             try:
                 rel_path = str(path.relative_to(src_dir))
             except ValueError:
                 rel_path = str(path)
-            file_stats.append((rel_path, blocks, fns))
+            file_stats.append((rel_path, blocks, fns, statics))
     return file_stats
 
 
-def _add_top_files(report: List[str], title: str, stats: List[Tuple[str, int, int]], index: int):
+def _add_top_files(report: List[str], title: str, stats: List[Tuple], index: int):
     """Appends top 10 files table to the report based on the given index."""
     report.extend([title, "| File | Count |", "|---|---|"])
     sorted_stats = sorted(stats, key=lambda x: x[index], reverse=True)
@@ -129,10 +128,11 @@ def _add_top_files(report: List[str], title: str, stats: List[Tuple[str, int, in
     report.append("")
 
 
-def format_markdown_report(src_dir: Path, stats: List[Tuple[str, int, int]]) -> str:
+def format_markdown_report(src_dir: Path, stats: List[Tuple[str, int, int, int]]) -> str:
     """Formats the gathered statistics into a Markdown report."""
     total_blocks = sum(s[1] for s in stats)
     total_fns = sum(s[2] for s in stats)
+    total_statics = sum(s[3] for s in stats)
 
     report = [
         "# Unsafe Usage Analysis Report\n",
@@ -140,16 +140,19 @@ def format_markdown_report(src_dir: Path, stats: List[Tuple[str, int, int]]) -> 
         "quantifying the scale of unsafety and technical debt required.\n",
         f"- **Target Directory:** `{src_dir.name}`",
         f"- **Total Unsafe Blocks (`unsafe {{ ... }}`):** {total_blocks}",
-        f"- **Total Unsafe Functions (`unsafe fn`):** {total_fns}\n",
+        f"- **Total Unsafe Functions (`unsafe fn`):** {total_fns}",
+        f"- **Total Global Mutable State (`static mut`):** {total_statics}\n",
     ]
 
     _add_top_files(report, "## Top 10 Files (by Unsafe Blocks)", stats, 1)
     _add_top_files(report, "## Top 10 Files (by Unsafe Functions)", stats, 2)
+    _add_top_files(report, "## Top 10 Files (by Global Mutable State)", stats, 3)
 
     report.extend([
         "## Conclusion",
         "Files with high unsafety contain dense pointer arithmetic, manual memory,",
-        "or intrinsic calls. They represent the highest risk for manual refactoring."
+        "global mutable state, or hardware intrinsics. They represent the highest",
+        "risk for manual refactoring to idiomatic, safe Rust."
     ])
     return "\n".join(report)
 
