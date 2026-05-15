@@ -70,3 +70,8 @@ cargo run --release -- --dir "$TEST_DATA_DIR"
 echo ""
 echo "--- Testing CrabVPX Rust Decoder ---"
 cargo run --release --no-default-features --features rust -- --dir "$TEST_DATA_DIR"
+
+echo ""
+# Run the unsafe tracker
+"$DIR/scripts/count_unsafe.sh"
+
