@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -74,7 +74,7 @@ unsafe extern "C" fn copy_and_extend_plane(
     mut eb: ::core::ffi::c_int,
     mut er: ::core::ffi::c_int,
     mut interleave_step: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut j: ::core::ffi::c_int = 0;
     let mut src_ptr1: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
@@ -148,12 +148,12 @@ unsafe extern "C" fn copy_and_extend_plane(
         dest_ptr2 = dest_ptr2.offset(dp as isize);
         i += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_copy_and_extend_frame(
     mut src: *mut YV12_BUFFER_CONFIG,
     mut dst: *mut YV12_BUFFER_CONFIG,
-) {
+) { unsafe {
     let mut et: ::core::ffi::c_int = (*dst).border;
     let mut el: ::core::ffi::c_int = (*dst).border;
     let mut eb: ::core::ffi::c_int = (*dst).border + (*dst).y_height - (*src).y_height;
@@ -209,8 +209,8 @@ pub unsafe extern "C" fn vp8_copy_and_extend_frame(
         er,
         chroma_step,
     );
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_copy_and_extend_frame_with_rect(
     mut src: *mut YV12_BUFFER_CONFIG,
     mut dst: *mut YV12_BUFFER_CONFIG,
@@ -218,7 +218,7 @@ pub unsafe extern "C" fn vp8_copy_and_extend_frame_with_rect(
     mut srcx: ::core::ffi::c_int,
     mut srch: ::core::ffi::c_int,
     mut srcw: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut et: ::core::ffi::c_int = (*dst).border;
     let mut el: ::core::ffi::c_int = (*dst).border;
     let mut eb: ::core::ffi::c_int = (*dst).border + (*dst).y_height - (*src).y_height;
@@ -294,14 +294,14 @@ pub unsafe extern "C" fn vp8_copy_and_extend_frame_with_rect(
         er,
         chroma_step,
     );
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_extend_mb_row(
     mut ybf: *mut YV12_BUFFER_CONFIG,
     mut YPtr: *mut ::core::ffi::c_uchar,
     mut UPtr: *mut ::core::ffi::c_uchar,
     mut VPtr: *mut ::core::ffi::c_uchar,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     YPtr = YPtr.offset(((*ybf).y_stride * 14 as ::core::ffi::c_int) as isize);
     UPtr = UPtr.offset(((*ybf).uv_stride * 6 as ::core::ffi::c_int) as isize);
@@ -323,4 +323,4 @@ pub unsafe extern "C" fn vp8_extend_mb_row(
         *VPtr.offset(i as isize) = *VPtr.offset(-(1 as ::core::ffi::c_int) as isize);
         i += 1;
     }
-}
+}}

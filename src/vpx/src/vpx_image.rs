@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn calloc(__count: size_t, __size: size_t) -> *mut ::core::ffi::c_void;
     fn free(_: *mut ::core::ffi::c_void);
     fn memset(
@@ -94,7 +94,7 @@ unsafe extern "C" fn img_alloc_helper(
     mut buf_align: ::core::ffi::c_uint,
     mut stride_align: ::core::ffi::c_uint,
     mut img_data: *mut ::core::ffi::c_uchar,
-) -> *mut vpx_image_t {
+) -> *mut vpx_image_t { unsafe {
     let mut ret: ::core::ffi::c_int = 0;
     let mut current_block: u64;
     let mut h: ::core::ffi::c_uint = 0;
@@ -298,15 +298,15 @@ unsafe extern "C" fn img_alloc_helper(
     }
     vpx_img_free(img);
     return ::core::ptr::null_mut::<vpx_image_t>();
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_img_alloc(
     mut img: *mut vpx_image_t,
     mut fmt: vpx_img_fmt_t,
     mut d_w: ::core::ffi::c_uint,
     mut d_h: ::core::ffi::c_uint,
     mut align: ::core::ffi::c_uint,
-) -> *mut vpx_image_t {
+) -> *mut vpx_image_t { unsafe {
     return img_alloc_helper(
         img,
         fmt,
@@ -316,8 +316,8 @@ pub unsafe extern "C" fn vpx_img_alloc(
         align,
         ::core::ptr::null_mut::<::core::ffi::c_uchar>(),
     );
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_img_wrap(
     mut img: *mut vpx_image_t,
     mut fmt: vpx_img_fmt_t,
@@ -325,7 +325,7 @@ pub unsafe extern "C" fn vpx_img_wrap(
     mut d_h: ::core::ffi::c_uint,
     mut stride_align: ::core::ffi::c_uint,
     mut img_data: *mut ::core::ffi::c_uchar,
-) -> *mut vpx_image_t {
+) -> *mut vpx_image_t { unsafe {
     return img_alloc_helper(
         img,
         fmt,
@@ -335,15 +335,15 @@ pub unsafe extern "C" fn vpx_img_wrap(
         stride_align,
         img_data,
     );
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_img_set_rect(
     mut img: *mut vpx_image_t,
     mut x: ::core::ffi::c_uint,
     mut y: ::core::ffi::c_uint,
     mut w: ::core::ffi::c_uint,
     mut h: ::core::ffi::c_uint,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     if x <= UINT_MAX.wrapping_sub(w)
         && x.wrapping_add(w) <= (*img).w
         && y <= UINT_MAX.wrapping_sub(h)
@@ -453,9 +453,9 @@ pub unsafe extern "C" fn vpx_img_set_rect(
         return 0 as ::core::ffi::c_int;
     }
     return -(1 as ::core::ffi::c_int);
-}
-#[no_mangle]
-pub unsafe extern "C" fn vpx_img_flip(mut img: *mut vpx_image_t) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vpx_img_flip(mut img: *mut vpx_image_t) { unsafe {
     (*img).planes[VPX_PLANE_Y as usize] = (*img).planes[VPX_PLANE_Y as usize].offset(
         ((*img).d_h.wrapping_sub(1 as ::core::ffi::c_uint) as ::core::ffi::c_int
             * (*img).stride[VPX_PLANE_Y as usize]) as isize,
@@ -478,9 +478,9 @@ pub unsafe extern "C" fn vpx_img_flip(mut img: *mut vpx_image_t) {
             * (*img).stride[VPX_PLANE_ALPHA as usize]) as isize,
     );
     (*img).stride[VPX_PLANE_ALPHA as usize] = -(*img).stride[VPX_PLANE_ALPHA as usize];
-}
-#[no_mangle]
-pub unsafe extern "C" fn vpx_img_free(mut img: *mut vpx_image_t) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vpx_img_free(mut img: *mut vpx_image_t) { unsafe {
     if !img.is_null() {
         if !(*img).img_data.is_null() && (*img).img_data_owner != 0 {
             vpx_free((*img).img_data as *mut ::core::ffi::c_void);
@@ -489,4 +489,4 @@ pub unsafe extern "C" fn vpx_img_free(mut img: *mut vpx_image_t) {
             free(img as *mut ::core::ffi::c_void);
         }
     }
-}
+}}

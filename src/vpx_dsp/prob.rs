@@ -55,7 +55,7 @@ static mut count_to_update_factor: [::core::ffi::c_int; 21] = [
 unsafe extern "C" fn mode_mv_merge_probs(
     mut pre_prob: vpx_prob,
     mut ct: *const ::core::ffi::c_uint,
-) -> vpx_prob {
+) -> vpx_prob { unsafe {
     let den: ::core::ffi::c_uint = (*ct.offset(0 as ::core::ffi::c_int as isize))
         .wrapping_add(*ct.offset(1 as ::core::ffi::c_int as isize));
     if den == 0 as ::core::ffi::c_uint {
@@ -76,8 +76,8 @@ unsafe extern "C" fn mode_mv_merge_probs(
             factor as ::core::ffi::c_int,
         );
     };
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub static mut vpx_norm: [uint8_t; 256] = [
     0 as ::core::ffi::c_int as uint8_t,
     7 as ::core::ffi::c_int as uint8_t,
@@ -342,7 +342,7 @@ unsafe extern "C" fn tree_merge_probs_impl(
     mut pre_probs: *const vpx_prob,
     mut counts: *const ::core::ffi::c_uint,
     mut probs: *mut vpx_prob,
-) -> ::core::ffi::c_uint {
+) -> ::core::ffi::c_uint { unsafe {
     let l: ::core::ffi::c_int = *tree.offset(i as isize) as ::core::ffi::c_int;
     let left_count: ::core::ffi::c_uint = if l <= 0 as ::core::ffi::c_int {
         *counts.offset(-l as isize)
@@ -364,13 +364,13 @@ unsafe extern "C" fn tree_merge_probs_impl(
         &raw const ct as *const ::core::ffi::c_uint,
     );
     return left_count.wrapping_add(right_count);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_tree_merge_probs(
     mut tree: *const vpx_tree_index,
     mut pre_probs: *const vpx_prob,
     mut counts: *const ::core::ffi::c_uint,
     mut probs: *mut vpx_prob,
-) {
+) { unsafe {
     tree_merge_probs_impl(0 as ::core::ffi::c_uint, tree, pre_probs, counts, probs);
-}
+}}

@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     pub type vpx_codec_alg_priv;
     fn vsnprintf(
         __str: *mut ::core::ffi::c_char,
@@ -493,29 +493,29 @@ pub const VERSION_PACKED: ::core::ffi::c_int = VERSION_MAJOR << 16 as ::core::ff
 pub const VERSION_STRING_NOSP: [::core::ffi::c_char; 23] = unsafe {
     ::core::mem::transmute::<[u8; 23], [::core::ffi::c_char; 23]>(*b"v1.16.0-122-ge9efe034e\0")
 };
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_version() -> ::core::ffi::c_int {
     return VERSION_PACKED;
 }
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_version_str() -> *const ::core::ffi::c_char {
     return VERSION_STRING_NOSP.as_ptr();
 }
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_version_extra_str() -> *const ::core::ffi::c_char {
     return VERSION_EXTRA.as_ptr();
 }
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_iface_name(
     mut iface: *const vpx_codec_iface_t,
-) -> *const ::core::ffi::c_char {
+) -> *const ::core::ffi::c_char { unsafe {
     return if !iface.is_null() {
         (*iface).name
     } else {
         b"<invalid interface>\0" as *const u8 as *const ::core::ffi::c_char
     };
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_err_to_string(
     mut err: vpx_codec_err_t,
 ) -> *const ::core::ffi::c_char {
@@ -549,20 +549,20 @@ pub unsafe extern "C" fn vpx_codec_err_to_string(
     }
     return b"Unrecognized error code\0" as *const u8 as *const ::core::ffi::c_char;
 }
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_error(
     mut ctx: *const vpx_codec_ctx_t,
-) -> *const ::core::ffi::c_char {
+) -> *const ::core::ffi::c_char { unsafe {
     return if !ctx.is_null() {
         vpx_codec_err_to_string((*ctx).err)
     } else {
         vpx_codec_err_to_string(VPX_CODEC_INVALID_PARAM)
     };
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_error_detail(
     mut ctx: *const vpx_codec_ctx_t,
-) -> *const ::core::ffi::c_char {
+) -> *const ::core::ffi::c_char { unsafe {
     if !ctx.is_null() && (*ctx).err as ::core::ffi::c_uint != 0 {
         return if !(*ctx).priv_0.is_null() {
             (*(*ctx).priv_0).err_detail
@@ -571,9 +571,9 @@ pub unsafe extern "C" fn vpx_codec_error_detail(
         };
     }
     return ::core::ptr::null::<::core::ffi::c_char>();
-}
-#[no_mangle]
-pub unsafe extern "C" fn vpx_codec_destroy(mut ctx: *mut vpx_codec_ctx_t) -> vpx_codec_err_t {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vpx_codec_destroy(mut ctx: *mut vpx_codec_ctx_t) -> vpx_codec_err_t { unsafe {
     let mut res: vpx_codec_err_t = VPX_CODEC_OK;
     if ctx.is_null() {
         res = VPX_CODEC_INVALID_PARAM;
@@ -594,23 +594,23 @@ pub unsafe extern "C" fn vpx_codec_destroy(mut ctx: *mut vpx_codec_ctx_t) -> vpx
     } else {
         res as ::core::ffi::c_uint
     }) as vpx_codec_err_t;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_get_caps(
     mut iface: *const vpx_codec_iface_t,
-) -> vpx_codec_caps_t {
+) -> vpx_codec_caps_t { unsafe {
     return if !iface.is_null() {
         (*iface).caps
     } else {
         0 as vpx_codec_caps_t
     };
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_control_(
     mut ctx: *mut vpx_codec_ctx_t,
     mut ctrl_id: ::core::ffi::c_int,
     mut args: ...
-) -> vpx_codec_err_t {
+) -> vpx_codec_err_t { unsafe {
     let mut res: vpx_codec_err_t = VPX_CODEC_OK;
     if ctx.is_null() || ctrl_id == 0 {
         res = VPX_CODEC_INVALID_PARAM;
@@ -644,14 +644,14 @@ pub unsafe extern "C" fn vpx_codec_control_(
     } else {
         res as ::core::ffi::c_uint
     }) as vpx_codec_err_t;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_internal_error(
     mut info: *mut vpx_internal_error_info,
     mut error: vpx_codec_err_t,
     mut fmt: *const ::core::ffi::c_char,
     mut args: ...
-) {
+) { unsafe {
     let mut ap: ::core::ffi::VaList;
     (*info).error_code = error;
     (*info).has_detail = 0 as ::core::ffi::c_int;
@@ -673,4 +673,4 @@ pub unsafe extern "C" fn vpx_internal_error(
             (*info).error_code as ::core::ffi::c_int,
         );
     }
-}
+}}

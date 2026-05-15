@@ -21,12 +21,16 @@ fn main() {
         "src/vpx_dsp/arm/intrapred_neon.c",
     ];
 
+    let mut has_files = false;
     for file in files {
         // Only add if the file exists to be safe
         if std::path::Path::new(file).exists() {
             build.file(file);
+            has_files = true;
         }
     }
 
-    build.compile("vpx_asm");
+    if has_files {
+        build.compile("vpx_asm");
+    }
 }

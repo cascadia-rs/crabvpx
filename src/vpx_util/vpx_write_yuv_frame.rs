@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     pub type __sFILEX;
 }
 pub type __int64_t = i64;
@@ -101,7 +101,7 @@ pub struct yv12_buffer_config {
     pub flags: ::core::ffi::c_int,
 }
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_write_yuv_frame(
     mut yuv_file: *mut FILE,
     mut s: *mut YV12_BUFFER_CONFIG,

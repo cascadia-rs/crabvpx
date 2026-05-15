@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -249,13 +249,13 @@ pub const V_PRED: C2RustUnnamed = 1;
 pub const DC_PRED: C2RustUnnamed = 0;
 pub type MACROBLOCKD = macroblockd;
 pub const CHAR_BIT: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_copy_mem16x16_c(
     mut src: *mut ::core::ffi::c_uchar,
     mut src_stride: ::core::ffi::c_int,
     mut dst: *mut ::core::ffi::c_uchar,
     mut dst_stride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     r = 0 as ::core::ffi::c_int;
     while r < 16 as ::core::ffi::c_int {
@@ -268,14 +268,14 @@ pub unsafe extern "C" fn vp8_copy_mem16x16_c(
         dst = dst.offset(dst_stride as isize);
         r += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_copy_mem8x8_c(
     mut src: *mut ::core::ffi::c_uchar,
     mut src_stride: ::core::ffi::c_int,
     mut dst: *mut ::core::ffi::c_uchar,
     mut dst_stride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     r = 0 as ::core::ffi::c_int;
     while r < 8 as ::core::ffi::c_int {
@@ -288,14 +288,14 @@ pub unsafe extern "C" fn vp8_copy_mem8x8_c(
         dst = dst.offset(dst_stride as isize);
         r += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_copy_mem8x4_c(
     mut src: *mut ::core::ffi::c_uchar,
     mut src_stride: ::core::ffi::c_int,
     mut dst: *mut ::core::ffi::c_uchar,
     mut dst_stride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     r = 0 as ::core::ffi::c_int;
     while r < 4 as ::core::ffi::c_int {
@@ -308,15 +308,15 @@ pub unsafe extern "C" fn vp8_copy_mem8x4_c(
         dst = dst.offset(dst_stride as isize);
         r += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_build_inter_predictors_b(
     mut d: *mut BLOCKD,
     mut pitch: ::core::ffi::c_int,
     mut base_pre: *mut ::core::ffi::c_uchar,
     mut pre_stride: ::core::ffi::c_int,
     mut sppf: vp8_subpix_fn_t,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     let mut pred_ptr: *mut ::core::ffi::c_uchar = (*d).predictor;
     let mut ptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
@@ -354,7 +354,7 @@ pub unsafe extern "C" fn vp8_build_inter_predictors_b(
             r += 1;
         }
     };
-}
+}}
 unsafe extern "C" fn build_inter_predictors4b(
     mut x: *mut MACROBLOCKD,
     mut d: *mut BLOCKD,
@@ -362,7 +362,7 @@ unsafe extern "C" fn build_inter_predictors4b(
     mut dst_stride: ::core::ffi::c_int,
     mut base_pre: *mut ::core::ffi::c_uchar,
     mut pre_stride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut ptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     ptr = base_pre
         .offset((*d).offset as isize)
@@ -385,7 +385,7 @@ unsafe extern "C" fn build_inter_predictors4b(
     } else {
         vp8_copy_mem8x8_neon(ptr, pre_stride, dst, dst_stride);
     };
-}
+}}
 unsafe extern "C" fn build_inter_predictors2b(
     mut x: *mut MACROBLOCKD,
     mut d: *mut BLOCKD,
@@ -393,7 +393,7 @@ unsafe extern "C" fn build_inter_predictors2b(
     mut dst_stride: ::core::ffi::c_int,
     mut base_pre: *mut ::core::ffi::c_uchar,
     mut pre_stride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut ptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     ptr = base_pre
         .offset((*d).offset as isize)
@@ -416,7 +416,7 @@ unsafe extern "C" fn build_inter_predictors2b(
     } else {
         vp8_copy_mem8x4_neon(ptr, pre_stride, dst, dst_stride);
     };
-}
+}}
 unsafe extern "C" fn build_inter_predictors_b(
     mut d: *mut BLOCKD,
     mut dst: *mut ::core::ffi::c_uchar,
@@ -424,7 +424,7 @@ unsafe extern "C" fn build_inter_predictors_b(
     mut base_pre: *mut ::core::ffi::c_uchar,
     mut pre_stride: ::core::ffi::c_int,
     mut sppf: vp8_subpix_fn_t,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     let mut ptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     ptr = base_pre
@@ -461,9 +461,9 @@ unsafe extern "C" fn build_inter_predictors_b(
             r += 1;
         }
     };
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mbuv(mut x: *mut MACROBLOCKD) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mbuv(mut x: *mut MACROBLOCKD) { unsafe {
     let mut uptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut vptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut upred_ptr: *mut ::core::ffi::c_uchar =
@@ -516,9 +516,9 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mbuv(mut x: *mut MACROB
         vp8_copy_mem8x8_neon(uptr, pre_stride, upred_ptr, 8 as ::core::ffi::c_int);
         vp8_copy_mem8x8_neon(vptr, pre_stride, vpred_ptr, 8 as ::core::ffi::c_int);
     };
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_build_inter4x4_predictors_mbuv(mut x: *mut MACROBLOCKD) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_build_inter4x4_predictors_mbuv(mut x: *mut MACROBLOCKD) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut j: ::core::ffi::c_int = 0;
     let mut pre_stride: ::core::ffi::c_int = (*x).pre.uv_stride;
@@ -657,13 +657,13 @@ pub unsafe extern "C" fn vp8_build_inter4x4_predictors_mbuv(mut x: *mut MACROBLO
         }
         i += 2 as ::core::ffi::c_int;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mby(
     mut x: *mut MACROBLOCKD,
     mut dst_y: *mut ::core::ffi::c_uchar,
     mut dst_ystride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut ptr_base: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut ptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut mv_row: ::core::ffi::c_int =
@@ -688,8 +688,8 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mby(
     } else {
         vp8_copy_mem16x16_neon(ptr, pre_stride, dst_y, dst_ystride);
     };
-}
-unsafe extern "C" fn clamp_mv_to_umv_border(mut mv: *mut MV, mut xd: *const MACROBLOCKD) {
+}}
+unsafe extern "C" fn clamp_mv_to_umv_border(mut mv: *mut MV, mut xd: *const MACROBLOCKD) { unsafe {
     if ((*mv).col as ::core::ffi::c_int)
         < (*xd).mb_to_left_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
     {
@@ -715,8 +715,8 @@ unsafe extern "C" fn clamp_mv_to_umv_border(mut mv: *mut MV, mut xd: *const MACR
             + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int))
             as ::core::ffi::c_short;
     }
-}
-unsafe extern "C" fn clamp_uvmv_to_umv_border(mut mv: *mut MV, mut xd: *const MACROBLOCKD) {
+}}
+unsafe extern "C" fn clamp_uvmv_to_umv_border(mut mv: *mut MV, mut xd: *const MACROBLOCKD) { unsafe {
     (*mv).col = (if (2 as ::core::ffi::c_int * (*mv).col as ::core::ffi::c_int)
         < (*xd).mb_to_left_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
     {
@@ -749,8 +749,8 @@ unsafe extern "C" fn clamp_uvmv_to_umv_border(mut mv: *mut MV, mut xd: *const MA
     } else {
         (*mv).row as ::core::ffi::c_int
     }) as ::core::ffi::c_short;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mb(
     mut x: *mut MACROBLOCKD,
     mut dst_y: *mut ::core::ffi::c_uchar,
@@ -758,7 +758,7 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mb(
     mut dst_v: *mut ::core::ffi::c_uchar,
     mut dst_ystride: ::core::ffi::c_int,
     mut dst_uvstride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut offset: ::core::ffi::c_int = 0;
     let mut ptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut uptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
@@ -846,8 +846,8 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mb(
         vp8_copy_mem8x8_neon(uptr, pre_stride, dst_u, dst_uvstride);
         vp8_copy_mem8x8_neon(vptr, pre_stride, dst_v, dst_uvstride);
     };
-}
-unsafe extern "C" fn build_inter4x4_predictors_mb(mut x: *mut MACROBLOCKD) {
+}}
+unsafe extern "C" fn build_inter4x4_predictors_mb(mut x: *mut MACROBLOCKD) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut base_dst: *mut ::core::ffi::c_uchar = (*x).dst.y_buffer as *mut ::core::ffi::c_uchar;
     let mut base_pre: *mut ::core::ffi::c_uchar = (*x).pre.y_buffer as *mut ::core::ffi::c_uchar;
@@ -1076,8 +1076,8 @@ unsafe extern "C" fn build_inter4x4_predictors_mb(mut x: *mut MACROBLOCKD) {
         }
         i += 2 as ::core::ffi::c_int;
     }
-}
-unsafe extern "C" fn build_4x4uvmvs(mut x: *mut MACROBLOCKD) {
+}}
+unsafe extern "C" fn build_4x4uvmvs(mut x: *mut MACROBLOCKD) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut j: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
@@ -1153,9 +1153,9 @@ unsafe extern "C" fn build_4x4uvmvs(mut x: *mut MACROBLOCKD) {
         }
         i += 1;
     }
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_build_inter_predictors_mb(mut xd: *mut MACROBLOCKD) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_build_inter_predictors_mb(mut xd: *mut MACROBLOCKD) { unsafe {
     if (*(*xd).mode_info_context).mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int {
         vp8_build_inter16x16_predictors_mb(
             xd,
@@ -1169,4 +1169,4 @@ pub unsafe extern "C" fn vp8_build_inter_predictors_mb(mut xd: *mut MACROBLOCKD)
         build_4x4uvmvs(xd);
         build_inter4x4_predictors_mb(xd);
     };
-}
+}}

@@ -211,8 +211,8 @@ pub struct macroblockd {
     pub error_info: vpx_internal_error_info,
 }
 pub type MACROBLOCKD = macroblockd;
-#[no_mangle]
-pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     let mut c: ::core::ffi::c_int = 0;
     r = 0 as ::core::ffi::c_int;
@@ -263,9 +263,9 @@ pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) {
             (&raw mut (*x).eobs as *mut ::core::ffi::c_char).offset(r as isize);
         r += 1;
     }
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_build_block_doffsets(mut x: *mut MACROBLOCKD) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_build_block_doffsets(mut x: *mut MACROBLOCKD) { unsafe {
     let mut block: ::core::ffi::c_int = 0;
     block = 0 as ::core::ffi::c_int;
     while block < 16 as ::core::ffi::c_int {
@@ -285,4 +285,4 @@ pub unsafe extern "C" fn vp8_build_block_doffsets(mut x: *mut MACROBLOCKD) {
             (*x).block[block as usize].offset;
         block += 1;
     }
-}
+}}

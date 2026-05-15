@@ -26,7 +26,7 @@ unsafe extern "C" fn vpx_evaluate_skin_color_difference(
     cb: ::core::ffi::c_int,
     cr: ::core::ffi::c_int,
     idx: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let cb_q6: ::core::ffi::c_int = cb << 6 as ::core::ffi::c_int;
     let cr_q6: ::core::ffi::c_int = cr << 6 as ::core::ffi::c_int;
     let cb_diff_q12: ::core::ffi::c_int = (cb_q6
@@ -52,14 +52,14 @@ unsafe extern "C" fn vpx_evaluate_skin_color_difference(
         + skin_inv_cov[2 as ::core::ffi::c_int as usize] * cbcr_diff_q2
         + skin_inv_cov[3 as ::core::ffi::c_int as usize] * cr_diff_q2;
     return skin_diff;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_skin_pixel(
     y: ::core::ffi::c_int,
     cb: ::core::ffi::c_int,
     cr: ::core::ffi::c_int,
     mut motion: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     if y < y_low || y > y_high {
         return 0 as ::core::ffi::c_int;
     } else if MODEL_MODE == 0 as ::core::ffi::c_int {
@@ -104,4 +104,4 @@ pub unsafe extern "C" fn vpx_skin_pixel(
         }
         return 0 as ::core::ffi::c_int;
     };
-}
+}}

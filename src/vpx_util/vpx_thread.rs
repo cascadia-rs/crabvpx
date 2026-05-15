@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn memset(
         __b: *mut ::core::ffi::c_void,
         __c: ::core::ffi::c_int,
@@ -130,7 +130,7 @@ pub type pthread_mutexattr_t = __darwin_pthread_mutexattr_t;
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 pub const THREAD_EXIT_SUCCESS: *mut ::core::ffi::c_void = NULL;
-unsafe extern "C" fn thread_loop(mut ptr: *mut ::core::ffi::c_void) -> *mut ::core::ffi::c_void {
+unsafe extern "C" fn thread_loop(mut ptr: *mut ::core::ffi::c_void) -> *mut ::core::ffi::c_void { unsafe {
     let worker: *mut VPxWorker = ptr as *mut VPxWorker;
     if !(*worker).thread_name.is_null() {
         let mut thread_name: [::core::ffi::c_char; 64] = [0; 64];
@@ -169,8 +169,8 @@ unsafe extern "C" fn thread_loop(mut ptr: *mut ::core::ffi::c_void) -> *mut ::co
     }
     pthread_mutex_unlock(&raw mut (*(*worker).impl_).mutex_);
     return THREAD_EXIT_SUCCESS;
-}
-unsafe extern "C" fn change_state(worker: *mut VPxWorker, mut new_status: VPxWorkerStatus) {
+}}
+unsafe extern "C" fn change_state(worker: *mut VPxWorker, mut new_status: VPxWorkerStatus) { unsafe {
     if (*worker).impl_.is_null() {
         return;
     }
@@ -194,20 +194,20 @@ unsafe extern "C" fn change_state(worker: *mut VPxWorker, mut new_status: VPxWor
         }
     }
     pthread_mutex_unlock(&raw mut (*(*worker).impl_).mutex_);
-}
-unsafe extern "C" fn init(worker: *mut VPxWorker) {
+}}
+unsafe extern "C" fn init(worker: *mut VPxWorker) { unsafe {
     memset(
         worker as *mut ::core::ffi::c_void,
         0 as ::core::ffi::c_int,
         ::core::mem::size_of::<VPxWorker>() as size_t,
     );
     (*worker).status_ = VPX_WORKER_STATUS_NOT_OK;
-}
-unsafe extern "C" fn sync(worker: *mut VPxWorker) -> ::core::ffi::c_int {
+}}
+unsafe extern "C" fn sync(worker: *mut VPxWorker) -> ::core::ffi::c_int { unsafe {
     change_state(worker, VPX_WORKER_STATUS_OK);
     return ((*worker).had_error == 0) as ::core::ffi::c_int;
-}
-unsafe extern "C" fn reset(worker: *mut VPxWorker) -> ::core::ffi::c_int {
+}}
+unsafe extern "C" fn reset(worker: *mut VPxWorker) -> ::core::ffi::c_int { unsafe {
     let mut current_block: u64;
     let mut ok: ::core::ffi::c_int = 1 as ::core::ffi::c_int;
     (*worker).had_error = 0 as ::core::ffi::c_int;
@@ -274,18 +274,18 @@ unsafe extern "C" fn reset(worker: *mut VPxWorker) -> ::core::ffi::c_int {
         ok = sync(worker);
     }
     return ok;
-}
-unsafe extern "C" fn execute(worker: *mut VPxWorker) {
+}}
+unsafe extern "C" fn execute(worker: *mut VPxWorker) { unsafe {
     if (*worker).hook.is_some() {
         (*worker).had_error |=
             ((*worker).hook.expect("non-null function pointer")((*worker).data1, (*worker).data2)
                 == 0) as ::core::ffi::c_int;
     }
-}
-unsafe extern "C" fn launch(worker: *mut VPxWorker) {
+}}
+unsafe extern "C" fn launch(worker: *mut VPxWorker) { unsafe {
     change_state(worker, VPX_WORKER_STATUS_WORKING);
-}
-unsafe extern "C" fn end(worker: *mut VPxWorker) {
+}}
+unsafe extern "C" fn end(worker: *mut VPxWorker) { unsafe {
     if !(*worker).impl_.is_null() {
         change_state(worker, VPX_WORKER_STATUS_NOT_OK);
         pthread_join(
@@ -297,7 +297,7 @@ unsafe extern "C" fn end(worker: *mut VPxWorker) {
         vpx_free((*worker).impl_ as *mut ::core::ffi::c_void);
         (*worker).impl_ = ::core::ptr::null_mut::<VPxWorkerImpl>();
     }
-}
+}}
 static mut g_worker_interface: VPxWorkerInterface = unsafe {
     VPxWorkerInterface {
         init: Some(init as unsafe extern "C" fn(*mut VPxWorker) -> ()),
@@ -308,10 +308,10 @@ static mut g_worker_interface: VPxWorkerInterface = unsafe {
         end: Some(end as unsafe extern "C" fn(*mut VPxWorker) -> ()),
     }
 };
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_set_worker_interface(
     winterface: *const VPxWorkerInterface,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     if winterface.is_null()
         || (*winterface).init.is_none()
         || (*winterface).reset.is_none()
@@ -324,8 +324,8 @@ pub unsafe extern "C" fn vpx_set_worker_interface(
     }
     g_worker_interface = *winterface;
     return 1 as ::core::ffi::c_int;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_get_worker_interface() -> *const VPxWorkerInterface {
     return &raw mut g_worker_interface;
 }

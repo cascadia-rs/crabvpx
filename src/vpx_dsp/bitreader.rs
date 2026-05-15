@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     static vpx_norm: [uint8_t; 256];
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
@@ -39,7 +39,7 @@ pub const LOTS_OF_BITS: ::core::ffi::c_int = 0x40000000 as ::core::ffi::c_int;
 unsafe extern "C" fn vpx_read(
     mut r: *mut vpx_reader,
     mut prob: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut bit: ::core::ffi::c_uint = 0 as ::core::ffi::c_uint;
     let mut value: BD_VALUE = 0;
     let mut bigsplit: BD_VALUE = 0;
@@ -70,23 +70,23 @@ unsafe extern "C" fn vpx_read(
     (*r).count = count;
     (*r).range = range;
     return bit as ::core::ffi::c_int;
-}
+}}
 #[inline]
-unsafe extern "C" fn vpx_read_bit(mut r: *mut vpx_reader) -> ::core::ffi::c_int {
+unsafe extern "C" fn vpx_read_bit(mut r: *mut vpx_reader) -> ::core::ffi::c_int { unsafe {
     return vpx_read(r, 128 as ::core::ffi::c_int);
-}
+}}
 #[inline]
 unsafe extern "C" fn BSwap64(mut x: uint64_t) -> uint64_t {
     return x.swap_bytes();
 }
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_reader_init(
     mut r: *mut vpx_reader,
     mut buffer: *const uint8_t,
     mut size: size_t,
     mut decrypt_cb: vpx_decrypt_cb,
     mut decrypt_state: *mut ::core::ffi::c_void,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     if size != 0 && buffer.is_null() {
         return 1 as ::core::ffi::c_int;
     } else {
@@ -100,9 +100,9 @@ pub unsafe extern "C" fn vpx_reader_init(
         vpx_reader_fill(r);
         return (vpx_read_bit(r) != 0 as ::core::ffi::c_int) as ::core::ffi::c_int;
     };
-}
-#[no_mangle]
-pub unsafe extern "C" fn vpx_reader_fill(mut r: *mut vpx_reader) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vpx_reader_fill(mut r: *mut vpx_reader) { unsafe {
     let buffer_end: *const uint8_t = (*r).buffer_end;
     let mut buffer: *const uint8_t = (*r).buffer;
     let mut buffer_start: *const uint8_t = buffer;
@@ -164,12 +164,12 @@ pub unsafe extern "C" fn vpx_reader_fill(mut r: *mut vpx_reader) {
         .offset(buffer.offset_from(buffer_start) as ::core::ffi::c_long as isize);
     (*r).value = value;
     (*r).count = count;
-}
-#[no_mangle]
-pub unsafe extern "C" fn vpx_reader_find_end(mut r: *mut vpx_reader) -> *const uint8_t {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vpx_reader_find_end(mut r: *mut vpx_reader) -> *const uint8_t { unsafe {
     while (*r).count > CHAR_BIT && (*r).count < BD_VALUE_SIZE {
         (*r).count -= CHAR_BIT;
         (*r).buffer = (*r).buffer.offset(-1);
     }
     return (*r).buffer;
-}
+}}

@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn vp8_yv12_alloc_frame_buffer(
         ybf: *mut YV12_BUFFER_CONFIG,
         width: ::core::ffi::c_int,
@@ -264,8 +264,8 @@ pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::co
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 pub const VP8BORDERINPIXELS: ::core::ffi::c_int = 32 as ::core::ffi::c_int;
 pub const NUM_YV12_BUFFERS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
-#[no_mangle]
-pub unsafe extern "C" fn vp8_de_alloc_frame_buffers(mut oci: *mut VP8_COMMON) {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_de_alloc_frame_buffers(mut oci: *mut VP8_COMMON) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
     while i < NUM_YV12_BUFFERS {
@@ -284,13 +284,13 @@ pub unsafe extern "C" fn vp8_de_alloc_frame_buffers(mut oci: *mut VP8_COMMON) {
     (*oci).mi = ::core::ptr::null_mut::<MODE_INFO>();
     (*oci).show_frame_mi = ::core::ptr::null_mut::<MODE_INFO>();
     (*oci).frame_to_show = ::core::ptr::null_mut::<YV12_BUFFER_CONFIG>();
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_alloc_frame_buffers(
     mut oci: *mut VP8_COMMON,
     mut width: ::core::ffi::c_int,
     mut height: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut current_block: u64;
     let mut i: ::core::ffi::c_int = 0;
     vp8_de_alloc_frame_buffers(oci);
@@ -365,9 +365,9 @@ pub unsafe extern "C" fn vp8_alloc_frame_buffers(
     }
     vp8_de_alloc_frame_buffers(oci);
     return 1 as ::core::ffi::c_int;
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_setup_version(mut cm: *mut VP8_COMMON) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_setup_version(mut cm: *mut VP8_COMMON) { unsafe {
     match (*cm).version {
         0 => {
             (*cm).no_lpf = 0 as ::core::ffi::c_int;
@@ -400,9 +400,9 @@ pub unsafe extern "C" fn vp8_setup_version(mut cm: *mut VP8_COMMON) {
             (*cm).full_pixel = 0 as ::core::ffi::c_int;
         }
     };
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_create_common(mut oci: *mut VP8_COMMON) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_create_common(mut oci: *mut VP8_COMMON) { unsafe {
     vp8_machine_specific_config(oci as *mut VP8Common);
     vp8_init_mbmode_probs(oci);
     vp8_default_bmode_probs(&raw mut (*oci).fc.bmode_prob as *mut vp8_prob);
@@ -420,8 +420,8 @@ pub unsafe extern "C" fn vp8_create_common(mut oci: *mut VP8_COMMON) {
     );
     (*oci).copy_buffer_to_gf = 0 as ::core::ffi::c_int;
     (*oci).copy_buffer_to_arf = 0 as ::core::ffi::c_int;
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_remove_common(mut oci: *mut VP8_COMMON) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_remove_common(mut oci: *mut VP8_COMMON) { unsafe {
     vp8_de_alloc_frame_buffers(oci);
-}
+}}

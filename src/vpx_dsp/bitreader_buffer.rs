@@ -13,12 +13,12 @@ pub struct vpx_read_bit_buffer {
 }
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
-#[no_mangle]
-pub unsafe extern "C" fn vpx_rb_bytes_read(mut rb: *mut vpx_read_bit_buffer) -> size_t {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vpx_rb_bytes_read(mut rb: *mut vpx_read_bit_buffer) -> size_t { unsafe {
     return (*rb).bit_offset.wrapping_add(7 as size_t) >> 3 as ::core::ffi::c_int;
-}
-#[no_mangle]
-pub unsafe extern "C" fn vpx_rb_read_bit(mut rb: *mut vpx_read_bit_buffer) -> ::core::ffi::c_int {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vpx_rb_read_bit(mut rb: *mut vpx_read_bit_buffer) -> ::core::ffi::c_int { unsafe {
     let off: size_t = (*rb).bit_offset;
     let p: size_t = off >> 3 as ::core::ffi::c_int;
     let q: ::core::ffi::c_int =
@@ -35,12 +35,12 @@ pub unsafe extern "C" fn vpx_rb_read_bit(mut rb: *mut vpx_read_bit_buffer) -> ::
         }
         return 0 as ::core::ffi::c_int;
     };
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_rb_read_literal(
     mut rb: *mut vpx_read_bit_buffer,
     mut bits: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut value: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     let mut bit: ::core::ffi::c_int = 0;
     bit = bits - 1 as ::core::ffi::c_int;
@@ -49,23 +49,23 @@ pub unsafe extern "C" fn vpx_rb_read_literal(
         bit -= 1;
     }
     return value;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_rb_read_signed_literal(
     mut rb: *mut vpx_read_bit_buffer,
     mut bits: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let value: ::core::ffi::c_int = vpx_rb_read_literal(rb, bits) as ::core::ffi::c_int;
     return if vpx_rb_read_bit(rb) != 0 {
         -value
     } else {
         value
     };
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_rb_read_inv_signed_literal(
     mut rb: *mut vpx_read_bit_buffer,
     mut bits: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     return vpx_rb_read_signed_literal(rb, bits);
-}
+}}

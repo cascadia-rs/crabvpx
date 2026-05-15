@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -7,13 +7,13 @@ extern "C" {
 }
 pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_horizontal_line_5_4_scale_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_width: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
     mut dest_width: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_uint = 0;
     let mut a: ::core::ffi::c_uint = 0;
     let mut b: ::core::ffi::c_uint = 0;
@@ -49,15 +49,15 @@ pub unsafe extern "C" fn vp8_horizontal_line_5_4_scale_c(
         des = des.offset(4 as ::core::ffi::c_int as isize);
         i = i.wrapping_add(5 as ::core::ffi::c_uint);
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_vertical_band_5_4_scale_c(
     mut source: *mut ::core::ffi::c_uchar,
     mut src_pitch: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
     mut dest_pitch: ::core::ffi::c_uint,
     mut dest_width: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_uint = 0;
     let mut a: ::core::ffi::c_uint = 0;
     let mut b: ::core::ffi::c_uint = 0;
@@ -99,14 +99,14 @@ pub unsafe extern "C" fn vp8_vertical_band_5_4_scale_c(
         des = des.offset(1);
         i = i.wrapping_add(1);
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_horizontal_line_5_3_scale_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_width: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
     mut dest_width: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_uint = 0;
     let mut a: ::core::ffi::c_uint = 0;
     let mut b: ::core::ffi::c_uint = 0;
@@ -137,15 +137,15 @@ pub unsafe extern "C" fn vp8_horizontal_line_5_3_scale_c(
         des = des.offset(3 as ::core::ffi::c_int as isize);
         i = i.wrapping_add(5 as ::core::ffi::c_uint);
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_vertical_band_5_3_scale_c(
     mut source: *mut ::core::ffi::c_uchar,
     mut src_pitch: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
     mut dest_pitch: ::core::ffi::c_uint,
     mut dest_width: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_uint = 0;
     let mut a: ::core::ffi::c_uint = 0;
     let mut b: ::core::ffi::c_uint = 0;
@@ -182,14 +182,14 @@ pub unsafe extern "C" fn vp8_vertical_band_5_3_scale_c(
         des = des.offset(1);
         i = i.wrapping_add(1);
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_horizontal_line_2_1_scale_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_width: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
     mut dest_width: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_uint = 0;
     let mut a: ::core::ffi::c_uint = 0;
     let mut des: *mut ::core::ffi::c_uchar = dest;
@@ -202,29 +202,29 @@ pub unsafe extern "C" fn vp8_horizontal_line_2_1_scale_c(
         des = des.offset(1 as ::core::ffi::c_int as isize);
         i = i.wrapping_add(2 as ::core::ffi::c_uint);
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_vertical_band_2_1_scale_c(
     mut source: *mut ::core::ffi::c_uchar,
     mut src_pitch: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
     mut dest_pitch: ::core::ffi::c_uint,
     mut dest_width: ::core::ffi::c_uint,
-) {
+) { unsafe {
     memcpy(
         dest as *mut ::core::ffi::c_void,
         source as *const ::core::ffi::c_void,
         dest_width as size_t,
     );
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_vertical_band_2_1_scale_i_c(
     mut source: *mut ::core::ffi::c_uchar,
     mut src_pitch: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
     mut dest_pitch: ::core::ffi::c_uint,
     mut dest_width: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut temp: ::core::ffi::c_int = 0;
     let mut width: ::core::ffi::c_int = dest_width as ::core::ffi::c_int;
@@ -242,4 +242,4 @@ pub unsafe extern "C" fn vp8_vertical_band_2_1_scale_i_c(
         *dest.offset(i as isize) = temp as ::core::ffi::c_uchar;
         i += 1;
     }
-}
+}}

@@ -1,13 +1,13 @@
 static mut cospi8sqrt2minus1: ::core::ffi::c_int = 20091 as ::core::ffi::c_int;
 static mut sinpi8sqrt2: ::core::ffi::c_int = 35468 as ::core::ffi::c_int;
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_short_idct4x4llm_c(
     mut input: *mut ::core::ffi::c_short,
     mut pred_ptr: *mut ::core::ffi::c_uchar,
     mut pred_stride: ::core::ffi::c_int,
     mut dst_ptr: *mut ::core::ffi::c_uchar,
     mut dst_stride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut r: ::core::ffi::c_int = 0;
     let mut c: ::core::ffi::c_int = 0;
@@ -108,15 +108,15 @@ pub unsafe extern "C" fn vp8_short_idct4x4llm_c(
         pred_ptr = pred_ptr.offset(pred_stride as isize);
         r += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_dc_only_idct_add_c(
     mut input_dc: ::core::ffi::c_short,
     mut pred_ptr: *mut ::core::ffi::c_uchar,
     mut pred_stride: ::core::ffi::c_int,
     mut dst_ptr: *mut ::core::ffi::c_uchar,
     mut dst_stride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut a1: ::core::ffi::c_int =
         input_dc as ::core::ffi::c_int + 4 as ::core::ffi::c_int >> 3 as ::core::ffi::c_int;
     let mut r: ::core::ffi::c_int = 0;
@@ -139,12 +139,12 @@ pub unsafe extern "C" fn vp8_dc_only_idct_add_c(
         pred_ptr = pred_ptr.offset(pred_stride as isize);
         r += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_short_inv_walsh4x4_c(
     mut input: *mut ::core::ffi::c_short,
     mut mb_dqcoeff: *mut ::core::ffi::c_short,
-) {
+) { unsafe {
     let mut output: [::core::ffi::c_short; 16] = [0; 16];
     let mut i: ::core::ffi::c_int = 0;
     let mut a1: ::core::ffi::c_int = 0;
@@ -208,12 +208,12 @@ pub unsafe extern "C" fn vp8_short_inv_walsh4x4_c(
         *mb_dqcoeff.offset((i * 16 as ::core::ffi::c_int) as isize) = output[i as usize];
         i += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_short_inv_walsh4x4_1_c(
     mut input: *mut ::core::ffi::c_short,
     mut mb_dqcoeff: *mut ::core::ffi::c_short,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut a1: ::core::ffi::c_int = 0;
     a1 = *input.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
@@ -224,4 +224,4 @@ pub unsafe extern "C" fn vp8_short_inv_walsh4x4_1_c(
         *mb_dqcoeff.offset((i * 16 as ::core::ffi::c_int) as isize) = a1 as ::core::ffi::c_short;
         i += 1;
     }
-}
+}}

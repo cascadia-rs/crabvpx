@@ -15,7 +15,7 @@ unsafe extern "C" fn tree2tok(
     mut i: ::core::ffi::c_int,
     mut v: ::core::ffi::c_int,
     mut L: ::core::ffi::c_int,
-) {
+) { unsafe {
     v += v;
     L += 1;
     loop {
@@ -33,12 +33,12 @@ unsafe extern "C" fn tree2tok(
             break;
         }
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_tokens_from_tree(
     mut p: *mut vp8_token_struct,
     mut t: *const vp8_tree_index,
-) {
+) { unsafe {
     tree2tok(
         p,
         t,
@@ -46,13 +46,13 @@ pub unsafe extern "C" fn vp8_tokens_from_tree(
         0 as ::core::ffi::c_int,
         0 as ::core::ffi::c_int,
     );
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_tokens_from_tree_offset(
     mut p: *mut vp8_token_struct,
     mut t: *const vp8_tree_index,
     mut offset: ::core::ffi::c_int,
-) {
+) { unsafe {
     tree2tok(
         p.offset(-(offset as isize)),
         t,
@@ -60,14 +60,14 @@ pub unsafe extern "C" fn vp8_tokens_from_tree_offset(
         0 as ::core::ffi::c_int,
         0 as ::core::ffi::c_int,
     );
-}
+}}
 unsafe extern "C" fn branch_counts(
     mut n: ::core::ffi::c_int,
     mut tok: *const vp8_token,
     mut tree: *const vp8_tree_index,
     mut branch_ct: *mut [::core::ffi::c_uint; 2],
     mut num_events: *const ::core::ffi::c_uint,
-) {
+) { unsafe {
     let tree_len: ::core::ffi::c_int = n - 1 as ::core::ffi::c_int;
     let mut t: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     loop {
@@ -101,8 +101,8 @@ unsafe extern "C" fn branch_counts(
             break;
         }
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_tree_probs_from_distribution(
     mut n: ::core::ffi::c_int,
     mut tok: *const vp8_token,
@@ -112,7 +112,7 @@ pub unsafe extern "C" fn vp8_tree_probs_from_distribution(
     mut num_events: *const ::core::ffi::c_uint,
     mut Pfactor: ::core::ffi::c_uint,
     mut Round: ::core::ffi::c_int,
-) {
+) { unsafe {
     let tree_len: ::core::ffi::c_int = n - 1 as ::core::ffi::c_int;
     let mut t: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     branch_counts(n, tok, tree, branch_ct, num_events);
@@ -149,4 +149,4 @@ pub unsafe extern "C" fn vp8_tree_probs_from_distribution(
             break;
         }
     }
-}
+}}

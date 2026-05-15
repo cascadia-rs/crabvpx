@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn vp8_short_idct4x4llm_c(
         input: *mut ::core::ffi::c_short,
         pred_ptr: *mut ::core::ffi::c_uchar,
@@ -61,11 +61,11 @@ pub const B_DC_PRED: B_PREDICTION_MODE = 0;
 pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
 pub type BLOCKD = blockd;
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_dequantize_b_c(
     mut d: *mut BLOCKD,
     mut DQC: *mut ::core::ffi::c_short,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut DQ: *mut ::core::ffi::c_short = (*d).dqcoeff;
     let mut Q: *mut ::core::ffi::c_short = (*d).qcoeff;
@@ -76,14 +76,14 @@ pub unsafe extern "C" fn vp8_dequantize_b_c(
             as ::core::ffi::c_short;
         i += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_dequant_idct_add_c(
     mut input: *mut ::core::ffi::c_short,
     mut dq: *mut ::core::ffi::c_short,
     mut dest: *mut ::core::ffi::c_uchar,
     mut stride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
     while i < 16 as ::core::ffi::c_int {
@@ -98,4 +98,4 @@ pub unsafe extern "C" fn vp8_dequant_idct_add_c(
         0 as ::core::ffi::c_int,
         32 as size_t,
     );
-}
+}}

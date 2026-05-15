@@ -5,7 +5,7 @@ pub struct mv_context {
     pub prob: [vp8_prob; 19],
 }
 pub type MV_CONTEXT = mv_context;
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_mv_update_probs: [MV_CONTEXT; 2] = [
     mv_context {
         prob: [
@@ -54,7 +54,7 @@ pub static mut vp8_mv_update_probs: [MV_CONTEXT; 2] = [
         ],
     },
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_default_mv_context: [MV_CONTEXT; 2] = [
     mv_context {
         prob: [

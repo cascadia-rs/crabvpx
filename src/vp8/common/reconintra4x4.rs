@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -89,8 +89,8 @@ pub const B_DC_PRED: B_PREDICTION_MODE = 0;
 pub type intra_pred_fn =
     Option<unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> ()>;
 static mut pred: [intra_pred_fn; 10] = [None; 10];
-#[no_mangle]
-pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() { unsafe {
     pred[B_DC_PRED as ::core::ffi::c_int as usize] = Some(
         vpx_dc_predictor_4x4_neon
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
@@ -131,8 +131,8 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
         vpx_d207_predictor_4x4_neon
             as unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
     ) as intra_pred_fn;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_intra4x4_predict(
     mut above: *mut ::core::ffi::c_uchar,
     mut yleft: *mut ::core::ffi::c_uchar,
@@ -141,7 +141,7 @@ pub unsafe extern "C" fn vp8_intra4x4_predict(
     mut dst: *mut ::core::ffi::c_uchar,
     mut dst_stride: ::core::ffi::c_int,
     mut top_left: ::core::ffi::c_uchar,
-) {
+) { unsafe {
     let mut Aboveb: [::core::ffi::c_uchar; 12] = [0; 12];
     let mut Above: *mut ::core::ffi::c_uchar =
         (&raw mut Aboveb as *mut ::core::ffi::c_uchar).offset(4 as ::core::ffi::c_int as isize);
@@ -164,4 +164,4 @@ pub unsafe extern "C" fn vp8_intra4x4_predict(
         Above,
         &raw mut Left as *mut ::core::ffi::c_uchar,
     );
-}
+}}

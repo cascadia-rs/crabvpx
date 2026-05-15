@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     static vp8_mode_contexts: [[::core::ffi::c_int; 4]; 6];
 }
 pub type __darwin_size_t = usize;
@@ -243,20 +243,20 @@ unsafe extern "C" fn mv_bias(
     mut refframe: ::core::ffi::c_int,
     mut mvp: *mut int_mv,
     mut ref_frame_sign_bias: *const ::core::ffi::c_int,
-) {
+) { unsafe {
     if refmb_ref_frame_sign_bias != *ref_frame_sign_bias.offset(refframe as isize) {
         (*mvp).as_mv.row = ((*mvp).as_mv.row as ::core::ffi::c_int * -(1 as ::core::ffi::c_int))
             as ::core::ffi::c_short;
         (*mvp).as_mv.col = ((*mvp).as_mv.col as ::core::ffi::c_int * -(1 as ::core::ffi::c_int))
             as ::core::ffi::c_short;
     }
-}
+}}
 pub const LEFT_TOP_MARGIN: ::core::ffi::c_int =
     (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
 pub const RIGHT_BOTTOM_MARGIN: ::core::ffi::c_int =
     (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) {
+unsafe extern "C" fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) { unsafe {
     if ((*mv).as_mv.col as ::core::ffi::c_int) < (*xd).mb_to_left_edge - LEFT_TOP_MARGIN {
         (*mv).as_mv.col = ((*xd).mb_to_left_edge - LEFT_TOP_MARGIN) as ::core::ffi::c_short;
     } else if (*mv).as_mv.col as ::core::ffi::c_int > (*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN {
@@ -268,8 +268,8 @@ unsafe extern "C" fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOC
     {
         (*mv).as_mv.row = ((*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as ::core::ffi::c_short;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub static mut vp8_mbsplit_offset: [[::core::ffi::c_uchar; 16]; 4] = [
     [
         0 as ::core::ffi::c_int as ::core::ffi::c_uchar,
@@ -344,7 +344,7 @@ pub static mut vp8_mbsplit_offset: [[::core::ffi::c_uchar; 16]; 4] = [
         15 as ::core::ffi::c_int as ::core::ffi::c_uchar,
     ],
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_find_near_mvs(
     mut xd: *mut MACROBLOCKD,
     mut here: *const MODE_INFO,
@@ -354,7 +354,7 @@ pub unsafe extern "C" fn vp8_find_near_mvs(
     mut near_mv_ref_cnts: *mut ::core::ffi::c_int,
     mut refframe: ::core::ffi::c_int,
     mut ref_frame_sign_bias: *mut ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut above: *const MODE_INFO = here.offset(-((*xd).mode_info_stride as isize));
     let mut left: *const MODE_INFO = here.offset(-(1 as ::core::ffi::c_int as isize));
     let mut aboveleft: *const MODE_INFO = above.offset(-(1 as ::core::ffi::c_int as isize));
@@ -465,20 +465,20 @@ pub unsafe extern "C" fn vp8_find_near_mvs(
     (*best_mv).as_int = near_mvs[0 as ::core::ffi::c_int as usize].as_int;
     (*nearest).as_int = near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int;
     (*nearby).as_int = near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int;
-}
+}}
 unsafe extern "C" fn invert_and_clamp_mvs(
     mut inv: *mut int_mv,
     mut src: *mut int_mv,
     mut xd: *mut MACROBLOCKD,
-) {
+) { unsafe {
     (*inv).as_mv.row = ((*src).as_mv.row as ::core::ffi::c_int * -(1 as ::core::ffi::c_int))
         as ::core::ffi::c_short;
     (*inv).as_mv.col = ((*src).as_mv.col as ::core::ffi::c_int * -(1 as ::core::ffi::c_int))
         as ::core::ffi::c_short;
     vp8_clamp_mv2(inv, xd);
     vp8_clamp_mv2(src, xd);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_find_near_mvs_bias(
     mut xd: *mut MACROBLOCKD,
     mut here: *const MODE_INFO,
@@ -487,7 +487,7 @@ pub unsafe extern "C" fn vp8_find_near_mvs_bias(
     mut cnt: *mut ::core::ffi::c_int,
     mut refframe: ::core::ffi::c_int,
     mut ref_frame_sign_bias: *mut ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut sign_bias: ::core::ffi::c_int = *ref_frame_sign_bias.offset(refframe as isize);
     vp8_find_near_mvs(
         xd,
@@ -523,12 +523,12 @@ pub unsafe extern "C" fn vp8_find_near_mvs_bias(
         xd,
     );
     return sign_bias;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_mv_ref_probs(
     mut p: *mut vp8_prob,
     mut near_mv_ref_ct: *const ::core::ffi::c_int,
-) -> *mut vp8_prob {
+) -> *mut vp8_prob { unsafe {
     *p.offset(0 as ::core::ffi::c_int as isize) =
         vp8_mode_contexts[*near_mv_ref_ct.offset(0 as ::core::ffi::c_int as isize) as usize]
             [0 as ::core::ffi::c_int as usize] as vp8_prob;
@@ -542,4 +542,4 @@ pub unsafe extern "C" fn vp8_mv_ref_probs(
         vp8_mode_contexts[*near_mv_ref_ct.offset(3 as ::core::ffi::c_int as isize) as usize]
             [3 as ::core::ffi::c_int as usize] as vp8_prob;
     return p as *mut vp8_prob;
-}
+}}

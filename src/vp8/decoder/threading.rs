@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn vp8_dc_only_idct_add_neon(
         input_dc: ::core::ffi::c_short,
         pred_ptr: *mut ::core::ffi::c_uchar,
@@ -650,46 +650,46 @@ pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
 pub const VP8_LOTS_OF_BITS: ::core::ffi::c_int = 0x40000000 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> ::core::ffi::c_int {
+unsafe extern "C" fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> ::core::ffi::c_int { unsafe {
     if (*br).count > VP8_BD_VALUE_SIZE && (*br).count < VP8_LOTS_OF_BITS {
         return 1 as ::core::ffi::c_int;
     }
     return 0 as ::core::ffi::c_int;
-}
+}}
 pub const SYNC_POLICY_FIFO: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
 #[inline]
 unsafe extern "C" fn vpx_atomic_init(
     mut atomic: *mut vpx_atomic_int,
     mut value: ::core::ffi::c_int,
-) {
+) { unsafe {
     ::core::ptr::write_volatile(&mut (*atomic).value as *mut ::core::ffi::c_int, value);
-}
+}}
 #[inline]
 unsafe extern "C" fn vpx_atomic_store_release(
     mut atomic: *mut vpx_atomic_int,
     mut value: ::core::ffi::c_int,
-) {
+) { unsafe {
     (*(&raw mut (*atomic).value as *const core::sync::atomic::AtomicI32)).store(value, core::sync::atomic::Ordering::Release);
-}
+}}
 #[inline]
 unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
-}
+}}
 #[inline]
 unsafe extern "C" fn vp8_atomic_spin_wait(
     mut mb_col: ::core::ffi::c_int,
     mut last_row_current_mb_col: *const vpx_atomic_int,
     nsync: ::core::ffi::c_int,
-) {
+) { unsafe {
     while mb_col > vpx_atomic_load_acquire(last_row_current_mb_col) - nsync {}
-}
+}}
 #[inline]
 unsafe extern "C" fn intra_prediction_down_copy(
     mut xd: *mut MACROBLOCKD,
     mut above_right_src: *mut ::core::ffi::c_uchar,
-) {
+) { unsafe {
     let mut dst_stride: ::core::ffi::c_int = (*xd).dst.y_stride;
     let mut above_right_dst: *mut ::core::ffi::c_uchar = (*xd)
         .dst
@@ -709,7 +709,7 @@ unsafe extern "C" fn intra_prediction_down_copy(
     *dst_ptr0 = *src_ptr;
     *dst_ptr1 = *src_ptr;
     *dst_ptr2 = *src_ptr;
-}
+}}
 #[inline]
 unsafe extern "C" fn setup_intra_recon_left(
     mut y_buffer: *mut ::core::ffi::c_uchar,
@@ -717,7 +717,7 @@ unsafe extern "C" fn setup_intra_recon_left(
     mut v_buffer: *mut ::core::ffi::c_uchar,
     mut y_stride: ::core::ffi::c_int,
     mut uv_stride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
     while i < 16 as ::core::ffi::c_int {
@@ -737,13 +737,13 @@ unsafe extern "C" fn setup_intra_recon_left(
             129 as ::core::ffi::c_int as ::core::ffi::c_uchar;
         i += 1;
     }
-}
+}}
 unsafe extern "C" fn setup_decoding_thread_data(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
     mut mbrd: *mut MB_ROW_DEC,
     mut count: ::core::ffi::c_int,
-) {
+) { unsafe {
     let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
     let mut i: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
@@ -815,12 +815,12 @@ unsafe extern "C" fn setup_decoding_thread_data(
         );
         i += 1;
     }
-}
+}}
 unsafe extern "C" fn mt_decode_macroblock(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
     mut mb_idx: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut mode: MB_PREDICTION_MODE = DC_PRED;
     let mut i: ::core::ffi::c_int = 0;
     if (*(*xd).mode_info_context).mbmi.mb_skip_coeff != 0 {
@@ -1011,12 +1011,12 @@ unsafe extern "C" fn mt_decode_macroblock(
                 .offset(16 as ::core::ffi::c_int as isize),
         );
     }
-}
+}}
 unsafe extern "C" fn mt_decode_mb_rows(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
     mut start_mb_row: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut last_row_current_mb_col: *const vpx_atomic_int = ::core::ptr::null::<vpx_atomic_int>();
     let mut current_mb_col: *mut vpx_atomic_int = ::core::ptr::null_mut::<vpx_atomic_int>();
     let mut mb_row: ::core::ffi::c_int = 0;
@@ -1498,10 +1498,10 @@ unsafe extern "C" fn mt_decode_mb_rows(
     {
         semaphore_signal((*pbi).h_event_end_decoding);
     }
-}
+}}
 unsafe extern "C" fn thread_decoding_proc(
     mut p_data: *mut ::core::ffi::c_void,
-) -> *mut ::core::ffi::c_void {
+) -> *mut ::core::ffi::c_void { unsafe {
     let mut ithread: ::core::ffi::c_int = (*(p_data as *mut DECODETHREAD_DATA)).ithread;
     let mut pbi: *mut VP8D_COMP = (*(p_data as *mut DECODETHREAD_DATA)).ptr1 as *mut VP8D_COMP;
     let mut mbrd: *mut MB_ROW_DEC = (*(p_data as *mut DECODETHREAD_DATA)).ptr2 as *mut MB_ROW_DEC;
@@ -1533,9 +1533,9 @@ unsafe extern "C" fn thread_decoding_proc(
         }
     }
     return THREAD_EXIT_SUCCESS;
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) { unsafe {
     let mut core_count: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     let mut ithread: ::core::ffi::c_uint = 0;
     vpx_atomic_init(&raw mut (*pbi).b_multithreaded_rd, 0 as ::core::ffi::c_int);
@@ -1675,12 +1675,12 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
             );
         }
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8mt_de_alloc_temp_buffers(
     mut pbi: *mut VP8D_COMP,
     mut mb_rows: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     vpx_free((*pbi).mt_current_mb_col as *mut ::core::ffi::c_void);
     (*pbi).mt_current_mb_col = ::core::ptr::null_mut::<vpx_atomic_int>();
@@ -1750,13 +1750,13 @@ pub unsafe extern "C" fn vp8mt_de_alloc_temp_buffers(
         vpx_free((*pbi).mt_vleft_col as *mut ::core::ffi::c_void);
         (*pbi).mt_vleft_col = ::core::ptr::null_mut::<*mut ::core::ffi::c_uchar>();
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
     mut pbi: *mut VP8D_COMP,
     mut width: ::core::ffi::c_int,
     mut prev_mb_rows: ::core::ffi::c_int,
-) {
+) { unsafe {
     let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
     let mut i: ::core::ffi::c_int = 0;
     let mut uv_width: ::core::ffi::c_int = 0;
@@ -1995,9 +1995,9 @@ pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
             i += 1;
         }
     }
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) { unsafe {
     if vpx_atomic_load_acquire(&raw mut (*pbi).b_multithreaded_rd) != 0 {
         let mut i: ::core::ffi::c_int = 0;
         vpx_atomic_store_release(&raw mut (*pbi).b_multithreaded_rd, 0 as ::core::ffi::c_int);
@@ -2031,12 +2031,12 @@ pub unsafe extern "C" fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) {
         (*pbi).de_thread_data = ::core::ptr::null_mut::<DECODETHREAD_DATA>();
         vp8mt_de_alloc_temp_buffers(pbi, (*pbi).common.mb_rows);
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8mt_decode_mb_rows(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut pc: *mut VP8_COMMON = &raw mut (*pbi).common;
     let mut i: ::core::ffi::c_uint = 0;
     let mut j: ::core::ffi::c_int = 0;
@@ -2158,7 +2158,7 @@ pub unsafe extern "C" fn vp8mt_decode_mb_rows(
         i = i.wrapping_add(1);
     }
     return 0 as ::core::ffi::c_int;
-}
+}}
 pub const __ATOMIC_ACQUIRE: ::core::ffi::c_int = 2 as ::core::ffi::c_int;
 pub const __ATOMIC_RELEASE: ::core::ffi::c_int = 3 as ::core::ffi::c_int;
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;

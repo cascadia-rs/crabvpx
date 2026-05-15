@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -274,7 +274,7 @@ pub const SUBMVREF_ABOVE_ZED: C2RustUnnamed_0 = 2;
 pub const SUBMVREF_LEFT_ZED: C2RustUnnamed_0 = 1;
 pub const SUBMVREF_NORMAL: C2RustUnnamed_0 = 0;
 pub type vp8_mbsplit = [::core::ffi::c_int; 16];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_bmode_encodings: [vp8_token_struct; 10] = [
     vp8_token_struct {
         value: 0 as ::core::ffi::c_int,
@@ -317,7 +317,7 @@ pub static mut vp8_bmode_encodings: [vp8_token_struct; 10] = [
         Len: 7 as ::core::ffi::c_int,
     },
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_ymode_encodings: [vp8_token_struct; 5] = [
     vp8_token_struct {
         value: 0 as ::core::ffi::c_int,
@@ -340,7 +340,7 @@ pub static mut vp8_ymode_encodings: [vp8_token_struct; 5] = [
         Len: 3 as ::core::ffi::c_int,
     },
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_kf_ymode_encodings: [vp8_token_struct; 5] = [
     vp8_token_struct {
         value: 4 as ::core::ffi::c_int,
@@ -363,7 +363,7 @@ pub static mut vp8_kf_ymode_encodings: [vp8_token_struct; 5] = [
         Len: 1 as ::core::ffi::c_int,
     },
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_uv_mode_encodings: [vp8_token_struct; 4] = [
     vp8_token_struct {
         value: 0 as ::core::ffi::c_int,
@@ -382,7 +382,7 @@ pub static mut vp8_uv_mode_encodings: [vp8_token_struct; 4] = [
         Len: 3 as ::core::ffi::c_int,
     },
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_mbsplit_encodings: [vp8_token_struct; 4] = [
     vp8_token_struct {
         value: 6 as ::core::ffi::c_int,
@@ -401,7 +401,7 @@ pub static mut vp8_mbsplit_encodings: [vp8_token_struct; 4] = [
         Len: 1 as ::core::ffi::c_int,
     },
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_mv_ref_encoding_array: [vp8_token_struct; 5] = [
     vp8_token_struct {
         value: 2 as ::core::ffi::c_int,
@@ -424,7 +424,7 @@ pub static mut vp8_mv_ref_encoding_array: [vp8_token_struct; 5] = [
         Len: 4 as ::core::ffi::c_int,
     },
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_sub_mv_ref_encoding_array: [vp8_token_struct; 4] = [
     vp8_token_struct {
         value: 0 as ::core::ffi::c_int,
@@ -443,7 +443,7 @@ pub static mut vp8_sub_mv_ref_encoding_array: [vp8_token_struct; 4] = [
         Len: 3 as ::core::ffi::c_int,
     },
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_small_mvencodings: [vp8_token_struct; 8] = [
     vp8_token_struct {
         value: 0 as ::core::ffi::c_int,
@@ -478,33 +478,33 @@ pub static mut vp8_small_mvencodings: [vp8_token_struct; 8] = [
         Len: 3 as ::core::ffi::c_int,
     },
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_ymode_prob: [vp8_prob; 4] = [
     112 as ::core::ffi::c_int as vp8_prob,
     86 as ::core::ffi::c_int as vp8_prob,
     140 as ::core::ffi::c_int as vp8_prob,
     37 as ::core::ffi::c_int as vp8_prob,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_kf_ymode_prob: [vp8_prob; 4] = [
     145 as ::core::ffi::c_int as vp8_prob,
     156 as ::core::ffi::c_int as vp8_prob,
     163 as ::core::ffi::c_int as vp8_prob,
     128 as ::core::ffi::c_int as vp8_prob,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_uv_mode_prob: [vp8_prob; 3] = [
     162 as ::core::ffi::c_int as vp8_prob,
     101 as ::core::ffi::c_int as vp8_prob,
     204 as ::core::ffi::c_int as vp8_prob,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_kf_uv_mode_prob: [vp8_prob; 3] = [
     142 as ::core::ffi::c_int as vp8_prob,
     114 as ::core::ffi::c_int as vp8_prob,
     183 as ::core::ffi::c_int as vp8_prob,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_bmode_prob: [vp8_prob; 9] = [
     120 as ::core::ffi::c_int as vp8_prob,
     90 as ::core::ffi::c_int as vp8_prob,
@@ -516,7 +516,7 @@ pub static mut vp8_bmode_prob: [vp8_prob; 9] = [
     111 as ::core::ffi::c_int as vp8_prob,
     151 as ::core::ffi::c_int as vp8_prob,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_kf_bmode_prob: [[[vp8_prob; 9]; 10]; 10] = [
     [
         [
@@ -1639,11 +1639,11 @@ pub static mut vp8_kf_bmode_prob: [[[vp8_prob; 9]; 10]; 10] = [
         ],
     ],
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_mv_cont(
     mut l: *const int_mv,
     mut a: *const int_mv,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut lez: ::core::ffi::c_int = ((*l).as_int == 0 as uint32_t) as ::core::ffi::c_int;
     let mut aez: ::core::ffi::c_int = ((*a).as_int == 0 as uint32_t) as ::core::ffi::c_int;
     let mut lea: ::core::ffi::c_int = ((*l).as_int == (*a).as_int) as ::core::ffi::c_int;
@@ -1660,13 +1660,13 @@ pub unsafe extern "C" fn vp8_mv_cont(
         return SUBMVREF_LEFT_ZED as ::core::ffi::c_int;
     }
     return SUBMVREF_NORMAL as ::core::ffi::c_int;
-}
+}}
 static mut sub_mv_ref_prob: [vp8_prob; 3] = [
     180 as ::core::ffi::c_int as vp8_prob,
     162 as ::core::ffi::c_int as vp8_prob,
     25 as ::core::ffi::c_int as vp8_prob,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_sub_mv_ref_prob2: [[vp8_prob; 3]; 5] = [
     [
         147 as ::core::ffi::c_int as vp8_prob,
@@ -1694,7 +1694,7 @@ pub static mut vp8_sub_mv_ref_prob2: [[vp8_prob; 3]; 5] = [
         1 as ::core::ffi::c_int as vp8_prob,
     ],
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_mbsplits: [vp8_mbsplit; 4] = [
     [
         0 as ::core::ffi::c_int,
@@ -1769,20 +1769,20 @@ pub static mut vp8_mbsplits: [vp8_mbsplit; 4] = [
         15 as ::core::ffi::c_int,
     ],
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_mbsplit_count: [::core::ffi::c_int; 4] = [
     2 as ::core::ffi::c_int,
     2 as ::core::ffi::c_int,
     4 as ::core::ffi::c_int,
     16 as ::core::ffi::c_int,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_mbsplit_probs: [vp8_prob; 3] = [
     110 as ::core::ffi::c_int as vp8_prob,
     111 as ::core::ffi::c_int as vp8_prob,
     150 as ::core::ffi::c_int as vp8_prob,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_bmode_tree: [vp8_tree_index; 18] = [
     -(B_DC_PRED as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
@@ -1803,7 +1803,7 @@ pub static mut vp8_bmode_tree: [vp8_tree_index; 18] = [
     -(B_HD_PRED as ::core::ffi::c_int) as vp8_tree_index,
     -(B_HU_PRED as ::core::ffi::c_int) as vp8_tree_index,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_ymode_tree: [vp8_tree_index; 8] = [
     -(DC_PRED as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
@@ -1814,7 +1814,7 @@ pub static mut vp8_ymode_tree: [vp8_tree_index; 8] = [
     -(TM_PRED as ::core::ffi::c_int) as vp8_tree_index,
     -(B_PRED as ::core::ffi::c_int) as vp8_tree_index,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_kf_ymode_tree: [vp8_tree_index; 8] = [
     -(B_PRED as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
@@ -1825,7 +1825,7 @@ pub static mut vp8_kf_ymode_tree: [vp8_tree_index; 8] = [
     -(H_PRED as ::core::ffi::c_int) as vp8_tree_index,
     -(TM_PRED as ::core::ffi::c_int) as vp8_tree_index,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_uv_mode_tree: [vp8_tree_index; 6] = [
     -(DC_PRED as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
@@ -1834,7 +1834,7 @@ pub static mut vp8_uv_mode_tree: [vp8_tree_index; 6] = [
     -(H_PRED as ::core::ffi::c_int) as vp8_tree_index,
     -(TM_PRED as ::core::ffi::c_int) as vp8_tree_index,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_mbsplit_tree: [vp8_tree_index; 6] = [
     -(3 as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
@@ -1843,7 +1843,7 @@ pub static mut vp8_mbsplit_tree: [vp8_tree_index; 6] = [
     -(0 as ::core::ffi::c_int) as vp8_tree_index,
     -(1 as ::core::ffi::c_int) as vp8_tree_index,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_mv_ref_tree: [vp8_tree_index; 8] = [
     -(ZEROMV as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
@@ -1854,7 +1854,7 @@ pub static mut vp8_mv_ref_tree: [vp8_tree_index; 8] = [
     -(NEWMV as ::core::ffi::c_int) as vp8_tree_index,
     -(SPLITMV as ::core::ffi::c_int) as vp8_tree_index,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_sub_mv_ref_tree: [vp8_tree_index; 6] = [
     -(LEFT4X4 as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
@@ -1863,7 +1863,7 @@ pub static mut vp8_sub_mv_ref_tree: [vp8_tree_index; 6] = [
     -(ZERO4X4 as ::core::ffi::c_int) as vp8_tree_index,
     -(NEW4X4 as ::core::ffi::c_int) as vp8_tree_index,
 ];
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub static mut vp8_small_mvtree: [vp8_tree_index; 14] = [
     2 as ::core::ffi::c_int as vp8_tree_index,
     8 as ::core::ffi::c_int as vp8_tree_index,
@@ -1880,8 +1880,8 @@ pub static mut vp8_small_mvtree: [vp8_tree_index; 14] = [
     -(6 as ::core::ffi::c_int) as vp8_tree_index,
     -(7 as ::core::ffi::c_int) as vp8_tree_index,
 ];
-#[no_mangle]
-pub unsafe extern "C" fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) { unsafe {
     memcpy(
         &raw mut (*x).fc.ymode_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
         &raw const vp8_ymode_prob as *const vp8_prob as *const ::core::ffi::c_void,
@@ -1897,12 +1897,12 @@ pub unsafe extern "C" fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) {
         &raw const sub_mv_ref_prob as *const vp8_prob as *const ::core::ffi::c_void,
         ::core::mem::size_of::<[vp8_prob; 3]>() as size_t,
     );
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_default_bmode_probs(mut dest: *mut vp8_prob) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_default_bmode_probs(mut dest: *mut vp8_prob) { unsafe {
     memcpy(
         dest as *mut ::core::ffi::c_void,
         &raw const vp8_bmode_prob as *const vp8_prob as *const ::core::ffi::c_void,
         ::core::mem::size_of::<[vp8_prob; 9]>() as size_t,
     );
-}
+}}

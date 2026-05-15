@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     static vp8_norm: [::core::ffi::c_uchar; 256];
     fn vp8dx_bool_decoder_fill(br: *mut BOOL_DECODER);
     fn memset(
@@ -449,7 +449,7 @@ pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
 unsafe extern "C" fn vp8dx_decode_bool(
     mut br: *mut BOOL_DECODER,
     mut probability: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut bit: ::core::ffi::c_uint = 0 as ::core::ffi::c_uint;
     let mut value: VP8_BD_VALUE = 0;
     let mut split: ::core::ffi::c_uint = 0;
@@ -483,9 +483,9 @@ unsafe extern "C" fn vp8dx_decode_bool(
     (*br).count = count;
     (*br).range = range;
     return bit as ::core::ffi::c_int;
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) { unsafe {
     let mut a_ctx: *mut ENTROPY_CONTEXT = (*x).above_context as *mut ENTROPY_CONTEXT;
     let mut l_ctx: *mut ENTROPY_CONTEXT = (*x).left_context as *mut ENTROPY_CONTEXT;
     memset(
@@ -503,7 +503,7 @@ pub unsafe extern "C" fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
         *fresh0 = 0 as ENTROPY_CONTEXT;
         *a_ctx.offset(8 as ::core::ffi::c_int as isize) = *fresh0;
     }
-}
+}}
 static mut kBands: [uint8_t; 17] = [
     0 as ::core::ffi::c_int as uint8_t,
     1 as ::core::ffi::c_int as uint8_t,
@@ -587,7 +587,7 @@ static mut kZigzag: [uint8_t; 16] = [
 unsafe extern "C" fn GetSigned(
     mut br: *mut BOOL_DECODER,
     mut value_to_sign: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut split: ::core::ffi::c_int = ((*br).range.wrapping_add(1 as ::core::ffi::c_uint)
         >> 1 as ::core::ffi::c_int) as ::core::ffi::c_int;
     let mut bigsplit: VP8_BD_VALUE =
@@ -608,14 +608,14 @@ unsafe extern "C" fn GetSigned(
     (*br).value = (*br).value.wrapping_add((*br).value);
     (*br).count -= 1;
     return v;
-}
+}}
 unsafe extern "C" fn GetCoeffs(
     mut br: *mut BOOL_DECODER,
     mut prob: ProbaArray,
     mut ctx: ::core::ffi::c_int,
     mut n: ::core::ffi::c_int,
     mut out: *mut int16_t,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut p: *const uint8_t = &raw const *(&raw const *prob.offset(n as isize)
         as *const [uint8_t; 11])
         .offset(ctx as isize) as *const uint8_t;
@@ -726,12 +726,12 @@ unsafe extern "C" fn GetCoeffs(
             return 16 as ::core::ffi::c_int;
         }
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_decode_mb_tokens(
     mut dx: *mut VP8D_COMP,
     mut x: *mut MACROBLOCKD,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut bc: *mut BOOL_DECODER = (*x).current_bc as *mut BOOL_DECODER;
     let fc: *const FRAME_CONTEXT = &raw mut (*dx).common.fc;
     let mut eobs: *mut ::core::ffi::c_char = &raw mut (*x).eobs as *mut ::core::ffi::c_char;
@@ -830,4 +830,4 @@ pub unsafe extern "C" fn vp8_decode_mb_tokens(
         i += 1;
     }
     return eobtotal;
-}
+}}

@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -32,7 +32,7 @@ unsafe extern "C" fn d207_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     let mut c: ::core::ffi::c_int = 0;
     r = 0 as ::core::ffi::c_int;
@@ -87,7 +87,7 @@ unsafe extern "C" fn d207_predictor(
         }
         r -= 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn d63_predictor(
     mut dst: *mut uint8_t,
@@ -95,7 +95,7 @@ unsafe extern "C" fn d63_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     let mut c: ::core::ffi::c_int = 0;
     let mut size: ::core::ffi::c_int = 0;
@@ -146,7 +146,7 @@ unsafe extern "C" fn d63_predictor(
         r += 2 as ::core::ffi::c_int;
         size -= 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn d45_predictor(
     mut dst: *mut uint8_t,
@@ -154,7 +154,7 @@ unsafe extern "C" fn d45_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let above_right: uint8_t = *above.offset((bs - 1 as ::core::ffi::c_int) as isize);
     let dst_row0: *const uint8_t = dst;
     let mut x: ::core::ffi::c_int = 0;
@@ -188,7 +188,7 @@ unsafe extern "C" fn d45_predictor(
         x += 1;
         size -= 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn d117_predictor(
     mut dst: *mut uint8_t,
@@ -196,7 +196,7 @@ unsafe extern "C" fn d117_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     let mut c: ::core::ffi::c_int = 0;
     c = 0 as ::core::ffi::c_int;
@@ -259,7 +259,7 @@ unsafe extern "C" fn d117_predictor(
         dst = dst.offset(stride as isize);
         r += 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn d135_predictor(
     mut dst: *mut uint8_t,
@@ -267,7 +267,7 @@ unsafe extern "C" fn d135_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut border: [uint8_t; 63] = [0; 63];
     i = 0 as ::core::ffi::c_int;
@@ -325,7 +325,7 @@ unsafe extern "C" fn d135_predictor(
         );
         i += 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn d153_predictor(
     mut dst: *mut uint8_t,
@@ -333,7 +333,7 @@ unsafe extern "C" fn d153_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     let mut c: ::core::ffi::c_int = 0;
     *dst.offset(0 as ::core::ffi::c_int as isize) =
@@ -399,7 +399,7 @@ unsafe extern "C" fn d153_predictor(
         dst = dst.offset(stride as isize);
         r += 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn v_predictor(
     mut dst: *mut uint8_t,
@@ -407,7 +407,7 @@ unsafe extern "C" fn v_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     r = 0 as ::core::ffi::c_int;
     while r < bs {
@@ -419,7 +419,7 @@ unsafe extern "C" fn v_predictor(
         dst = dst.offset(stride as isize);
         r += 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn h_predictor(
     mut dst: *mut uint8_t,
@@ -427,7 +427,7 @@ unsafe extern "C" fn h_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     r = 0 as ::core::ffi::c_int;
     while r < bs {
@@ -439,7 +439,7 @@ unsafe extern "C" fn h_predictor(
         dst = dst.offset(stride as isize);
         r += 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn tm_predictor(
     mut dst: *mut uint8_t,
@@ -447,7 +447,7 @@ unsafe extern "C" fn tm_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     let mut c: ::core::ffi::c_int = 0;
     let mut ytop_left: ::core::ffi::c_int =
@@ -466,7 +466,7 @@ unsafe extern "C" fn tm_predictor(
         dst = dst.offset(stride as isize);
         r += 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn dc_128_predictor(
     mut dst: *mut uint8_t,
@@ -474,7 +474,7 @@ unsafe extern "C" fn dc_128_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     r = 0 as ::core::ffi::c_int;
     while r < bs {
@@ -486,7 +486,7 @@ unsafe extern "C" fn dc_128_predictor(
         dst = dst.offset(stride as isize);
         r += 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn dc_left_predictor(
     mut dst: *mut uint8_t,
@@ -494,7 +494,7 @@ unsafe extern "C" fn dc_left_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut r: ::core::ffi::c_int = 0;
     let mut expected_dc: ::core::ffi::c_int = 0;
@@ -511,7 +511,7 @@ unsafe extern "C" fn dc_left_predictor(
         dst = dst.offset(stride as isize);
         r += 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn dc_top_predictor(
     mut dst: *mut uint8_t,
@@ -519,7 +519,7 @@ unsafe extern "C" fn dc_top_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut r: ::core::ffi::c_int = 0;
     let mut expected_dc: ::core::ffi::c_int = 0;
@@ -536,7 +536,7 @@ unsafe extern "C" fn dc_top_predictor(
         dst = dst.offset(stride as isize);
         r += 1;
     }
-}
+}}
 #[inline]
 unsafe extern "C" fn dc_predictor(
     mut dst: *mut uint8_t,
@@ -544,7 +544,7 @@ unsafe extern "C" fn dc_predictor(
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut r: ::core::ffi::c_int = 0;
     let mut expected_dc: ::core::ffi::c_int = 0;
@@ -563,14 +563,14 @@ unsafe extern "C" fn dc_predictor(
         dst = dst.offset(stride as isize);
         r += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_he_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let H: ::core::ffi::c_int =
         *above.offset(-(1 as ::core::ffi::c_int) as isize) as ::core::ffi::c_int;
     let I: ::core::ffi::c_int =
@@ -601,14 +601,14 @@ pub unsafe extern "C" fn vpx_he_predictor_4x4_c(
         K + 2 as ::core::ffi::c_int * L + L + 2 as ::core::ffi::c_int >> 2 as ::core::ffi::c_int,
         4 as size_t,
     );
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_ve_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let H: ::core::ffi::c_int =
         *above.offset(-(1 as ::core::ffi::c_int) as isize) as ::core::ffi::c_int;
     let I: ::core::ffi::c_int =
@@ -648,14 +648,14 @@ pub unsafe extern "C" fn vpx_ve_predictor_4x4_c(
         dst as *const ::core::ffi::c_void,
         4 as size_t,
     );
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d207_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let I: ::core::ffi::c_int =
         *left.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
     let J: ::core::ffi::c_int =
@@ -694,14 +694,14 @@ pub unsafe extern "C" fn vpx_d207_predictor_4x4_c(
     let ref mut fresh29 = *dst.offset((2 as ptrdiff_t + 2 as ptrdiff_t * stride) as isize);
     *fresh29 = *fresh28;
     *dst.offset((3 as ptrdiff_t + 2 as ptrdiff_t * stride) as isize) = *fresh29;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d63_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let A: ::core::ffi::c_int =
         *above.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
     let B: ::core::ffi::c_int =
@@ -747,14 +747,14 @@ pub unsafe extern "C" fn vpx_d63_predictor_4x4_c(
     *dst.offset((3 as ptrdiff_t + 3 as ptrdiff_t * stride) as isize) =
         (E + 2 as ::core::ffi::c_int * F + G + 2 as ::core::ffi::c_int >> 2 as ::core::ffi::c_int)
             as uint8_t;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d63e_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let A: ::core::ffi::c_int =
         *above.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
     let B: ::core::ffi::c_int =
@@ -803,14 +803,14 @@ pub unsafe extern "C" fn vpx_d63e_predictor_4x4_c(
     *dst.offset((3 as ptrdiff_t + 3 as ptrdiff_t * stride) as isize) =
         (F + 2 as ::core::ffi::c_int * G + H + 2 as ::core::ffi::c_int >> 2 as ::core::ffi::c_int)
             as uint8_t;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d45_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let A: ::core::ffi::c_int =
         *above.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
     let B: ::core::ffi::c_int =
@@ -859,14 +859,14 @@ pub unsafe extern "C" fn vpx_d45_predictor_4x4_c(
         >> 2 as ::core::ffi::c_int) as uint8_t;
     *dst.offset((3 as ptrdiff_t + 2 as ptrdiff_t * stride) as isize) = *fresh38;
     *dst.offset((3 as ptrdiff_t + 3 as ptrdiff_t * stride) as isize) = H as uint8_t;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d45e_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let A: ::core::ffi::c_int =
         *above.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
     let B: ::core::ffi::c_int =
@@ -917,14 +917,14 @@ pub unsafe extern "C" fn vpx_d45e_predictor_4x4_c(
     *dst.offset((3 as ptrdiff_t + 3 as ptrdiff_t * stride) as isize) =
         (G + 2 as ::core::ffi::c_int * H + H + 2 as ::core::ffi::c_int >> 2 as ::core::ffi::c_int)
             as uint8_t;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d117_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let I: ::core::ffi::c_int =
         *left.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
     let J: ::core::ffi::c_int =
@@ -973,14 +973,14 @@ pub unsafe extern "C" fn vpx_d117_predictor_4x4_c(
     *dst.offset((3 as ptrdiff_t + 1 as ptrdiff_t * stride) as isize) =
         (B + 2 as ::core::ffi::c_int * C + D + 2 as ::core::ffi::c_int >> 2 as ::core::ffi::c_int)
             as uint8_t;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d135_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let I: ::core::ffi::c_int =
         *left.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
     let J: ::core::ffi::c_int =
@@ -1033,14 +1033,14 @@ pub unsafe extern "C" fn vpx_d135_predictor_4x4_c(
     *dst.offset((3 as ptrdiff_t + 0 as ptrdiff_t * stride) as isize) =
         (D + 2 as ::core::ffi::c_int * C + B + 2 as ::core::ffi::c_int >> 2 as ::core::ffi::c_int)
             as uint8_t;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d153_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     let I: ::core::ffi::c_int =
         *left.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
     let J: ::core::ffi::c_int =
@@ -1089,418 +1089,418 @@ pub unsafe extern "C" fn vpx_d153_predictor_4x4_c(
     *dst.offset((1 as ptrdiff_t + 3 as ptrdiff_t * stride) as isize) =
         (L + 2 as ::core::ffi::c_int * K + J + 2 as ::core::ffi::c_int >> 2 as ::core::ffi::c_int)
             as uint8_t;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d207_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d207_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d207_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d207_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d207_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d207_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d63_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d63_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d63_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d63_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d63_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d63_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d45_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d45_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d45_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d45_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d45_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d45_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d117_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d117_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d117_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d117_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d117_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d117_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d135_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d135_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d135_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d135_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d135_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d135_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d153_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d153_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d153_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d153_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d153_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     d153_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_v_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     v_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_v_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     v_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_v_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     v_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_v_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     v_predictor(dst, stride, 4 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_h_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     h_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_h_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     h_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_h_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     h_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_h_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     h_predictor(dst, stride, 4 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_tm_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     tm_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_tm_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     tm_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_tm_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     tm_predictor(dst, stride, 4 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_tm_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     tm_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_128_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_128_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_128_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_128_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_128_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_128_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_128_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_128_predictor(dst, stride, 4 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_left_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_left_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_left_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_left_predictor(dst, stride, 4 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_left_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_left_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_left_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_left_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_top_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_top_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_top_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_top_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_top_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_top_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_top_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_top_predictor(dst, stride, 4 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_predictor_32x32_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_predictor(dst, stride, 4 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_predictor_8x8_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_predictor(dst, stride, 8 as ::core::ffi::c_int, above, left);
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_dc_predictor_16x16_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
     mut left: *const uint8_t,
-) {
+) { unsafe {
     dc_predictor(dst, stride, 16 as ::core::ffi::c_int, above, left);
-}
+}}

@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn memset(
         __b: *mut ::core::ffi::c_void,
         __c: ::core::ffi::c_int,
@@ -57,8 +57,8 @@ pub struct yv12_buffer_config {
     pub flags: ::core::ffi::c_int,
 }
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
-#[no_mangle]
-pub unsafe extern "C" fn vp8_setup_intra_recon(mut ybf: *mut YV12_BUFFER_CONFIG) {
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_setup_intra_recon(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     memset(
         (*ybf)
@@ -108,9 +108,9 @@ pub unsafe extern "C" fn vp8_setup_intra_recon(mut ybf: *mut YV12_BUFFER_CONFIG)
             129 as ::core::ffi::c_int as ::core::ffi::c_uchar as uint8_t;
         i += 1;
     }
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_setup_intra_recon_top_line(mut ybf: *mut YV12_BUFFER_CONFIG) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_setup_intra_recon_top_line(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
     memset(
         (*ybf)
             .y_buffer
@@ -135,4 +135,4 @@ pub unsafe extern "C" fn vp8_setup_intra_recon_top_line(mut ybf: *mut YV12_BUFFE
         127 as ::core::ffi::c_int,
         ((*ybf).uv_width + 5 as ::core::ffi::c_int) as size_t,
     );
-}
+}}

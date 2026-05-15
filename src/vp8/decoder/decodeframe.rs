@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn vp8_bilinear_predict16x16_neon(
         src_ptr: *mut ::core::ffi::c_uchar,
         src_pixels_per_line: ::core::ffi::c_int,
@@ -672,7 +672,7 @@ pub const VP8_LOTS_OF_BITS: ::core::ffi::c_int = 0x40000000 as ::core::ffi::c_in
 unsafe extern "C" fn vp8dx_decode_bool(
     mut br: *mut BOOL_DECODER,
     mut probability: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut bit: ::core::ffi::c_uint = 0 as ::core::ffi::c_uint;
     let mut value: VP8_BD_VALUE = 0;
     let mut split: ::core::ffi::c_uint = 0;
@@ -706,12 +706,12 @@ unsafe extern "C" fn vp8dx_decode_bool(
     (*br).count = count;
     (*br).range = range;
     return bit as ::core::ffi::c_int;
-}
+}}
 #[inline]
 unsafe extern "C" fn vp8_decode_value(
     mut br: *mut BOOL_DECODER,
     mut bits: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut z: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     let mut bit: ::core::ffi::c_int = 0;
     bit = bits - 1 as ::core::ffi::c_int;
@@ -720,14 +720,14 @@ unsafe extern "C" fn vp8_decode_value(
         bit -= 1;
     }
     return z;
-}
+}}
 #[inline]
-unsafe extern "C" fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> ::core::ffi::c_int {
+unsafe extern "C" fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> ::core::ffi::c_int { unsafe {
     if (*br).count > VP8_BD_VALUE_SIZE && (*br).count < VP8_LOTS_OF_BITS {
         return 1 as ::core::ffi::c_int;
     }
     return 0 as ::core::ffi::c_int;
-}
+}}
 pub const MB_FEATURE_TREE_PROBS: ::core::ffi::c_int = 3 as ::core::ffi::c_int;
 pub const MAX_MB_SEGMENTS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
 pub const MAX_REF_LF_DELTAS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
@@ -743,14 +743,14 @@ pub const QINDEX_RANGE: ::core::ffi::c_int = MAXQ + 1 as ::core::ffi::c_int;
 #[inline]
 unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
-}
+}}
 #[inline]
 unsafe extern "C" fn intra_prediction_down_copy(
     mut xd: *mut MACROBLOCKD,
     mut above_right_src: *mut ::core::ffi::c_uchar,
-) {
+) { unsafe {
     let mut dst_stride: ::core::ffi::c_int = (*xd).dst.y_stride;
     let mut above_right_dst: *mut ::core::ffi::c_uchar = (*xd)
         .dst
@@ -770,7 +770,7 @@ unsafe extern "C" fn intra_prediction_down_copy(
     *dst_ptr0 = *src_ptr;
     *dst_ptr1 = *src_ptr;
     *dst_ptr2 = *src_ptr;
-}
+}}
 #[inline]
 unsafe extern "C" fn setup_intra_recon_left(
     mut y_buffer: *mut ::core::ffi::c_uchar,
@@ -778,7 +778,7 @@ unsafe extern "C" fn setup_intra_recon_left(
     mut v_buffer: *mut ::core::ffi::c_uchar,
     mut y_stride: ::core::ffi::c_int,
     mut uv_stride: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
     while i < 16 as ::core::ffi::c_int {
@@ -798,9 +798,9 @@ unsafe extern "C" fn setup_intra_recon_left(
             129 as ::core::ffi::c_int as ::core::ffi::c_uchar;
         i += 1;
     }
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8cx_init_de_quantizer(mut pbi: *mut VP8D_COMP) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8cx_init_de_quantizer(mut pbi: *mut VP8D_COMP) { unsafe {
     let mut Q: ::core::ffi::c_int = 0;
     let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
     Q = 0 as ::core::ffi::c_int;
@@ -819,12 +819,12 @@ pub unsafe extern "C" fn vp8cx_init_de_quantizer(mut pbi: *mut VP8D_COMP) {
             vp8_ac_uv_quant(Q, (*pc).uvac_delta_q) as ::core::ffi::c_short;
         Q += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_mb_init_dequantizer(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut QIndex: ::core::ffi::c_int = 0;
     let mut mbmi: *mut MB_MODE_INFO = &raw mut (*(*xd).mode_info_context).mbmi;
@@ -868,12 +868,12 @@ pub unsafe extern "C" fn vp8_mb_init_dequantizer(
             (*pc).UVdequant[QIndex as usize][1 as ::core::ffi::c_int as usize];
         i += 1;
     }
-}
+}}
 unsafe extern "C" fn decode_macroblock(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
     mut mb_idx: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut mode: MB_PREDICTION_MODE = DC_PRED;
     let mut i: ::core::ffi::c_int = 0;
     if (*(*xd).mode_info_context).mbmi.mb_skip_coeff != 0 {
@@ -1038,12 +1038,12 @@ unsafe extern "C" fn decode_macroblock(
                 .offset(16 as ::core::ffi::c_int as isize),
         );
     }
-}
+}}
 unsafe extern "C" fn get_delta_q(
     mut bc: *mut vp8_reader,
     mut prev: ::core::ffi::c_int,
     mut q_update: *mut ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     let mut ret_val: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     if vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as ::core::ffi::c_int) != 0 {
         ret_val = vp8_decode_value(bc as *mut BOOL_DECODER, 4 as ::core::ffi::c_int);
@@ -1055,8 +1055,8 @@ unsafe extern "C" fn get_delta_q(
         *q_update = 1 as ::core::ffi::c_int;
     }
     return ret_val;
-}
-unsafe extern "C" fn yv12_extend_frame_top_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
+}}
+unsafe extern "C" fn yv12_extend_frame_top_c(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut src_ptr1: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut dest_ptr1: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
@@ -1105,8 +1105,8 @@ unsafe extern "C" fn yv12_extend_frame_top_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
         dest_ptr1 = dest_ptr1.offset(plane_stride as isize);
         i += 1;
     }
-}
-unsafe extern "C" fn yv12_extend_frame_bottom_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
+}}
+unsafe extern "C" fn yv12_extend_frame_bottom_c(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut src_ptr1: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut src_ptr2: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
@@ -1165,13 +1165,13 @@ unsafe extern "C" fn yv12_extend_frame_bottom_c(mut ybf: *mut YV12_BUFFER_CONFIG
         dest_ptr2 = dest_ptr2.offset(plane_stride as isize);
         i += 1;
     }
-}
+}}
 unsafe extern "C" fn yv12_extend_frame_left_right_c(
     mut ybf: *mut YV12_BUFFER_CONFIG,
     mut y_src: *mut ::core::ffi::c_uchar,
     mut u_src: *mut ::core::ffi::c_uchar,
     mut v_src: *mut ::core::ffi::c_uchar,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut src_ptr1: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut src_ptr2: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
@@ -1261,8 +1261,8 @@ unsafe extern "C" fn yv12_extend_frame_left_right_c(
         dest_ptr2 = dest_ptr2.offset(plane_stride as isize);
         i += 1;
     }
-}
-unsafe extern "C" fn decode_mb_rows(mut pbi: *mut VP8D_COMP) {
+}}
+unsafe extern "C" fn decode_mb_rows(mut pbi: *mut VP8D_COMP) { unsafe {
     let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
     let xd: *mut MACROBLOCKD = &raw mut (*pbi).mb;
     let mut lf_mic: *mut MODE_INFO = (*xd).mode_info_context;
@@ -1557,11 +1557,11 @@ unsafe extern "C" fn decode_mb_rows(mut pbi: *mut VP8D_COMP) {
     );
     yv12_extend_frame_top_c(yv12_fb_new);
     yv12_extend_frame_bottom_c(yv12_fb_new);
-}
+}}
 unsafe extern "C" fn read_partition_size(
     mut pbi: *mut VP8D_COMP,
     mut cx_size: *const ::core::ffi::c_uchar,
-) -> ::core::ffi::c_uint {
+) -> ::core::ffi::c_uint { unsafe {
     let mut temp: [::core::ffi::c_uchar; 3] = [0; 3];
     if (*pbi).decrypt_cb.is_some() {
         (*pbi).decrypt_cb.expect("non-null function pointer")(
@@ -1577,17 +1577,17 @@ unsafe extern "C" fn read_partition_size(
             << 8 as ::core::ffi::c_int)
         + ((*cx_size.offset(2 as ::core::ffi::c_int as isize) as ::core::ffi::c_int)
             << 16 as ::core::ffi::c_int)) as ::core::ffi::c_uint;
-}
+}}
 unsafe extern "C" fn read_is_valid(
     mut start: *const ::core::ffi::c_uchar,
     mut len: size_t,
     mut end: *const ::core::ffi::c_uchar,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     return (len != 0 as size_t
         && end > start
         && len <= end.offset_from(start) as ::core::ffi::c_long as size_t)
         as ::core::ffi::c_int;
-}
+}}
 unsafe extern "C" fn read_available_partition_size(
     mut pbi: *mut VP8D_COMP,
     mut token_part_sizes: *const ::core::ffi::c_uchar,
@@ -1596,7 +1596,7 @@ unsafe extern "C" fn read_available_partition_size(
     mut fragment_end: *const ::core::ffi::c_uchar,
     mut i: ::core::ffi::c_int,
     mut num_part: ::core::ffi::c_int,
-) -> ::core::ffi::c_uint {
+) -> ::core::ffi::c_uint { unsafe {
     let mut pc: *mut VP8_COMMON = &raw mut (*pbi).common;
     let mut partition_size_ptr: *const ::core::ffi::c_uchar =
         token_part_sizes.offset((i * 3 as ::core::ffi::c_int) as isize);
@@ -1640,11 +1640,11 @@ unsafe extern "C" fn read_available_partition_size(
         }
     }
     return partition_size;
-}
+}}
 unsafe extern "C" fn setup_token_decoder(
     mut pbi: *mut VP8D_COMP,
     mut token_part_sizes: *const ::core::ffi::c_uchar,
-) {
+) { unsafe {
     let mut bool_decoder: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
         .offset(0 as ::core::ffi::c_int as isize)
         as *mut vp8_reader;
@@ -1758,8 +1758,8 @@ unsafe extern "C" fn setup_token_decoder(
         (*pbi).decoding_thread_count =
             ((*pbi).common.mb_rows - 1 as ::core::ffi::c_int) as ::core::ffi::c_uint;
     }
-}
-unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) {
+}}
+unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
     let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
     let xd: *mut MACROBLOCKD = &raw mut (*pbi).mb;
     if (*pc).frame_type as ::core::ffi::c_uint
@@ -1903,9 +1903,9 @@ unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) {
     if (*pc).full_pixel != 0 {
         (*xd).fullpixel_mask = !(7 as ::core::ffi::c_int);
     }
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ffi::c_int {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ffi::c_int { unsafe {
     let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
         .offset(8 as ::core::ffi::c_int as isize) as *mut vp8_reader;
     let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
@@ -2356,5 +2356,5 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
         (*pbi).independent_partitions = prev_independent_partitions;
     }
     return 0 as ::core::ffi::c_int;
-}
+}}
 pub const __ATOMIC_ACQUIRE: ::core::ffi::c_int = 2 as ::core::ffi::c_int;

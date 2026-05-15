@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn vp8_horizontal_line_2_1_scale_c(
         source: *const ::core::ffi::c_uchar,
         source_width: ::core::ffi::c_uint,
@@ -131,7 +131,7 @@ unsafe extern "C" fn scale1d_2t1_i(
     mut dest_step: ::core::ffi::c_int,
     mut dest_scale: ::core::ffi::c_uint,
     mut dest_length: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_uint = 0;
     let mut j: ::core::ffi::c_uint = 0;
     let mut temp: ::core::ffi::c_uint = 0;
@@ -162,7 +162,7 @@ unsafe extern "C" fn scale1d_2t1_i(
         i = i.wrapping_add(dest_step as ::core::ffi::c_uint);
         j = j.wrapping_add(source_step as ::core::ffi::c_uint);
     }
-}
+}}
 unsafe extern "C" fn scale1d_2t1_ps(
     mut source: *const ::core::ffi::c_uchar,
     mut source_step: ::core::ffi::c_int,
@@ -172,7 +172,7 @@ unsafe extern "C" fn scale1d_2t1_ps(
     mut dest_step: ::core::ffi::c_int,
     mut dest_scale: ::core::ffi::c_uint,
     mut dest_length: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_uint = 0;
     let mut j: ::core::ffi::c_uint = 0;
     source_step *= 2 as ::core::ffi::c_int;
@@ -183,7 +183,7 @@ unsafe extern "C" fn scale1d_2t1_ps(
         i = i.wrapping_add(dest_step as ::core::ffi::c_uint);
         j = j.wrapping_add(source_step as ::core::ffi::c_uint);
     }
-}
+}}
 unsafe extern "C" fn scale1d_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_step: ::core::ffi::c_int,
@@ -193,7 +193,7 @@ unsafe extern "C" fn scale1d_c(
     mut dest_step: ::core::ffi::c_int,
     mut dest_scale: ::core::ffi::c_uint,
     mut dest_length: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_uint = 0;
     let mut round_value: ::core::ffi::c_uint = dest_scale.wrapping_div(2 as ::core::ffi::c_uint);
     let mut left_modifier: ::core::ffi::c_uint = dest_scale;
@@ -218,7 +218,7 @@ unsafe extern "C" fn scale1d_c(
         left_modifier = dest_scale.wrapping_sub(right_modifier);
         i = i.wrapping_add(dest_step as ::core::ffi::c_uint);
     }
-}
+}}
 unsafe extern "C" fn Scale2D(
     mut source: *mut ::core::ffi::c_uchar,
     mut source_pitch: ::core::ffi::c_int,
@@ -235,7 +235,7 @@ unsafe extern "C" fn Scale2D(
     mut vscale: ::core::ffi::c_uint,
     mut vratio: ::core::ffi::c_uint,
     mut interlaced: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut j: ::core::ffi::c_int = 0;
     let mut k: ::core::ffi::c_int = 0;
@@ -675,8 +675,8 @@ unsafe extern "C" fn Scale2D(
         dest = dest.offset((dest_band_height * dest_pitch) as isize);
         k += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_scale_frame(
     mut src: *mut YV12_BUFFER_CONFIG,
     mut dst: *mut YV12_BUFFER_CONFIG,
@@ -687,7 +687,7 @@ pub unsafe extern "C" fn vpx_scale_frame(
     mut vscale: ::core::ffi::c_uint,
     mut vratio: ::core::ffi::c_uint,
     mut interlaced: ::core::ffi::c_uint,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut dw: ::core::ffi::c_int = hscale
         .wrapping_sub(1 as ::core::ffi::c_uint)
@@ -849,4 +849,4 @@ pub unsafe extern "C" fn vpx_scale_frame(
             i += 1;
         }
     }
-}
+}}

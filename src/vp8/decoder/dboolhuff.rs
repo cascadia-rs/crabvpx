@@ -24,14 +24,14 @@ pub const CHAR_BIT: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
 pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
 pub const VP8_LOTS_OF_BITS: ::core::ffi::c_int = 0x40000000 as ::core::ffi::c_int;
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8dx_start_decode(
     mut br: *mut BOOL_DECODER,
     mut source: *const ::core::ffi::c_uchar,
     mut source_sz: ::core::ffi::c_uint,
     mut decrypt_cb: vpx_decrypt_cb,
     mut decrypt_state: *mut ::core::ffi::c_void,
-) -> ::core::ffi::c_int {
+) -> ::core::ffi::c_int { unsafe {
     if source_sz != 0 && source.is_null() {
         return 1 as ::core::ffi::c_int;
     }
@@ -48,9 +48,9 @@ pub unsafe extern "C" fn vp8dx_start_decode(
     (*br).decrypt_state = decrypt_state;
     vp8dx_bool_decoder_fill(br);
     return 0 as ::core::ffi::c_int;
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) { unsafe {
     let mut bufptr: *const ::core::ffi::c_uchar = (*br).user_buffer;
     let mut value: VP8_BD_VALUE = (*br).value;
     let mut count: ::core::ffi::c_int = (*br).count;
@@ -91,4 +91,4 @@ pub unsafe extern "C" fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) {
     }
     (*br).value = value;
     (*br).count = count;
-}
+}}

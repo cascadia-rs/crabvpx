@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn vp8_loop_filter_bh_neon(
         y_ptr: *mut ::core::ffi::c_uchar,
         u_ptr: *mut ::core::ffi::c_uchar,
@@ -407,7 +407,7 @@ pub const PARTIAL_FRAME_FRACTION: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
 pub const SIMD_WIDTH: ::core::ffi::c_int = 1 as ::core::ffi::c_int;
 pub const MAX_MB_SEGMENTS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
 pub const SEGMENT_ABSDATA: ::core::ffi::c_int = 1 as ::core::ffi::c_int;
-unsafe extern "C" fn lf_init_lut(mut lfi: *mut loop_filter_info_n) {
+unsafe extern "C" fn lf_init_lut(mut lfi: *mut loop_filter_info_n) { unsafe {
     let mut filt_lvl: ::core::ffi::c_int = 0;
     filt_lvl = 0 as ::core::ffi::c_int;
     while filt_lvl <= MAX_LOOP_FILTER {
@@ -444,12 +444,12 @@ unsafe extern "C" fn lf_init_lut(mut lfi: *mut loop_filter_info_n) {
     (*lfi).mode_lf_lut[NEARMV as ::core::ffi::c_int as usize] = 2 as ::core::ffi::c_uchar;
     (*lfi).mode_lf_lut[NEWMV as ::core::ffi::c_int as usize] = 2 as ::core::ffi::c_uchar;
     (*lfi).mode_lf_lut[SPLITMV as ::core::ffi::c_int as usize] = 3 as ::core::ffi::c_uchar;
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_loop_filter_update_sharpness(
     mut lfi: *mut loop_filter_info_n,
     mut sharpness_lvl: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
     while i <= MAX_LOOP_FILTER {
@@ -487,9 +487,9 @@ pub unsafe extern "C" fn vp8_loop_filter_update_sharpness(
         );
         i += 1;
     }
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) { unsafe {
     let mut lfi: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
     let mut i: ::core::ffi::c_int = 0;
     vp8_loop_filter_update_sharpness(lfi, (*cm).sharpness_level);
@@ -505,13 +505,13 @@ pub unsafe extern "C" fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) {
         );
         i += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_loop_filter_frame_init(
     mut cm: *mut VP8_COMMON,
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut seg: ::core::ffi::c_int = 0;
     let mut ref_0: ::core::ffi::c_int = 0;
     let mut mode: ::core::ffi::c_int = 0;
@@ -605,8 +605,8 @@ pub unsafe extern "C" fn vp8_loop_filter_frame_init(
         }
         seg += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_loop_filter_row_normal(
     mut cm: *mut VP8_COMMON,
     mut mode_info_context: *mut MODE_INFO,
@@ -616,7 +616,7 @@ pub unsafe extern "C" fn vp8_loop_filter_row_normal(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut u_ptr: *mut ::core::ffi::c_uchar,
     mut v_ptr: *mut ::core::ffi::c_uchar,
-) {
+) { unsafe {
     let mut mb_col: ::core::ffi::c_int = 0;
     let mut filter_level: ::core::ffi::c_int = 0;
     let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
@@ -701,15 +701,15 @@ pub unsafe extern "C" fn vp8_loop_filter_row_normal(
         mode_info_context = mode_info_context.offset(1);
         mb_col += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_loop_filter_row_simple(
     mut cm: *mut VP8_COMMON,
     mut mode_info_context: *mut MODE_INFO,
     mut mb_row: ::core::ffi::c_int,
     mut post_ystride: ::core::ffi::c_int,
     mut y_ptr: *mut ::core::ffi::c_uchar,
-) {
+) { unsafe {
     let mut mb_col: ::core::ffi::c_int = 0;
     let mut filter_level: ::core::ffi::c_int = 0;
     let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
@@ -770,13 +770,13 @@ pub unsafe extern "C" fn vp8_loop_filter_row_simple(
         mode_info_context = mode_info_context.offset(1);
         mb_col += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_loop_filter_frame(
     mut cm: *mut VP8_COMMON,
     mut mbd: *mut MACROBLOCKD,
     mut frame_type: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
     let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
     let mut lfi: loop_filter_info = loop_filter_info {
@@ -956,13 +956,13 @@ pub unsafe extern "C" fn vp8_loop_filter_frame(
             mb_row += 1;
         }
     };
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_loop_filter_frame_yonly(
     mut cm: *mut VP8_COMMON,
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
     let mut y_ptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut mb_row: ::core::ffi::c_int = 0;
@@ -1107,13 +1107,13 @@ pub unsafe extern "C" fn vp8_loop_filter_frame_yonly(
         mode_info_context = mode_info_context.offset(1);
         mb_row += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_loop_filter_partial_frame(
     mut cm: *mut VP8_COMMON,
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: ::core::ffi::c_int,
-) {
+) { unsafe {
     let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
     let mut y_ptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut mb_row: ::core::ffi::c_int = 0;
@@ -1271,4 +1271,4 @@ pub unsafe extern "C" fn vp8_loop_filter_partial_frame(
         mode_info_context = mode_info_context.offset(1 as ::core::ffi::c_int as isize);
         mb_row += 1;
     }
-}
+}}

@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn vp8_dc_only_idct_add_c(
         input_dc: ::core::ffi::c_short,
         pred_ptr: *mut ::core::ffi::c_uchar,
@@ -20,14 +20,14 @@ extern "C" {
 }
 pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_dequant_idct_add_y_block_c(
     mut q: *mut ::core::ffi::c_short,
     mut dq: *mut ::core::ffi::c_short,
     mut dst: *mut ::core::ffi::c_uchar,
     mut stride: ::core::ffi::c_int,
     mut eobs: *mut ::core::ffi::c_char,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut j: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
@@ -62,8 +62,8 @@ pub unsafe extern "C" fn vp8_dequant_idct_add_y_block_c(
         dst = dst.offset((4 as ::core::ffi::c_int * stride - 16 as ::core::ffi::c_int) as isize);
         i += 1;
     }
-}
-#[no_mangle]
+}}
+#[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_dequant_idct_add_uv_block_c(
     mut q: *mut ::core::ffi::c_short,
     mut dq: *mut ::core::ffi::c_short,
@@ -71,7 +71,7 @@ pub unsafe extern "C" fn vp8_dequant_idct_add_uv_block_c(
     mut dst_v: *mut ::core::ffi::c_uchar,
     mut stride: ::core::ffi::c_int,
     mut eobs: *mut ::core::ffi::c_char,
-) {
+) { unsafe {
     let mut i: ::core::ffi::c_int = 0;
     let mut j: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
@@ -138,4 +138,4 @@ pub unsafe extern "C" fn vp8_dequant_idct_add_uv_block_c(
         dst_v = dst_v.offset((4 as ::core::ffi::c_int * stride - 8 as ::core::ffi::c_int) as isize);
         i += 1;
     }
-}
+}}

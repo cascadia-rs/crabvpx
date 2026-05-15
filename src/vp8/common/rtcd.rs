@@ -1,4 +1,4 @@
-extern "C" {
+unsafe extern "C" {
     fn arm_cpu_caps() -> ::core::ffi::c_int;
     fn pthread_once(
         _: *mut pthread_once_t,
@@ -13,11 +13,11 @@ pub struct _opaque_pthread_once_t {
     pub __sig: ::core::ffi::c_long,
     pub __opaque: [::core::ffi::c_char; 8],
 }
-unsafe extern "C" fn setup_rtcd_internal() {
+unsafe extern "C" fn setup_rtcd_internal() { unsafe {
     let mut flags: ::core::ffi::c_int = arm_cpu_caps();
-}
+}}
 pub const _PTHREAD_ONCE_SIG_init: ::core::ffi::c_int = 0x30b1bcba as ::core::ffi::c_int;
-unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
+unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) { unsafe {
     static mut lock: pthread_once_t = _opaque_pthread_once_t {
         __sig: _PTHREAD_ONCE_SIG_init as ::core::ffi::c_long,
         __opaque: [
@@ -32,8 +32,8 @@ unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
         ],
     };
     pthread_once(&raw mut lock, func as Option<unsafe extern "C" fn() -> ()>);
-}
-#[no_mangle]
-pub unsafe extern "C" fn vp8_rtcd() {
+}}
+#[unsafe(no_mangle)]
+pub unsafe extern "C" fn vp8_rtcd() { unsafe {
     once(Some(setup_rtcd_internal as unsafe extern "C" fn() -> ()));
-}
+}}
