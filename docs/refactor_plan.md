@@ -31,13 +31,15 @@ The core of `libvpx` relies heavily on custom memory allocators defined in `vpx_
   - Modify their initialization to use `Vec::with_capacity` or `Box::new` instead of `vpx_memalign` or `vpx_calloc`.
   - Ensure that the alignment requirements of the SIMD instructions (NEON requires specific byte alignments) are respected when allocating via Rust.
 
-### Step 3: Eliminating Unsafe Threading
-The multithreaded decoding currently relies on `pthread` implementations transpiled into `vpx_thread.rs`.
-- **Goal:** Replace `pthread` primitives with standard Rust concurrency (`std::thread`, `std::sync::Mutex`, `std::sync::mpsc`).
+### Step 3: Struct De-duplication & Threading Shims
+While auditing the codebase, it was discovered that `vpx_thread.rs` was completely unused by the VP8 decoder and was deleted (saving ~45 `unsafe` blocks). Actual VP8 multithreading relies heavily on `pthread` and `mach` semaphores embedded directly into core structs like `VP8D_COMP` and `DECODETHREAD_DATA`.
+
+Because `c2rust` operates on a per-C-file basis, it duplicated these massive struct definitions across 6 different `.rs` files.
+- **Goal:** Unify the structs and build safe Rust threading shims.
 - **Tasks:**
-  - Audit `vpx_thread.rs` and understand the `VPxWorker` lifecycle.
-  - Replace the `pthread_mutex_t` and `pthread_cond_t` with `std::sync::Mutex` and `std::sync::Condvar`.
-  - Migrate the worker threads to use `std::thread::spawn` and safe closures instead of raw `unsafe extern "C"` function pointers.
+  - De-duplicate `VP8D_COMP`, `MACROBLOCKD`, and `DECODETHREAD_DATA` into a single `types.rs` module.
+  - Abstract `mach_port_t` and `pthread_t` pointers into an opaque, generic `*mut c_void` handle in the C structs.
+  - Implement a safe Rust concurrency shim (using `std::thread` and `std::sync`) behind C-compatible `extern "C"` functions to replace the `pthread` calls.
 
 ### Step 4: Core Decoding Pipeline (The Hard Part)
 Once the perimeter is safe and memory is managed by Rust, we tackle the core logic (e.g., `decodeframe.rs`, `decodemv.rs`, `reconinter.rs`).
