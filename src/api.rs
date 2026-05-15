@@ -5,6 +5,15 @@ use crate::vpx::src::vpx_decoder::{
     vpx_codec_iter_t, VPX_CODEC_OK, VPX_DECODER_ABI_VERSION,
 };
 
+/// A representation of a decoded video frame's metadata and hash.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub struct Frame {
+    pub md5: String,
+    pub width: u32,
+    pub height: u32,
+    pub bit_depth: u32,
+}
+
 /// A generic Video Decoder trait that can be implemented by different codecs
 /// (e.g., VP8, VP9, AV1, H264).
 pub trait Decoder {
@@ -58,7 +67,7 @@ impl Drop for Vp8Decoder {
 }
 
 impl Decoder for Vp8Decoder {
-    type Frame = (); // We can expand this to a safe Image struct later.
+    type Frame = Frame;
     type Error = String;
 
     fn init(&mut self) -> Result<(), Self::Error> {
@@ -112,7 +121,29 @@ impl Decoder for Vp8Decoder {
         if img.is_null() {
             Ok(None)
         } else {
-            Ok(Some(()))
+            let img = unsafe { &*img };
+            let mut context = md5::Context::new();
+
+            // Y, U, V planes
+            for plane in 0..3 {
+                let data = img.planes[plane];
+                let stride = img.stride[plane] as usize;
+                let w = if plane == 0 { img.d_w } else { (img.d_w + 1) >> 1 };
+                let h = if plane == 0 { img.d_h } else { (img.d_h + 1) >> 1 };
+
+                for row in 0..h {
+                    let row_ptr = unsafe { data.add(row as usize * stride) };
+                    let row_data = unsafe { core::slice::from_raw_parts(row_ptr, w as usize) };
+                    context.consume(row_data);
+                }
+            }
+
+            Ok(Some(Frame {
+                md5: format!("{:x}", context.compute()),
+                width: img.d_w,
+                height: img.d_h,
+                bit_depth: img.bit_depth,
+            }))
         }
     }
 }

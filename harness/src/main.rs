@@ -69,10 +69,9 @@ fn main() {
     );
 
     let mut successful_decodes = 0;
-    let mut total_decode_time = Duration::ZERO;
     let mut total_frames = 0;
 
-    let benchmark_iterations = args.runs as usize;
+    let benchmark_iterations = if args.benchmark { args.runs as usize } else { 1 };
     let mut suite_iter_times = vec![Duration::ZERO; benchmark_iterations];
 
     for file in &ivf_files {
@@ -92,6 +91,17 @@ fn main() {
             frames.push(frame);
         }
 
+        let md5_file = file.with_extension("ivf.md5");
+        let expected_md5s = if !args.benchmark && md5_file.exists() {
+            let content = fs::read_to_string(md5_file).unwrap_or_default();
+            content.lines()
+                .filter_map(|l| l.split_whitespace().next())
+                .map(|s| s.to_string())
+                .collect::<Vec<_>>()
+        } else {
+            Vec::new()
+        };
+
         if args.benchmark {
             // Warmup
             let mut decoder = ActiveDecoder::new();
@@ -101,59 +111,63 @@ fn main() {
                     let _ = decoder.get_frame();
                 }
             }
+        }
 
-            let mut success = true;
+        let mut success = true;
+        for iter in 0..benchmark_iterations {
+            let mut decoder = ActiveDecoder::new();
+            if let Err(e) = decoder.init() {
+                pb.println(format!("Failed to initialize decoder: {}", e));
+                success = false;
+                break;
+            }
 
-            for i in 0..benchmark_iterations {
-                let mut decoder = ActiveDecoder::new();
-                if decoder.init().is_err() {
+            let start = Instant::now();
+            let mut frame_idx = 0;
+            for frame in &frames {
+                if decoder.decode_frame(&frame.payload).is_err() {
                     success = false;
                     break;
                 }
 
-                let start = Instant::now();
-                for frame in &frames {
-                    if decoder.decode_frame(&frame.payload).is_err() || decoder.get_frame().is_err() {
+                match decoder.get_frame() {
+                    Ok(Some(actual)) => {
+                        // Check against expected if not benchmarking
+                        if !args.benchmark && !expected_md5s.is_empty() && frame_idx < expected_md5s.len() {
+                            if actual.md5 != expected_md5s[frame_idx] {
+                                pb.println(format!("MD5 mismatch for {:?} frame {}: expected {}, got {}", 
+                                    file.file_name().unwrap(), frame_idx, expected_md5s[frame_idx], actual.md5));
+                                success = false;
+                                break;
+                            }
+                        }
+                        
+                        // Output machine-readable info for side-by-side comparison
+                        if !args.benchmark {
+                            pb.suspend(|| {
+                                println!("FRAME_DATA: {{\"file\": {:?}, \"idx\": {}, \"md5\": \"{}\", \"w\": {}, \"h\": {}, \"bits\": {}}}",
+                                    file.file_name().unwrap(), frame_idx, actual.md5, actual.width, actual.height, actual.bit_depth);
+                            });
+                        }
+                        
+                        frame_idx += 1;
+                    }
+                    Ok(None) => {}
+                    Err(_) => {
                         success = false;
                         break;
                     }
                 }
-                suite_iter_times[i] += start.elapsed();
-                if !success { break; }
             }
+            suite_iter_times[iter] += start.elapsed();
+            if !success { break; }
+        }
 
-            if success {
-                successful_decodes += 1;
-                total_frames += frames.len() as u32;
-            } else {
-                pb.println(format!("Decoding failed for {:?}", file));
-            }
-
+        if success {
+            successful_decodes += 1;
+            total_frames += frames.len() as u32;
         } else {
-            let mut decoder = ActiveDecoder::new();
-            if let Err(e) = decoder.init() {
-                pb.println(format!("Failed to initialize decoder for {:?}: {}", file, e));
-                pb.inc(1);
-                continue;
-            }
-
-            let mut success = true;
-            let start = Instant::now();
-            for frame in &frames {
-                if decoder.decode_frame(&frame.payload).is_err() || decoder.get_frame().is_err() {
-                    success = false;
-                    break;
-                }
-            }
-            let elapsed = start.elapsed();
-
-            if success {
-                successful_decodes += 1;
-                total_decode_time += elapsed;
-                total_frames += frames.len() as u32;
-            } else {
-                pb.println(format!("Decoding failed for {:?}", file));
-            }
+            pb.println(format!("Decoding failed for {:?}", file));
         }
 
         pb.inc(1);
@@ -190,8 +204,9 @@ fn main() {
         println!("RAW_ITERATION_TIMES_MS: {}", raw_times);
 
     } else {
+        let total_time: Duration = suite_iter_times.iter().sum();
         let avg_time_per_frame = if total_frames > 0 {
-            total_decode_time.as_secs_f64() * 1000.0 / (total_frames as f64)
+            total_time.as_secs_f64() * 1000.0 / (total_frames as f64)
         } else {
             0.0
         };
