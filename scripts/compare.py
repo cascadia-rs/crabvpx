@@ -2,13 +2,12 @@
 """
 compare.py
 
-The primary orchestration script for CrabVPX testing. It handles:
-1. Downloading the required VP8 test vectors and MD5 reference files.
-2. Running differential testing (Oracle vs Rust).
-3. Supporting side-by-side direct comparison between implementations.
+The primary orchestration script for CrabVPX testing. It performs differential
+testing by running both the C Oracle and CrabVPX decoders and comparing their
+frame-by-frame output (MD5 and metadata) for identical behavior.
 
 Usage:
-  ./scripts/compare.py [-b/--benchmark] [--side-by-side]
+  ./scripts/compare.py [-b/--benchmark]
 """
 
 import argparse
@@ -16,7 +15,7 @@ import json
 import subprocess
 import sys
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 # VP8 Comprehensive Test Vectors from WebM Project
 VP8_VECTORS = [
@@ -75,43 +74,44 @@ def run_harness_capture(harness_dir: Path, args: List[str], features: str = None
     return frames
 
 
-def run_harness_stream(harness_dir: Path, args: List[str], features: str = None):
-    """Runs cargo and streams output to console."""
-    cmd = ["cargo", "run", "--release"]
-    if features:
-        cmd.extend(["--no-default-features", "--features", features])
-    cmd.append("--")
-    cmd.extend(args)
-    subprocess.run(cmd, cwd=harness_dir, check=True)
-
-
-def perform_side_by_side(harness_dir: Path, harness_args: List[str]):
+def perform_differential_test(harness_dir: Path, harness_args: List[str]):
     """Runs both decoders and compares their frame-by-frame output directly."""
-    print("\n--- Running Side-by-Side Direct Comparison ---")
+    print("\nRunning side-by-side differential test...")
     
-    print("Capturing C Oracle output...", flush=True)
+    print("Capturing C Oracle results...", flush=True)
     oracle_frames = run_harness_capture(harness_dir, harness_args)
     
-    print("Capturing CrabVPX Rust output...", flush=True)
+    print("Capturing CrabVPX Rust results...", flush=True)
     rust_frames = run_harness_capture(harness_dir, harness_args, features="rust")
     
     if len(oracle_frames) != len(rust_frames):
-        print(f"Error: Frame count mismatch! Oracle: {len(oracle_frames)}, Rust: {len(rust_frames)}")
+        print(f"❌ Error: Frame count mismatch! Oracle: {len(oracle_frames)}, Rust: {len(rust_frames)}")
         sys.exit(1)
         
     mismatches = 0
     for i, (o, r) in enumerate(zip(oracle_frames, rust_frames)):
         if o != r:
-            print(f"Mismatch in {o['file']} frame {o['idx']}:")
-            print(f"  Oracle: {o}")
-            print(f"  Rust:   {r}")
+            print(f"❌ Mismatch in {o['file']} frame {o['idx']}:")
+            print(f"   Oracle: {o}")
+            print(f"   Rust:   {r}")
             mismatches += 1
             
     if mismatches == 0:
         print(f"✅ Success! Direct comparison passed for all {len(oracle_frames)} frames.")
     else:
-        print(f"❌ Failed! Found {mismatches} mismatches.")
+        print(f"❌ Failed! Found {mismatches} implementation mismatches.")
         sys.exit(1)
+
+
+def run_benchmark(harness_dir: Path, harness_args: List[str]):
+    """Runs benchmarking mode (streaming output to console)."""
+    print("\n--- Testing C Oracle Decoder ---", flush=True)
+    cmd = ["cargo", "run", "--release", "--"] + harness_args
+    subprocess.run(cmd, cwd=harness_dir, check=True)
+
+    print("\n--- Testing CrabVPX Rust Decoder ---", flush=True)
+    cmd = ["cargo", "run", "--release", "--no-default-features", "--features", "rust", "--"] + harness_args
+    subprocess.run(cmd, cwd=harness_dir, check=True)
 
 
 def main():
@@ -119,7 +119,6 @@ def main():
     parser = argparse.ArgumentParser(description="Run the CrabVPX test harness.")
     parser.add_argument("-b", "--benchmark", action="store_true", help="Run in benchmark mode.")
     parser.add_argument("-r", "--runs", type=int, default=50, help="Number of benchmark iterations.")
-    parser.add_argument("-s", "--side-by-side", action="store_true", help="Directly compare implementations.")
     args, unknown = parser.parse_known_args()
 
     root_dir = Path(__file__).resolve().parent.parent
@@ -133,14 +132,10 @@ def main():
         harness_args.extend(["--benchmark", "--runs", str(args.runs)])
     harness_args.extend(unknown)
 
-    if args.side_by_side:
-        perform_side_by_side(harness_dir, harness_args)
+    if args.benchmark:
+        run_benchmark(harness_dir, harness_args)
     else:
-        print("\n--- Testing C Oracle Decoder ---", flush=True)
-        run_harness_stream(harness_dir, harness_args)
-
-        print("\n--- Testing CrabVPX Rust Decoder ---", flush=True)
-        run_harness_stream(harness_dir, harness_args, features="rust")
+        perform_differential_test(harness_dir, harness_args)
 
     print("")
     tracker_script = root_dir / "scripts" / "count_unsafe.sh"
