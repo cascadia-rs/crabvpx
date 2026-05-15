@@ -1,6 +1,7 @@
 # CrabVPX
 
-Lifting and shifting `libvpx` (specifically VP8 decoding) to Rust using `c2rust`, while retaining performance-critical Assembly optimizations via FFI.
+Lifting and shifting `libvpx` (specifically VP8 decoding) to Rust using `c2rust`.
+We successfully transpiled the C code, including ARM NEON intrinsics, yielding a **pure-Rust hardware-accelerated decoder** (on Apple Silicon). The project has been upgraded to the **Rust 2024 edition**.
 
 ## Project Status Checklist
 
@@ -14,12 +15,12 @@ Lifting and shifting `libvpx` (specifically VP8 decoding) to Rust using `c2rust`
 - [x] Initialize `crabvpx` Cargo project.
 - [x] Integrate generated `.rs` files into the Cargo structure.
 
-### Phase 3: Assembly FFI Integration (The Shift)
-- [x] Identify necessary Assembly (`.asm`/`.S`) files.
-- [x] Setup `build.rs` to compile and link ASM files using the `cc` crate (and `yasm`/`nasm`).
-- [x] Verify `extern "C"` linkages in the Rust code.
+### Phase 3: Hardware Intrinsics & Compilation (The Shift)
+- [x] Verify transpiled NEON intrinsics compile purely in Rust using `std::arch::aarch64`.
+- [x] Fix transpilation edge cases (atomics, `c_variadic`, types).
+- [x] Achieve clean `cargo check` on Rust 2021.
 
-### Phase 4: Stabilization & Refactoring
-- [x] Fix compilation errors in the transpiled Rust code.
-- [x] Port/integrate tests to verify decoding correctness.
-- [ ] Incrementally refactor to Safe Rust APIs.
+### Phase 4: Stabilization & Upgrade
+- [x] Port/integrate tests (harness) to verify decoding correctness against 35 IVF vectors.
+- [x] Upgrade codebase to Rust 2024 using `cargo fix --edition`.
+- [ ] Implement Phase 5: Incremental Refactoring to Safe Rust APIs (see `docs/refactor_plan.md`).
