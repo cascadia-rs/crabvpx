@@ -9,6 +9,7 @@
 - **Frame Memory Management**: Refactored `YV12_BUFFER_CONFIG` memory allocation in `src/vpx_scale/generic/yv12config.rs` to use aligned Rust vectors (`Vec<Align32>`) instead of legacy `vpx_memalign`/`vpx_free`.
 - **Safe Memory Allocation**: Replaced legacy `vpx_memalign` and `vpx_free` calls with `Box::try_new_zeroed()` and `Box::from_raw()` for `VP8D_COMP` allocation in `src/vp8/decoder/onyxd_if.rs`.
 - **Safe Image Allocation**: Replaced `calloc` and `free` with `Box::try_new_zeroed()` and `Box::from_raw()` for `vpx_image_t` struct allocation in `src/vpx/src/vpx_image.rs`.
+- **Safe Memory Allocation**: Introduced `AlignedBox` in `src/vpx_mem/vpx_mem.rs` and refactored `vpx_memalign` / `vpx_free` to use it. Replaced `vpx_memalign` and `vpx_free` FFI calls in `src/vpx/src/vpx_image.rs` with `AlignedBox::new().into_raw()` and `AlignedBox::from_raw()` for `img_data` buffer allocation.
 - **Public API Boundary**: Implemented safe `Image<'a>` wrapper around `vpx_image_t` and updated `Decoder` trait in `src/api.rs` using GATs. `get_frame` now returns `Option<Image<'a>>` providing safe slice access to image planes. Updated integration harness to match.
 
 ## Architectural Quirks to Watch Out For
@@ -17,7 +18,7 @@
 - **Duplicated Structs**: Struct definitions like `YV12_BUFFER_CONFIG` and `VP8Common` were duplicated by `c2rust` across dozens of files. Do not attempt to deduplicate them yet; maintain raw pointer boundaries between modules to avoid FFI type mismatches.
 
 ## Next Steps for Future Agents
-1. **Safe Memory Allocation**: Continue replacing `vpx_memalign` and `vpx_calloc` calls with safe Rust allocations (`Vec`, `Box`).
-   - **Target 1**: `vpx_image_t` buffer allocation (`img_data`) in `src/vpx/src/vpx_image.rs` (Note: requires handling arbitrary `buf_align`).
+1. **Safe Memory Allocation**: Continue replacing `vpx_memalign` and `vpx_calloc` calls with safe Rust allocations (`Vec`, `Box`, `AlignedBox`).
+   - **Target 1**: Multithreading buffer allocations (`mb_row_di`, `mt_yabove_row`, etc.) in `src/vp8/decoder/threading.rs`.
 2. **Core Decoding Pipeline**: Begin Phase 5, Step 4 of `docs/refactor_plan.md`. Convert pointer arithmetic inside loops to slice iterators in core decoding files (`decodeframe.rs`, `decodemv.rs`).
 

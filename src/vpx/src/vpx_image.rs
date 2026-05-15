@@ -6,8 +6,6 @@ unsafe extern "C" {
         __c: ::core::ffi::c_int,
         __len: size_t,
     ) -> *mut ::core::ffi::c_void;
-    fn vpx_memalign(align: size_t, size: size_t) -> *mut ::core::ffi::c_void;
-    fn vpx_free(memblk: *mut ::core::ffi::c_void);
 }
 pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
@@ -241,12 +239,19 @@ unsafe extern "C" fn img_alloc_helper(
                                     if alloc_size != alloc_size as size_t as uint64_t {
                                         current_block = 7960401837942226685;
                                     } else {
-                                        (*img).img_data =
-                                            vpx_memalign(buf_align as size_t, alloc_size as size_t)
-                                                as *mut uint8_t
-                                                as *mut ::core::ffi::c_uchar;
-                                        (*img).img_data_owner = 1 as ::core::ffi::c_int;
-                                        current_block = 17233182392562552756;
+                                        match crate::vpx_mem::vpx_mem::AlignedBox::new(
+                                            buf_align as usize,
+                                            alloc_size as usize,
+                                        ) {
+                                            Some(b) => {
+                                                (*img).img_data = b.into_raw();
+                                                (*img).img_data_owner = 1 as ::core::ffi::c_int;
+                                                current_block = 17233182392562552756;
+                                            }
+                                            None => {
+                                                current_block = 7960401837942226685;
+                                            }
+                                        }
                                     }
                                 } else {
                                     current_block = 17233182392562552756;
@@ -483,7 +488,7 @@ pub unsafe extern "C" fn vpx_img_flip(mut img: *mut vpx_image_t) { unsafe {
 pub unsafe extern "C" fn vpx_img_free(mut img: *mut vpx_image_t) { unsafe {
     if !img.is_null() {
         if !(*img).img_data.is_null() && (*img).img_data_owner != 0 {
-            vpx_free((*img).img_data as *mut ::core::ffi::c_void);
+            let _ = crate::vpx_mem::vpx_mem::AlignedBox::from_raw((*img).img_data);
         }
         if (*img).self_allocd != 0 {
             let _ = Box::from_raw(img);
