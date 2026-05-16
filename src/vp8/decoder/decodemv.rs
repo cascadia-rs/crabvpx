@@ -4,8 +4,6 @@ use crate::vp8::common::entropymode::{vp8_bmode_tree, vp8_ymode_tree, vp8_kf_ymo
 
 unsafe extern "C" {
     static vp8_norm: [::core::ffi::c_uchar; 256];
-    fn vp8dx_bool_decoder_fill(br: *mut BOOL_DECODER);
-    fn vp8dx_decode_bool(br: *mut BOOL_DECODER, probability: ::core::ffi::c_int) -> ::core::ffi::c_int;
     static vp8_mode_contexts: [[::core::ffi::c_int; 4]; 6];
     static vp8_mbsplit_offset: [[::core::ffi::c_uchar; 16]; 4];
 }
@@ -484,28 +482,7 @@ pub const vp8_prob_half: vp8_prob = 128 as ::core::ffi::c_int as vp8_prob;
 pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
 
-#[inline]
-unsafe extern "C" fn vp8_treed_read(
-    r: *mut vp8_reader,
-    mut t: *const vp8_tree_index,
-    p: *const vp8_prob,
-) -> ::core::ffi::c_int { unsafe {
-    let mut i: vp8_tree_index = 0 as vp8_tree_index;
-    loop {
-        i = *t.offset(
-            (i as ::core::ffi::c_int
-                + vp8dx_decode_bool(
-                    r as *mut BOOL_DECODER,
-                    *p.offset((i as ::core::ffi::c_int >> 1 as ::core::ffi::c_int) as isize)
-                        as ::core::ffi::c_int,
-                )) as isize,
-        );
-        if !(i as ::core::ffi::c_int > 0 as ::core::ffi::c_int) {
-            break;
-        }
-    }
-    return -(i as ::core::ffi::c_int);
-}}
+
 #[inline]
 unsafe extern "C" fn mv_bias(
     mut refmb_ref_frame_sign_bias: ::core::ffi::c_int,
@@ -655,29 +632,15 @@ fn read_uv_mode(
     safe_treed_read(bc, &vp8_uv_mode_tree, p) as MB_PREDICTION_MODE
 }
 
-unsafe extern "C" fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) { unsafe {
-    let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-        .offset(8 as ::core::ffi::c_int as isize) as *mut vp8_reader;
+unsafe extern "C" fn read_kf_modes(
+    mut pbi: *mut VP8D_COMP,
+    mut mi: *mut MODE_INFO,
+    safe_decoder: &mut SafeBoolDecoder,
+) { unsafe {
     let mis: ::core::ffi::c_int = (*pbi).common.mode_info_stride;
 
-    let len = (*bc).user_buffer_end.offset_from((*bc).user_buffer) as usize;
-    let slice = if len == 0 {
-        &[]
-    } else {
-        core::slice::from_raw_parts((*bc).user_buffer, len)
-    };
-    let mut safe_decoder = SafeBoolDecoder {
-        buffer: slice,
-        offset: 0,
-        value: (*bc).value,
-        count: (*bc).count,
-        range: (*bc).range,
-        decrypt_cb: (*bc).decrypt_cb,
-        decrypt_state: (*bc).decrypt_state,
-    };
-
     (*mi).mbmi.ref_frame = INTRA_FRAME as ::core::ffi::c_int as uint8_t;
-    (*mi).mbmi.mode = read_kf_ymode(&mut safe_decoder, &vp8_kf_ymode_prob) as uint8_t;
+    (*mi).mbmi.mode = read_kf_ymode(safe_decoder, &vp8_kf_ymode_prob) as uint8_t;
     if (*mi).mbmi.mode as ::core::ffi::c_int == B_PRED as ::core::ffi::c_int {
         let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
         (*mi).mbmi.is_4x4 = 1 as uint8_t;
@@ -685,7 +648,7 @@ unsafe extern "C" fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_IN
             let A: B_PREDICTION_MODE = above_block_mode(mi, i, mis) as B_PREDICTION_MODE;
             let L: B_PREDICTION_MODE = left_block_mode(mi, i) as B_PREDICTION_MODE;
             (*mi).bmi[i as usize].as_mode = read_bmode(
-                &mut safe_decoder,
+                safe_decoder,
                 &vp8_kf_bmode_prob[A as usize][L as usize],
             );
             i += 1;
@@ -695,77 +658,36 @@ unsafe extern "C" fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_IN
         }
     }
     (*mi).mbmi.uv_mode =
-        read_uv_mode(&mut safe_decoder, &vp8_kf_uv_mode_prob) as uint8_t;
-
-    (*bc).user_buffer = (*bc).user_buffer.add(safe_decoder.offset);
-    (*bc).value = safe_decoder.value;
-    (*bc).count = safe_decoder.count;
-    (*bc).range = safe_decoder.range;
+        read_uv_mode(safe_decoder, &vp8_kf_uv_mode_prob) as uint8_t;
 }}
-unsafe extern "C" fn read_mvcomponent(
-    mut r: *mut vp8_reader,
-    mut mvc: *const MV_CONTEXT,
-) -> ::core::ffi::c_int { unsafe {
-    let p: *const vp8_prob = mvc as *const vp8_prob;
-    let mut x: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    if vp8dx_decode_bool(
-        r as *mut BOOL_DECODER,
-        *p.offset(mvpis_short as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-    ) != 0
-    {
-        let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-        loop {
-            x += vp8dx_decode_bool(
-                r as *mut BOOL_DECODER,
-                *p.offset((MVPbits as ::core::ffi::c_int + i) as isize) as ::core::ffi::c_int,
-            ) << i;
-            i += 1;
-            if !(i < 3 as ::core::ffi::c_int) {
-                break;
-            }
+fn read_mvcomponent(
+    r: &mut SafeBoolDecoder,
+    mvc: &MV_CONTEXT,
+) -> i32 {
+    let p = &mvc.prob;
+    let mut x: i32 = 0;
+    if r.read_bool(p[mvpis_short as usize] as i32) != 0 {
+        for i in 0..3usize {
+            x += r.read_bool(p[MVPbits as usize + i] as i32) << i;
         }
-        i = mvlong_width as ::core::ffi::c_int - 1 as ::core::ffi::c_int;
-        loop {
-            x += vp8dx_decode_bool(
-                r as *mut BOOL_DECODER,
-                *p.offset((MVPbits as ::core::ffi::c_int + i) as isize) as ::core::ffi::c_int,
-            ) << i;
-            i -= 1;
-            if !(i > 3 as ::core::ffi::c_int) {
-                break;
-            }
+        for i in (4..mvlong_width as usize).rev() {
+            x += r.read_bool(p[MVPbits as usize + i] as i32) << i;
         }
-        if x & 0xfff0 as ::core::ffi::c_int == 0
-            || vp8dx_decode_bool(
-                r as *mut BOOL_DECODER,
-                *p.offset((MVPbits as ::core::ffi::c_int + 3 as ::core::ffi::c_int) as isize)
-                    as ::core::ffi::c_int,
-            ) != 0
-        {
-            x += 8 as ::core::ffi::c_int;
+        if x & 0xfff0 == 0 || r.read_bool(p[MVPbits as usize + 3] as i32) != 0 {
+            x += 8;
         }
     } else {
-        x = vp8_treed_read(
-            r,
-            &raw const vp8_small_mvtree as *const vp8_tree_index,
-            p.offset(MVPshort as ::core::ffi::c_int as isize),
-        );
+        x = safe_treed_read(r, &vp8_small_mvtree, &p[MVPshort as usize..]);
     }
-    if x != 0
-        && vp8dx_decode_bool(
-            r as *mut BOOL_DECODER,
-            *p.offset(MVPsign as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-        ) != 0
-    {
+    if x != 0 && r.read_bool(p[MVPsign as usize] as i32) != 0 {
         x = -x;
     }
-    return x;
-}}
-unsafe extern "C" fn read_mv(mut r: *mut vp8_reader, mut mv: *mut MV, mut mvc: *const MV_CONTEXT) { unsafe {
-    (*mv).row = (read_mvcomponent(r, mvc) * 2 as ::core::ffi::c_int) as ::core::ffi::c_short;
-    mvc = mvc.offset(1);
-    (*mv).col = (read_mvcomponent(r, mvc) * 2 as ::core::ffi::c_int) as ::core::ffi::c_short;
-}}
+    x
+}
+fn read_mv(r: &mut SafeBoolDecoder, mv: &mut MV, mvc: &[MV_CONTEXT; 2]) {
+    mv.row = (read_mvcomponent(r, &mvc[0]) * 2) as i16;
+    mv.col = (read_mvcomponent(r, &mvc[1]) * 2) as i16;
+}
 fn read_mvcontexts(bc: &mut SafeBoolDecoder, mvc: &mut [MV_CONTEXT; 2]) {
     for i in 0..2 {
         let up_probs = &vp8_mv_update_probs[i].prob;
@@ -860,26 +782,8 @@ static mbsplit_fill_offset: [[::core::ffi::c_uchar; 16]; 4] = [
         15 as ::core::ffi::c_int as ::core::ffi::c_uchar,
     ],
 ];
-unsafe extern "C" fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) { unsafe {
-    let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-        .offset(8 as ::core::ffi::c_int as isize) as *mut vp8_reader;
+unsafe extern "C" fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP, safe_decoder: &mut SafeBoolDecoder) { unsafe {
     let mvc = &mut (*pbi).common.fc.mvc;
-
-    let len = (*bc).user_buffer_end.offset_from((*bc).user_buffer) as usize;
-    let slice = if len == 0 {
-        &[]
-    } else {
-        core::slice::from_raw_parts((*bc).user_buffer, len)
-    };
-    let mut safe_decoder = SafeBoolDecoder {
-        buffer: slice,
-        offset: 0,
-        value: (*bc).value,
-        count: (*bc).count,
-        range: (*bc).range,
-        decrypt_cb: (*bc).decrypt_cb,
-        decrypt_state: (*bc).decrypt_state,
-    };
 
     (*pbi).common.mb_no_coeff_skip = safe_decoder.read_bool(vp8_prob_half as i32);
     (*pbi).prob_skip_false = 0 as vp8_prob;
@@ -902,13 +806,8 @@ unsafe extern "C" fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) { unsafe {
                 (*pbi).common.fc.uv_mode_prob[i] = safe_decoder.read_literal(8) as vp8_prob;
             }
         }
-        read_mvcontexts(&mut safe_decoder, mvc);
+        read_mvcontexts(safe_decoder, mvc);
     }
-
-    (*bc).user_buffer = (*bc).user_buffer.add(safe_decoder.offset);
-    (*bc).value = safe_decoder.value;
-    (*bc).count = safe_decoder.count;
-    (*bc).range = safe_decoder.range;
 }}
 #[unsafe(no_mangle)]
 pub static vp8_sub_mv_ref_prob3: [[vp8_prob; 3]; 8] = [
@@ -960,13 +859,13 @@ fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> &'static [vp8_prob; 3
     &vp8_sub_mv_ref_prob3[(aez << 2) | (lez << 1) | lea]
 }
 unsafe extern "C" fn decode_split_mv(
-    bc: *mut vp8_reader,
+    safe_decoder: &mut SafeBoolDecoder,
     mut mi: *mut MODE_INFO,
     mut left_mb: *const MODE_INFO,
     mut above_mb: *const MODE_INFO,
     mut mbmi: *mut MB_MODE_INFO,
     mut best_mv: int_mv,
-    mvc: *mut MV_CONTEXT,
+    mvc: &[MV_CONTEXT; 2],
     mut mb_to_left_edge: ::core::ffi::c_int,
     mut mb_to_right_edge: ::core::ffi::c_int,
     mut mb_to_top_edge: ::core::ffi::c_int,
@@ -977,11 +876,11 @@ unsafe extern "C" fn decode_split_mv(
     let mut j: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     s = 3 as ::core::ffi::c_int;
     num_p = 16 as ::core::ffi::c_int;
-    if vp8dx_decode_bool(bc as *mut BOOL_DECODER, 110 as ::core::ffi::c_int) != 0 {
+    if safe_decoder.read_bool(110) != 0 {
         s = 2 as ::core::ffi::c_int;
         num_p = 4 as ::core::ffi::c_int;
-        if vp8dx_decode_bool(bc as *mut BOOL_DECODER, 111 as ::core::ffi::c_int) != 0 {
-            s = vp8dx_decode_bool(bc as *mut BOOL_DECODER, 150 as ::core::ffi::c_int);
+        if safe_decoder.read_bool(111) != 0 {
+            s = safe_decoder.read_bool(150);
             num_p = 2 as ::core::ffi::c_int;
         }
     }
@@ -1028,33 +927,21 @@ unsafe extern "C" fn decode_split_mv(
             .as_int;
         }
         let prob = get_sub_mv_ref_prob(leftmv.as_int, abovemv.as_int);
-        if vp8dx_decode_bool(
-            bc as *mut BOOL_DECODER,
-            prob[0] as ::core::ffi::c_int,
-        ) != 0
-        {
-            if vp8dx_decode_bool(
-                bc as *mut BOOL_DECODER,
-                prob[1] as ::core::ffi::c_int,
-            ) != 0
-            {
+        if safe_decoder.read_bool(prob[0] as i32) != 0 {
+            if safe_decoder.read_bool(prob[1] as i32) != 0 {
                 blockmv.as_int = 0 as uint32_t;
-                if vp8dx_decode_bool(
-                    bc as *mut BOOL_DECODER,
-                    prob[2] as ::core::ffi::c_int,
-                ) != 0
-                {
+                if safe_decoder.read_bool(prob[2] as i32) != 0 {
                     blockmv.as_mv.row = (read_mvcomponent(
-                        bc,
-                        mvc.offset(0 as ::core::ffi::c_int as isize) as *mut MV_CONTEXT,
+                        safe_decoder,
+                        &mvc[0],
                     ) * 2 as ::core::ffi::c_int)
                         as ::core::ffi::c_short;
                     blockmv.as_mv.row = (blockmv.as_mv.row as ::core::ffi::c_int
                         + best_mv.as_mv.row as ::core::ffi::c_int)
                         as ::core::ffi::c_short;
                     blockmv.as_mv.col = (read_mvcomponent(
-                        bc,
-                        mvc.offset(1 as ::core::ffi::c_int as isize) as *mut MV_CONTEXT,
+                        safe_decoder,
+                        &mvc[1],
                     ) * 2 as ::core::ffi::c_int)
                         as ::core::ffi::c_short;
                     blockmv.as_mv.col = (blockmv.as_mv.col as ::core::ffi::c_int
@@ -1092,12 +979,10 @@ unsafe extern "C" fn read_mb_modes_mv(
     mut pbi: *mut VP8D_COMP,
     mut mi: *mut MODE_INFO,
     mut mbmi: *mut MB_MODE_INFO,
+    safe_decoder: &mut SafeBoolDecoder,
 ) { unsafe {
-    let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-        .offset(8 as ::core::ffi::c_int as isize) as *mut vp8_reader;
-    (*mbmi).ref_frame = vp8dx_decode_bool(
-        bc as *mut BOOL_DECODER,
-        (*pbi).prob_intra as ::core::ffi::c_int,
+    (*mbmi).ref_frame = safe_decoder.read_bool(
+        (*pbi).prob_intra as i32,
     ) as MV_REFERENCE_FRAME as uint8_t;
     if (*mbmi).ref_frame != 0 {
         let mut cnt: [::core::ffi::c_int; 4] = [0; 4];
@@ -1111,15 +996,13 @@ unsafe extern "C" fn read_mb_modes_mv(
         let mut ref_frame_sign_bias: *mut ::core::ffi::c_int =
             &raw mut (*pbi).common.ref_frame_sign_bias as *mut ::core::ffi::c_int;
         (*mbmi).need_to_clamp_mvs = 0 as uint8_t;
-        if vp8dx_decode_bool(
-            bc as *mut BOOL_DECODER,
-            (*pbi).prob_last as ::core::ffi::c_int,
+        if safe_decoder.read_bool(
+            (*pbi).prob_last as i32,
         ) != 0
         {
             (*mbmi).ref_frame = (2 as ::core::ffi::c_int
-                + vp8dx_decode_bool(
-                    bc as *mut BOOL_DECODER,
-                    (*pbi).prob_gf as ::core::ffi::c_int,
+                + safe_decoder.read_bool(
+                    (*pbi).prob_gf as i32,
                 )) as MV_REFERENCE_FRAME as uint8_t;
         }
         let ref mut fresh0 = (*nmv.offset(2 as ::core::ffi::c_int as isize)).as_int;
@@ -1185,10 +1068,9 @@ unsafe extern "C" fn read_mb_modes_mv(
                 cnt[CNT_INTRA as ::core::ffi::c_int as usize] += 1 as ::core::ffi::c_int;
             }
         }
-        if vp8dx_decode_bool(
-            bc as *mut BOOL_DECODER,
+        if safe_decoder.read_bool(
             vp8_mode_contexts[cnt[CNT_INTRA as ::core::ffi::c_int as usize] as usize]
-                [0 as ::core::ffi::c_int as usize],
+                [0 as ::core::ffi::c_int as usize] as i32,
         ) != 0
         {
             cnt[CNT_NEAREST as ::core::ffi::c_int as usize] +=
@@ -1210,23 +1092,21 @@ unsafe extern "C" fn read_mb_modes_mv(
                     near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int;
                 near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int = tmp as uint32_t;
             }
-            if vp8dx_decode_bool(
-                bc as *mut BOOL_DECODER,
+            if safe_decoder.read_bool(
                 vp8_mode_contexts[cnt[CNT_NEAREST as ::core::ffi::c_int as usize] as usize]
-                    [1 as ::core::ffi::c_int as usize],
+                    [1 as ::core::ffi::c_int as usize] as i32,
             ) != 0
             {
-                if vp8dx_decode_bool(
-                    bc as *mut BOOL_DECODER,
+                if safe_decoder.read_bool(
                     vp8_mode_contexts[cnt[CNT_NEAR as ::core::ffi::c_int as usize] as usize]
-                        [2 as ::core::ffi::c_int as usize],
+                        [2 as ::core::ffi::c_int as usize] as i32,
                 ) != 0
                 {
                     let mut mb_to_top_edge: ::core::ffi::c_int = 0;
                     let mut mb_to_bottom_edge: ::core::ffi::c_int = 0;
                     let mut mb_to_left_edge: ::core::ffi::c_int = 0;
                     let mut mb_to_right_edge: ::core::ffi::c_int = 0;
-                    let mvc: *mut MV_CONTEXT = &raw mut (*pbi).common.fc.mvc as *mut MV_CONTEXT;
+                    let mvc = &(*pbi).common.fc.mvc;
                     let mut near_index: ::core::ffi::c_int = 0;
                     mb_to_top_edge = (*pbi).mb.mb_to_top_edge;
                     mb_to_bottom_edge = (*pbi).mb.mb_to_bottom_edge;
@@ -1255,14 +1135,13 @@ unsafe extern "C" fn read_mb_modes_mv(
                         + ((*aboveleft).mbmi.mode as ::core::ffi::c_int
                             == SPLITMV as ::core::ffi::c_int)
                             as ::core::ffi::c_int;
-                    if vp8dx_decode_bool(
-                        bc as *mut BOOL_DECODER,
+                    if safe_decoder.read_bool(
                         vp8_mode_contexts[cnt[CNT_SPLITMV as ::core::ffi::c_int as usize] as usize]
-                            [3 as ::core::ffi::c_int as usize],
+                            [3 as ::core::ffi::c_int as usize] as i32,
                     ) != 0
                     {
                         decode_split_mv(
-                            bc,
+                            safe_decoder,
                             mi,
                             left,
                             above,
@@ -1279,7 +1158,7 @@ unsafe extern "C" fn read_mb_modes_mv(
                         (*mbmi).is_4x4 = 1 as uint8_t;
                     } else {
                         let mbmi_mv: *mut int_mv = &raw mut (*mbmi).mv;
-                        read_mv(bc, &raw mut (*mbmi_mv).as_mv, mvc as *const MV_CONTEXT);
+                        read_mv(safe_decoder, &mut (*mbmi_mv).as_mv, mvc);
                         (*mbmi_mv).as_mv.row = ((*mbmi_mv).as_mv.row as ::core::ffi::c_int
                             + near_mvs[near_index as usize].as_mv.row as ::core::ffi::c_int)
                             as ::core::ffi::c_short;
@@ -1312,30 +1191,14 @@ unsafe extern "C" fn read_mb_modes_mv(
     } else {
         (*mbmi).mv.as_int = 0 as uint32_t;
 
-        let len = (*bc).user_buffer_end.offset_from((*bc).user_buffer) as usize;
-        let slice = if len == 0 {
-            &[]
-        } else {
-            core::slice::from_raw_parts((*bc).user_buffer, len)
-        };
-        let mut safe_decoder = SafeBoolDecoder {
-            buffer: slice,
-            offset: 0,
-            value: (*bc).value,
-            count: (*bc).count,
-            range: (*bc).range,
-            decrypt_cb: (*bc).decrypt_cb,
-            decrypt_state: (*bc).decrypt_state,
-        };
-
         (*mbmi).mode =
-            read_ymode(&mut safe_decoder, &(*pbi).common.fc.ymode_prob) as uint8_t;
+            read_ymode(safe_decoder, &(*pbi).common.fc.ymode_prob) as uint8_t;
         if (*mbmi).mode as ::core::ffi::c_int == B_PRED as ::core::ffi::c_int {
             let mut j: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
             (*mbmi).is_4x4 = 1 as uint8_t;
             loop {
                 (*mi).bmi[j as usize].as_mode =
-                    read_bmode(&mut safe_decoder, &(*pbi).common.fc.bmode_prob);
+                    read_bmode(safe_decoder, &(*pbi).common.fc.bmode_prob);
                 j += 1;
                 if !(j < 16 as ::core::ffi::c_int) {
                     break;
@@ -1343,47 +1206,32 @@ unsafe extern "C" fn read_mb_modes_mv(
             }
         }
         (*mbmi).uv_mode =
-            read_uv_mode(&mut safe_decoder, &(*pbi).common.fc.uv_mode_prob) as uint8_t;
-
-        (*bc).user_buffer = (*bc).user_buffer.add(safe_decoder.offset);
-        (*bc).value = safe_decoder.value;
-        (*bc).count = safe_decoder.count;
-        (*bc).range = safe_decoder.range;
+            read_uv_mode(safe_decoder, &(*pbi).common.fc.uv_mode_prob) as uint8_t;
     };
-
 }}
 unsafe extern "C" fn read_mb_features(
-    mut r: *mut vp8_reader,
+    safe_decoder: &mut SafeBoolDecoder,
     mut mi: *mut MB_MODE_INFO,
     mut x: *mut MACROBLOCKD,
 ) { unsafe {
     if (*x).segmentation_enabled as ::core::ffi::c_int != 0
         && (*x).update_mb_segmentation_map as ::core::ffi::c_int != 0
     {
-        if vp8dx_decode_bool(
-            r as *mut BOOL_DECODER,
-            (*x).mb_segment_tree_probs[0 as ::core::ffi::c_int as usize] as ::core::ffi::c_int,
-        ) != 0
-        {
-            (*mi).segment_id = (2 as ::core::ffi::c_int
-                + vp8dx_decode_bool(
-                    r as *mut BOOL_DECODER,
-                    (*x).mb_segment_tree_probs[2 as ::core::ffi::c_int as usize]
-                        as ::core::ffi::c_int,
-                )) as ::core::ffi::c_uchar as uint8_t;
+        if safe_decoder.read_bool((*x).mb_segment_tree_probs[0] as i32) != 0 {
+            (*mi).segment_id = (2 + safe_decoder.read_bool((*x).mb_segment_tree_probs[2] as i32)) as uint8_t;
         } else {
-            (*mi).segment_id = vp8dx_decode_bool(
-                r as *mut BOOL_DECODER,
-                (*x).mb_segment_tree_probs[1 as ::core::ffi::c_int as usize] as ::core::ffi::c_int,
-            ) as ::core::ffi::c_uchar as uint8_t;
+            (*mi).segment_id = safe_decoder.read_bool((*x).mb_segment_tree_probs[1] as i32) as uint8_t;
         }
     }
 }}
-unsafe extern "C" fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) { unsafe {
+unsafe extern "C" fn decode_mb_mode_mvs(
+    mut pbi: *mut VP8D_COMP,
+    mut mi: *mut MODE_INFO,
+    safe_decoder: &mut SafeBoolDecoder,
+) { unsafe {
     if (*pbi).mb.update_mb_segmentation_map != 0 {
         read_mb_features(
-            (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as ::core::ffi::c_int as isize)
-                as *mut vp8_reader,
+            safe_decoder,
             &raw mut (*mi).mbmi,
             &raw mut (*pbi).mb,
         );
@@ -1393,11 +1241,7 @@ unsafe extern "C" fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MO
         (*mi).mbmi.segment_id = 0 as uint8_t;
     }
     if (*pbi).common.mb_no_coeff_skip != 0 {
-        (*mi).mbmi.mb_skip_coeff = vp8dx_decode_bool(
-            (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as ::core::ffi::c_int as isize)
-                as *mut BOOL_DECODER,
-            (*pbi).prob_skip_false as ::core::ffi::c_int,
-        ) as uint8_t;
+        (*mi).mbmi.mb_skip_coeff = safe_decoder.read_bool((*pbi).prob_skip_false as i32) as uint8_t;
     } else {
         (*mi).mbmi.mb_skip_coeff = 0 as uint8_t;
     }
@@ -1405,9 +1249,9 @@ unsafe extern "C" fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MO
     if (*pbi).common.frame_type as ::core::ffi::c_uint
         == KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
     {
-        read_kf_modes(pbi, mi);
+        read_kf_modes(pbi, mi, safe_decoder);
     } else {
-        read_mb_modes_mv(pbi, mi, &raw mut (*mi).mbmi);
+        read_mb_modes_mv(pbi, mi, &raw mut (*mi).mbmi, safe_decoder);
     };
 }}
 #[unsafe(no_mangle)]
@@ -1415,7 +1259,26 @@ pub unsafe extern "C" fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) { unsafe {
     let mut mi: *mut MODE_INFO = (*pbi).common.mi;
     let mut mb_row: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
     let mut mb_to_right_edge_start: ::core::ffi::c_int = 0;
-    mb_mode_mv_init(pbi);
+
+    let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
+        .offset(8 as ::core::ffi::c_int as isize) as *mut vp8_reader;
+    let len = (*bc).user_buffer_end.offset_from((*bc).user_buffer) as usize;
+    let slice = if len == 0 {
+        &[]
+    } else {
+        core::slice::from_raw_parts((*bc).user_buffer, len)
+    };
+    let mut safe_decoder = SafeBoolDecoder {
+        buffer: slice,
+        offset: 0,
+        value: (*bc).value,
+        count: (*bc).count,
+        range: (*bc).range,
+        decrypt_cb: (*bc).decrypt_cb,
+        decrypt_state: (*bc).decrypt_state,
+    };
+
+    mb_mode_mv_init(pbi, &mut safe_decoder);
     (*pbi).mb.mb_to_top_edge = 0 as ::core::ffi::c_int;
     (*pbi).mb.mb_to_bottom_edge = (((*pbi).common.mb_rows - 1 as ::core::ffi::c_int)
         * 16 as ::core::ffi::c_int)
@@ -1436,7 +1299,7 @@ pub unsafe extern "C" fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) { unsafe {
             if !(mb_col < (*pbi).common.mb_cols) {
                 break;
             }
-            decode_mb_mode_mvs(pbi, mi);
+            decode_mb_mode_mvs(pbi, mi, &mut safe_decoder);
             (*pbi).mb.mb_to_left_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
             (*pbi).mb.mb_to_right_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
             mi = mi.offset(1);
@@ -1445,4 +1308,9 @@ pub unsafe extern "C" fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) { unsafe {
         (*pbi).mb.mb_to_bottom_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
         mi = mi.offset(1);
     }
+
+    (*bc).user_buffer = (*bc).user_buffer.add(safe_decoder.offset);
+    (*bc).value = safe_decoder.value;
+    (*bc).count = safe_decoder.count;
+    (*bc).range = safe_decoder.range;
 }}

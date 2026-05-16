@@ -23,6 +23,8 @@
 - **SafeBoolDecoder Expansion in Token Decoder Setup**: Refactored `setup_token_decoder` in `src/vp8/decoder/decodeframe.rs` to take `&mut SafeBoolDecoder` and use it for reading `multi_token_partition`. Eliminated raw pointer access to `mbc[8]` and removed redundant sync/re-creation of `SafeBoolDecoder` at call site.
 - **Static State Cleanup in Motion Vector Decoding**: Converted `mbsplit_fill_count`, `mbsplit_fill_offset`, and `vp8_sub_mv_ref_prob3` in `src/vp8/decoder/decodemv.rs` from `static mut` to immutable `static`. Refactored `get_sub_mv_ref_prob` to a safe Rust function returning a slice, eliminating raw pointer arithmetic and 2 unsafe blocks. Cleaned up `decode_split_mv` to use safe slice iteration instead of raw pointer indexing.
 
+- **SafeBoolDecoder Expansion in Motion Vector Decoding**: Refactored `vp8_decode_mode_mvs`, `decode_mb_mode_mvs`, `read_mb_features`, `read_kf_modes`, `read_mb_modes_mv`, `decode_split_mv`, `read_mv`, and `read_mvcomponent` in `src/vp8/decoder/decodemv.rs` to use `SafeBoolDecoder` and safe slice indexing, eliminating 6 unsafe blocks and all `vp8dx_decode_bool` calls in the module. Deleted unused `vp8_treed_read`. Reduced unsafe count by 6.
+
 ## Architectural Quirks to Watch Out For
 - **c2rust Duplication**: Functions that were `static inline` in C headers (specifically `vp8dx_decode_bool` from `dboolhuff.h`) were duplicated by `c2rust` into every Rust module that called them. (Resolved for `vp8dx_decode_bool`).
 - **Hardcoded NEON Calls**: The transpiled Rust code explicitly calls `_neon` function names (e.g., `vp8_bilinear_predict16x16_neon` in `decodeframe.rs`), because it was transpiled from C code where NEON macros were active. This causes link errors on x86_64 when building the integration `harness`.
@@ -30,7 +32,7 @@
 
 ## Next Steps for Future Agents
 1. **Continue SafeBoolDecoder Expansion**: Investigate converting `mbc` array in `VP8D_COMP` to use `SafeBoolDecoder` or wrappers, to allow safe decoding in `decode_mb_rows` and multithreaded decoding. Note: `read_token_partitions` does not exist as a standalone function; partition setup is handled in `setup_token_decoder`.
-2. **Macroblock Feature Parsing**: Refactor `decode_mb_mode_mvs` and `read_mb_features` in `src/vp8/decoder/decodemv.rs` to construct and pass `SafeBoolDecoder`.
-3. **Motion Vector Component Parsing**: Refactor `read_mvcomponent` in `src/vp8/decoder/decodemv.rs` to use `SafeBoolDecoder` and `safe_treed_read`.
+2. **Entropy Decoding (Tokens)**: Investigate converting token decoding in `detokenize.rs` to use `SafeBoolDecoder`.
+
 
 
