@@ -516,24 +516,24 @@ unsafe extern "C" fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOC
     }
 }}
 #[inline]
-unsafe extern "C" fn vp8_check_mv_bounds(
-    mut mv: *mut int_mv,
-    mut mb_to_left_edge: ::core::ffi::c_int,
-    mut mb_to_right_edge: ::core::ffi::c_int,
-    mut mb_to_top_edge: ::core::ffi::c_int,
-    mut mb_to_bottom_edge: ::core::ffi::c_int,
-) -> ::core::ffi::c_uint { unsafe {
+fn vp8_check_mv_bounds(
+    mv: &MV,
+    mb_to_left_edge: ::core::ffi::c_int,
+    mb_to_right_edge: ::core::ffi::c_int,
+    mb_to_top_edge: ::core::ffi::c_int,
+    mb_to_bottom_edge: ::core::ffi::c_int,
+) -> ::core::ffi::c_uint {
     let mut need_to_clamp: ::core::ffi::c_uint = 0;
-    need_to_clamp = (((*mv).as_mv.col as ::core::ffi::c_int) < mb_to_left_edge)
+    need_to_clamp = ((mv.col as ::core::ffi::c_int) < mb_to_left_edge)
         as ::core::ffi::c_int as ::core::ffi::c_uint;
-    need_to_clamp |= ((*mv).as_mv.col as ::core::ffi::c_int > mb_to_right_edge)
+    need_to_clamp |= (mv.col as ::core::ffi::c_int > mb_to_right_edge)
         as ::core::ffi::c_int as ::core::ffi::c_uint;
-    need_to_clamp |= (((*mv).as_mv.row as ::core::ffi::c_int) < mb_to_top_edge)
+    need_to_clamp |= ((mv.row as ::core::ffi::c_int) < mb_to_top_edge)
         as ::core::ffi::c_int as ::core::ffi::c_uint;
-    need_to_clamp |= ((*mv).as_mv.row as ::core::ffi::c_int > mb_to_bottom_edge)
+    need_to_clamp |= (mv.row as ::core::ffi::c_int > mb_to_bottom_edge)
         as ::core::ffi::c_int as ::core::ffi::c_uint;
     return need_to_clamp;
-}}
+}
 #[inline]
 unsafe extern "C" fn left_block_mode(
     mut cur_mb: *const MODE_INFO,
@@ -956,7 +956,7 @@ unsafe extern "C" fn decode_split_mv(
         }
         (*mbmi).need_to_clamp_mvs = ((*mbmi).need_to_clamp_mvs as ::core::ffi::c_uint
             | vp8_check_mv_bounds(
-                &raw mut blockmv,
+                &blockmv.as_mv,
                 mb_to_left_edge,
                 mb_to_right_edge,
                 mb_to_top_edge,
@@ -1166,7 +1166,7 @@ unsafe extern "C" fn read_mb_modes_mv(
                             + near_mvs[near_index as usize].as_mv.col as ::core::ffi::c_int)
                             as ::core::ffi::c_short;
                         (*mbmi).need_to_clamp_mvs = vp8_check_mv_bounds(
-                            mbmi_mv,
+                            &(*mbmi_mv).as_mv,
                             mb_to_left_edge,
                             mb_to_right_edge,
                             mb_to_top_edge,

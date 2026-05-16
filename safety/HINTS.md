@@ -25,6 +25,7 @@
 
 - **SafeBoolDecoder Expansion in Motion Vector Decoding**: Refactored `vp8_decode_mode_mvs`, `decode_mb_mode_mvs`, `read_mb_features`, `read_kf_modes`, `read_mb_modes_mv`, `decode_split_mv`, `read_mv`, and `read_mvcomponent` in `src/vp8/decoder/decodemv.rs` to use `SafeBoolDecoder` and safe slice indexing, eliminating 6 unsafe blocks and all `vp8dx_decode_bool` calls in the module. Deleted unused `vp8_treed_read`. Reduced unsafe count by 6.
 - **SafeBoolDecoder Expansion in Token Decoding**: Refactored `GetSigned`, `GetCoeffs`, and `vp8_decode_mb_tokens` in `src/vp8/decoder/detokenize.rs` to use `SafeBoolDecoder`, eliminating manual C-style bitstream arithmetic and removing 1 unsafe block in `GetSigned`. Removed `vp8dx_decode_bool` from `extern "C"`. Reduced unsafe count by 2.
+- **Safe Motion Vector Bounds Checking**: Refactored `vp8_check_mv_bounds` in `src/vp8/decoder/decodemv.rs` to take `&MV` instead of raw `*mut int_mv`, eliminating `unsafe extern "C"` and internal `unsafe` block. Updated call sites in `read_mb_modes_mv` and `decode_mb_mode_mvs`. Reduced unsafe count by 2.
 
 ## Architectural Quirks to Watch Out For
 - **c2rust Duplication**: Functions that were `static inline` in C headers (specifically `vp8dx_decode_bool` from `dboolhuff.h`) were duplicated by `c2rust` into every Rust module that called them. (Resolved for `vp8dx_decode_bool`).
