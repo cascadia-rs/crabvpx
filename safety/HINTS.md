@@ -27,5 +27,8 @@
 - **Duplicated Structs**: Struct definitions like `YV12_BUFFER_CONFIG` and `VP8Common` were duplicated by `c2rust` across dozens of files. Do not attempt to deduplicate them yet; maintain raw pointer boundaries between modules to avoid FFI type mismatches.
 
 ## Next Steps for Future Agents
-1. **Core Decoding Pipeline**: Begin Phase 5, Step 4 of `docs/refactor_plan.md`. Convert pointer arithmetic inside loops to slice iterators in core decoding files (`decodeframe.rs`, `decodemv.rs`).
+1. **Continue SafeBoolDecoder Expansion**: Focus on converting `setup_token_decoder` and `read_token_partitions` in `src/vp8/decoder/decodeframe.rs` to use `SafeBoolDecoder`.
+2. **Macroblock Feature Parsing**: Refactor `decode_mb_mode_mvs` and `read_mb_features` in `src/vp8/decoder/decodemv.rs` to construct and pass `SafeBoolDecoder`.
+3. **Motion Vector Component Parsing**: Refactor `read_mvcomponent` in `src/vp8/decoder/decodemv.rs` to use `SafeBoolDecoder` and `safe_treed_read`.
+
 
