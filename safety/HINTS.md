@@ -18,6 +18,7 @@
 - **Motion Vector Decoding**: Refactored `read_mvcontexts` in `src/vp8/decoder/decodemv.rs` to use safe slice indexing and iterators instead of raw pointer arithmetic. Converted `vp8_mv_update_probs` in `src/vp8/common/entropymv.rs` to safe public const, eliminating FFI imports and `#[unsafe(no_mangle)]`. Reduced unsafe count by 2.
 - **SafeBoolDecoder Integration in Motion Vector Decoding**: Refactored `read_mvcontexts` and `mb_mode_mv_init` in `src/vp8/decoder/decodemv.rs` to pass and use `&mut SafeBoolDecoder`, eliminating raw pointer casts and an `unsafe` block. Reduced unsafe count by 1.
 - **Dead Code Removal**: Removed unused C-style `vp8_decode_value` from `src/vp8/decoder/decodemv.rs`. Reduced unsafe count by 2.
+- **Tree and Mode Reader Refactoring**: Converted static trees and keyframe probabilities in `src/vp8/common/entropymode.rs` to immutable `static`. Refactored `read_bmode`, `read_ymode`, `read_kf_ymode`, and `read_uv_mode` in `src/vp8/decoder/decodemv.rs` to use `SafeBoolDecoder` and static slices, eliminating 4 `unsafe` blocks. Reduced unsafe count by 8.
 
 ## Architectural Quirks to Watch Out For
 - **c2rust Duplication**: Functions that were `static inline` in C headers (specifically `vp8dx_decode_bool` from `dboolhuff.h`) were duplicated by `c2rust` into every Rust module that called them. (Resolved for `vp8dx_decode_bool`).

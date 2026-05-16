@@ -1,18 +1,11 @@
 use crate::vp8::common::entropymv::vp8_mv_update_probs;
 use crate::vp8::decoder::dboolhuff::SafeBoolDecoder;
+use crate::vp8::common::entropymode::{vp8_bmode_tree, vp8_ymode_tree, vp8_kf_ymode_tree, vp8_uv_mode_tree, vp8_small_mvtree, vp8_kf_bmode_prob, vp8_kf_uv_mode_prob, vp8_kf_ymode_prob};
 
 unsafe extern "C" {
     static vp8_norm: [::core::ffi::c_uchar; 256];
     fn vp8dx_bool_decoder_fill(br: *mut BOOL_DECODER);
     fn vp8dx_decode_bool(br: *mut BOOL_DECODER, probability: ::core::ffi::c_int) -> ::core::ffi::c_int;
-    static vp8_bmode_tree: [vp8_tree_index; 0];
-    static vp8_ymode_tree: [vp8_tree_index; 0];
-    static vp8_kf_ymode_tree: [vp8_tree_index; 0];
-    static vp8_uv_mode_tree: [vp8_tree_index; 0];
-    static vp8_small_mvtree: [vp8_tree_index; 0];
-    static vp8_kf_bmode_prob: [[[vp8_prob; 9]; 10]; 10];
-    static vp8_kf_uv_mode_prob: [vp8_prob; 3];
-    static vp8_kf_ymode_prob: [vp8_prob; 4];
     static vp8_mode_contexts: [[::core::ffi::c_int; 4]; 6];
     static vp8_mbsplit_offset: [[::core::ffi::c_uchar; 16]; 4];
 }
@@ -617,48 +610,74 @@ unsafe extern "C" fn above_block_mode(
         .offset(-(4 as ::core::ffi::c_int as isize)))
     .as_mode;
 }}
-unsafe extern "C" fn read_bmode(
-    mut bc: *mut vp8_reader,
-    mut p: *const vp8_prob,
-) -> B_PREDICTION_MODE { unsafe {
-    let i: ::core::ffi::c_int =
-        vp8_treed_read(bc, &raw const vp8_bmode_tree as *const vp8_tree_index, p)
-            as ::core::ffi::c_int;
-    return i as B_PREDICTION_MODE;
-}}
-unsafe extern "C" fn read_ymode(
-    mut bc: *mut vp8_reader,
-    mut p: *const vp8_prob,
-) -> MB_PREDICTION_MODE { unsafe {
-    let i: ::core::ffi::c_int =
-        vp8_treed_read(bc, &raw const vp8_ymode_tree as *const vp8_tree_index, p)
-            as ::core::ffi::c_int;
-    return i as MB_PREDICTION_MODE;
-}}
-unsafe extern "C" fn read_kf_ymode(
-    mut bc: *mut vp8_reader,
-    mut p: *const vp8_prob,
-) -> MB_PREDICTION_MODE { unsafe {
-    let i: ::core::ffi::c_int =
-        vp8_treed_read(bc, &raw const vp8_kf_ymode_tree as *const vp8_tree_index, p)
-            as ::core::ffi::c_int;
-    return i as MB_PREDICTION_MODE;
-}}
-unsafe extern "C" fn read_uv_mode(
-    mut bc: *mut vp8_reader,
-    mut p: *const vp8_prob,
-) -> MB_PREDICTION_MODE { unsafe {
-    let i: ::core::ffi::c_int =
-        vp8_treed_read(bc, &raw const vp8_uv_mode_tree as *const vp8_tree_index, p)
-            as ::core::ffi::c_int;
-    return i as MB_PREDICTION_MODE;
-}}
+fn safe_treed_read(
+    r: &mut SafeBoolDecoder,
+    t: &[vp8_tree_index],
+    p: &[vp8_prob],
+) -> i32 {
+    let mut i: usize = 0;
+    loop {
+        let prob = p[i >> 1];
+        let bit = r.read_bool(prob as i32);
+        let next_node = t[i + (bit as usize)];
+        if next_node <= 0 {
+            return -next_node as i32;
+        }
+        i = next_node as usize;
+    }
+}
+
+fn read_bmode(
+    bc: &mut SafeBoolDecoder,
+    p: &[vp8_prob],
+) -> B_PREDICTION_MODE {
+    safe_treed_read(bc, &vp8_bmode_tree, p) as B_PREDICTION_MODE
+}
+
+fn read_ymode(
+    bc: &mut SafeBoolDecoder,
+    p: &[vp8_prob],
+) -> MB_PREDICTION_MODE {
+    safe_treed_read(bc, &vp8_ymode_tree, p) as MB_PREDICTION_MODE
+}
+
+fn read_kf_ymode(
+    bc: &mut SafeBoolDecoder,
+    p: &[vp8_prob],
+) -> MB_PREDICTION_MODE {
+    safe_treed_read(bc, &vp8_kf_ymode_tree, p) as MB_PREDICTION_MODE
+}
+
+fn read_uv_mode(
+    bc: &mut SafeBoolDecoder,
+    p: &[vp8_prob],
+) -> MB_PREDICTION_MODE {
+    safe_treed_read(bc, &vp8_uv_mode_tree, p) as MB_PREDICTION_MODE
+}
+
 unsafe extern "C" fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) { unsafe {
     let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
         .offset(8 as ::core::ffi::c_int as isize) as *mut vp8_reader;
     let mis: ::core::ffi::c_int = (*pbi).common.mode_info_stride;
+
+    let len = (*bc).user_buffer_end.offset_from((*bc).user_buffer) as usize;
+    let slice = if len == 0 {
+        &[]
+    } else {
+        core::slice::from_raw_parts((*bc).user_buffer, len)
+    };
+    let mut safe_decoder = SafeBoolDecoder {
+        buffer: slice,
+        offset: 0,
+        value: (*bc).value,
+        count: (*bc).count,
+        range: (*bc).range,
+        decrypt_cb: (*bc).decrypt_cb,
+        decrypt_state: (*bc).decrypt_state,
+    };
+
     (*mi).mbmi.ref_frame = INTRA_FRAME as ::core::ffi::c_int as uint8_t;
-    (*mi).mbmi.mode = read_kf_ymode(bc, &raw const vp8_kf_ymode_prob as *const vp8_prob) as uint8_t;
+    (*mi).mbmi.mode = read_kf_ymode(&mut safe_decoder, &vp8_kf_ymode_prob) as uint8_t;
     if (*mi).mbmi.mode as ::core::ffi::c_int == B_PRED as ::core::ffi::c_int {
         let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
         (*mi).mbmi.is_4x4 = 1 as uint8_t;
@@ -666,11 +685,8 @@ unsafe extern "C" fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_IN
             let A: B_PREDICTION_MODE = above_block_mode(mi, i, mis) as B_PREDICTION_MODE;
             let L: B_PREDICTION_MODE = left_block_mode(mi, i) as B_PREDICTION_MODE;
             (*mi).bmi[i as usize].as_mode = read_bmode(
-                bc,
-                &raw const *(&raw const *(&raw const vp8_kf_bmode_prob
-                    as *const [[vp8_prob; 9]; 10])
-                    .offset(A as isize) as *const [vp8_prob; 9])
-                    .offset(L as isize) as *const vp8_prob,
+                &mut safe_decoder,
+                &vp8_kf_bmode_prob[A as usize][L as usize],
             );
             i += 1;
             if !(i < 16 as ::core::ffi::c_int) {
@@ -679,7 +695,12 @@ unsafe extern "C" fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_IN
         }
     }
     (*mi).mbmi.uv_mode =
-        read_uv_mode(bc, &raw const vp8_kf_uv_mode_prob as *const vp8_prob) as uint8_t;
+        read_uv_mode(&mut safe_decoder, &vp8_kf_uv_mode_prob) as uint8_t;
+
+    (*bc).user_buffer = (*bc).user_buffer.add(safe_decoder.offset);
+    (*bc).value = safe_decoder.value;
+    (*bc).count = safe_decoder.count;
+    (*bc).range = safe_decoder.range;
 }}
 unsafe extern "C" fn read_mvcomponent(
     mut r: *mut vp8_reader,
@@ -1309,14 +1330,31 @@ unsafe extern "C" fn read_mb_modes_mv(
         }
     } else {
         (*mbmi).mv.as_int = 0 as uint32_t;
+
+        let len = (*bc).user_buffer_end.offset_from((*bc).user_buffer) as usize;
+        let slice = if len == 0 {
+            &[]
+        } else {
+            core::slice::from_raw_parts((*bc).user_buffer, len)
+        };
+        let mut safe_decoder = SafeBoolDecoder {
+            buffer: slice,
+            offset: 0,
+            value: (*bc).value,
+            count: (*bc).count,
+            range: (*bc).range,
+            decrypt_cb: (*bc).decrypt_cb,
+            decrypt_state: (*bc).decrypt_state,
+        };
+
         (*mbmi).mode =
-            read_ymode(bc, &raw mut (*pbi).common.fc.ymode_prob as *mut vp8_prob) as uint8_t;
+            read_ymode(&mut safe_decoder, &(*pbi).common.fc.ymode_prob) as uint8_t;
         if (*mbmi).mode as ::core::ffi::c_int == B_PRED as ::core::ffi::c_int {
             let mut j: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
             (*mbmi).is_4x4 = 1 as uint8_t;
             loop {
                 (*mi).bmi[j as usize].as_mode =
-                    read_bmode(bc, &raw mut (*pbi).common.fc.bmode_prob as *mut vp8_prob);
+                    read_bmode(&mut safe_decoder, &(*pbi).common.fc.bmode_prob);
                 j += 1;
                 if !(j < 16 as ::core::ffi::c_int) {
                     break;
@@ -1324,8 +1362,14 @@ unsafe extern "C" fn read_mb_modes_mv(
             }
         }
         (*mbmi).uv_mode =
-            read_uv_mode(bc, &raw mut (*pbi).common.fc.uv_mode_prob as *mut vp8_prob) as uint8_t;
+            read_uv_mode(&mut safe_decoder, &(*pbi).common.fc.uv_mode_prob) as uint8_t;
+
+        (*bc).user_buffer = (*bc).user_buffer.add(safe_decoder.offset);
+        (*bc).value = safe_decoder.value;
+        (*bc).count = safe_decoder.count;
+        (*bc).range = safe_decoder.range;
     };
+
 }}
 unsafe extern "C" fn read_mb_features(
     mut r: *mut vp8_reader,

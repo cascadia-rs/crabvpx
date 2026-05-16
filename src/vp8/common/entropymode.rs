@@ -486,7 +486,7 @@ pub static mut vp8_ymode_prob: [vp8_prob; 4] = [
     37 as ::core::ffi::c_int as vp8_prob,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_kf_ymode_prob: [vp8_prob; 4] = [
+pub static vp8_kf_ymode_prob: [vp8_prob; 4] = [
     145 as ::core::ffi::c_int as vp8_prob,
     156 as ::core::ffi::c_int as vp8_prob,
     163 as ::core::ffi::c_int as vp8_prob,
@@ -499,7 +499,7 @@ pub static mut vp8_uv_mode_prob: [vp8_prob; 3] = [
     204 as ::core::ffi::c_int as vp8_prob,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_kf_uv_mode_prob: [vp8_prob; 3] = [
+pub static vp8_kf_uv_mode_prob: [vp8_prob; 3] = [
     142 as ::core::ffi::c_int as vp8_prob,
     114 as ::core::ffi::c_int as vp8_prob,
     183 as ::core::ffi::c_int as vp8_prob,
@@ -517,7 +517,7 @@ pub static mut vp8_bmode_prob: [vp8_prob; 9] = [
     151 as ::core::ffi::c_int as vp8_prob,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_kf_bmode_prob: [[[vp8_prob; 9]; 10]; 10] = [
+pub static vp8_kf_bmode_prob: [[[vp8_prob; 9]; 10]; 10] = [
     [
         [
             231 as ::core::ffi::c_int as vp8_prob,
@@ -1783,7 +1783,7 @@ pub static mut vp8_mbsplit_probs: [vp8_prob; 3] = [
     150 as ::core::ffi::c_int as vp8_prob,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_bmode_tree: [vp8_tree_index; 18] = [
+pub static vp8_bmode_tree: [vp8_tree_index; 18] = [
     -(B_DC_PRED as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     -(B_TM_PRED as ::core::ffi::c_int) as vp8_tree_index,
@@ -1804,7 +1804,7 @@ pub static mut vp8_bmode_tree: [vp8_tree_index; 18] = [
     -(B_HU_PRED as ::core::ffi::c_int) as vp8_tree_index,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_ymode_tree: [vp8_tree_index; 8] = [
+pub static vp8_ymode_tree: [vp8_tree_index; 8] = [
     -(DC_PRED as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     4 as ::core::ffi::c_int as vp8_tree_index,
@@ -1815,7 +1815,7 @@ pub static mut vp8_ymode_tree: [vp8_tree_index; 8] = [
     -(B_PRED as ::core::ffi::c_int) as vp8_tree_index,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_kf_ymode_tree: [vp8_tree_index; 8] = [
+pub static vp8_kf_ymode_tree: [vp8_tree_index; 8] = [
     -(B_PRED as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     4 as ::core::ffi::c_int as vp8_tree_index,
@@ -1826,7 +1826,7 @@ pub static mut vp8_kf_ymode_tree: [vp8_tree_index; 8] = [
     -(TM_PRED as ::core::ffi::c_int) as vp8_tree_index,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_uv_mode_tree: [vp8_tree_index; 6] = [
+pub static vp8_uv_mode_tree: [vp8_tree_index; 6] = [
     -(DC_PRED as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     -(V_PRED as ::core::ffi::c_int) as vp8_tree_index,
@@ -1835,7 +1835,7 @@ pub static mut vp8_uv_mode_tree: [vp8_tree_index; 6] = [
     -(TM_PRED as ::core::ffi::c_int) as vp8_tree_index,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_mbsplit_tree: [vp8_tree_index; 6] = [
+pub static vp8_mbsplit_tree: [vp8_tree_index; 6] = [
     -(3 as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     -(2 as ::core::ffi::c_int) as vp8_tree_index,
@@ -1844,7 +1844,7 @@ pub static mut vp8_mbsplit_tree: [vp8_tree_index; 6] = [
     -(1 as ::core::ffi::c_int) as vp8_tree_index,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_mv_ref_tree: [vp8_tree_index; 8] = [
+pub static vp8_mv_ref_tree: [vp8_tree_index; 8] = [
     -(ZEROMV as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     -(NEARESTMV as ::core::ffi::c_int) as vp8_tree_index,
@@ -1855,7 +1855,7 @@ pub static mut vp8_mv_ref_tree: [vp8_tree_index; 8] = [
     -(SPLITMV as ::core::ffi::c_int) as vp8_tree_index,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_sub_mv_ref_tree: [vp8_tree_index; 6] = [
+pub static vp8_sub_mv_ref_tree: [vp8_tree_index; 6] = [
     -(LEFT4X4 as ::core::ffi::c_int) as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     -(ABOVE4X4 as ::core::ffi::c_int) as vp8_tree_index,
@@ -1864,7 +1864,7 @@ pub static mut vp8_sub_mv_ref_tree: [vp8_tree_index; 6] = [
     -(NEW4X4 as ::core::ffi::c_int) as vp8_tree_index,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_small_mvtree: [vp8_tree_index; 14] = [
+pub static vp8_small_mvtree: [vp8_tree_index; 14] = [
     2 as ::core::ffi::c_int as vp8_tree_index,
     8 as ::core::ffi::c_int as vp8_tree_index,
     4 as ::core::ffi::c_int as vp8_tree_index,
