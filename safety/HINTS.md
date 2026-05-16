@@ -42,8 +42,8 @@
 - **Duplicated Structs**: Struct definitions like `YV12_BUFFER_CONFIG` and `VP8Common` were duplicated by `c2rust` across dozens of files. Do not attempt to deduplicate them yet; maintain raw pointer boundaries between modules to avoid FFI type mismatches.
 
 ## Next Steps for Future Agents
-1. **Module-Internal Refactoring**: Future agents should focus on refactoring module-internal functions (like those in `decodemv.rs` or `detokenize.rs`) that do not cross FFI boundaries. Converting duplicated structs like `VP8D_COMP` or `MACROBLOCKD` to use safe references or lifetimes across modules is currently impractical due to `c2rust` struct duplication.
-2. **Investigate Safe Entropy Context Indexing**: In `src/vp8/decoder/detokenize.rs`, investigate refactoring `vp8_decode_mb_tokens` to use safe slice indexing into `ENTROPY_CONTEXT_PLANES` (`y1`, `u`, `v`, `y2`) instead of raw pointer arithmetic on `above_context` and `left_context`. Note that `vp8_reset_mb_tokens_context` has already been refactored to a safe `extern "C" fn` signature while maintaining raw pointer boundaries.
+1. **PRIORITY: Bottom-Up Struct Deduplication**: The user has explicitly requested prioritizing the deduplication of `c2rust` generated structs across the codebase to enable safe inter-module references (`&mut MACROBLOCKD`). Agents must follow the phased execution roadmap in [struct_deduplication_strategy.md](struct_deduplication_strategy.md).
+2. **Module-Internal Refactoring**: While struct deduplication is underway (or if blocked), agents can continue refactoring module-internal functions (like `vp8_decode_mb_tokens` in `detokenize.rs`) that do not cross FFI boundaries.
 
 
 
