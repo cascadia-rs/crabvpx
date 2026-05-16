@@ -1524,62 +1524,39 @@ unsafe extern "C" fn decode_mb_rows(mut pbi: *mut VP8D_COMP) { unsafe {
     yv12_extend_frame_top_c(yv12_fb_new);
     yv12_extend_frame_bottom_c(yv12_fb_new);
 }}
-unsafe extern "C" fn read_partition_size(
-    mut pbi: *mut VP8D_COMP,
-    mut cx_size: *const ::core::ffi::c_uchar,
+fn read_partition_size(
+    pbi: *mut VP8D_COMP,
+    cx_size: &[u8],
 ) -> ::core::ffi::c_uint { unsafe {
     let mut temp: [::core::ffi::c_uchar; 3] = [0; 3];
+    let mut data_slice = cx_size;
     if (*pbi).decrypt_cb.is_some() {
         (*pbi).decrypt_cb.expect("non-null function pointer")(
             (*pbi).decrypt_state,
-            cx_size,
+            cx_size.as_ptr(),
             &raw mut temp as *mut ::core::ffi::c_uchar,
             3 as ::core::ffi::c_int,
         );
-        cx_size = &raw mut temp as *mut ::core::ffi::c_uchar;
+        data_slice = &temp;
     }
-    return (*cx_size.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-        + ((*cx_size.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int)
-            << 8 as ::core::ffi::c_int)
-        + ((*cx_size.offset(2 as ::core::ffi::c_int as isize) as ::core::ffi::c_int)
-            << 16 as ::core::ffi::c_int)) as ::core::ffi::c_uint;
+    return (data_slice[0] as ::core::ffi::c_int
+        + ((data_slice[1] as ::core::ffi::c_int) << 8)
+        + ((data_slice[2] as ::core::ffi::c_int) << 16)) as ::core::ffi::c_uint;
 }}
-unsafe extern "C" fn read_is_valid(
-    mut start: *const ::core::ffi::c_uchar,
-    mut len: size_t,
-    mut end: *const ::core::ffi::c_uchar,
-) -> ::core::ffi::c_int { unsafe {
-    return (len != 0 as size_t
-        && end > start
-        && len <= end.offset_from(start) as ::core::ffi::c_long as size_t)
-        as ::core::ffi::c_int;
-}}
-unsafe extern "C" fn read_available_partition_size(
-    mut pbi: *mut VP8D_COMP,
-    mut token_part_sizes: *const ::core::ffi::c_uchar,
-    mut fragment_start: *const ::core::ffi::c_uchar,
-    mut first_fragment_end: *const ::core::ffi::c_uchar,
-    mut fragment_end: *const ::core::ffi::c_uchar,
-    mut i: ::core::ffi::c_int,
-    mut num_part: ::core::ffi::c_int,
+fn read_available_partition_size(
+    pbi: *mut VP8D_COMP,
+    token_part_sizes: &[u8],
+    fragment: &[u8],
+    i: ::core::ffi::c_int,
+    num_part: ::core::ffi::c_int,
 ) -> ::core::ffi::c_uint { unsafe {
-    let mut pc: *mut VP8_COMMON = &raw mut (*pbi).common;
-    let mut partition_size_ptr: *const ::core::ffi::c_uchar =
-        token_part_sizes.offset((i * 3 as ::core::ffi::c_int) as isize);
-    let mut partition_size: ::core::ffi::c_uint = 0 as ::core::ffi::c_uint;
-    let mut bytes_left: ptrdiff_t = fragment_end.offset_from(fragment_start) as ptrdiff_t;
-    if bytes_left < 0 as ptrdiff_t {
-        vpx_internal_error(
-            &raw mut (*pc).error,
-            VPX_CODEC_CORRUPT_FRAME,
-            b"Truncated packet or corrupt partition. No bytes left %d.\0" as *const u8
-                as *const ::core::ffi::c_char,
-            bytes_left as ::core::ffi::c_int,
-        );
-    }
-    if i < num_part - 1 as ::core::ffi::c_int {
-        if read_is_valid(partition_size_ptr, 3 as size_t, first_fragment_end) != 0 {
-            partition_size = read_partition_size(pbi, partition_size_ptr);
+    let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
+    let mut partition_size: ::core::ffi::c_uint = 0;
+    let bytes_left = fragment.len();
+    if i < num_part - 1 {
+        let size_offset = (i * 3) as usize;
+        if size_offset + 3 <= token_part_sizes.len() {
+            partition_size = read_partition_size(pbi, &token_part_sizes[size_offset .. size_offset + 3]);
         } else if (*pbi).ec_active != 0 {
             partition_size = bytes_left as ::core::ffi::c_uint;
         } else {
@@ -1592,7 +1569,7 @@ unsafe extern "C" fn read_available_partition_size(
     } else {
         partition_size = bytes_left as ::core::ffi::c_uint;
     }
-    if read_is_valid(fragment_start, partition_size as size_t, fragment_end) == 0 {
+    if partition_size as usize > bytes_left {
         if (*pbi).ec_active != 0 {
             partition_size = bytes_left as ::core::ffi::c_uint;
         } else {
@@ -1601,26 +1578,20 @@ unsafe extern "C" fn read_available_partition_size(
                 VPX_CODEC_CORRUPT_FRAME,
                 b"Truncated packet or corrupt partition %d length\0" as *const u8
                     as *const ::core::ffi::c_char,
-                i + 1 as ::core::ffi::c_int,
+                i + 1,
             );
         }
     }
     return partition_size;
 }}
-unsafe extern "C" fn setup_token_decoder(
+fn setup_token_decoder(
     mut pbi: *mut VP8D_COMP,
-    mut token_part_sizes: *const ::core::ffi::c_uchar,
+    token_part_sizes: &[u8],
     safe_decoder: &mut SafeBoolDecoder,
 ) { unsafe {
-    let mut bool_decoder: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-        .offset(0 as ::core::ffi::c_int as isize)
-        as *mut vp8_reader;
     let mut partition_idx: ::core::ffi::c_uint = 0;
     let mut fragment_idx: ::core::ffi::c_uint = 0;
     let mut num_token_partitions: ::core::ffi::c_uint = 0;
-    let mut first_fragment_end: *const ::core::ffi::c_uchar = (*pbi).fragments.ptrs
-        [0 as ::core::ffi::c_int as usize]
-        .offset((*pbi).fragments.sizes[0 as ::core::ffi::c_int as usize] as isize);
     let mut multi_token_partition: TOKEN_PARTITION =
         safe_decoder.read_literal(2) as TOKEN_PARTITION;
     if safe_decoder.count <= VP8_BD_VALUE_SIZE || safe_decoder.count >= VP8_LOTS_OF_BITS {
@@ -1632,10 +1603,9 @@ unsafe extern "C" fn setup_token_decoder(
     fragment_idx = 0 as ::core::ffi::c_uint;
     while fragment_idx < (*pbi).fragments.count {
         let mut fragment_size: ::core::ffi::c_uint = (*pbi).fragments.sizes[fragment_idx as usize];
-        let mut fragment_end: *const ::core::ffi::c_uchar =
-            (*pbi).fragments.ptrs[fragment_idx as usize].offset(fragment_size as isize);
         if fragment_idx == 0 as ::core::ffi::c_uint {
             let mut ext_first_part_size: ptrdiff_t = token_part_sizes
+                .as_ptr()
                 .offset_from((*pbi).fragments.ptrs[0 as ::core::ffi::c_int as usize])
                 as ptrdiff_t
                 + (3 as ::core::ffi::c_uint)
@@ -1660,12 +1630,11 @@ unsafe extern "C" fn setup_token_decoder(
             }
         }
         while fragment_size > 0 as ::core::ffi::c_uint {
-            let mut partition_size: ptrdiff_t = read_available_partition_size(
+            let fragment_slice = core::slice::from_raw_parts((*pbi).fragments.ptrs[fragment_idx as usize], fragment_size as usize);
+            let partition_size: ptrdiff_t = read_available_partition_size(
                 pbi,
                 token_part_sizes,
-                (*pbi).fragments.ptrs[fragment_idx as usize],
-                first_fragment_end,
-                fragment_end,
+                fragment_slice,
                 fragment_idx.wrapping_sub(1 as ::core::ffi::c_uint) as ::core::ffi::c_int,
                 num_token_partitions as ::core::ffi::c_int,
             ) as ptrdiff_t;
@@ -1692,7 +1661,7 @@ unsafe extern "C" fn setup_token_decoder(
     partition_idx = 1 as ::core::ffi::c_uint;
     while partition_idx < (*pbi).fragments.count {
         if vp8dx_start_decode(
-            bool_decoder as *mut BOOL_DECODER,
+            &raw mut (*pbi).mbc[(partition_idx - 1) as usize] as *mut BOOL_DECODER,
             (*pbi).fragments.ptrs[partition_idx as usize],
             (*pbi).fragments.sizes[partition_idx as usize],
             (*pbi).decrypt_cb,
@@ -1706,7 +1675,6 @@ unsafe extern "C" fn setup_token_decoder(
                 partition_idx,
             );
         }
-        bool_decoder = bool_decoder.offset(1);
         partition_idx = partition_idx.wrapping_add(1);
     }
     if (*pbi).decoding_thread_count > num_token_partitions.wrapping_sub(1 as ::core::ffi::c_uint) {
@@ -2144,9 +2112,11 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
             }
         }
     }
+    let token_part_sizes_len = data_end.offset_from(data.offset(first_partition_length_in_bytes as isize)) as usize;
+    let token_part_sizes_slice = core::slice::from_raw_parts(data.offset(first_partition_length_in_bytes as isize), token_part_sizes_len);
     setup_token_decoder(
         pbi,
-        data.offset(first_partition_length_in_bytes as isize),
+        token_part_sizes_slice,
         &mut safe_decoder,
     );
     (*xd).current_bc = (&raw mut (*pbi).mbc as *mut vp8_reader)

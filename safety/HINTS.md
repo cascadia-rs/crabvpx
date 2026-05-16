@@ -30,6 +30,7 @@
 - **Coefficient Probability Initialization**: Refactored `vp8_default_coef_probs` in `src/vp8/common/entropy.rs` to safe Rust by passing the `coef_probs` array reference directly, avoiding duplicated struct FFI mismatch issues. Converted `default_coef_probs` from `static mut` to immutable `static`. Reduced unsafe count by 3.
 - **Safe Token Decoding**: Refactored `GetCoeffs` in `src/vp8/decoder/detokenize.rs` to safe Rust by passing safe references to probability tables and coefficient slices. Converted static tables `kBands`, `kCat3..6`, `kCat3456`, and `kZigzag` from `static mut` to immutable `static`. Reduced unsafe count by 3.
 - **Safe Boolean Error Checking**: Refactored `vp8dx_bool_error` in `src/vp8/decoder/decodeframe.rs` and `src/vp8/decoder/threading.rs` to safe Rust by taking `&BOOL_DECODER` instead of raw `*mut BOOL_DECODER`. Updated 5 call sites across both files to pass references. Reduced unsafe count by 4.
+- **Safe Token Decoder Setup**: Refactored `setup_token_decoder`, `read_available_partition_size`, and `read_partition_size` in `src/vp8/decoder/decodeframe.rs` to use safe slices instead of raw pointers, and eliminated `read_is_valid`. Reduced unsafe count by 5.
 
 ## Architectural Quirks to Watch Out For
 - **c2rust Duplication**: Functions that were `static inline` in C headers (specifically `vp8dx_decode_bool` from `dboolhuff.h`) were duplicated by `c2rust` into every Rust module that called them. (Resolved for `vp8dx_decode_bool`).
@@ -37,7 +38,7 @@
 - **Duplicated Structs**: Struct definitions like `YV12_BUFFER_CONFIG` and `VP8Common` were duplicated by `c2rust` across dozens of files. Do not attempt to deduplicate them yet; maintain raw pointer boundaries between modules to avoid FFI type mismatches.
 
 ## Next Steps for Future Agents
-1. **Continue SafeBoolDecoder Expansion**: Investigate converting `mbc` array in `VP8D_COMP` to use `SafeBoolDecoder` or wrappers, to allow safe decoding in `decode_mb_rows` and multithreaded decoding. Note: `read_token_partitions` does not exist as a standalone function; partition setup is handled in `setup_token_decoder`.
+1. **Continue SafeBoolDecoder Expansion**: Investigate converting `mbc` array in `VP8D_COMP` to use `SafeBoolDecoder` or wrappers, to allow safe decoding in `decode_mb_rows` and multithreaded decoding. Note: `read_token_partitions` does not exist as a standalone function; partition setup is handled in `setup_token_decoder` (which now safely takes slices).
 
 
 
