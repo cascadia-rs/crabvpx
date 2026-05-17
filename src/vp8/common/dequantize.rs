@@ -12,23 +12,11 @@ unsafe extern "C" {
         __len: size_t,
     ) -> *mut ::core::ffi::c_void;
 }
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct blockd {
-    pub qcoeff: *mut ::core::ffi::c_short,
-    pub dqcoeff: *mut ::core::ffi::c_short,
-    pub predictor: *mut ::core::ffi::c_uchar,
-    pub dequant: *mut ::core::ffi::c_short,
-    pub offset: ::core::ffi::c_int,
-    pub eob: *mut ::core::ffi::c_char,
-    pub bmi: b_mode_info,
-}
 pub use crate::vp8::common::types::*;
 pub type uint32_t = u32;
 
 pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
-pub type BLOCKD = blockd;
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_dequantize_b_c(
     mut d: *mut BLOCKD,

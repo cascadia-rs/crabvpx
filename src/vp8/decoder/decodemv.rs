@@ -45,52 +45,6 @@ pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
 pub type vpx_color_range_t = vpx_color_range;
 pub type uint8_t = u8;
 pub type uint32_t = u32;
-pub type vpx_codec_err_t = ::core::ffi::c_uint;
-pub const VPX_CODEC_LIST_END: vpx_codec_err_t = 9;
-pub const VPX_CODEC_INVALID_PARAM: vpx_codec_err_t = 8;
-pub const VPX_CODEC_CORRUPT_FRAME: vpx_codec_err_t = 7;
-pub const VPX_CODEC_UNSUP_FEATURE: vpx_codec_err_t = 6;
-pub const VPX_CODEC_UNSUP_BITSTREAM: vpx_codec_err_t = 5;
-pub const VPX_CODEC_INCAPABLE: vpx_codec_err_t = 4;
-pub const VPX_CODEC_ABI_MISMATCH: vpx_codec_err_t = 3;
-pub const VPX_CODEC_MEM_ERROR: vpx_codec_err_t = 2;
-pub const VPX_CODEC_ERROR: vpx_codec_err_t = 1;
-pub const VPX_CODEC_OK: vpx_codec_err_t = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct yv12_buffer_config {
-    pub y_width: ::core::ffi::c_int,
-    pub y_height: ::core::ffi::c_int,
-    pub y_crop_width: ::core::ffi::c_int,
-    pub y_crop_height: ::core::ffi::c_int,
-    pub y_stride: ::core::ffi::c_int,
-    pub uv_width: ::core::ffi::c_int,
-    pub uv_height: ::core::ffi::c_int,
-    pub uv_crop_width: ::core::ffi::c_int,
-    pub uv_crop_height: ::core::ffi::c_int,
-    pub uv_stride: ::core::ffi::c_int,
-    pub alpha_width: ::core::ffi::c_int,
-    pub alpha_height: ::core::ffi::c_int,
-    pub alpha_stride: ::core::ffi::c_int,
-    pub y_buffer: *mut uint8_t,
-    pub u_buffer: *mut uint8_t,
-    pub v_buffer: *mut uint8_t,
-    pub alpha_buffer: *mut uint8_t,
-    pub buffer_alloc: *mut uint8_t,
-    pub buffer_alloc_sz: size_t,
-    pub border: ::core::ffi::c_int,
-    pub frame_size: size_t,
-    pub subsampling_x: ::core::ffi::c_int,
-    pub subsampling_y: ::core::ffi::c_int,
-    pub bit_depth: ::core::ffi::c_uint,
-    pub color_space: vpx_color_space_t,
-    pub color_range: vpx_color_range_t,
-    pub render_width: ::core::ffi::c_int,
-    pub render_height: ::core::ffi::c_int,
-    pub corrupted: ::core::ffi::c_int,
-    pub flags: ::core::ffi::c_int,
-}
-pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VP8D_COMP {
@@ -155,102 +109,9 @@ pub struct DECODETHREAD_DATA {
 pub struct MB_ROW_DEC {
     pub mbd: MACROBLOCKD,
 }
-pub type MACROBLOCKD = macroblockd;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct macroblockd {
-    pub predictor: [::core::ffi::c_uchar; 384],
-    pub qcoeff: [::core::ffi::c_short; 400],
-    pub dqcoeff: [::core::ffi::c_short; 400],
-    pub eobs: [::core::ffi::c_char; 25],
-    pub dequant_y1: [::core::ffi::c_short; 16],
-    pub dequant_y1_dc: [::core::ffi::c_short; 16],
-    pub dequant_y2: [::core::ffi::c_short; 16],
-    pub dequant_uv: [::core::ffi::c_short; 16],
-    pub block: [BLOCKD; 25],
-    pub fullpixel_mask: ::core::ffi::c_int,
-    pub pre: YV12_BUFFER_CONFIG,
-    pub dst: YV12_BUFFER_CONFIG,
-    pub mode_info_context: *mut MODE_INFO,
-    pub mode_info_stride: ::core::ffi::c_int,
-    pub frame_type: FRAME_TYPE,
-    pub up_available: ::core::ffi::c_int,
-    pub left_available: ::core::ffi::c_int,
-    pub recon_above: [*mut ::core::ffi::c_uchar; 3],
-    pub recon_left: [*mut ::core::ffi::c_uchar; 3],
-    pub recon_left_stride: [::core::ffi::c_int; 2],
-    pub above_context: *mut ENTROPY_CONTEXT_PLANES,
-    pub left_context: *mut ENTROPY_CONTEXT_PLANES,
-    pub segmentation_enabled: ::core::ffi::c_uchar,
-    pub update_mb_segmentation_map: ::core::ffi::c_uchar,
-    pub update_mb_segmentation_data: ::core::ffi::c_uchar,
-    pub mb_segment_abs_delta: ::core::ffi::c_uchar,
-    pub mb_segment_tree_probs: [vp8_prob; 3],
-    pub segment_feature_data: [[::core::ffi::c_schar; 4]; 2],
-    pub mode_ref_lf_delta_enabled: ::core::ffi::c_uchar,
-    pub mode_ref_lf_delta_update: ::core::ffi::c_uchar,
-    pub last_ref_lf_deltas: [::core::ffi::c_schar; 4],
-    pub ref_lf_deltas: [::core::ffi::c_schar; 4],
-    pub last_mode_lf_deltas: [::core::ffi::c_schar; 4],
-    pub mode_lf_deltas: [::core::ffi::c_schar; 4],
-    pub mb_to_left_edge: ::core::ffi::c_int,
-    pub mb_to_right_edge: ::core::ffi::c_int,
-    pub mb_to_top_edge: ::core::ffi::c_int,
-    pub mb_to_bottom_edge: ::core::ffi::c_int,
-    pub subpixel_predict: vp8_subpix_fn_t,
-    pub subpixel_predict8x4: vp8_subpix_fn_t,
-    pub subpixel_predict8x8: vp8_subpix_fn_t,
-    pub subpixel_predict16x16: vp8_subpix_fn_t,
-    pub current_bc_idx: usize,
-    pub corrupted: ::core::ffi::c_int,
-    pub error_info: vpx_internal_error_info,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct vpx_internal_error_info {
-    pub error_code: vpx_codec_err_t,
-    pub has_detail: ::core::ffi::c_int,
-    pub detail: [::core::ffi::c_char; 80],
-    pub setjmp: ::core::ffi::c_int,
-    pub jmp: jmp_buf,
-}
-pub type jmp_buf = [::core::ffi::c_int; 48];
-pub type vp8_subpix_fn_t = Option<
-    unsafe extern "C" fn(
-        *mut ::core::ffi::c_uchar,
-        ::core::ffi::c_int,
-        ::core::ffi::c_int,
-        ::core::ffi::c_int,
-        *mut ::core::ffi::c_uchar,
-        ::core::ffi::c_int,
-    ) -> (),
->;
-
-pub type FRAME_TYPE = ::core::ffi::c_uint;
-pub const INTER_FRAME: FRAME_TYPE = 1;
-pub const KEY_FRAME: FRAME_TYPE = 0;
-pub type MODE_INFO = modeinfo;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct modeinfo {
-    pub mbmi: MB_MODE_INFO,
-    pub bmi: [b_mode_info; 16],
-}
 pub use crate::vp8::common::types::*;
 
 
-pub type BLOCKD = blockd;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct blockd {
-    pub qcoeff: *mut ::core::ffi::c_short,
-    pub dqcoeff: *mut ::core::ffi::c_short,
-    pub predictor: *mut ::core::ffi::c_uchar,
-    pub dequant: *mut ::core::ffi::c_short,
-    pub offset: ::core::ffi::c_int,
-    pub eob: *mut ::core::ffi::c_char,
-    pub bmi: b_mode_info,
-}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vpx_atomic_int {

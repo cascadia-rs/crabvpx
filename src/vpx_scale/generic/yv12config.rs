@@ -1,4 +1,6 @@
+pub use crate::vp8::common::types::*;
 pub type uint8_t = u8;
+
 pub type __darwin_size_t = usize;
 pub type vpx_color_space = ::core::ffi::c_uint;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
@@ -20,41 +22,6 @@ pub type size_t = __darwin_size_t;
 #[repr(align(32))]
 struct Align32([u8; 32]);
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct yv12_buffer_config {
-    pub y_width: ::core::ffi::c_int,
-    pub y_height: ::core::ffi::c_int,
-    pub y_crop_width: ::core::ffi::c_int,
-    pub y_crop_height: ::core::ffi::c_int,
-    pub y_stride: ::core::ffi::c_int,
-    pub uv_width: ::core::ffi::c_int,
-    pub uv_height: ::core::ffi::c_int,
-    pub uv_crop_width: ::core::ffi::c_int,
-    pub uv_crop_height: ::core::ffi::c_int,
-    pub uv_stride: ::core::ffi::c_int,
-    pub alpha_width: ::core::ffi::c_int,
-    pub alpha_height: ::core::ffi::c_int,
-    pub alpha_stride: ::core::ffi::c_int,
-    pub y_buffer: *mut uint8_t,
-    pub u_buffer: *mut uint8_t,
-    pub v_buffer: *mut uint8_t,
-    pub alpha_buffer: *mut uint8_t,
-    pub buffer_alloc: *mut uint8_t,
-    pub buffer_alloc_sz: size_t,
-    pub border: ::core::ffi::c_int,
-    pub frame_size: size_t,
-    pub subsampling_x: ::core::ffi::c_int,
-    pub subsampling_y: ::core::ffi::c_int,
-    pub bit_depth: ::core::ffi::c_uint,
-    pub color_space: vpx_color_space_t,
-    pub color_range: vpx_color_range_t,
-    pub render_width: ::core::ffi::c_int,
-    pub render_height: ::core::ffi::c_int,
-    pub corrupted: ::core::ffi::c_int,
-    pub flags: ::core::ffi::c_int,
-}
-pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 #[unsafe(no_mangle)]

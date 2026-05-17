@@ -54,54 +54,12 @@ pub struct vpx_internal_error_info {
     pub setjmp: ::core::ffi::c_int,
     pub jmp: jmp_buf,
 }
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct yv12_buffer_config {
-    pub y_width: ::core::ffi::c_int,
-    pub y_height: ::core::ffi::c_int,
-    pub y_crop_width: ::core::ffi::c_int,
-    pub y_crop_height: ::core::ffi::c_int,
-    pub y_stride: ::core::ffi::c_int,
-    pub uv_width: ::core::ffi::c_int,
-    pub uv_height: ::core::ffi::c_int,
-    pub uv_crop_width: ::core::ffi::c_int,
-    pub uv_crop_height: ::core::ffi::c_int,
-    pub uv_stride: ::core::ffi::c_int,
-    pub alpha_width: ::core::ffi::c_int,
-    pub alpha_height: ::core::ffi::c_int,
-    pub alpha_stride: ::core::ffi::c_int,
-    pub y_buffer: *mut uint8_t,
-    pub u_buffer: *mut uint8_t,
-    pub v_buffer: *mut uint8_t,
-    pub alpha_buffer: *mut uint8_t,
-    pub buffer_alloc: *mut uint8_t,
-    pub buffer_alloc_sz: size_t,
-    pub border: ::core::ffi::c_int,
-    pub frame_size: size_t,
-    pub subsampling_x: ::core::ffi::c_int,
-    pub subsampling_y: ::core::ffi::c_int,
-    pub bit_depth: ::core::ffi::c_uint,
-    pub color_space: vpx_color_space_t,
-    pub color_range: vpx_color_range_t,
-    pub render_width: ::core::ffi::c_int,
-    pub render_height: ::core::ffi::c_int,
-    pub corrupted: ::core::ffi::c_int,
-    pub flags: ::core::ffi::c_int,
-}
-pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 pub use crate::vp8::common::types::*;
 
 pub type FRAME_TYPE = ::core::ffi::c_uint;
 pub const INTER_FRAME: FRAME_TYPE = 1;
 pub const KEY_FRAME: FRAME_TYPE = 0;
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct modeinfo {
-    pub mbmi: MB_MODE_INFO,
-    pub bmi: [b_mode_info; 16],
-}
-pub type MODE_INFO = modeinfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vp8_extra_bit_struct {
