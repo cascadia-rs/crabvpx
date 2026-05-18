@@ -49,17 +49,17 @@ pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
 pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
 pub const _SC_NPROCESSORS_ONLN: ::core::ffi::c_int = 58 as ::core::ffi::c_int;
-unsafe extern "C" fn get_cpu_count() -> ::core::ffi::c_int { unsafe {
+fn get_cpu_count() -> ::core::ffi::c_int {
     let mut core_count: ::core::ffi::c_int = 16 as ::core::ffi::c_int;
-    core_count = sysconf(_SC_NPROCESSORS_ONLN) as ::core::ffi::c_int;
-    return if core_count > 0 as ::core::ffi::c_int {
+    unsafe {
+        core_count = sysconf(_SC_NPROCESSORS_ONLN) as ::core::ffi::c_int;
+    }
+    if core_count > 0 as ::core::ffi::c_int {
         core_count
     } else {
         1 as ::core::ffi::c_int
-    };
-}}
-pub fn vp8_machine_specific_config(ctx: &mut VP8_COMMON) {
-    unsafe {
-        ctx.processor_core_count = get_cpu_count();
     }
+}
+pub fn vp8_machine_specific_config(ctx: &mut VP8_COMMON) {
+    ctx.processor_core_count = get_cpu_count();
 }
