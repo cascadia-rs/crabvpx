@@ -687,11 +687,11 @@ fn build_4x4uvmvs(x: &mut MACROBLOCKD) {
         i += 1;
     }
 }
-pub fn vp8_build_inter_predictors_mb(xd: &mut MACROBLOCKD) { unsafe {
+pub fn vp8_build_inter_predictors_mb(xd: &mut MACROBLOCKD) {
     if xd.mode_info().mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int {
         vp8_build_inter16x16_predictors_mb(xd);
     } else {
         build_4x4uvmvs(xd);
         build_inter4x4_predictors_mb(xd);
     };
-}}
+}
