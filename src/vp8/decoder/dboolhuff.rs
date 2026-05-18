@@ -5,6 +5,25 @@ pub const CHAR_BIT: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
 pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
 pub const VP8_LOTS_OF_BITS: ::core::ffi::c_int = 0x40000000 as ::core::ffi::c_int;
+pub fn vp8dx_start_decode_safe(
+    br: &mut BOOL_DECODER,
+    source: &[u8],
+    decrypt_cb: vpx_decrypt_cb,
+    decrypt_state: *mut ::core::ffi::c_void,
+) {
+    br.user_buffer = source.as_ptr();
+    br.user_buffer_end = unsafe { source.as_ptr().add(source.len()) };
+    br.value = 0 as VP8_BD_VALUE;
+    br.count = -8;
+    br.range = 255;
+    br.decrypt_cb = decrypt_cb;
+    br.decrypt_state = decrypt_state;
+
+    let mut safe_decoder = SafeBoolDecoder::from_bool_decoder(br);
+    safe_decoder.fill();
+    safe_decoder.update_bool_decoder(br);
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8dx_start_decode(
     mut br: *mut BOOL_DECODER,
@@ -13,65 +32,29 @@ pub unsafe extern "C" fn vp8dx_start_decode(
     mut decrypt_cb: vpx_decrypt_cb,
     mut decrypt_state: *mut ::core::ffi::c_void,
 ) -> ::core::ffi::c_int { unsafe {
-    if source_sz != 0 && source.is_null() {
-        return 1 as ::core::ffi::c_int;
+    if br.is_null() {
+        return 1;
     }
-    (*br).user_buffer_end = if !source.is_null() {
-        source.offset(source_sz as isize)
+    if source_sz != 0 && source.is_null() {
+        return 1;
+    }
+    let slice = if source.is_null() {
+        &[]
     } else {
-        source
+        core::slice::from_raw_parts(source, source_sz as usize)
     };
-    (*br).user_buffer = source;
-    (*br).value = 0 as VP8_BD_VALUE;
-    (*br).count = -(8 as ::core::ffi::c_int);
-    (*br).range = 255 as ::core::ffi::c_uint;
-    (*br).decrypt_cb = decrypt_cb;
-    (*br).decrypt_state = decrypt_state;
-    vp8dx_bool_decoder_fill(br);
-    return 0 as ::core::ffi::c_int;
+    vp8dx_start_decode_safe(&mut *br, slice, decrypt_cb, decrypt_state);
+    0
 }}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) { unsafe {
-    let mut bufptr: *const ::core::ffi::c_uchar = (*br).user_buffer;
-    let mut value: VP8_BD_VALUE = (*br).value;
-    let mut count: ::core::ffi::c_int = (*br).count;
-    let mut shift: ::core::ffi::c_int = VP8_BD_VALUE_SIZE - CHAR_BIT - (count + CHAR_BIT);
-    let mut bytes_left: size_t =
-        (*br).user_buffer_end.offset_from(bufptr) as ::core::ffi::c_long as size_t;
-    let mut bits_left: size_t = bytes_left.wrapping_mul(CHAR_BIT as size_t);
-    let mut x: ::core::ffi::c_int = shift + CHAR_BIT - bits_left as ::core::ffi::c_int;
-    let mut loop_end: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    let mut decrypted: [::core::ffi::c_uchar; 9] = [0; 9];
-    if (*br).decrypt_cb.is_some() {
-        let mut n: size_t =
-            if (::core::mem::size_of::<[::core::ffi::c_uchar; 9]>() as usize) < bytes_left {
-                ::core::mem::size_of::<[::core::ffi::c_uchar; 9]>() as size_t
-            } else {
-                bytes_left
-            };
-        (*br).decrypt_cb.expect("non-null function pointer")(
-            (*br).decrypt_state,
-            bufptr,
-            &raw mut decrypted as *mut ::core::ffi::c_uchar,
-            n as ::core::ffi::c_int,
-        );
-        bufptr = &raw mut decrypted as *mut ::core::ffi::c_uchar;
+    if br.is_null() {
+        return;
     }
-    if x >= 0 as ::core::ffi::c_int {
-        count += VP8_LOTS_OF_BITS;
-        loop_end = x;
-    }
-    if x < 0 as ::core::ffi::c_int || bits_left != 0 {
-        while shift >= loop_end {
-            count += CHAR_BIT;
-            value |= (*bufptr as VP8_BD_VALUE) << shift;
-            bufptr = bufptr.offset(1);
-            (*br).user_buffer = (*br).user_buffer.offset(1);
-            shift -= CHAR_BIT;
-        }
-    }
-    (*br).value = value;
-    (*br).count = count;
+    let mut safe_decoder = SafeBoolDecoder::from_bool_decoder(&*br);
+    safe_decoder.fill();
+    safe_decoder.update_bool_decoder(&mut *br);
 }}
 
 pub struct SafeBoolDecoder<'a> {

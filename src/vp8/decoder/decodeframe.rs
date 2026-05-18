@@ -88,14 +88,7 @@ unsafe extern "C" {
         dst_pitch: ::core::ffi::c_int,
     );
     static vp8_norm: [::core::ffi::c_uchar; 256];
-    fn vp8dx_start_decode(
-        br: *mut BOOL_DECODER,
-        source: *const ::core::ffi::c_uchar,
-        source_sz: ::core::ffi::c_uint,
-        decrypt_cb: vpx_decrypt_cb,
-        decrypt_state: *mut ::core::ffi::c_void,
-    ) -> ::core::ffi::c_int;
-    fn vp8dx_bool_decoder_fill(br: *mut BOOL_DECODER);
+
     fn vpx_internal_error(
         info: *mut vpx_internal_error_info,
         error: vpx_codec_err_t,
@@ -1028,7 +1021,7 @@ fn setup_token_decoder(
     pbi: &mut VP8D_COMP,
     token_part_sizes: &[u8],
     safe_decoder: &mut SafeBoolDecoder,
-) { unsafe {
+) {
     let mut partition_idx: ::core::ffi::c_uint = 0;
     let mut fragment_idx: ::core::ffi::c_uint = 0;
     let mut num_token_partitions: ::core::ffi::c_uint = 0;
@@ -1044,33 +1037,39 @@ fn setup_token_decoder(
     while fragment_idx < pbi.fragments.count {
         let mut fragment_size: ::core::ffi::c_uint = pbi.fragments.sizes[fragment_idx as usize];
         if fragment_idx == 0 as ::core::ffi::c_uint {
-            let mut ext_first_part_size: ptrdiff_t = token_part_sizes
-                .as_ptr()
-                .offset_from(pbi.fragments.ptrs[0 as ::core::ffi::c_int as usize])
-                as ptrdiff_t
+            let ext_first_part_size: ptrdiff_t = unsafe {
+                token_part_sizes
+                    .as_ptr()
+                    .offset_from(pbi.fragments.ptrs[0 as ::core::ffi::c_int as usize])
+            } as ptrdiff_t
                 + (3 as ::core::ffi::c_uint)
                     .wrapping_mul(num_token_partitions.wrapping_sub(1 as ::core::ffi::c_uint))
                     as ptrdiff_t;
             if fragment_size < ext_first_part_size as ::core::ffi::c_uint {
-                vpx_internal_error(
-                    &raw mut pbi.common.error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    b"Corrupted fragment size %d\0" as *const u8 as *const ::core::ffi::c_char,
-                    fragment_size,
-                );
+                unsafe {
+                    vpx_internal_error(
+                        &raw mut pbi.common.error,
+                        VPX_CODEC_CORRUPT_FRAME,
+                        b"Corrupted fragment size %d\0" as *const u8 as *const ::core::ffi::c_char,
+                        fragment_size,
+                    );
+                }
             }
             fragment_size = fragment_size.wrapping_sub(ext_first_part_size as ::core::ffi::c_uint);
             if fragment_size > 0 as ::core::ffi::c_uint {
                 pbi.fragments.sizes[0 as ::core::ffi::c_int as usize] =
                     ext_first_part_size as ::core::ffi::c_uint;
                 fragment_idx = fragment_idx.wrapping_add(1);
-                pbi.fragments.ptrs[fragment_idx as usize] = pbi.fragments.ptrs
-                    [0 as ::core::ffi::c_int as usize]
-                    .offset(pbi.fragments.sizes[0 as ::core::ffi::c_int as usize] as isize);
+                pbi.fragments.ptrs[fragment_idx as usize] = unsafe {
+                    pbi.fragments.ptrs[0 as ::core::ffi::c_int as usize]
+                        .offset(pbi.fragments.sizes[0 as ::core::ffi::c_int as usize] as isize)
+                };
             }
         }
         while fragment_size > 0 as ::core::ffi::c_uint {
-            let fragment_slice = core::slice::from_raw_parts(pbi.fragments.ptrs[fragment_idx as usize], fragment_size as usize);
+            let fragment_slice = unsafe {
+                core::slice::from_raw_parts(pbi.fragments.ptrs[fragment_idx as usize], fragment_size as usize)
+            };
             let partition_size: ptrdiff_t = read_available_partition_size(
                 pbi,
                 token_part_sizes,
@@ -1080,19 +1079,23 @@ fn setup_token_decoder(
             ) as ptrdiff_t;
             pbi.fragments.sizes[fragment_idx as usize] = partition_size as ::core::ffi::c_uint;
             if fragment_size < partition_size as ::core::ffi::c_uint {
-                vpx_internal_error(
-                    &raw mut pbi.common.error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    b"Corrupted fragment size %d\0" as *const u8 as *const ::core::ffi::c_char,
-                    fragment_size,
-                );
+                unsafe {
+                    vpx_internal_error(
+                        &raw mut pbi.common.error,
+                        VPX_CODEC_CORRUPT_FRAME,
+                        b"Corrupted fragment size %d\0" as *const u8 as *const ::core::ffi::c_char,
+                        fragment_size,
+                    );
+                }
             }
             fragment_size = fragment_size.wrapping_sub(partition_size as ::core::ffi::c_uint);
             if fragment_size > 0 as ::core::ffi::c_uint {
                 fragment_idx = fragment_idx.wrapping_add(1);
-                pbi.fragments.ptrs[fragment_idx as usize] = pbi.fragments.ptrs
-                    [fragment_idx.wrapping_sub(1 as ::core::ffi::c_uint) as usize]
-                    .offset(partition_size as isize);
+                pbi.fragments.ptrs[fragment_idx as usize] = unsafe {
+                    pbi.fragments.ptrs
+                        [fragment_idx.wrapping_sub(1 as ::core::ffi::c_uint) as usize]
+                        .offset(partition_size as isize)
+                };
             }
         }
         fragment_idx = fragment_idx.wrapping_add(1);
@@ -1100,19 +1103,24 @@ fn setup_token_decoder(
     pbi.fragments.count = num_token_partitions.wrapping_add(1 as ::core::ffi::c_uint);
     partition_idx = 1 as ::core::ffi::c_uint;
     while partition_idx < pbi.fragments.count {
-        if vp8dx_start_decode(
-            &raw mut pbi.mbc[(partition_idx - 1) as usize] as *mut BOOL_DECODER,
-            pbi.fragments.ptrs[partition_idx as usize],
-            pbi.fragments.sizes[partition_idx as usize],
-            pbi.decrypt_cb,
-            pbi.decrypt_state,
-        ) != 0
-        {
-            vpx_internal_error(
-                &raw mut pbi.common.error,
-                VPX_CODEC_MEM_ERROR,
-                b"Failed to allocate bool decoder %d\0" as *const u8 as *const ::core::ffi::c_char,
-                partition_idx,
+        let partition_ptr = pbi.fragments.ptrs[partition_idx as usize];
+        let partition_size = pbi.fragments.sizes[partition_idx as usize];
+        if partition_size != 0 && partition_ptr.is_null() {
+            unsafe {
+                vpx_internal_error(
+                    &raw mut pbi.common.error,
+                    VPX_CODEC_MEM_ERROR,
+                    b"Failed to allocate bool decoder %d\0" as *const u8 as *const ::core::ffi::c_char,
+                    partition_idx,
+                );
+            }
+        } else {
+            let slice = unsafe { core::slice::from_raw_parts(partition_ptr, partition_size as usize) };
+            crate::vp8::decoder::dboolhuff::vp8dx_start_decode_safe(
+                &mut pbi.mbc[(partition_idx - 1) as usize],
+                slice,
+                pbi.decrypt_cb,
+                pbi.decrypt_state,
             );
         }
         partition_idx = partition_idx.wrapping_add(1);
@@ -1126,7 +1134,7 @@ fn setup_token_decoder(
         pbi.decoding_thread_count =
             (pbi.common.mb_rows - 1 as ::core::ffi::c_int) as ::core::ffi::c_uint;
     }
-}}
+}
 fn init_frame(pbi: &mut VP8D_COMP) {
     if pbi.common.frame_type as ::core::ffi::c_uint
         == KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
@@ -1320,18 +1328,20 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
         );
     }
     init_frame(&mut *pbi);
-    if vp8dx_start_decode(
-        &raw mut *bc,
-        data,
-        data_end.offset_from(data) as ::core::ffi::c_long as ::core::ffi::c_uint,
-        (*pbi).decrypt_cb,
-        (*pbi).decrypt_state,
-    ) != 0
-    {
+    let size = data_end.offset_from(data);
+    if size != 0 && data.is_null() {
         vpx_internal_error(
             &raw mut (*pc).error,
             VPX_CODEC_MEM_ERROR,
             b"Failed to allocate bool decoder 0\0" as *const u8 as *const ::core::ffi::c_char,
+        );
+    } else {
+        let slice = core::slice::from_raw_parts(data, size as usize);
+        crate::vp8::decoder::dboolhuff::vp8dx_start_decode_safe(
+            bc,
+            slice,
+            (*pbi).decrypt_cb,
+            (*pbi).decrypt_state,
         );
     }
     let len = bc.user_buffer_end.offset_from(bc.user_buffer) as usize;
