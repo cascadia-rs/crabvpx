@@ -677,8 +677,8 @@ pub unsafe extern "C" fn vpx_internal_error(
             // we simply truncate and copy the format string directly as the detail message, ignoring
             // the variadic arguments.
             let mut i = 0;
-            while i < sz.wrapping_sub(1 as size_t) && *fmt.offset(i as isize) != 0 {
-                (*info).detail[i] = *fmt.offset(i as isize);
+            while i < sz.wrapping_sub(1 as size_t) && *fmt.add(i) != 0 {
+                (*info).detail[i] = *fmt.add(i);
                 i += 1;
             }
             (*info).detail[i] = 0 as i32 as ::core::ffi::c_char;
