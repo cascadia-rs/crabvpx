@@ -6,7 +6,7 @@ unsafe extern "C" {
     static vp8_norm: [::core::ffi::c_uchar; 256];
 }
 use crate::vp8::common::modecont::vp8_mode_contexts;
-use crate::vp8::common::findnearmv::vp8_mbsplit_offset;
+use crate::vp8::common::findnearmv::{vp8_mbsplit_offset, vp8_clamp_mv2, LEFT_TOP_MARGIN, RIGHT_BOTTOM_MARGIN};
 pub type __darwin_natural_t = ::core::ffi::c_uint;
 pub type __darwin_size_t = usize;
 pub type __darwin_mach_port_name_t = __darwin_natural_t;
@@ -90,24 +90,7 @@ fn mv_bias(
             as ::core::ffi::c_short;
     }
 }
-pub const LEFT_TOP_MARGIN: ::core::ffi::c_int =
-    (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
-pub const RIGHT_BOTTOM_MARGIN: ::core::ffi::c_int =
-    (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
-#[inline]
-fn vp8_clamp_mv2(mv: &mut MV, xd: &MACROBLOCKD) {
-    if (mv.col as ::core::ffi::c_int) < xd.mb_to_left_edge - LEFT_TOP_MARGIN {
-        mv.col = (xd.mb_to_left_edge - LEFT_TOP_MARGIN) as ::core::ffi::c_short;
-    } else if mv.col as ::core::ffi::c_int > xd.mb_to_right_edge + RIGHT_BOTTOM_MARGIN {
-        mv.col = (xd.mb_to_right_edge + RIGHT_BOTTOM_MARGIN) as ::core::ffi::c_short;
-    }
-    if (mv.row as ::core::ffi::c_int) < xd.mb_to_top_edge - LEFT_TOP_MARGIN {
-        mv.row = (xd.mb_to_top_edge - LEFT_TOP_MARGIN) as ::core::ffi::c_short;
-    } else if mv.row as ::core::ffi::c_int > xd.mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN
-    {
-        mv.row = (xd.mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as ::core::ffi::c_short;
-    }
-}
+
 #[inline]
 fn vp8_check_mv_bounds(
     mv: &MV,
