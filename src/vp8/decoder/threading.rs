@@ -1,4 +1,5 @@
 use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_context};
+use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_frame_init;
 
 unsafe extern "C" {
     fn vp8_dc_only_idct_add_neon(
@@ -96,11 +97,6 @@ unsafe extern "C" {
         error: vpx_codec_err_t,
         fmt: *const ::core::ffi::c_char,
         ...
-    );
-    fn vp8_loop_filter_frame_init(
-        cm: *mut VP8Common,
-        mbd: *mut macroblockd,
-        default_filt_lvl: ::core::ffi::c_int,
     );
     fn vp8_setup_block_dptrs(x: *mut MACROBLOCKD);
     fn memcpy(
@@ -1653,7 +1649,7 @@ pub unsafe extern "C" fn vp8mt_decode_mb_rows(
             );
             j += 1;
         }
-        vp8_loop_filter_frame_init(pc as *mut VP8Common, &raw mut (*pbi).mb, filter_level);
+        vp8_loop_filter_frame_init(&mut *pc, &(*pbi).mb, filter_level);
     } else {
         vp8_setup_intra_recon_top_line(yv12_fb_new);
     }

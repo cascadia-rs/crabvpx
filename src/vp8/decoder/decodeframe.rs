@@ -1,5 +1,6 @@
 use crate::vp8::decoder::dboolhuff::SafeBoolDecoder;
 use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_context};
+use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_frame_init;
 
 unsafe extern "C" {
     fn vp8dx_decode_bool(br: *mut BOOL_DECODER, probability: ::core::ffi::c_int) -> ::core::ffi::c_int;
@@ -120,11 +121,6 @@ unsafe extern "C" {
         error: vpx_codec_err_t,
         fmt: *const ::core::ffi::c_char,
         ...
-    );
-    fn vp8_loop_filter_frame_init(
-        cm: *mut VP8Common,
-        mbd: *mut macroblockd,
-        default_filt_lvl: ::core::ffi::c_int,
     );
     fn vp8_loop_filter_row_normal(
         cm: *mut VP8Common,
@@ -840,11 +836,8 @@ unsafe extern "C" fn decode_mb_rows(mut pbi: *mut VP8D_COMP) { unsafe {
     eb_dst[2 as ::core::ffi::c_int as usize] = lf_dst[2 as ::core::ffi::c_int as usize];
     (*xd).up_available = 0 as ::core::ffi::c_int;
     if (*pc).filter_level != 0 {
-        vp8_loop_filter_frame_init(
-            pc as *mut VP8Common,
-            xd as *mut macroblockd,
-            (*pc).filter_level,
-        );
+        let filter_level = (*pc).filter_level;
+        vp8_loop_filter_frame_init(&mut *pc, &*xd, filter_level);
     }
     vp8_setup_intra_recon_top_line(yv12_fb_new);
     mb_row = 0 as ::core::ffi::c_int;
