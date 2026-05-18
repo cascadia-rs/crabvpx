@@ -1,7 +1,6 @@
 # CrabVPX
 
 Lifting and shifting `libvpx` (specifically VP8 decoding) to Rust using `c2rust`.
-We successfully transpiled the C code yielding a pure-Rust VP8 decoder. The project has been upgraded to the **Rust 2024 edition** and features cross-platform differential testing to ensure identical decoding output against the original C Oracle.
 
 ## Project Status
 
@@ -13,16 +12,17 @@ We successfully transpiled the C code yielding a pure-Rust VP8 decoder. The proj
 
 ## Development
 
-The project uses `just` as a command runner.
+The project uses `just` as a command runner. You can run this command without any arguments to see
+the full list of supported commands. The most important commands include:
 
 - **`just build`**: Builds the Rust workspace.
 - **`just test`**: Runs the Rust test suite.
 - **`just lint`**: Runs `cargo fmt` and `cargo clippy` with strict warnings.
-- **`just configure`**: Configures and builds the C Oracle (`libvpx`) required for testing.
 - **`just compare`**: Runs the differential test suite (Rust decoder vs C Oracle).
 - **`just bench`**: Runs performance benchmarks.
-- **`just analyze`**: Runs complexity and technical debt analysis.
 
 ## Next Steps
 
-- **Incremental Refactoring to Safe Rust APIs**: Begin converting the generated `unsafe` C-style bindings into idiomatic and safe Rust wrappers (see `docs/refactor_plan.md`).
+- **Incremental Refactoring to Safe Rust APIs**: Begin converting the generated
+  `unsafe` C-style bindings into idiomatic and safe Rust wrappers (see
+  `docs/refactor_plan.md`).
