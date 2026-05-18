@@ -164,12 +164,12 @@ unsafe extern "C" {
         dst_stride: ::core::ffi::c_int,
         top_left: ::core::ffi::c_uchar,
     );
-    fn vp8_setup_intra_recon_top_line(ybf: *mut YV12_BUFFER_CONFIG);
     fn vp8mt_decode_mb_rows(pbi: *mut VP8D_COMP, xd: *mut MACROBLOCKD) -> ::core::ffi::c_int;
     fn vp8_decoder_remove_threads(pbi: *mut VP8D_COMP);
 }
 use crate::vp8::common::alloccommon::vp8_setup_version;
 use crate::vp8::common::entropymode::vp8_init_mbmode_probs;
+use crate::vp8::common::setupintrarecon::vp8_setup_intra_recon_top_line;
 pub use crate::vp8::common::types::*;
 pub type uint32_t = u32;
 
@@ -799,7 +799,7 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) { unsafe {
         let filter_level = (*pc).filter_level;
         vp8_loop_filter_frame_init(&mut *pc, &*xd, filter_level);
     }
-    vp8_setup_intra_recon_top_line(yv12_fb_new);
+    vp8_setup_intra_recon_top_line(&mut *yv12_fb_new);
     mb_row = 0 as ::core::ffi::c_int;
     while mb_row < (*pc).mb_rows {
         if num_part > 1 as ::core::ffi::c_int {

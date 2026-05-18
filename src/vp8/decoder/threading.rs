@@ -125,9 +125,9 @@ unsafe extern "C" {
         dst_stride: ::core::ffi::c_int,
         top_left: ::core::ffi::c_uchar,
     );
-    fn vp8_setup_intra_recon_top_line(ybf: *mut YV12_BUFFER_CONFIG);
 }
 static mut mach_task_self_: mach_port_t = 0;
+use crate::vp8::common::setupintrarecon::vp8_setup_intra_recon_top_line;
 pub use crate::vp8::common::types::*;
 pub type uint32_t = u32;
 
@@ -1621,7 +1621,7 @@ pub unsafe extern "C" fn vp8mt_decode_mb_rows(
         }
         vp8_loop_filter_frame_init(&mut *pc, &(*pbi).mb, filter_level);
     } else {
-        vp8_setup_intra_recon_top_line(yv12_fb_new);
+        vp8_setup_intra_recon_top_line(&mut *yv12_fb_new);
     }
     setup_decoding_thread_data(
         &mut *pbi,

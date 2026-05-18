@@ -75,30 +75,46 @@ pub unsafe extern "C" fn vp8_setup_intra_recon(mut ybf: *mut YV12_BUFFER_CONFIG)
         i += 1;
     }
 }}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_setup_intra_recon_top_line(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
-    memset(
-        (*ybf)
-            .y_buffer
-            .offset(-(1 as ::core::ffi::c_int as isize))
-            .offset(-((*ybf).y_stride as isize)) as *mut ::core::ffi::c_void,
-        127 as ::core::ffi::c_int,
-        ((*ybf).y_width + 5 as ::core::ffi::c_int) as size_t,
-    );
-    memset(
-        (*ybf)
-            .u_buffer
-            .offset(-(1 as ::core::ffi::c_int as isize))
-            .offset(-((*ybf).uv_stride as isize)) as *mut ::core::ffi::c_void,
-        127 as ::core::ffi::c_int,
-        ((*ybf).uv_width + 5 as ::core::ffi::c_int) as size_t,
-    );
-    memset(
-        (*ybf)
-            .v_buffer
-            .offset(-(1 as ::core::ffi::c_int as isize))
-            .offset(-((*ybf).uv_stride as isize)) as *mut ::core::ffi::c_void,
-        127 as ::core::ffi::c_int,
-        ((*ybf).uv_width + 5 as ::core::ffi::c_int) as size_t,
-    );
-}}
+pub fn vp8_setup_intra_recon_top_line(ybf: &mut YV12_BUFFER_CONFIG) {
+    let y_border = ybf.border as usize;
+    let y_stride = ybf.y_stride as usize;
+    let y_width = ybf.y_width as usize;
+
+    let uv_border = (ybf.border / 2) as usize;
+    let uv_stride = ybf.uv_stride as usize;
+    let uv_width = ybf.uv_width as usize;
+
+    // Safety: We are accessing the underlying buffers of YV12_BUFFER_CONFIG.
+    // The slice helpers are unsafe because they construct slices from raw pointers.
+    // We assume the buffer config is valid and borders are correctly allocated.
+    unsafe {
+        if y_border >= 1 {
+            let y_slice = ybf.y_slice_mut();
+            let y_idx = (y_border - 1) * y_stride + (y_border - 1);
+            let len = y_width + 5;
+            if y_idx + len <= y_slice.len() {
+                y_slice[y_idx..y_idx + len].fill(127);
+            } else {
+                debug_assert!(false, "Y slice overflow in vp8_setup_intra_recon_top_line");
+            }
+        }
+
+        if uv_border >= 1 {
+            let u_slice = ybf.u_slice_mut();
+            let uv_idx = (uv_border - 1) * uv_stride + (uv_border - 1);
+            let len = uv_width + 5;
+            if uv_idx + len <= u_slice.len() {
+                u_slice[uv_idx..uv_idx + len].fill(127);
+            } else {
+                debug_assert!(false, "U slice overflow in vp8_setup_intra_recon_top_line");
+            }
+
+            let v_slice = ybf.v_slice_mut();
+            if uv_idx + len <= v_slice.len() {
+                v_slice[uv_idx..uv_idx + len].fill(127);
+            } else {
+                debug_assert!(false, "V slice overflow in vp8_setup_intra_recon_top_line");
+            }
+        }
+    }
+}
