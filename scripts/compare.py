@@ -65,7 +65,13 @@ def run_harness_capture(harness_dir: Path, args: List[str], features: str = None
     cmd.append("--")
     cmd.extend(args)
 
-    proc = subprocess.run(cmd, cwd=harness_dir, capture_output=True, text=True, check=True)
+    try:
+        proc = subprocess.run(cmd, cwd=harness_dir, capture_output=True, text=True, check=True)
+    except subprocess.CalledProcessError as e:
+        print(f"\\n❌ Command failed: {' '.join(cmd)}")
+        print(f"--- STDOUT ---\\n{e.stdout}")
+        print(f"--- STDERR ---\\n{e.stderr}")
+        raise e
     
     frames = []
     for line in proc.stdout.splitlines():

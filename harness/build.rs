@@ -15,6 +15,7 @@ fn main() {
 
     // The bindgen builder
     let bindings = bindgen::Builder::default()
+        .rust_target(bindgen::RustTarget::nightly())
         // The input header we would like to generate bindings for.
         .header(libvpx_dir.join("vpx/vpx_decoder.h").to_str().unwrap())
         .header(libvpx_dir.join("vpx/vp8dx.h").to_str().unwrap())
