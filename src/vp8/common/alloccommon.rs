@@ -68,27 +68,30 @@ pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::co
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 pub const VP8BORDERINPIXELS: ::core::ffi::c_int = 32 as ::core::ffi::c_int;
 pub const NUM_YV12_BUFFERS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_de_alloc_frame_buffers(mut oci: *mut VP8_COMMON) { unsafe {
+pub fn vp8_de_alloc_frame_buffers(oci: &mut VP8_COMMON) {
     let mut i: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
     while i < NUM_YV12_BUFFERS {
-        vp8_yv12_de_alloc_frame_buffer(
-            (&raw mut (*oci).yv12_fb as *mut YV12_BUFFER_CONFIG).offset(i as isize)
-                as *mut YV12_BUFFER_CONFIG,
-        );
-        (*oci).fb_idx_ref_cnt[i as usize] = 0 as ::core::ffi::c_int;
+        unsafe {
+            vp8_yv12_de_alloc_frame_buffer(
+                (&raw mut oci.yv12_fb as *mut YV12_BUFFER_CONFIG).offset(i as isize)
+                    as *mut YV12_BUFFER_CONFIG,
+            );
+        }
+        oci.fb_idx_ref_cnt[i as usize] = 0 as ::core::ffi::c_int;
         i += 1;
     }
-    vp8_yv12_de_alloc_frame_buffer(&raw mut (*oci).temp_scale_frame);
-    vpx_free((*oci).above_context as *mut ::core::ffi::c_void);
-    vpx_free((*oci).mip as *mut ::core::ffi::c_void);
-    (*oci).above_context = ::core::ptr::null_mut::<ENTROPY_CONTEXT_PLANES>();
-    (*oci).mip = ::core::ptr::null_mut::<MODE_INFO>();
-    (*oci).mi = ::core::ptr::null_mut::<MODE_INFO>();
-    (*oci).show_frame_mi = ::core::ptr::null_mut::<MODE_INFO>();
-    (*oci).frame_to_show = ::core::ptr::null_mut::<YV12_BUFFER_CONFIG>();
-}}
+    unsafe {
+        vp8_yv12_de_alloc_frame_buffer(&raw mut oci.temp_scale_frame);
+        vpx_free(oci.above_context as *mut ::core::ffi::c_void);
+        vpx_free(oci.mip as *mut ::core::ffi::c_void);
+    }
+    oci.above_context = ::core::ptr::null_mut::<ENTROPY_CONTEXT_PLANES>();
+    oci.mip = ::core::ptr::null_mut::<MODE_INFO>();
+    oci.mi = ::core::ptr::null_mut::<MODE_INFO>();
+    oci.show_frame_mi = ::core::ptr::null_mut::<MODE_INFO>();
+    oci.frame_to_show = ::core::ptr::null_mut::<YV12_BUFFER_CONFIG>();
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_alloc_frame_buffers(
     mut oci: *mut VP8_COMMON,
@@ -97,7 +100,7 @@ pub unsafe extern "C" fn vp8_alloc_frame_buffers(
 ) -> ::core::ffi::c_int { unsafe {
     let mut current_block: u64;
     let mut i: ::core::ffi::c_int = 0;
-    vp8_de_alloc_frame_buffers(oci);
+    vp8_de_alloc_frame_buffers(&mut *oci);
     if width & 0xf as ::core::ffi::c_int != 0 as ::core::ffi::c_int {
         width += 16 as ::core::ffi::c_int - (width & 0xf as ::core::ffi::c_int);
     }
@@ -167,7 +170,7 @@ pub unsafe extern "C" fn vp8_alloc_frame_buffers(
         }
         _ => {}
     }
-    vp8_de_alloc_frame_buffers(oci);
+    vp8_de_alloc_frame_buffers(&mut *oci);
     return 1 as ::core::ffi::c_int;
 }}
 pub fn vp8_setup_version(cm: &mut VP8_COMMON) {
@@ -204,27 +207,23 @@ pub fn vp8_setup_version(cm: &mut VP8_COMMON) {
         }
     };
 }
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_create_common(mut oci: *mut VP8_COMMON) { unsafe {
-    vp8_machine_specific_config(oci as *mut VP8Common);
-    vp8_init_mbmode_probs(&mut *oci);
-    vp8_default_bmode_probs(&mut (*oci).fc.bmode_prob);
-    (*oci).mb_no_coeff_skip = 1 as ::core::ffi::c_int;
-    (*oci).no_lpf = 0 as ::core::ffi::c_int;
-    (*oci).filter_type = NORMAL_LOOPFILTER;
-    (*oci).use_bilinear_mc_filter = 0 as ::core::ffi::c_int;
-    (*oci).full_pixel = 0 as ::core::ffi::c_int;
-    (*oci).multi_token_partition = ONE_PARTITION;
-    (*oci).clamp_type = RECON_CLAMP_REQUIRED;
-    memset(
-        &raw mut (*oci).ref_frame_sign_bias as *mut ::core::ffi::c_int as *mut ::core::ffi::c_void,
-        0 as ::core::ffi::c_int,
-        ::core::mem::size_of::<[::core::ffi::c_int; 4]>() as size_t,
-    );
-    (*oci).copy_buffer_to_gf = 0 as ::core::ffi::c_int;
-    (*oci).copy_buffer_to_arf = 0 as ::core::ffi::c_int;
-}}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_remove_common(mut oci: *mut VP8_COMMON) { unsafe {
+pub fn vp8_create_common(oci: &mut VP8_COMMON) {
+    unsafe {
+        vp8_machine_specific_config(oci as *mut VP8Common);
+    }
+    vp8_init_mbmode_probs(oci);
+    vp8_default_bmode_probs(&mut oci.fc.bmode_prob);
+    oci.mb_no_coeff_skip = 1 as ::core::ffi::c_int;
+    oci.no_lpf = 0 as ::core::ffi::c_int;
+    oci.filter_type = NORMAL_LOOPFILTER;
+    oci.use_bilinear_mc_filter = 0 as ::core::ffi::c_int;
+    oci.full_pixel = 0 as ::core::ffi::c_int;
+    oci.multi_token_partition = ONE_PARTITION;
+    oci.clamp_type = RECON_CLAMP_REQUIRED;
+    oci.ref_frame_sign_bias = [0 as ::core::ffi::c_int; 4];
+    oci.copy_buffer_to_gf = 0 as ::core::ffi::c_int;
+    oci.copy_buffer_to_arf = 0 as ::core::ffi::c_int;
+}
+pub fn vp8_remove_common(oci: &mut VP8_COMMON) {
     vp8_de_alloc_frame_buffers(oci);
-}}
+}

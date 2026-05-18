@@ -27,14 +27,13 @@ unsafe extern "C" {
     fn vp8_decode_frame(pbi: *mut VP8D_COMP) -> ::core::ffi::c_int;
     fn vpx_memalign(align: size_t, size: size_t) -> *mut ::core::ffi::c_void;
     fn vpx_free(memblk: *mut ::core::ffi::c_void);
-    fn vp8_create_common(oci: *mut VP8_COMMON);
-    fn vp8_remove_common(oci: *mut VP8_COMMON);
     fn vp8_decoder_remove_threads(pbi: *mut VP8D_COMP);
     fn vp8_decoder_create_threads(pbi: *mut VP8D_COMP);
     fn vp8_init_intra_predictors();
     fn vpx_dsp_rtcd();
     fn vp8_yv12_copy_frame_c(src_ybc: *const yv12_buffer_config, dst_ybc: *mut yv12_buffer_config);
 }
+pub use crate::vp8::common::alloccommon::{vp8_create_common, vp8_remove_common};
 pub use crate::vp8::common::types::*;
 pub type uint32_t = u32;
 
@@ -133,7 +132,7 @@ unsafe extern "C" fn initialize_dec() { unsafe {
     }
 }}
 unsafe extern "C" fn remove_decompressor(mut pbi: *mut VP8D_COMP) { unsafe {
-    vp8_remove_common(&raw mut (*pbi).common);
+    vp8_remove_common(&mut (*pbi).common);
     if !pbi.is_null() {
         let _ = Box::from_raw(pbi);
     }
@@ -149,7 +148,7 @@ unsafe extern "C" fn create_decompressor(mut oxcf: *mut VP8D_CONFIG) -> *mut VP8
         return ::core::ptr::null_mut::<VP8D_COMP>();
     }
     (*pbi).common.error.setjmp = 1 as ::core::ffi::c_int;
-    vp8_create_common(&raw mut (*pbi).common);
+    vp8_create_common(&mut (*pbi).common);
     (*pbi).common.current_video_frame = 0 as ::core::ffi::c_uint;
     (*pbi).ready_for_new_data = 1 as ::core::ffi::c_int;
     vp8cx_init_de_quantizer(&mut *pbi);
