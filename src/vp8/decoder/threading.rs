@@ -292,82 +292,47 @@ unsafe extern "C" fn setup_intra_recon_left(
         i += 1;
     }
 }}
-unsafe extern "C" fn setup_decoding_thread_data(
-    mut pbi: *mut VP8D_COMP,
-    mut xd: *mut MACROBLOCKD,
-    mut mbrd: *mut MB_ROW_DEC,
-    mut count: ::core::ffi::c_int,
-) { unsafe {
-    let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
-    let mut i: ::core::ffi::c_int = 0;
-    i = 0 as ::core::ffi::c_int;
-    while i < count {
-        let mut mbd: *mut MACROBLOCKD = &raw mut (*mbrd.offset(i as isize)).mbd;
-        (*mbd).subpixel_predict = (*xd).subpixel_predict;
-        (*mbd).subpixel_predict8x4 = (*xd).subpixel_predict8x4;
-        (*mbd).subpixel_predict8x8 = (*xd).subpixel_predict8x8;
-        (*mbd).subpixel_predict16x16 = (*xd).subpixel_predict16x16;
-        (*mbd).frame_type = (*pc).frame_type;
-        (*mbd).pre = (*xd).pre;
-        (*mbd).dst = (*xd).dst;
-        (*mbd).segmentation_enabled = (*xd).segmentation_enabled;
-        (*mbd).mb_segment_abs_delta = (*xd).mb_segment_abs_delta;
-        memcpy(
-            &raw mut (*mbd).segment_feature_data as *mut [::core::ffi::c_schar; 4]
-                as *mut ::core::ffi::c_void,
-            &raw mut (*xd).segment_feature_data as *mut [::core::ffi::c_schar; 4]
-                as *const ::core::ffi::c_void,
-            ::core::mem::size_of::<[[::core::ffi::c_schar; 4]; 2]>() as size_t,
-        );
-        memcpy(
-            &raw mut (*mbd).ref_lf_deltas as *mut ::core::ffi::c_schar as *mut ::core::ffi::c_void,
-            &raw mut (*xd).ref_lf_deltas as *mut ::core::ffi::c_schar as *const ::core::ffi::c_void,
-            ::core::mem::size_of::<[::core::ffi::c_schar; 4]>() as size_t,
-        );
-        memcpy(
-            &raw mut (*mbd).mode_lf_deltas as *mut ::core::ffi::c_schar as *mut ::core::ffi::c_void,
-            &raw mut (*xd).mode_lf_deltas as *mut ::core::ffi::c_schar
-                as *const ::core::ffi::c_void,
-            ::core::mem::size_of::<[::core::ffi::c_schar; 4]>() as size_t,
-        );
-        (*mbd).mode_ref_lf_delta_enabled = (*xd).mode_ref_lf_delta_enabled;
-        (*mbd).mode_ref_lf_delta_update = (*xd).mode_ref_lf_delta_update;
-        (*mbd).current_bc_idx = 0;
-        memcpy(
-            &raw mut (*mbd).dequant_y1_dc as *mut ::core::ffi::c_short as *mut ::core::ffi::c_void,
-            &raw mut (*xd).dequant_y1_dc as *mut ::core::ffi::c_short as *const ::core::ffi::c_void,
-            ::core::mem::size_of::<[::core::ffi::c_short; 16]>() as size_t,
-        );
-        memcpy(
-            &raw mut (*mbd).dequant_y1 as *mut ::core::ffi::c_short as *mut ::core::ffi::c_void,
-            &raw mut (*xd).dequant_y1 as *mut ::core::ffi::c_short as *const ::core::ffi::c_void,
-            ::core::mem::size_of::<[::core::ffi::c_short; 16]>() as size_t,
-        );
-        memcpy(
-            &raw mut (*mbd).dequant_y2 as *mut ::core::ffi::c_short as *mut ::core::ffi::c_void,
-            &raw mut (*xd).dequant_y2 as *mut ::core::ffi::c_short as *const ::core::ffi::c_void,
-            ::core::mem::size_of::<[::core::ffi::c_short; 16]>() as size_t,
-        );
-        memcpy(
-            &raw mut (*mbd).dequant_uv as *mut ::core::ffi::c_short as *mut ::core::ffi::c_void,
-            &raw mut (*xd).dequant_uv as *mut ::core::ffi::c_short as *const ::core::ffi::c_void,
-            ::core::mem::size_of::<[::core::ffi::c_short; 16]>() as size_t,
-        );
-        (*mbd).fullpixel_mask = !(0 as ::core::ffi::c_int);
-        if (*pc).full_pixel != 0 {
-            (*mbd).fullpixel_mask = !(7 as ::core::ffi::c_int);
+fn setup_decoding_thread_data(
+    pbi: &mut VP8D_COMP,
+    xd: &MACROBLOCKD,
+    mbrd: &mut [MB_ROW_DEC],
+) {
+    let pc = &pbi.common;
+    for m in mbrd.iter_mut() {
+        let mbd = &mut m.mbd;
+        mbd.subpixel_predict = xd.subpixel_predict;
+        mbd.subpixel_predict8x4 = xd.subpixel_predict8x4;
+        mbd.subpixel_predict8x8 = xd.subpixel_predict8x8;
+        mbd.subpixel_predict16x16 = xd.subpixel_predict16x16;
+        mbd.frame_type = pc.frame_type;
+        mbd.pre = xd.pre;
+        mbd.dst = xd.dst;
+        mbd.segmentation_enabled = xd.segmentation_enabled;
+        mbd.mb_segment_abs_delta = xd.mb_segment_abs_delta;
+        mbd.segment_feature_data = xd.segment_feature_data;
+        mbd.ref_lf_deltas = xd.ref_lf_deltas;
+        mbd.mode_lf_deltas = xd.mode_lf_deltas;
+        mbd.mode_ref_lf_delta_enabled = xd.mode_ref_lf_delta_enabled;
+        mbd.mode_ref_lf_delta_update = xd.mode_ref_lf_delta_update;
+        mbd.current_bc_idx = 0;
+        mbd.dequant_y1_dc = xd.dequant_y1_dc;
+        mbd.dequant_y1 = xd.dequant_y1;
+        mbd.dequant_y2 = xd.dequant_y2;
+        mbd.dequant_uv = xd.dequant_uv;
+        mbd.fullpixel_mask = !0;
+        if pc.full_pixel != 0 {
+            mbd.fullpixel_mask = !7;
         }
-        i += 1;
     }
-    i = 0 as ::core::ffi::c_int;
-    while i < (*pc).mb_rows {
-        vpx_atomic_store_release(
-            (*pbi).mt_current_mb_col.offset(i as isize) as *mut vpx_atomic_int,
-            -(1 as ::core::ffi::c_int),
-        );
-        i += 1;
+    for i in 0..pc.mb_rows {
+        unsafe {
+            vpx_atomic_store_release(
+                pbi.mt_current_mb_col.offset(i as isize) as *mut vpx_atomic_int,
+                -1,
+            );
+        }
     }
-}}
+}
 fn mt_decode_macroblock(
     pbi: &mut VP8D_COMP,
     xd: &mut MACROBLOCKD,
@@ -1666,10 +1631,9 @@ pub unsafe extern "C" fn vp8mt_decode_mb_rows(
         vp8_setup_intra_recon_top_line(yv12_fb_new);
     }
     setup_decoding_thread_data(
-        pbi,
-        xd,
-        (*pbi).mb_row_di,
-        (*pbi).decoding_thread_count as ::core::ffi::c_int,
+        &mut *pbi,
+        &*xd,
+        core::slice::from_raw_parts_mut((*pbi).mb_row_di, (*pbi).decoding_thread_count as usize),
     );
     i = 0 as ::core::ffi::c_uint;
     while i < (*pbi).decoding_thread_count {

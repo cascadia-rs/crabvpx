@@ -1,6 +1,7 @@
 # VP8 Decoder Safety Hints
 
 ## Current Progress (May 2026)
+- **Safe Decoding Thread Setup API**: Refactored `setup_decoding_thread_data` in `src/vp8/decoder/threading.rs` to take safe Rust references and slices (`&mut VP8D_COMP`, `&MACROBLOCKD`, `&mut [MB_ROW_DEC]`) instead of raw pointers. Replaced internal C-style `memcpy` calls with safe struct assignments. Reduced unsafe count by 1.
 - **Safe Token Decoder Setup API**: Refactored `setup_token_decoder`, `read_available_partition_size`, and `read_partition_size` in `src/vp8/decoder/decodeframe.rs` to take safe Rust references (`&mut VP8D_COMP`, `&VP8D_COMP`) instead of raw pointers. Eliminated raw pointer dereferences inside these functions. Updated call site in `vp8_decode_frame`. Unsafe count unchanged (1318 remaining) due to internal FFI calls.
 - **Safe Dequantizer Initialization (Internal Cleanup)**: Refactored `vp8_mb_init_dequantizer` in `src/vp8/decoder/decodeframe.rs` to use the safe `mode_info()` helper method instead of dereferencing the raw pointer `mode_info_context`. This eliminated the internal `unsafe` block entirely. Reduced unsafe count by 1.
 - **Safe Inter Prediction API (Internal Cleanup)**: Removed unnecessary `unsafe` block encapsulation from `vp8_build_inter_predictors_mb` in `src/vp8/common/reconinter.rs`, as all underlying function calls already had safe signatures. Reduced unsafe count by 1.
