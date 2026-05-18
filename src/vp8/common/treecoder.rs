@@ -21,7 +21,7 @@ unsafe extern "C" fn tree2tok(
         L += 1;
         loop {
             let fresh0 = i;
-            i = i + 1;
+            i += 1;
             let j: vp8_tree_index = *t.offset(fresh0 as isize);
             if j as ::core::ffi::c_int <= 0 as ::core::ffi::c_int {
                 (*p.offset(-(j as ::core::ffi::c_int) as isize)).value = v;
@@ -78,7 +78,7 @@ unsafe extern "C" fn branch_counts(
         let tree_len: ::core::ffi::c_int = n - 1 as ::core::ffi::c_int;
         let mut t: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
         loop {
-            let ref mut fresh1 = (*branch_ct.offset(t as isize))[1 as ::core::ffi::c_int as usize];
+            let fresh1 = &mut (*branch_ct.offset(t as isize))[1 as ::core::ffi::c_int as usize];
             *fresh1 = 0 as ::core::ffi::c_uint;
             (*branch_ct.offset(t as isize))[0 as ::core::ffi::c_int as usize] = *fresh1;
             t += 1;
@@ -96,7 +96,7 @@ unsafe extern "C" fn branch_counts(
                 L -= 1;
                 let b: ::core::ffi::c_int = enc >> L & 1 as ::core::ffi::c_int;
                 let j: ::core::ffi::c_int = i as ::core::ffi::c_int >> 1 as ::core::ffi::c_int;
-                let ref mut fresh2 = (*branch_ct.offset(j as isize))[b as usize];
+                let fresh2 = &mut (*branch_ct.offset(j as isize))[b as usize];
                 *fresh2 = (*fresh2).wrapping_add(ct);
                 i = *tree.offset((i as ::core::ffi::c_int + b) as isize);
                 if !(i as ::core::ffi::c_int > 0 as ::core::ffi::c_int) {

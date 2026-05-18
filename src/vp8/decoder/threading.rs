@@ -655,7 +655,7 @@ unsafe extern "C" fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> ::core::ffi:
         if (*br).count > VP8_BD_VALUE_SIZE && (*br).count < VP8_LOTS_OF_BITS {
             return 1 as ::core::ffi::c_int;
         }
-        return 0 as ::core::ffi::c_int;
+        0 as ::core::ffi::c_int
     }
 }
 pub const SYNC_POLICY_FIFO: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
@@ -683,8 +683,8 @@ unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int {
     unsafe {
-        return (*(atomic as *const core::sync::atomic::AtomicI32))
-            .load(core::sync::atomic::Ordering::Acquire);
+        (*(atomic as *const core::sync::atomic::AtomicI32))
+            .load(core::sync::atomic::Ordering::Acquire)
     }
 }
 #[inline]
@@ -1206,7 +1206,7 @@ unsafe extern "C" fn mt_decode_mb_rows(
                 if (mb_col - 1 as ::core::ffi::c_int) % nsync == 0 as ::core::ffi::c_int {
                     vpx_atomic_store_release(current_mb_col, mb_col - 1 as ::core::ffi::c_int);
                 }
-                if mb_row != 0 && mb_col & nsync - 1 as ::core::ffi::c_int == 0 {
+                if mb_row != 0 && mb_col & (nsync - 1 as ::core::ffi::c_int) == 0 {
                     vp8_atomic_spin_wait(mb_col, last_row_current_mb_col, nsync);
                 }
                 (*xd).mb_to_left_edge =
@@ -1602,7 +1602,7 @@ unsafe extern "C" fn thread_decoding_proc(
                 (*xd).error_info.setjmp = 0 as ::core::ffi::c_int;
             }
         }
-        return THREAD_EXIT_SUCCESS;
+        THREAD_EXIT_SUCCESS
     }
 }
 #[unsafe(no_mangle)]
@@ -1706,9 +1706,9 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
                 vp8_setup_block_dptrs(&raw mut (*(*pbi).mb_row_di.offset(ithread as isize)).mbd);
                 (*(*pbi).de_thread_data.offset(ithread as isize)).ithread =
                     ithread as ::core::ffi::c_int;
-                let ref mut fresh6 = (*(*pbi).de_thread_data.offset(ithread as isize)).ptr1;
+                let fresh6 = &mut (*(*pbi).de_thread_data.offset(ithread as isize)).ptr1;
                 *fresh6 = pbi as *mut ::core::ffi::c_void;
-                let ref mut fresh7 = (*(*pbi).de_thread_data.offset(ithread as isize)).ptr2;
+                let fresh7 = &mut (*(*pbi).de_thread_data.offset(ithread as isize)).ptr2;
                 *fresh7 = (*pbi).mb_row_di.offset(ithread as isize) as *mut MB_ROW_DEC
                     as *mut ::core::ffi::c_void;
                 if crate::thread_shim::vp8_pthread_create(
@@ -1766,7 +1766,7 @@ pub unsafe extern "C" fn vp8mt_de_alloc_temp_buffers(
             i = 0 as ::core::ffi::c_int;
             while i < mb_rows {
                 vpx_free(*(*pbi).mt_yabove_row.offset(i as isize) as *mut ::core::ffi::c_void);
-                let ref mut fresh0 = *(*pbi).mt_yabove_row.offset(i as isize);
+                let fresh0 = &mut *(*pbi).mt_yabove_row.offset(i as isize);
                 *fresh0 = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
                 i += 1;
             }
@@ -1777,7 +1777,7 @@ pub unsafe extern "C" fn vp8mt_de_alloc_temp_buffers(
             i = 0 as ::core::ffi::c_int;
             while i < mb_rows {
                 vpx_free(*(*pbi).mt_uabove_row.offset(i as isize) as *mut ::core::ffi::c_void);
-                let ref mut fresh1 = *(*pbi).mt_uabove_row.offset(i as isize);
+                let fresh1 = &mut *(*pbi).mt_uabove_row.offset(i as isize);
                 *fresh1 = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
                 i += 1;
             }
@@ -1788,7 +1788,7 @@ pub unsafe extern "C" fn vp8mt_de_alloc_temp_buffers(
             i = 0 as ::core::ffi::c_int;
             while i < mb_rows {
                 vpx_free(*(*pbi).mt_vabove_row.offset(i as isize) as *mut ::core::ffi::c_void);
-                let ref mut fresh2 = *(*pbi).mt_vabove_row.offset(i as isize);
+                let fresh2 = &mut *(*pbi).mt_vabove_row.offset(i as isize);
                 *fresh2 = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
                 i += 1;
             }
@@ -1799,7 +1799,7 @@ pub unsafe extern "C" fn vp8mt_de_alloc_temp_buffers(
             i = 0 as ::core::ffi::c_int;
             while i < mb_rows {
                 vpx_free(*(*pbi).mt_yleft_col.offset(i as isize) as *mut ::core::ffi::c_void);
-                let ref mut fresh3 = *(*pbi).mt_yleft_col.offset(i as isize);
+                let fresh3 = &mut *(*pbi).mt_yleft_col.offset(i as isize);
                 *fresh3 = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
                 i += 1;
             }
@@ -1810,7 +1810,7 @@ pub unsafe extern "C" fn vp8mt_de_alloc_temp_buffers(
             i = 0 as ::core::ffi::c_int;
             while i < mb_rows {
                 vpx_free(*(*pbi).mt_uleft_col.offset(i as isize) as *mut ::core::ffi::c_void);
-                let ref mut fresh4 = *(*pbi).mt_uleft_col.offset(i as isize);
+                let fresh4 = &mut *(*pbi).mt_uleft_col.offset(i as isize);
                 *fresh4 = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
                 i += 1;
             }
@@ -1821,7 +1821,7 @@ pub unsafe extern "C" fn vp8mt_de_alloc_temp_buffers(
             i = 0 as ::core::ffi::c_int;
             while i < mb_rows {
                 vpx_free(*(*pbi).mt_vleft_col.offset(i as isize) as *mut ::core::ffi::c_void);
-                let ref mut fresh5 = *(*pbi).mt_vleft_col.offset(i as isize);
+                let fresh5 = &mut *(*pbi).mt_vleft_col.offset(i as isize);
                 *fresh5 = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
                 i += 1;
             }
@@ -1889,7 +1889,7 @@ pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
             }
             i = 0 as ::core::ffi::c_int;
             while i < (*pc).mb_rows {
-                let ref mut fresh8 = *(*pbi).mt_yabove_row.offset(i as isize);
+                let fresh8 = &mut *(*pbi).mt_yabove_row.offset(i as isize);
                 *fresh8 = vpx_memalign(
                     16 as size_t,
                     (::core::mem::size_of::<::core::ffi::c_uchar>() as size_t).wrapping_mul(
@@ -1926,7 +1926,7 @@ pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
             }
             i = 0 as ::core::ffi::c_int;
             while i < (*pc).mb_rows {
-                let ref mut fresh9 = *(*pbi).mt_uabove_row.offset(i as isize);
+                let fresh9 = &mut *(*pbi).mt_uabove_row.offset(i as isize);
                 *fresh9 = vpx_memalign(
                     16 as size_t,
                     (::core::mem::size_of::<::core::ffi::c_uchar>() as size_t)
@@ -1962,7 +1962,7 @@ pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
             }
             i = 0 as ::core::ffi::c_int;
             while i < (*pc).mb_rows {
-                let ref mut fresh10 = *(*pbi).mt_vabove_row.offset(i as isize);
+                let fresh10 = &mut *(*pbi).mt_vabove_row.offset(i as isize);
                 *fresh10 = vpx_memalign(
                     16 as size_t,
                     (::core::mem::size_of::<::core::ffi::c_uchar>() as size_t)
@@ -1998,7 +1998,7 @@ pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
             }
             i = 0 as ::core::ffi::c_int;
             while i < (*pc).mb_rows {
-                let ref mut fresh11 = *(*pbi).mt_yleft_col.offset(i as isize);
+                let fresh11 = &mut *(*pbi).mt_yleft_col.offset(i as isize);
                 *fresh11 = vpx_calloc(
                     (::core::mem::size_of::<::core::ffi::c_uchar>() as size_t)
                         .wrapping_mul(16 as size_t),
@@ -2028,7 +2028,7 @@ pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
             }
             i = 0 as ::core::ffi::c_int;
             while i < (*pc).mb_rows {
-                let ref mut fresh12 = *(*pbi).mt_uleft_col.offset(i as isize);
+                let fresh12 = &mut *(*pbi).mt_uleft_col.offset(i as isize);
                 *fresh12 = vpx_calloc(
                     (::core::mem::size_of::<::core::ffi::c_uchar>() as size_t)
                         .wrapping_mul(8 as size_t),
@@ -2058,7 +2058,7 @@ pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
             }
             i = 0 as ::core::ffi::c_int;
             while i < (*pc).mb_rows {
-                let ref mut fresh13 = *(*pbi).mt_vleft_col.offset(i as isize);
+                let fresh13 = &mut *(*pbi).mt_vleft_col.offset(i as isize);
                 *fresh13 = vpx_calloc(
                     (::core::mem::size_of::<::core::ffi::c_uchar>() as size_t)
                         .wrapping_mul(8 as size_t),
@@ -2251,7 +2251,7 @@ pub unsafe extern "C" fn vp8mt_decode_mb_rows(
             crate::thread_shim::vp8_semaphore_wait((*pbi).h_event_end_decoding);
             i = i.wrapping_add(1);
         }
-        return 0 as ::core::ffi::c_int;
+        0 as ::core::ffi::c_int
     }
 }
 pub const __ATOMIC_ACQUIRE: ::core::ffi::c_int = 2 as ::core::ffi::c_int;

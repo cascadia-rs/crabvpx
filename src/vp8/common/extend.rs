@@ -234,10 +234,10 @@ pub unsafe extern "C" fn vp8_copy_and_extend_frame_with_rect(
         let mut er: ::core::ffi::c_int = (*dst).border + (*dst).y_width - (*src).y_width;
         let mut src_y_offset: ::core::ffi::c_int = srcy * (*src).y_stride + srcx;
         let mut dst_y_offset: ::core::ffi::c_int = srcy * (*dst).y_stride + srcx;
-        let mut src_uv_offset: ::core::ffi::c_int = (srcy * (*src).uv_stride
+        let mut src_uv_offset: ::core::ffi::c_int = ((srcy * (*src).uv_stride)
             >> 1 as ::core::ffi::c_int)
             + (srcx >> 1 as ::core::ffi::c_int);
-        let mut dst_uv_offset: ::core::ffi::c_int = (srcy * (*dst).uv_stride
+        let mut dst_uv_offset: ::core::ffi::c_int = ((srcy * (*dst).uv_stride)
             >> 1 as ::core::ffi::c_int)
             + (srcx >> 1 as ::core::ffi::c_int);
         let mut chroma_step: ::core::ffi::c_int = if (*src).v_buffer.offset_from((*src).u_buffer)
@@ -273,12 +273,12 @@ pub unsafe extern "C" fn vp8_copy_and_extend_frame_with_rect(
             er,
             1 as ::core::ffi::c_int,
         );
-        et = et + 1 as ::core::ffi::c_int >> 1 as ::core::ffi::c_int;
-        el = el + 1 as ::core::ffi::c_int >> 1 as ::core::ffi::c_int;
-        eb = eb + 1 as ::core::ffi::c_int >> 1 as ::core::ffi::c_int;
-        er = er + 1 as ::core::ffi::c_int >> 1 as ::core::ffi::c_int;
-        srch = srch + 1 as ::core::ffi::c_int >> 1 as ::core::ffi::c_int;
-        srcw = srcw + 1 as ::core::ffi::c_int >> 1 as ::core::ffi::c_int;
+        et = (et + 1 as ::core::ffi::c_int) >> 1 as ::core::ffi::c_int;
+        el = (el + 1 as ::core::ffi::c_int) >> 1 as ::core::ffi::c_int;
+        eb = (eb + 1 as ::core::ffi::c_int) >> 1 as ::core::ffi::c_int;
+        er = (er + 1 as ::core::ffi::c_int) >> 1 as ::core::ffi::c_int;
+        srch = (srch + 1 as ::core::ffi::c_int) >> 1 as ::core::ffi::c_int;
+        srcw = (srcw + 1 as ::core::ffi::c_int) >> 1 as ::core::ffi::c_int;
         copy_and_extend_plane(
             (*src).u_buffer.offset(src_uv_offset as isize),
             (*src).uv_stride,

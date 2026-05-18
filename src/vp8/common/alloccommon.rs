@@ -322,54 +322,49 @@ pub unsafe extern "C" fn vp8_alloc_frame_buffers(
             }
             i += 1;
         }
-        match current_block {
-            10886091980245723256 => {
-                (*oci).new_fb_idx = 0 as ::core::ffi::c_int;
-                (*oci).lst_fb_idx = 1 as ::core::ffi::c_int;
-                (*oci).gld_fb_idx = 2 as ::core::ffi::c_int;
-                (*oci).alt_fb_idx = 3 as ::core::ffi::c_int;
-                (*oci).fb_idx_ref_cnt[0 as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_int;
-                (*oci).fb_idx_ref_cnt[1 as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_int;
-                (*oci).fb_idx_ref_cnt[2 as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_int;
-                (*oci).fb_idx_ref_cnt[3 as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_int;
-                if !(vp8_yv12_alloc_frame_buffer(
-                    &raw mut (*oci).temp_scale_frame,
-                    width,
-                    16 as ::core::ffi::c_int,
-                    VP8BORDERINPIXELS,
-                ) < 0 as ::core::ffi::c_int)
-                {
-                    (*oci).mb_rows = height >> 4 as ::core::ffi::c_int;
-                    (*oci).mb_cols = width >> 4 as ::core::ffi::c_int;
-                    (*oci).MBs = (*oci).mb_rows * (*oci).mb_cols;
-                    (*oci).mode_info_stride = (*oci).mb_cols + 1 as ::core::ffi::c_int;
-                    (*oci).mip = vpx_calloc(
-                        (((*oci).mb_cols + 1 as ::core::ffi::c_int)
-                            * ((*oci).mb_rows + 1 as ::core::ffi::c_int))
-                            as size_t,
-                        ::core::mem::size_of::<MODE_INFO>() as size_t,
-                    ) as *mut MODE_INFO;
-                    if !(*oci).mip.is_null() {
-                        (*oci).mi = (*oci)
-                            .mip
-                            .offset((*oci).mode_info_stride as isize)
-                            .offset(1 as ::core::ffi::c_int as isize);
-                        (*oci).above_context = vpx_calloc(
-                            (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t)
-                                .wrapping_mul((*oci).mb_cols as size_t),
-                            1 as size_t,
-                        )
-                            as *mut ENTROPY_CONTEXT_PLANES;
-                        if !(*oci).above_context.is_null() {
-                            return 0 as ::core::ffi::c_int;
-                        }
+        if current_block == 10886091980245723256 {
+            (*oci).new_fb_idx = 0 as ::core::ffi::c_int;
+            (*oci).lst_fb_idx = 1 as ::core::ffi::c_int;
+            (*oci).gld_fb_idx = 2 as ::core::ffi::c_int;
+            (*oci).alt_fb_idx = 3 as ::core::ffi::c_int;
+            (*oci).fb_idx_ref_cnt[0 as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_int;
+            (*oci).fb_idx_ref_cnt[1 as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_int;
+            (*oci).fb_idx_ref_cnt[2 as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_int;
+            (*oci).fb_idx_ref_cnt[3 as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_int;
+            if !(vp8_yv12_alloc_frame_buffer(
+                &raw mut (*oci).temp_scale_frame,
+                width,
+                16 as ::core::ffi::c_int,
+                VP8BORDERINPIXELS,
+            ) < 0 as ::core::ffi::c_int)
+            {
+                (*oci).mb_rows = height >> 4 as ::core::ffi::c_int;
+                (*oci).mb_cols = width >> 4 as ::core::ffi::c_int;
+                (*oci).MBs = (*oci).mb_rows * (*oci).mb_cols;
+                (*oci).mode_info_stride = (*oci).mb_cols + 1 as ::core::ffi::c_int;
+                (*oci).mip = vpx_calloc(
+                    (((*oci).mb_cols + 1 as ::core::ffi::c_int)
+                        * ((*oci).mb_rows + 1 as ::core::ffi::c_int)) as size_t,
+                    ::core::mem::size_of::<MODE_INFO>() as size_t,
+                ) as *mut MODE_INFO;
+                if !(*oci).mip.is_null() {
+                    (*oci).mi = (*oci)
+                        .mip
+                        .offset((*oci).mode_info_stride as isize)
+                        .offset(1 as ::core::ffi::c_int as isize);
+                    (*oci).above_context = vpx_calloc(
+                        (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t)
+                            .wrapping_mul((*oci).mb_cols as size_t),
+                        1 as size_t,
+                    ) as *mut ENTROPY_CONTEXT_PLANES;
+                    if !(*oci).above_context.is_null() {
+                        return 0 as ::core::ffi::c_int;
                     }
                 }
             }
-            _ => {}
         }
         vp8_de_alloc_frame_buffers(oci);
-        return 1 as ::core::ffi::c_int;
+        1 as ::core::ffi::c_int
     }
 }
 #[unsafe(no_mangle)]

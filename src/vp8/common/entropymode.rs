@@ -1660,7 +1660,7 @@ pub unsafe extern "C" fn vp8_mv_cont(
         if lez != 0 {
             return SUBMVREF_LEFT_ZED as ::core::ffi::c_int;
         }
-        return SUBMVREF_NORMAL as ::core::ffi::c_int;
+        SUBMVREF_NORMAL as ::core::ffi::c_int
     }
 }
 static mut sub_mv_ref_prob: [vp8_prob; 3] = [

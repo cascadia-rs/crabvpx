@@ -21,7 +21,7 @@ unsafe extern "C" fn vp8_signed_char_clamp(mut t: ::core::ffi::c_int) -> ::core:
     } else {
         t
     };
-    return t as ::core::ffi::c_schar;
+    t as ::core::ffi::c_schar
 }
 unsafe extern "C" fn vp8_filter_mask(
     mut limit: uc,
@@ -67,7 +67,7 @@ unsafe extern "C" fn vp8_filter_mask(
                     / 2 as ::core::ffi::c_int
                 > blimit as ::core::ffi::c_int) as ::core::ffi::c_int)
             as ::core::ffi::c_schar;
-        return (mask as ::core::ffi::c_int - 1 as ::core::ffi::c_int) as ::core::ffi::c_schar;
+        (mask as ::core::ffi::c_int - 1 as ::core::ffi::c_int) as ::core::ffi::c_schar
     }
 }
 unsafe extern "C" fn vp8_hevmask(
@@ -80,14 +80,14 @@ unsafe extern "C" fn vp8_hevmask(
     unsafe {
         let mut hev: ::core::ffi::c_schar = 0 as ::core::ffi::c_schar;
         hev = (hev as ::core::ffi::c_int
-            | (abs(p1 as ::core::ffi::c_int - p0 as ::core::ffi::c_int)
+            | ((abs(p1 as ::core::ffi::c_int - p0 as ::core::ffi::c_int)
                 > thresh as ::core::ffi::c_int) as ::core::ffi::c_int
-                * -(1 as ::core::ffi::c_int)) as ::core::ffi::c_schar;
+                * -(1 as ::core::ffi::c_int))) as ::core::ffi::c_schar;
         hev = (hev as ::core::ffi::c_int
-            | (abs(q1 as ::core::ffi::c_int - q0 as ::core::ffi::c_int)
+            | ((abs(q1 as ::core::ffi::c_int - q0 as ::core::ffi::c_int)
                 > thresh as ::core::ffi::c_int) as ::core::ffi::c_int
-                * -(1 as ::core::ffi::c_int)) as ::core::ffi::c_schar;
-        return hev;
+                * -(1 as ::core::ffi::c_int))) as ::core::ffi::c_schar;
+        hev
     }
 }
 unsafe extern "C" fn vp8_filter(
@@ -301,7 +301,7 @@ unsafe extern "C" fn vp8_mbfilter(
             as ::core::ffi::c_schar;
         Filter2 = filter_value;
         u = vp8_signed_char_clamp(
-            63 as ::core::ffi::c_int + Filter2 as ::core::ffi::c_int * 27 as ::core::ffi::c_int
+            (63 as ::core::ffi::c_int + Filter2 as ::core::ffi::c_int * 27 as ::core::ffi::c_int)
                 >> 7 as ::core::ffi::c_int,
         );
         s = vp8_signed_char_clamp(qs0 as ::core::ffi::c_int - u as ::core::ffi::c_int);
@@ -309,7 +309,7 @@ unsafe extern "C" fn vp8_mbfilter(
         s = vp8_signed_char_clamp(ps0 as ::core::ffi::c_int + u as ::core::ffi::c_int);
         *op0 = (s as ::core::ffi::c_int ^ 0x80 as ::core::ffi::c_int) as uc;
         u = vp8_signed_char_clamp(
-            63 as ::core::ffi::c_int + Filter2 as ::core::ffi::c_int * 18 as ::core::ffi::c_int
+            (63 as ::core::ffi::c_int + Filter2 as ::core::ffi::c_int * 18 as ::core::ffi::c_int)
                 >> 7 as ::core::ffi::c_int,
         );
         s = vp8_signed_char_clamp(qs1 as ::core::ffi::c_int - u as ::core::ffi::c_int);
@@ -317,7 +317,7 @@ unsafe extern "C" fn vp8_mbfilter(
         s = vp8_signed_char_clamp(ps1 as ::core::ffi::c_int + u as ::core::ffi::c_int);
         *op1 = (s as ::core::ffi::c_int ^ 0x80 as ::core::ffi::c_int) as uc;
         u = vp8_signed_char_clamp(
-            63 as ::core::ffi::c_int + Filter2 as ::core::ffi::c_int * 9 as ::core::ffi::c_int
+            (63 as ::core::ffi::c_int + Filter2 as ::core::ffi::c_int * 9 as ::core::ffi::c_int)
                 >> 7 as ::core::ffi::c_int,
         );
         s = vp8_signed_char_clamp(qs2 as ::core::ffi::c_int - u as ::core::ffi::c_int);
@@ -440,7 +440,7 @@ unsafe extern "C" fn vp8_simple_filter_mask(
                     / 2 as ::core::ffi::c_int
                 <= blimit as ::core::ffi::c_int) as ::core::ffi::c_int
                 * -(1 as ::core::ffi::c_int)) as ::core::ffi::c_schar;
-        return mask;
+        mask
     }
 }
 unsafe extern "C" fn vp8_simple_filter(

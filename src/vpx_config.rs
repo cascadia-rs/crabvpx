@@ -2,7 +2,5 @@ static mut cfg: *const ::core::ffi::c_char = b"--target=generic-gnu --disable-ex
     as *const u8 as *const ::core::ffi::c_char;
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_build_config() -> *const ::core::ffi::c_char {
-    unsafe {
-        return cfg;
-    }
+    unsafe { cfg }
 }

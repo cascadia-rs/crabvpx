@@ -28,20 +28,20 @@ pub unsafe extern "C" fn vp8_short_idct4x4llm_c(
                 + *ip.offset(8 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
             b1 = *ip.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
                 - *ip.offset(8 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
-            temp1 = *ip.offset(4 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                * sinpi8sqrt2
+            temp1 = (*ip.offset(4 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                * sinpi8sqrt2)
                 >> 16 as ::core::ffi::c_int;
             temp2 = *ip.offset(12 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                + (*ip.offset(12 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                    * cospi8sqrt2minus1
+                + ((*ip.offset(12 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                    * cospi8sqrt2minus1)
                     >> 16 as ::core::ffi::c_int);
             c1 = temp1 - temp2;
             temp1 = *ip.offset(4 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                + (*ip.offset(4 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                    * cospi8sqrt2minus1
+                + ((*ip.offset(4 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                    * cospi8sqrt2minus1)
                     >> 16 as ::core::ffi::c_int);
-            temp2 = *ip.offset(12 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                * sinpi8sqrt2
+            temp2 = (*ip.offset(12 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                * sinpi8sqrt2)
                 >> 16 as ::core::ffi::c_int;
             d1 = temp1 + temp2;
             *op.offset((shortpitch * 0 as ::core::ffi::c_int) as isize) =
@@ -64,32 +64,32 @@ pub unsafe extern "C" fn vp8_short_idct4x4llm_c(
                 + *ip.offset(2 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
             b1 = *ip.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
                 - *ip.offset(2 as ::core::ffi::c_int as isize) as ::core::ffi::c_int;
-            temp1 = *ip.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                * sinpi8sqrt2
+            temp1 = (*ip.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                * sinpi8sqrt2)
                 >> 16 as ::core::ffi::c_int;
             temp2 = *ip.offset(3 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                + (*ip.offset(3 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                    * cospi8sqrt2minus1
+                + ((*ip.offset(3 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                    * cospi8sqrt2minus1)
                     >> 16 as ::core::ffi::c_int);
             c1 = temp1 - temp2;
             temp1 = *ip.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                + (*ip.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                    * cospi8sqrt2minus1
+                + ((*ip.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                    * cospi8sqrt2minus1)
                     >> 16 as ::core::ffi::c_int);
-            temp2 = *ip.offset(3 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                * sinpi8sqrt2
+            temp2 = (*ip.offset(3 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                * sinpi8sqrt2)
                 >> 16 as ::core::ffi::c_int;
             d1 = temp1 + temp2;
-            *op.offset(0 as ::core::ffi::c_int as isize) = (a1 + d1 + 4 as ::core::ffi::c_int
+            *op.offset(0 as ::core::ffi::c_int as isize) = ((a1 + d1 + 4 as ::core::ffi::c_int)
                 >> 3 as ::core::ffi::c_int)
                 as ::core::ffi::c_short;
-            *op.offset(3 as ::core::ffi::c_int as isize) = (a1 - d1 + 4 as ::core::ffi::c_int
+            *op.offset(3 as ::core::ffi::c_int as isize) = ((a1 - d1 + 4 as ::core::ffi::c_int)
                 >> 3 as ::core::ffi::c_int)
                 as ::core::ffi::c_short;
-            *op.offset(1 as ::core::ffi::c_int as isize) = (b1 + c1 + 4 as ::core::ffi::c_int
+            *op.offset(1 as ::core::ffi::c_int as isize) = ((b1 + c1 + 4 as ::core::ffi::c_int)
                 >> 3 as ::core::ffi::c_int)
                 as ::core::ffi::c_short;
-            *op.offset(2 as ::core::ffi::c_int as isize) = (b1 - c1 + 4 as ::core::ffi::c_int
+            *op.offset(2 as ::core::ffi::c_int as isize) = ((b1 - c1 + 4 as ::core::ffi::c_int)
                 >> 3 as ::core::ffi::c_int)
                 as ::core::ffi::c_short;
             ip = ip.offset(shortpitch as isize);
@@ -129,7 +129,7 @@ pub unsafe extern "C" fn vp8_dc_only_idct_add_c(
 ) {
     unsafe {
         let mut a1: ::core::ffi::c_int =
-            input_dc as ::core::ffi::c_int + 4 as ::core::ffi::c_int >> 3 as ::core::ffi::c_int;
+            (input_dc as ::core::ffi::c_int + 4 as ::core::ffi::c_int) >> 3 as ::core::ffi::c_int;
         let mut r: ::core::ffi::c_int = 0;
         let mut c: ::core::ffi::c_int = 0;
         r = 0 as ::core::ffi::c_int;
@@ -206,13 +206,13 @@ pub unsafe extern "C" fn vp8_short_inv_walsh4x4_c(
             c2 = a1 - b1;
             d2 = d1 - c1;
             *op.offset(0 as ::core::ffi::c_int as isize) =
-                (a2 + 3 as ::core::ffi::c_int >> 3 as ::core::ffi::c_int) as ::core::ffi::c_short;
+                ((a2 + 3 as ::core::ffi::c_int) >> 3 as ::core::ffi::c_int) as ::core::ffi::c_short;
             *op.offset(1 as ::core::ffi::c_int as isize) =
-                (b2 + 3 as ::core::ffi::c_int >> 3 as ::core::ffi::c_int) as ::core::ffi::c_short;
+                ((b2 + 3 as ::core::ffi::c_int) >> 3 as ::core::ffi::c_int) as ::core::ffi::c_short;
             *op.offset(2 as ::core::ffi::c_int as isize) =
-                (c2 + 3 as ::core::ffi::c_int >> 3 as ::core::ffi::c_int) as ::core::ffi::c_short;
+                ((c2 + 3 as ::core::ffi::c_int) >> 3 as ::core::ffi::c_int) as ::core::ffi::c_short;
             *op.offset(3 as ::core::ffi::c_int as isize) =
-                (d2 + 3 as ::core::ffi::c_int >> 3 as ::core::ffi::c_int) as ::core::ffi::c_short;
+                ((d2 + 3 as ::core::ffi::c_int) >> 3 as ::core::ffi::c_int) as ::core::ffi::c_short;
             ip = ip.offset(4 as ::core::ffi::c_int as isize);
             op = op.offset(4 as ::core::ffi::c_int as isize);
             i += 1;
@@ -232,8 +232,8 @@ pub unsafe extern "C" fn vp8_short_inv_walsh4x4_1_c(
     unsafe {
         let mut i: ::core::ffi::c_int = 0;
         let mut a1: ::core::ffi::c_int = 0;
-        a1 = *input.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-            + 3 as ::core::ffi::c_int
+        a1 = (*input.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+            + 3 as ::core::ffi::c_int)
             >> 3 as ::core::ffi::c_int;
         i = 0 as ::core::ffi::c_int;
         while i < 16 as ::core::ffi::c_int {

@@ -489,9 +489,7 @@ pub const VPX_CODEC_USE_ERROR_CONCEALMENT: ::core::ffi::c_int = 0x20000 as ::cor
 pub const VPX_CODEC_USE_INPUT_FRAGMENTS: ::core::ffi::c_int = 0x40000 as ::core::ffi::c_int;
 pub const VPX_CODEC_INTERNAL_ABI_VERSION: ::core::ffi::c_int = 5 as ::core::ffi::c_int;
 unsafe extern "C" fn get_alg_priv(mut ctx: *mut vpx_codec_ctx_t) -> *mut vpx_codec_alg_priv_t {
-    unsafe {
-        return (*ctx).priv_0 as *mut vpx_codec_alg_priv_t;
-    }
+    unsafe { (*ctx).priv_0 as *mut vpx_codec_alg_priv_t }
 }
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_dec_init_ver(
@@ -547,12 +545,12 @@ pub unsafe extern "C" fn vpx_codec_dec_init_ver(
                 vpx_codec_destroy(ctx);
             }
         }
-        return (if !ctx.is_null() {
+        (if !ctx.is_null() {
             (*ctx).err = res;
             (*ctx).err as ::core::ffi::c_uint
         } else {
             res as ::core::ffi::c_uint
-        }) as vpx_codec_err_t;
+        }) as vpx_codec_err_t
     }
 }
 #[unsafe(no_mangle)]
@@ -576,7 +574,7 @@ pub unsafe extern "C" fn vpx_codec_peek_stream_info(
             (*si).h = 0 as ::core::ffi::c_uint;
             res = (*iface).dec.peek_si.expect("non-null function pointer")(data, data_sz, si);
         }
-        return res;
+        res
     }
 }
 #[unsafe(no_mangle)]
@@ -601,12 +599,12 @@ pub unsafe extern "C" fn vpx_codec_get_stream_info(
                 .get_si
                 .expect("non-null function pointer")(get_alg_priv(ctx), si);
         }
-        return (if !ctx.is_null() {
+        (if !ctx.is_null() {
             (*ctx).err = res;
             (*ctx).err as ::core::ffi::c_uint
         } else {
             res as ::core::ffi::c_uint
-        }) as vpx_codec_err_t;
+        }) as vpx_codec_err_t
     }
 }
 #[unsafe(no_mangle)]
@@ -631,12 +629,12 @@ pub unsafe extern "C" fn vpx_codec_decode(
                 get_alg_priv(ctx), data, data_sz, user_priv
             );
         }
-        return (if !ctx.is_null() {
+        (if !ctx.is_null() {
             (*ctx).err = res;
             (*ctx).err as ::core::ffi::c_uint
         } else {
             res as ::core::ffi::c_uint
-        }) as vpx_codec_err_t;
+        }) as vpx_codec_err_t
     }
 }
 #[unsafe(no_mangle)]
@@ -654,7 +652,7 @@ pub unsafe extern "C" fn vpx_codec_get_frame(
                 .get_frame
                 .expect("non-null function pointer")(get_alg_priv(ctx), iter);
         }
-        return img;
+        img
     }
 }
 #[unsafe(no_mangle)]
@@ -676,12 +674,12 @@ pub unsafe extern "C" fn vpx_codec_register_put_frame_cb(
             (*(*ctx).priv_0).dec.put_frame_cb.user_priv = user_priv;
             res = VPX_CODEC_OK;
         }
-        return (if !ctx.is_null() {
+        (if !ctx.is_null() {
             (*ctx).err = res;
             (*ctx).err as ::core::ffi::c_uint
         } else {
             res as ::core::ffi::c_uint
-        }) as vpx_codec_err_t;
+        }) as vpx_codec_err_t
     }
 }
 #[unsafe(no_mangle)]
@@ -703,12 +701,12 @@ pub unsafe extern "C" fn vpx_codec_register_put_slice_cb(
             (*(*ctx).priv_0).dec.put_slice_cb.user_priv = user_priv;
             res = VPX_CODEC_OK;
         }
-        return (if !ctx.is_null() {
+        (if !ctx.is_null() {
             (*ctx).err = res;
             (*ctx).err as ::core::ffi::c_uint
         } else {
             res as ::core::ffi::c_uint
-        }) as vpx_codec_err_t;
+        }) as vpx_codec_err_t
     }
 }
 #[unsafe(no_mangle)]
@@ -739,11 +737,11 @@ pub unsafe extern "C" fn vpx_codec_set_frame_buffer_functions(
                 cb_priv,
             );
         }
-        return (if !ctx.is_null() {
+        (if !ctx.is_null() {
             (*ctx).err = res;
             (*ctx).err as ::core::ffi::c_uint
         } else {
             res as ::core::ffi::c_uint
-        }) as vpx_codec_err_t;
+        }) as vpx_codec_err_t
     }
 }

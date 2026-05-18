@@ -25,8 +25,7 @@ jobs:
       run: cargo fmt --all -- --check
 
     - name: Run cargo clippy
-      # We don't enforce `-D warnings` yet because of the large number of C2Rust artifacts
-      run: cargo clippy --workspace
+      run: cargo clippy --workspace -- -D warnings
 
   build-and-test:
     name: Build and Test on ${{ matrix.os }}

@@ -48,7 +48,7 @@ pub unsafe extern "C" fn vp8dx_start_decode(
         (*br).decrypt_cb = decrypt_cb;
         (*br).decrypt_state = decrypt_state;
         vp8dx_bool_decoder_fill(br);
-        return 0 as ::core::ffi::c_int;
+        0 as ::core::ffi::c_int
     }
 }
 #[unsafe(no_mangle)]

@@ -80,11 +80,9 @@ pub const VPX_PLANE_V: ::core::ffi::c_int = 2 as ::core::ffi::c_int;
 pub const VPX_PLANE_ALPHA: ::core::ffi::c_int = 3 as ::core::ffi::c_int;
 unsafe extern "C" fn is_valid_img_fmt(mut fmt: vpx_img_fmt_t) -> ::core::ffi::c_int {
     match fmt as ::core::ffi::c_uint {
-        769 | 258 | 261 | 262 | 263 | 265 | 2306 | 2309 | 2310 | 2311 => {
-            return 1 as ::core::ffi::c_int;
-        }
-        _ => return 0 as ::core::ffi::c_int,
-    };
+        769 | 258 | 261 | 262 | 263 | 265 | 2306 | 2309 | 2310 | 2311 => 1 as ::core::ffi::c_int,
+        _ => 0 as ::core::ffi::c_int,
+    }
 }
 unsafe extern "C" fn img_alloc_helper(
     mut img: *mut vpx_image_t,
@@ -113,185 +111,180 @@ unsafe extern "C" fn img_alloc_helper(
                 ::core::mem::size_of::<vpx_image_t>() as size_t,
             );
         }
-        if !(is_valid_img_fmt(fmt) == 0) {
-            if !(d_w > 0x8000000 as ::core::ffi::c_int as ::core::ffi::c_uint
+        if !(is_valid_img_fmt(fmt) == 0)
+            && !(d_w > 0x8000000 as ::core::ffi::c_int as ::core::ffi::c_uint
                 || d_h > 0x8000000 as ::core::ffi::c_int as ::core::ffi::c_uint
                 || buf_align > 65536 as ::core::ffi::c_int as ::core::ffi::c_uint
                 || stride_align > 65536 as ::core::ffi::c_int as ::core::ffi::c_uint)
-            {
-                if buf_align == 0 {
-                    buf_align = 1 as ::core::ffi::c_uint;
+        {
+            if buf_align == 0 {
+                buf_align = 1 as ::core::ffi::c_uint;
+            }
+            if !(buf_align & buf_align.wrapping_sub(1 as ::core::ffi::c_uint) != 0) {
+                if stride_align == 0 {
+                    stride_align = 1 as ::core::ffi::c_uint;
                 }
-                if !(buf_align & buf_align.wrapping_sub(1 as ::core::ffi::c_uint) != 0) {
-                    if stride_align == 0 {
-                        stride_align = 1 as ::core::ffi::c_uint;
+                if !(stride_align & stride_align.wrapping_sub(1 as ::core::ffi::c_uint) != 0) {
+                    match fmt as ::core::ffi::c_uint {
+                        258 | 769 | 265 => {
+                            bps = 12 as ::core::ffi::c_uint;
+                        }
+                        261 | 263 => {
+                            bps = 16 as ::core::ffi::c_uint;
+                        }
+                        262 => {
+                            bps = 24 as ::core::ffi::c_uint;
+                        }
+                        2306 => {
+                            bps = 24 as ::core::ffi::c_uint;
+                        }
+                        2309 | 2311 => {
+                            bps = 32 as ::core::ffi::c_uint;
+                        }
+                        2310 => {
+                            bps = 48 as ::core::ffi::c_uint;
+                        }
+                        _ => {
+                            bps = 16 as ::core::ffi::c_uint;
+                        }
                     }
-                    if !(stride_align & stride_align.wrapping_sub(1 as ::core::ffi::c_uint) != 0) {
-                        match fmt as ::core::ffi::c_uint {
-                            258 | 769 | 265 => {
-                                bps = 12 as ::core::ffi::c_uint;
-                            }
-                            261 | 263 => {
-                                bps = 16 as ::core::ffi::c_uint;
-                            }
-                            262 => {
-                                bps = 24 as ::core::ffi::c_uint;
-                            }
-                            2306 => {
-                                bps = 24 as ::core::ffi::c_uint;
-                            }
-                            2309 | 2311 => {
-                                bps = 32 as ::core::ffi::c_uint;
-                            }
-                            2310 => {
-                                bps = 48 as ::core::ffi::c_uint;
-                            }
-                            _ => {
-                                bps = 16 as ::core::ffi::c_uint;
-                            }
+                    match fmt as ::core::ffi::c_uint {
+                        258 | 769 | 261 | 2306 | 2309 => {
+                            xcs = 1 as ::core::ffi::c_uint;
                         }
-                        match fmt as ::core::ffi::c_uint {
-                            258 | 769 | 261 | 2306 | 2309 => {
-                                xcs = 1 as ::core::ffi::c_uint;
-                            }
-                            _ => {
-                                xcs = 0 as ::core::ffi::c_uint;
-                            }
+                        _ => {
+                            xcs = 0 as ::core::ffi::c_uint;
                         }
-                        match fmt as ::core::ffi::c_uint {
-                            258 | 265 | 263 | 769 | 2306 | 2311 => {
-                                ycs = 1 as ::core::ffi::c_uint;
-                            }
-                            _ => {
-                                ycs = 0 as ::core::ffi::c_uint;
-                            }
+                    }
+                    match fmt as ::core::ffi::c_uint {
+                        258 | 265 | 263 | 769 | 2306 | 2311 => {
+                            ycs = 1 as ::core::ffi::c_uint;
                         }
-                        if !img_data.is_null() {
-                            w = d_w;
-                            h = d_h;
-                        } else {
-                            align = (((1 as ::core::ffi::c_int) << xcs) - 1 as ::core::ffi::c_int)
-                                as ::core::ffi::c_uint;
-                            w = d_w.wrapping_add(align) & !align;
-                            align = (((1 as ::core::ffi::c_int) << ycs) - 1 as ::core::ffi::c_int)
-                                as ::core::ffi::c_uint;
-                            h = d_h.wrapping_add(align) & !align;
+                        _ => {
+                            ycs = 0 as ::core::ffi::c_uint;
                         }
-                        s = if fmt as ::core::ffi::c_uint
-                            & VPX_IMG_FMT_PLANAR as ::core::ffi::c_uint
-                            != 0
-                        {
-                            w as uint64_t
-                        } else {
-                            (bps as uint64_t)
-                                .wrapping_mul(w as uint64_t)
-                                .wrapping_div(8 as uint64_t)
-                        };
+                    }
+                    if !img_data.is_null() {
+                        w = d_w;
+                        h = d_h;
+                    } else {
+                        align = (((1 as ::core::ffi::c_int) << xcs) - 1 as ::core::ffi::c_int)
+                            as ::core::ffi::c_uint;
+                        w = d_w.wrapping_add(align) & !align;
+                        align = (((1 as ::core::ffi::c_int) << ycs) - 1 as ::core::ffi::c_int)
+                            as ::core::ffi::c_uint;
+                        h = d_h.wrapping_add(align) & !align;
+                    }
+                    s = if fmt as ::core::ffi::c_uint & VPX_IMG_FMT_PLANAR as ::core::ffi::c_uint
+                        != 0
+                    {
+                        w as uint64_t
+                    } else {
+                        (bps as uint64_t)
+                            .wrapping_mul(w as uint64_t)
+                            .wrapping_div(8 as uint64_t)
+                    };
+                    s = if fmt as ::core::ffi::c_uint
+                        & VPX_IMG_FMT_HIGHBITDEPTH as ::core::ffi::c_uint
+                        != 0
+                    {
+                        s.wrapping_mul(2 as uint64_t)
+                    } else {
+                        s
+                    };
+                    s = s
+                        .wrapping_add(stride_align as uint64_t)
+                        .wrapping_sub(1 as uint64_t)
+                        & !(stride_align as uint64_t).wrapping_sub(1 as uint64_t);
+                    if !(s > INT_MAX as uint64_t) {
+                        stride_in_bytes = s as ::core::ffi::c_int;
                         s = if fmt as ::core::ffi::c_uint
                             & VPX_IMG_FMT_HIGHBITDEPTH as ::core::ffi::c_uint
                             != 0
                         {
-                            s.wrapping_mul(2 as uint64_t)
+                            s.wrapping_div(2 as uint64_t)
                         } else {
                             s
                         };
-                        s = s
-                            .wrapping_add(stride_align as uint64_t)
-                            .wrapping_sub(1 as uint64_t)
-                            & !(stride_align as uint64_t).wrapping_sub(1 as uint64_t);
-                        if !(s > INT_MAX as uint64_t) {
-                            stride_in_bytes = s as ::core::ffi::c_int;
-                            s = if fmt as ::core::ffi::c_uint
-                                & VPX_IMG_FMT_HIGHBITDEPTH as ::core::ffi::c_uint
-                                != 0
-                            {
-                                s.wrapping_div(2 as uint64_t)
-                            } else {
-                                s
-                            };
+                        if img.is_null() {
+                            img = calloc(
+                                1 as size_t,
+                                ::core::mem::size_of::<vpx_image_t>() as size_t,
+                            ) as *mut vpx_image_t;
                             if img.is_null() {
-                                img = calloc(
-                                    1 as size_t,
-                                    ::core::mem::size_of::<vpx_image_t>() as size_t,
-                                ) as *mut vpx_image_t;
-                                if img.is_null() {
-                                    current_block = 7960401837942226685;
-                                } else {
-                                    (*img).self_allocd = 1 as ::core::ffi::c_int;
-                                    current_block = 13678349939556791712;
-                                }
+                                current_block = 7960401837942226685;
                             } else {
+                                (*img).self_allocd = 1 as ::core::ffi::c_int;
                                 current_block = 13678349939556791712;
                             }
-                            match current_block {
-                                7960401837942226685 => {}
-                                _ => {
-                                    (*img).img_data = img_data;
-                                    if img_data.is_null() {
-                                        let mut alloc_size: uint64_t = 0;
-                                        alloc_size = if fmt as ::core::ffi::c_uint
-                                            & VPX_IMG_FMT_PLANAR as ::core::ffi::c_uint
-                                            != 0
-                                        {
-                                            (h as uint64_t)
-                                                .wrapping_mul(s)
-                                                .wrapping_mul(bps as uint64_t)
-                                                .wrapping_div(8 as uint64_t)
-                                        } else {
-                                            (h as uint64_t).wrapping_mul(s)
-                                        };
-                                        if alloc_size != alloc_size as size_t as uint64_t {
-                                            current_block = 7960401837942226685;
-                                        } else {
-                                            (*img).img_data = vpx_memalign(
-                                                buf_align as size_t,
-                                                alloc_size as size_t,
-                                            )
+                        } else {
+                            current_block = 13678349939556791712;
+                        }
+                        match current_block {
+                            7960401837942226685 => {}
+                            _ => {
+                                (*img).img_data = img_data;
+                                if img_data.is_null() {
+                                    let mut alloc_size: uint64_t = 0;
+                                    alloc_size = if fmt as ::core::ffi::c_uint
+                                        & VPX_IMG_FMT_PLANAR as ::core::ffi::c_uint
+                                        != 0
+                                    {
+                                        (h as uint64_t)
+                                            .wrapping_mul(s)
+                                            .wrapping_mul(bps as uint64_t)
+                                            .wrapping_div(8 as uint64_t)
+                                    } else {
+                                        (h as uint64_t).wrapping_mul(s)
+                                    };
+                                    if alloc_size != alloc_size as size_t as uint64_t {
+                                        current_block = 7960401837942226685;
+                                    } else {
+                                        (*img).img_data =
+                                            vpx_memalign(buf_align as size_t, alloc_size as size_t)
                                                 as *mut uint8_t
                                                 as *mut ::core::ffi::c_uchar;
-                                            (*img).img_data_owner = 1 as ::core::ffi::c_int;
-                                            current_block = 17233182392562552756;
-                                        }
-                                    } else {
+                                        (*img).img_data_owner = 1 as ::core::ffi::c_int;
                                         current_block = 17233182392562552756;
                                     }
-                                    match current_block {
-                                        7960401837942226685 => {}
-                                        _ => {
-                                            if !(*img).img_data.is_null() {
-                                                (*img).fmt = fmt;
-                                                (*img).bit_depth = (if fmt as ::core::ffi::c_uint
-                                                    & VPX_IMG_FMT_HIGHBITDEPTH
-                                                        as ::core::ffi::c_uint
-                                                    != 0
-                                                {
-                                                    16 as ::core::ffi::c_int
-                                                } else {
-                                                    8 as ::core::ffi::c_int
-                                                })
-                                                    as ::core::ffi::c_uint;
-                                                (*img).w = w;
-                                                (*img).h = h;
-                                                (*img).x_chroma_shift = xcs;
-                                                (*img).y_chroma_shift = ycs;
-                                                (*img).bps = bps as ::core::ffi::c_int;
-                                                (*img).stride[VPX_PLANE_ALPHA as usize] =
-                                                    stride_in_bytes;
-                                                (*img).stride[VPX_PLANE_Y as usize] =
-                                                    (*img).stride[VPX_PLANE_ALPHA as usize];
-                                                (*img).stride[VPX_PLANE_V as usize] =
-                                                    stride_in_bytes >> xcs;
-                                                (*img).stride[VPX_PLANE_U as usize] =
-                                                    (*img).stride[VPX_PLANE_V as usize];
-                                                _ret = vpx_img_set_rect(
-                                                    img,
-                                                    0 as ::core::ffi::c_uint,
-                                                    0 as ::core::ffi::c_uint,
-                                                    d_w,
-                                                    d_h,
-                                                );
-                                                return img;
-                                            }
+                                } else {
+                                    current_block = 17233182392562552756;
+                                }
+                                match current_block {
+                                    7960401837942226685 => {}
+                                    _ => {
+                                        if !(*img).img_data.is_null() {
+                                            (*img).fmt = fmt;
+                                            (*img).bit_depth = (if fmt as ::core::ffi::c_uint
+                                                & VPX_IMG_FMT_HIGHBITDEPTH as ::core::ffi::c_uint
+                                                != 0
+                                            {
+                                                16 as ::core::ffi::c_int
+                                            } else {
+                                                8 as ::core::ffi::c_int
+                                            })
+                                                as ::core::ffi::c_uint;
+                                            (*img).w = w;
+                                            (*img).h = h;
+                                            (*img).x_chroma_shift = xcs;
+                                            (*img).y_chroma_shift = ycs;
+                                            (*img).bps = bps as ::core::ffi::c_int;
+                                            (*img).stride[VPX_PLANE_ALPHA as usize] =
+                                                stride_in_bytes;
+                                            (*img).stride[VPX_PLANE_Y as usize] =
+                                                (*img).stride[VPX_PLANE_ALPHA as usize];
+                                            (*img).stride[VPX_PLANE_V as usize] =
+                                                stride_in_bytes >> xcs;
+                                            (*img).stride[VPX_PLANE_U as usize] =
+                                                (*img).stride[VPX_PLANE_V as usize];
+                                            _ret = vpx_img_set_rect(
+                                                img,
+                                                0 as ::core::ffi::c_uint,
+                                                0 as ::core::ffi::c_uint,
+                                                d_w,
+                                                d_h,
+                                            );
+                                            return img;
                                         }
                                     }
                                 }
@@ -302,7 +295,7 @@ unsafe extern "C" fn img_alloc_helper(
             }
         }
         vpx_img_free(img);
-        return ::core::ptr::null_mut::<vpx_image_t>();
+        ::core::ptr::null_mut::<vpx_image_t>()
     }
 }
 #[unsafe(no_mangle)]
@@ -314,7 +307,7 @@ pub unsafe extern "C" fn vpx_img_alloc(
     mut align: ::core::ffi::c_uint,
 ) -> *mut vpx_image_t {
     unsafe {
-        return img_alloc_helper(
+        img_alloc_helper(
             img,
             fmt,
             d_w,
@@ -322,7 +315,7 @@ pub unsafe extern "C" fn vpx_img_alloc(
             align,
             align,
             ::core::ptr::null_mut::<::core::ffi::c_uchar>(),
-        );
+        )
     }
 }
 #[unsafe(no_mangle)]
@@ -335,7 +328,7 @@ pub unsafe extern "C" fn vpx_img_wrap(
     mut img_data: *mut ::core::ffi::c_uchar,
 ) -> *mut vpx_image_t {
     unsafe {
-        return img_alloc_helper(
+        img_alloc_helper(
             img,
             fmt,
             d_w,
@@ -343,7 +336,7 @@ pub unsafe extern "C" fn vpx_img_wrap(
             1 as ::core::ffi::c_uint,
             stride_align,
             img_data,
-        );
+        )
     }
 }
 #[unsafe(no_mangle)]
@@ -391,10 +384,9 @@ pub unsafe extern "C" fn vpx_img_set_rect(
                         .offset(y.wrapping_mul(
                             (*img).stride[VPX_PLANE_ALPHA as usize] as ::core::ffi::c_uint,
                         ) as isize);
-                    data = data.offset(
+                    data = data.add(
                         ((*img).h as size_t)
-                            .wrapping_mul((*img).stride[VPX_PLANE_ALPHA as usize] as size_t)
-                            as isize,
+                            .wrapping_mul((*img).stride[VPX_PLANE_ALPHA as usize] as size_t),
                     );
                 }
                 (*img).planes[VPX_PLANE_Y as usize] =
@@ -402,9 +394,9 @@ pub unsafe extern "C" fn vpx_img_set_rect(
                         .offset(y.wrapping_mul(
                             (*img).stride[VPX_PLANE_Y as usize] as ::core::ffi::c_uint,
                         ) as isize);
-                data = data.offset(
-                    ((*img).h as size_t).wrapping_mul((*img).stride[VPX_PLANE_Y as usize] as size_t)
-                        as isize,
+                data = data.add(
+                    ((*img).h as size_t)
+                        .wrapping_mul((*img).stride[VPX_PLANE_Y as usize] as size_t),
                 );
                 let mut uv_x: ::core::ffi::c_uint = x >> (*img).x_chroma_shift;
                 let mut uv_y: ::core::ffi::c_uint = y >> (*img).y_chroma_shift;
@@ -426,10 +418,9 @@ pub unsafe extern "C" fn vpx_img_set_rect(
                         .offset(uv_y.wrapping_mul(
                             (*img).stride[VPX_PLANE_U as usize] as ::core::ffi::c_uint,
                         ) as isize);
-                    data = data.offset(
+                    data = data.add(
                         (((*img).h >> (*img).y_chroma_shift) as size_t)
-                            .wrapping_mul((*img).stride[VPX_PLANE_U as usize] as size_t)
-                            as isize,
+                            .wrapping_mul((*img).stride[VPX_PLANE_U as usize] as size_t),
                     );
                     (*img).planes[VPX_PLANE_V as usize] = data
                         .offset(uv_x.wrapping_mul(bytes_per_sample as ::core::ffi::c_uint) as isize)
@@ -442,10 +433,9 @@ pub unsafe extern "C" fn vpx_img_set_rect(
                         .offset(uv_y.wrapping_mul(
                             (*img).stride[VPX_PLANE_V as usize] as ::core::ffi::c_uint,
                         ) as isize);
-                    data = data.offset(
+                    data = data.add(
                         (((*img).h >> (*img).y_chroma_shift) as size_t)
-                            .wrapping_mul((*img).stride[VPX_PLANE_V as usize] as size_t)
-                            as isize,
+                            .wrapping_mul((*img).stride[VPX_PLANE_V as usize] as size_t),
                     );
                     (*img).planes[VPX_PLANE_U as usize] = data
                         .offset(uv_x.wrapping_mul(bytes_per_sample as ::core::ffi::c_uint) as isize)
@@ -456,7 +446,7 @@ pub unsafe extern "C" fn vpx_img_set_rect(
             }
             return 0 as ::core::ffi::c_int;
         }
-        return -(1 as ::core::ffi::c_int);
+        -(1 as ::core::ffi::c_int)
     }
 }
 #[unsafe(no_mangle)]

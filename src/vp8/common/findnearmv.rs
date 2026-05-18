@@ -371,16 +371,16 @@ pub unsafe extern "C" fn vp8_find_near_mvs(
         let mut near_mvs: [int_mv; 4] = [int_mv { as_int: 0 }; 4];
         let mut mv: *mut int_mv = &raw mut near_mvs as *mut int_mv;
         let mut cntx: *mut ::core::ffi::c_int = near_mv_ref_cnts as *mut ::core::ffi::c_int;
-        let ref mut fresh0 = (*mv.offset(2 as ::core::ffi::c_int as isize)).as_int;
+        let fresh0 = &mut (*mv.offset(2 as ::core::ffi::c_int as isize)).as_int;
         *fresh0 = 0 as uint32_t;
-        let ref mut fresh1 = (*mv.offset(1 as ::core::ffi::c_int as isize)).as_int;
+        let fresh1 = &mut (*mv.offset(1 as ::core::ffi::c_int as isize)).as_int;
         *fresh1 = *fresh0;
         (*mv.offset(0 as ::core::ffi::c_int as isize)).as_int = *fresh1;
-        let ref mut fresh2 = *near_mv_ref_cnts.offset(3 as ::core::ffi::c_int as isize);
+        let fresh2 = &mut *near_mv_ref_cnts.offset(3 as ::core::ffi::c_int as isize);
         *fresh2 = 0 as ::core::ffi::c_int;
-        let ref mut fresh3 = *near_mv_ref_cnts.offset(2 as ::core::ffi::c_int as isize);
+        let fresh3 = &mut *near_mv_ref_cnts.offset(2 as ::core::ffi::c_int as isize);
         *fresh3 = *fresh2;
-        let ref mut fresh4 = *near_mv_ref_cnts.offset(1 as ::core::ffi::c_int as isize);
+        let fresh4 = &mut *near_mv_ref_cnts.offset(1 as ::core::ffi::c_int as isize);
         *fresh4 = *fresh3;
         *near_mv_ref_cnts.offset(0 as ::core::ffi::c_int as isize) = *fresh4;
         if (*above).mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
@@ -439,11 +439,11 @@ pub unsafe extern "C" fn vp8_find_near_mvs(
                     1 as ::core::ffi::c_int;
             }
         }
-        if *near_mv_ref_cnts.offset(CNT_SPLITMV as ::core::ffi::c_int as isize) != 0 {
-            if (*mv).as_int == near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int {
-                *near_mv_ref_cnts.offset(CNT_NEAREST as ::core::ffi::c_int as isize) +=
-                    1 as ::core::ffi::c_int;
-            }
+        if *near_mv_ref_cnts.offset(CNT_SPLITMV as ::core::ffi::c_int as isize) != 0
+            && (*mv).as_int == near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int
+        {
+            *near_mv_ref_cnts.offset(CNT_NEAREST as ::core::ffi::c_int as isize) +=
+                1 as ::core::ffi::c_int;
         }
         *near_mv_ref_cnts.offset(CNT_SPLITMV as ::core::ffi::c_int as isize) =
             (((*above).mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int)
@@ -536,7 +536,7 @@ pub unsafe extern "C" fn vp8_find_near_mvs_bias(
             best_mv_sb.offset(sign_bias as isize) as *mut int_mv,
             xd,
         );
-        return sign_bias;
+        sign_bias
     }
 }
 #[unsafe(no_mangle)]
@@ -557,6 +557,6 @@ pub unsafe extern "C" fn vp8_mv_ref_probs(
         *p.offset(3 as ::core::ffi::c_int as isize) =
             vp8_mode_contexts[*near_mv_ref_ct.offset(3 as ::core::ffi::c_int as isize) as usize]
                 [3 as ::core::ffi::c_int as usize] as vp8_prob;
-        return p as *mut vp8_prob;
+        p as *mut vp8_prob
     }
 }

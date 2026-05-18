@@ -489,12 +489,12 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mbuv(mut x: *mut MACROB
             | mv_row
                 >> (::core::mem::size_of::<::core::ffi::c_int>() as usize)
                     .wrapping_mul(CHAR_BIT as usize)
-                    .wrapping_sub(1 as usize);
+                    .wrapping_sub(1_usize);
         mv_col += 1 as ::core::ffi::c_int
             | mv_col
                 >> (::core::mem::size_of::<::core::ffi::c_int>() as usize)
                     .wrapping_mul(CHAR_BIT as usize)
-                    .wrapping_sub(1 as usize);
+                    .wrapping_sub(1_usize);
         mv_row /= 2 as ::core::ffi::c_int;
         mv_col /= 2 as ::core::ffi::c_int;
         mv_row &= (*x).fullpixel_mask;
@@ -565,10 +565,11 @@ pub unsafe extern "C" fn vp8_build_inter4x4_predictors_mbuv(mut x: *mut MACROBLO
                     + (temp
                         >> (::core::mem::size_of::<::core::ffi::c_int>() as usize)
                             .wrapping_mul(CHAR_BIT as usize)
-                            .wrapping_sub(1 as usize))
+                            .wrapping_sub(1_usize))
                         * 8 as ::core::ffi::c_int;
-                (*x).block[uoffset as usize].bmi.mv.as_mv.row =
-                    (temp / 8 as ::core::ffi::c_int & (*x).fullpixel_mask) as ::core::ffi::c_short;
+                (*x).block[uoffset as usize].bmi.mv.as_mv.row = ((temp / 8 as ::core::ffi::c_int)
+                    & (*x).fullpixel_mask)
+                    as ::core::ffi::c_short;
                 temp = (*x).block[yoffset as usize].bmi.mv.as_mv.col as ::core::ffi::c_int
                     + (*x).block[(yoffset + 1 as ::core::ffi::c_int) as usize]
                         .bmi
@@ -589,10 +590,11 @@ pub unsafe extern "C" fn vp8_build_inter4x4_predictors_mbuv(mut x: *mut MACROBLO
                     + (temp
                         >> (::core::mem::size_of::<::core::ffi::c_int>() as usize)
                             .wrapping_mul(CHAR_BIT as usize)
-                            .wrapping_sub(1 as usize))
+                            .wrapping_sub(1_usize))
                         * 8 as ::core::ffi::c_int;
-                (*x).block[uoffset as usize].bmi.mv.as_mv.col =
-                    (temp / 8 as ::core::ffi::c_int & (*x).fullpixel_mask) as ::core::ffi::c_short;
+                (*x).block[uoffset as usize].bmi.mv.as_mv.col = ((temp / 8 as ::core::ffi::c_int)
+                    & (*x).fullpixel_mask)
+                    as ::core::ffi::c_short;
                 (*x).block[voffset as usize].bmi.mv.as_int =
                     (*x).block[uoffset as usize].bmi.mv.as_int;
                 j += 1;
@@ -740,7 +742,7 @@ unsafe extern "C" fn clamp_uvmv_to_umv_border(mut mv: *mut MV, mut xd: *const MA
         (*mv).col = (if (2 as ::core::ffi::c_int * (*mv).col as ::core::ffi::c_int)
             < (*xd).mb_to_left_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
         {
-            (*xd).mb_to_left_edge - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+            ((*xd).mb_to_left_edge - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int))
                 >> 1 as ::core::ffi::c_int
         } else {
             (*mv).col as ::core::ffi::c_int
@@ -748,7 +750,7 @@ unsafe extern "C" fn clamp_uvmv_to_umv_border(mut mv: *mut MV, mut xd: *const MA
         (*mv).col = (if 2 as ::core::ffi::c_int * (*mv).col as ::core::ffi::c_int
             > (*xd).mb_to_right_edge + ((18 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
         {
-            (*xd).mb_to_right_edge + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+            ((*xd).mb_to_right_edge + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int))
                 >> 1 as ::core::ffi::c_int
         } else {
             (*mv).col as ::core::ffi::c_int
@@ -756,7 +758,7 @@ unsafe extern "C" fn clamp_uvmv_to_umv_border(mut mv: *mut MV, mut xd: *const MA
         (*mv).row = (if (2 as ::core::ffi::c_int * (*mv).row as ::core::ffi::c_int)
             < (*xd).mb_to_top_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
         {
-            (*xd).mb_to_top_edge - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+            ((*xd).mb_to_top_edge - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int))
                 >> 1 as ::core::ffi::c_int
         } else {
             (*mv).row as ::core::ffi::c_int
@@ -764,7 +766,7 @@ unsafe extern "C" fn clamp_uvmv_to_umv_border(mut mv: *mut MV, mut xd: *const MA
         (*mv).row = (if 2 as ::core::ffi::c_int * (*mv).row as ::core::ffi::c_int
             > (*xd).mb_to_bottom_edge + ((18 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
         {
-            (*xd).mb_to_bottom_edge + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+            ((*xd).mb_to_bottom_edge + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int))
                 >> 1 as ::core::ffi::c_int
         } else {
             (*mv).row as ::core::ffi::c_int
@@ -817,14 +819,14 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mb(
                 | _16x16mv.as_mv.row as ::core::ffi::c_int
                     >> (::core::mem::size_of::<::core::ffi::c_int>() as usize)
                         .wrapping_mul(CHAR_BIT as usize)
-                        .wrapping_sub(1 as usize)))
+                        .wrapping_sub(1_usize)))
             as ::core::ffi::c_short;
         _16x16mv.as_mv.col = (_16x16mv.as_mv.col as ::core::ffi::c_int
             + (1 as ::core::ffi::c_int
                 | _16x16mv.as_mv.col as ::core::ffi::c_int
                     >> (::core::mem::size_of::<::core::ffi::c_int>() as usize)
                         .wrapping_mul(CHAR_BIT as usize)
-                        .wrapping_sub(1 as usize)))
+                        .wrapping_sub(1_usize)))
             as ::core::ffi::c_short;
         _16x16mv.as_mv.row = (_16x16mv.as_mv.row as ::core::ffi::c_int / 2 as ::core::ffi::c_int)
             as ::core::ffi::c_short;
@@ -1143,10 +1145,11 @@ unsafe extern "C" fn build_4x4uvmvs(mut x: *mut MACROBLOCKD) {
                     + (temp
                         >> (::core::mem::size_of::<::core::ffi::c_int>() as usize)
                             .wrapping_mul(CHAR_BIT as usize)
-                            .wrapping_sub(1 as usize))
+                            .wrapping_sub(1_usize))
                         * 8 as ::core::ffi::c_int;
-                (*x).block[uoffset as usize].bmi.mv.as_mv.row =
-                    (temp / 8 as ::core::ffi::c_int & (*x).fullpixel_mask) as ::core::ffi::c_short;
+                (*x).block[uoffset as usize].bmi.mv.as_mv.row = ((temp / 8 as ::core::ffi::c_int)
+                    & (*x).fullpixel_mask)
+                    as ::core::ffi::c_short;
                 temp = (*(*x).mode_info_context).bmi[(yoffset + 0 as ::core::ffi::c_int) as usize]
                     .mv
                     .as_mv
@@ -1167,10 +1170,11 @@ unsafe extern "C" fn build_4x4uvmvs(mut x: *mut MACROBLOCKD) {
                     + (temp
                         >> (::core::mem::size_of::<::core::ffi::c_int>() as usize)
                             .wrapping_mul(CHAR_BIT as usize)
-                            .wrapping_sub(1 as usize))
+                            .wrapping_sub(1_usize))
                         * 8 as ::core::ffi::c_int;
-                (*x).block[uoffset as usize].bmi.mv.as_mv.col =
-                    (temp / 8 as ::core::ffi::c_int & (*x).fullpixel_mask) as ::core::ffi::c_short;
+                (*x).block[uoffset as usize].bmi.mv.as_mv.col = ((temp / 8 as ::core::ffi::c_int)
+                    & (*x).fullpixel_mask)
+                    as ::core::ffi::c_short;
                 if (*(*x).mode_info_context).mbmi.need_to_clamp_mvs != 0 {
                     clamp_uvmv_to_umv_border(
                         &raw mut (*(&raw mut (*x).block as *mut BLOCKD).offset(uoffset as isize))

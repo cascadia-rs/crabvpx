@@ -143,7 +143,7 @@ unsafe extern "C" fn filter_block2d_first_pass(
                         * *vp8_filter.offset(5 as ::core::ffi::c_int as isize)
                             as ::core::ffi::c_int
                     + (VP8_FILTER_WEIGHT >> 1 as ::core::ffi::c_int);
-                Temp = Temp >> VP8_FILTER_SHIFT;
+                Temp >>= VP8_FILTER_SHIFT;
                 if Temp < 0 as ::core::ffi::c_int {
                     Temp = 0 as ::core::ffi::c_int;
                 } else if Temp > 255 as ::core::ffi::c_int {
@@ -198,7 +198,7 @@ unsafe extern "C" fn filter_block2d_second_pass(
                         * *vp8_filter.offset(5 as ::core::ffi::c_int as isize)
                             as ::core::ffi::c_int
                     + (VP8_FILTER_WEIGHT >> 1 as ::core::ffi::c_int);
-                Temp = Temp >> VP8_FILTER_SHIFT;
+                Temp >>= VP8_FILTER_SHIFT;
                 if Temp < 0 as ::core::ffi::c_int {
                     Temp = 0 as ::core::ffi::c_int;
                 } else if Temp > 255 as ::core::ffi::c_int {
@@ -401,13 +401,13 @@ unsafe extern "C" fn filter_block2d_bil_first_pass(
         while i < height {
             j = 0 as ::core::ffi::c_uint;
             while j < width {
-                *dst_ptr.offset(j as isize) = (*src_ptr.offset(0 as ::core::ffi::c_int as isize)
+                *dst_ptr.offset(j as isize) = ((*src_ptr.offset(0 as ::core::ffi::c_int as isize)
                     as ::core::ffi::c_int
                     * *vp8_filter.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
                     + *src_ptr.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
                         * *vp8_filter.offset(1 as ::core::ffi::c_int as isize)
                             as ::core::ffi::c_int
-                    + VP8_FILTER_WEIGHT / 2 as ::core::ffi::c_int
+                    + VP8_FILTER_WEIGHT / 2 as ::core::ffi::c_int)
                     >> VP8_FILTER_SHIFT)
                     as ::core::ffi::c_ushort;
                 src_ptr = src_ptr.offset(1);

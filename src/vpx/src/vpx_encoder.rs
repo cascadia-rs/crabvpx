@@ -494,9 +494,7 @@ pub const VPX_CODEC_USE_PSNR: ::core::ffi::c_int = 0x10000 as ::core::ffi::c_int
 pub const VPX_CODEC_USE_OUTPUT_PARTITION: ::core::ffi::c_int = 0x20000 as ::core::ffi::c_int;
 pub const VPX_CODEC_INTERNAL_ABI_VERSION: ::core::ffi::c_int = 5 as ::core::ffi::c_int;
 unsafe extern "C" fn get_alg_priv(mut ctx: *mut vpx_codec_ctx_t) -> *mut vpx_codec_alg_priv_t {
-    unsafe {
-        return (*ctx).priv_0 as *mut vpx_codec_alg_priv_t;
-    }
+    unsafe { (*ctx).priv_0 as *mut vpx_codec_alg_priv_t }
 }
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_enc_init_ver(
@@ -543,12 +541,12 @@ pub unsafe extern "C" fn vpx_codec_enc_init_ver(
                 vpx_codec_destroy(ctx);
             }
         }
-        return (if !ctx.is_null() {
+        (if !ctx.is_null() {
             (*ctx).err = res;
             (*ctx).err as ::core::ffi::c_uint
         } else {
             res as ::core::ffi::c_uint
-        }) as vpx_codec_err_t;
+        }) as vpx_codec_err_t
     }
 }
 #[unsafe(no_mangle)]
@@ -656,12 +654,12 @@ pub unsafe extern "C" fn vpx_codec_enc_init_multi_ver(
                 ctx = ctx.offset(-1);
             }
         }
-        return (if !ctx.is_null() {
+        (if !ctx.is_null() {
             (*ctx).err = res;
             (*ctx).err as ::core::ffi::c_uint
         } else {
             res as ::core::ffi::c_uint
-        }) as vpx_codec_err_t;
+        }) as vpx_codec_err_t
     }
 }
 #[unsafe(no_mangle)]
@@ -680,7 +678,7 @@ pub unsafe extern "C" fn vpx_codec_enc_config_default(
             *cfg = (*(*iface).enc.cfg_maps).cfg;
             res = VPX_CODEC_OK;
         }
-        return res;
+        res
     }
 }
 unsafe extern "C" fn FLOATING_POINT_INIT() {}
@@ -753,12 +751,12 @@ pub unsafe extern "C" fn vpx_codec_encode(
             }
             FLOATING_POINT_RESTORE();
         }
-        return (if !ctx.is_null() {
+        (if !ctx.is_null() {
             (*ctx).err = res;
             (*ctx).err as ::core::ffi::c_uint
         } else {
             res as ::core::ffi::c_uint
-        }) as vpx_codec_err_t;
+        }) as vpx_codec_err_t
     }
 }
 #[unsafe(no_mangle)]
@@ -821,7 +819,7 @@ pub unsafe extern "C" fn vpx_codec_get_cx_data(
             }
             if dst_buf == (*pkt).data.raw.buf as *mut ::core::ffi::c_char {
                 (*priv_0).enc.cx_data_dst_buf.buf =
-                    dst_buf.offset((*pkt).data.raw.sz as isize) as *mut ::core::ffi::c_void;
+                    dst_buf.add((*pkt).data.raw.sz) as *mut ::core::ffi::c_void;
                 (*priv_0).enc.cx_data_dst_buf.sz = (*priv_0)
                     .enc
                     .cx_data_dst_buf
@@ -829,7 +827,7 @@ pub unsafe extern "C" fn vpx_codec_get_cx_data(
                     .wrapping_sub((*pkt).data.raw.sz);
             }
         }
-        return pkt;
+        pkt
     }
 }
 #[unsafe(no_mangle)]
@@ -853,7 +851,7 @@ pub unsafe extern "C" fn vpx_codec_set_cx_data_buf(
             (*(*ctx).priv_0).enc.cx_data_pad_before = 0 as ::core::ffi::c_uint;
             (*(*ctx).priv_0).enc.cx_data_pad_after = 0 as ::core::ffi::c_uint;
         }
-        return VPX_CODEC_OK;
+        VPX_CODEC_OK
     }
 }
 #[unsafe(no_mangle)]
@@ -876,7 +874,7 @@ pub unsafe extern "C" fn vpx_codec_get_preview_frame(
                     .expect("non-null function pointer")(get_alg_priv(ctx));
             }
         }
-        return img;
+        img
     }
 }
 #[unsafe(no_mangle)]
@@ -899,7 +897,7 @@ pub unsafe extern "C" fn vpx_codec_get_global_headers(
                     .expect("non-null function pointer")(get_alg_priv(ctx));
             }
         }
-        return buf;
+        buf
     }
 }
 #[unsafe(no_mangle)]
@@ -919,12 +917,12 @@ pub unsafe extern "C" fn vpx_codec_enc_config_set(
                 .cfg_set
                 .expect("non-null function pointer")(get_alg_priv(ctx), cfg);
         }
-        return (if !ctx.is_null() {
+        (if !ctx.is_null() {
             (*ctx).err = res;
             (*ctx).err as ::core::ffi::c_uint
         } else {
             res as ::core::ffi::c_uint
-        }) as vpx_codec_err_t;
+        }) as vpx_codec_err_t
     }
 }
 #[unsafe(no_mangle)]
@@ -939,7 +937,7 @@ pub unsafe extern "C" fn vpx_codec_pkt_list_add(
             *(&raw mut (*list).pkts as *mut vpx_codec_cx_pkt).offset(fresh0 as isize) = *pkt;
             return 0 as ::core::ffi::c_int;
         }
-        return 1 as ::core::ffi::c_int;
+        1 as ::core::ffi::c_int
     }
 }
 #[unsafe(no_mangle)]
@@ -961,6 +959,6 @@ pub unsafe extern "C" fn vpx_codec_pkt_list_get(
         } else {
             pkt = ::core::ptr::null::<vpx_codec_cx_pkt_t>();
         }
-        return pkt;
+        pkt
     }
 }

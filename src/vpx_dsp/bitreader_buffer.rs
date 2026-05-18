@@ -15,9 +15,7 @@ pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::co
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_rb_bytes_read(mut rb: *mut vpx_read_bit_buffer) -> size_t {
-    unsafe {
-        return (*rb).bit_offset.wrapping_add(7 as size_t) >> 3 as ::core::ffi::c_int;
-    }
+    unsafe { (*rb).bit_offset.wrapping_add(7 as size_t) >> 3 as ::core::ffi::c_int }
 }
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_rb_read_bit(mut rb: *mut vpx_read_bit_buffer) -> ::core::ffi::c_int {
@@ -26,18 +24,17 @@ pub unsafe extern "C" fn vpx_rb_read_bit(mut rb: *mut vpx_read_bit_buffer) -> ::
         let p: size_t = off >> 3 as ::core::ffi::c_int;
         let q: ::core::ffi::c_int =
             7 as ::core::ffi::c_int - (off & 0x7 as size_t) as ::core::ffi::c_int;
-        if (*rb).bit_buffer.offset(p as isize) < (*rb).bit_buffer_end {
+        if (*rb).bit_buffer.add(p) < (*rb).bit_buffer_end {
             let bit: ::core::ffi::c_int =
-                *(*rb).bit_buffer.offset(p as isize) as ::core::ffi::c_int >> q
-                    & 1 as ::core::ffi::c_int;
+                *(*rb).bit_buffer.add(p) as ::core::ffi::c_int >> q & 1 as ::core::ffi::c_int;
             (*rb).bit_offset = off.wrapping_add(1 as size_t);
-            return bit;
+            bit
         } else {
             if (*rb).error_handler.is_some() {
                 (*rb).error_handler.expect("non-null function pointer")((*rb).error_handler_data);
             }
-            return 0 as ::core::ffi::c_int;
-        };
+            0 as ::core::ffi::c_int
+        }
     }
 }
 #[unsafe(no_mangle)]
@@ -53,7 +50,7 @@ pub unsafe extern "C" fn vpx_rb_read_literal(
             value |= vpx_rb_read_bit(rb) << bit;
             bit -= 1;
         }
-        return value;
+        value
     }
 }
 #[unsafe(no_mangle)]
@@ -63,11 +60,11 @@ pub unsafe extern "C" fn vpx_rb_read_signed_literal(
 ) -> ::core::ffi::c_int {
     unsafe {
         let value: ::core::ffi::c_int = vpx_rb_read_literal(rb, bits) as ::core::ffi::c_int;
-        return if vpx_rb_read_bit(rb) != 0 {
+        if vpx_rb_read_bit(rb) != 0 {
             -value
         } else {
             value
-        };
+        }
     }
 }
 #[unsafe(no_mangle)]
@@ -75,7 +72,5 @@ pub unsafe extern "C" fn vpx_rb_read_inv_signed_literal(
     mut rb: *mut vpx_read_bit_buffer,
     mut bits: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
-    unsafe {
-        return vpx_rb_read_signed_literal(rb, bits);
-    }
+    unsafe { vpx_rb_read_signed_literal(rb, bits) }
 }

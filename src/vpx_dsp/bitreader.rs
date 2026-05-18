@@ -56,7 +56,7 @@ unsafe extern "C" fn vpx_read(
         }
         value = (*r).value;
         count = (*r).count;
-        bigsplit = (split as BD_VALUE) << BD_VALUE_SIZE - CHAR_BIT;
+        bigsplit = (split as BD_VALUE) << (BD_VALUE_SIZE - CHAR_BIT);
         range = split;
         if value >= bigsplit {
             range = (*r).range.wrapping_sub(split);
@@ -70,18 +70,16 @@ unsafe extern "C" fn vpx_read(
         (*r).value = value;
         (*r).count = count;
         (*r).range = range;
-        return bit as ::core::ffi::c_int;
+        bit as ::core::ffi::c_int
     }
 }
 #[inline]
 unsafe extern "C" fn vpx_read_bit(mut r: *mut vpx_reader) -> ::core::ffi::c_int {
-    unsafe {
-        return vpx_read(r, 128 as ::core::ffi::c_int);
-    }
+    unsafe { vpx_read(r, 128 as ::core::ffi::c_int) }
 }
 #[inline]
 unsafe extern "C" fn BSwap64(mut x: uint64_t) -> uint64_t {
-    return x.swap_bytes();
+    x.swap_bytes()
 }
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_reader_init(
@@ -93,9 +91,9 @@ pub unsafe extern "C" fn vpx_reader_init(
 ) -> ::core::ffi::c_int {
     unsafe {
         if size != 0 && buffer.is_null() {
-            return 1 as ::core::ffi::c_int;
+            1 as ::core::ffi::c_int
         } else {
-            (*r).buffer_end = buffer.offset(size as isize);
+            (*r).buffer_end = buffer.add(size);
             (*r).buffer = buffer;
             (*r).value = 0 as BD_VALUE;
             (*r).count = -(8 as ::core::ffi::c_int);
@@ -103,8 +101,8 @@ pub unsafe extern "C" fn vpx_reader_init(
             (*r).decrypt_cb = decrypt_cb;
             (*r).decrypt_state = decrypt_state;
             vpx_reader_fill(r);
-            return (vpx_read_bit(r) != 0 as ::core::ffi::c_int) as ::core::ffi::c_int;
-        };
+            (vpx_read_bit(r) != 0 as ::core::ffi::c_int) as ::core::ffi::c_int
+        }
     }
 }
 #[unsafe(no_mangle)]
@@ -146,7 +144,7 @@ pub unsafe extern "C" fn vpx_reader_fill(mut r: *mut vpx_reader) {
                 ::core::mem::size_of::<BD_VALUE>() as size_t,
             );
             big_endian_values = BSwap64(big_endian_values as uint64_t) as BD_VALUE;
-            nv = big_endian_values >> BD_VALUE_SIZE - bits;
+            nv = big_endian_values >> (BD_VALUE_SIZE - bits);
             count += bits;
             buffer = buffer.offset((bits >> 3 as ::core::ffi::c_int) as isize);
             value = (*r).value | nv << (shift & 0x7 as ::core::ffi::c_int);
@@ -181,6 +179,6 @@ pub unsafe extern "C" fn vpx_reader_find_end(mut r: *mut vpx_reader) -> *const u
             (*r).count -= CHAR_BIT;
             (*r).buffer = (*r).buffer.offset(-1);
         }
-        return (*r).buffer;
+        (*r).buffer
     }
 }

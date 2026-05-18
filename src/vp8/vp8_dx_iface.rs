@@ -1049,8 +1049,8 @@ unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int {
     unsafe {
-        return (*((&raw const (*atomic).value) as *const core::sync::atomic::AtomicI32))
-            .load(core::sync::atomic::Ordering::Acquire);
+        (*((&raw const (*atomic).value) as *const core::sync::atomic::AtomicI32))
+            .load(core::sync::atomic::Ordering::Acquire)
     }
 }
 unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi::c_int {
@@ -1071,7 +1071,7 @@ unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi:
             (*priv_0).cfg = *(*ctx).config.dec as vpx_codec_dec_cfg_t;
             (*ctx).config.dec = &raw mut (*priv_0).cfg;
         }
-        return 0 as ::core::ffi::c_int;
+        0 as ::core::ffi::c_int
     }
 }
 unsafe extern "C" fn vp8_init(
@@ -1095,14 +1095,14 @@ unsafe extern "C" fn vp8_init(
                 & VPX_CODEC_USE_INPUT_FRAGMENTS as vpx_codec_flags_t)
                 as ::core::ffi::c_int;
         }
-        return res;
+        res
     }
 }
 unsafe extern "C" fn vp8_destroy(mut ctx: *mut vpx_codec_alg_priv_t) -> vpx_codec_err_t {
     unsafe {
         vp8_remove_decoder_instances(&raw mut (*ctx).yv12_frame_buffers);
         vpx_free(ctx as *mut ::core::ffi::c_void);
-        return VPX_CODEC_OK;
+        VPX_CODEC_OK
     }
 }
 unsafe extern "C" fn vp8_peek_si_internal(
@@ -1172,7 +1172,7 @@ unsafe extern "C" fn vp8_peek_si_internal(
                 res = VPX_CODEC_UNSUP_BITSTREAM;
             }
         }
-        return res;
+        res
     }
 }
 unsafe extern "C" fn vp8_peek_si(
@@ -1180,9 +1180,7 @@ unsafe extern "C" fn vp8_peek_si(
     mut data_sz: ::core::ffi::c_uint,
     mut si: *mut vpx_codec_stream_info_t,
 ) -> vpx_codec_err_t {
-    unsafe {
-        return vp8_peek_si_internal(data, data_sz, si, None, NULL);
-    }
+    unsafe { vp8_peek_si_internal(data, data_sz, si, None, NULL) }
 }
 unsafe extern "C" fn vp8_get_si(
     mut ctx: *mut vpx_codec_alg_priv_t,
@@ -1201,7 +1199,7 @@ unsafe extern "C" fn vp8_get_si(
             sz as size_t,
         );
         (*si).sz = sz;
-        return VPX_CODEC_OK;
+        VPX_CODEC_OK
     }
 }
 unsafe extern "C" fn update_error_state(
@@ -1218,7 +1216,7 @@ unsafe extern "C" fn update_error_state(
                 ::core::ptr::null::<::core::ffi::c_char>()
             };
         }
-        return res;
+        res
     }
 }
 unsafe extern "C" fn yuvconfig2image(
@@ -1229,9 +1227,9 @@ unsafe extern "C" fn yuvconfig2image(
     unsafe {
         (*img).fmt = VPX_IMG_FMT_I420;
         (*img).w = (*yv12).y_stride as ::core::ffi::c_uint;
-        (*img).h = ((*yv12).y_height
+        (*img).h = (((*yv12).y_height
             + 2 as ::core::ffi::c_int * VP8BORDERINPIXELS
-            + 15 as ::core::ffi::c_int
+            + 15 as ::core::ffi::c_int)
             & !(15 as ::core::ffi::c_int)) as ::core::ffi::c_uint;
         (*img).r_w = (*yv12).y_width as ::core::ffi::c_uint;
         (*img).d_w = (*img).r_w;
@@ -1307,7 +1305,7 @@ unsafe extern "C" fn update_fragments(
             (*ctx).fragments.sizes[0 as ::core::ffi::c_int as usize] = data_sz;
             (*ctx).fragments.count = 1 as ::core::ffi::c_uint;
         }
-        return 1 as ::core::ffi::c_int;
+        1 as ::core::ffi::c_int
     }
 }
 unsafe extern "C" fn vp8_decode(
@@ -1529,7 +1527,7 @@ unsafe extern "C" fn vp8_decode(
             (*ctx).fragments.count = 0 as ::core::ffi::c_uint;
             (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
         }
-        return res;
+        res
     }
 }
 unsafe extern "C" fn vp8_get_frame(
@@ -1604,7 +1602,7 @@ unsafe extern "C" fn vp8_get_frame(
                 *iter = img as vpx_codec_iter_t;
             }
         }
-        return img;
+        img
     }
 }
 unsafe extern "C" fn image2yuvconfig(
@@ -1641,7 +1639,7 @@ unsafe extern "C" fn image2yuvconfig(
         (*yv12).border = ((*img).stride[VPX_PLANE_Y as usize] as ::core::ffi::c_uint)
             .wrapping_sub((*img).d_w)
             .wrapping_div(2 as ::core::ffi::c_uint) as ::core::ffi::c_int;
-        return res;
+        res
     }
 }
 unsafe extern "C" fn vp8_set_reference(
@@ -1688,14 +1686,14 @@ unsafe extern "C" fn vp8_set_reference(
             if (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize].is_null() {
                 return VPX_CODEC_CORRUPT_FRAME;
             }
-            return vp8dx_set_reference(
+            vp8dx_set_reference(
                 (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
                 (*frame).frame_type as vpx_ref_frame_type,
                 &raw mut sd,
-            );
+            )
         } else {
-            return VPX_CODEC_INVALID_PARAM;
-        };
+            VPX_CODEC_INVALID_PARAM
+        }
     }
 }
 unsafe extern "C" fn vp8_get_reference(
@@ -1742,14 +1740,14 @@ unsafe extern "C" fn vp8_get_reference(
             if (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize].is_null() {
                 return VPX_CODEC_CORRUPT_FRAME;
             }
-            return vp8dx_get_reference(
+            vp8dx_get_reference(
                 (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
                 (*frame).frame_type as vpx_ref_frame_type,
                 &raw mut sd,
-            );
+            )
         } else {
-            return VPX_CODEC_INVALID_PARAM;
-        };
+            VPX_CODEC_INVALID_PARAM
+        }
     }
 }
 unsafe extern "C" fn vp8_get_quantizer(
@@ -1767,14 +1765,14 @@ unsafe extern "C" fn vp8_get_quantizer(
             return VPX_CODEC_CORRUPT_FRAME;
         }
         *arg = vp8dx_get_quantizer(pbi);
-        return VPX_CODEC_OK;
+        VPX_CODEC_OK
     }
 }
 unsafe extern "C" fn vp8_set_postproc(
     _ctx: *mut vpx_codec_alg_priv_t,
     _args: ::core::ffi::VaList,
 ) -> vpx_codec_err_t {
-    return VPX_CODEC_INCAPABLE;
+    VPX_CODEC_INCAPABLE
 }
 unsafe extern "C" fn vp8_get_last_ref_updates(
     mut ctx: *mut vpx_codec_alg_priv_t,
@@ -1792,10 +1790,10 @@ unsafe extern "C" fn vp8_get_last_ref_updates(
                 * VP8_ALTR_FRAME as ::core::ffi::c_int
                 + (*pbi).common.refresh_golden_frame * VP8_GOLD_FRAME as ::core::ffi::c_int
                 + (*pbi).common.refresh_last_frame * VP8_LAST_FRAME as ::core::ffi::c_int;
-            return VPX_CODEC_OK;
+            VPX_CODEC_OK
         } else {
-            return VPX_CODEC_INVALID_PARAM;
-        };
+            VPX_CODEC_INVALID_PARAM
+        }
     }
 }
 unsafe extern "C" fn vp8_get_last_ref_frame(
@@ -1834,13 +1832,13 @@ unsafe extern "C" fn vp8_get_last_ref_frame(
                 } else {
                     0 as ::core::ffi::c_int
                 });
-                return VPX_CODEC_OK;
+                VPX_CODEC_OK
             } else {
-                return VPX_CODEC_CORRUPT_FRAME;
+                VPX_CODEC_CORRUPT_FRAME
             }
         } else {
-            return VPX_CODEC_INVALID_PARAM;
-        };
+            VPX_CODEC_INVALID_PARAM
+        }
     }
 }
 unsafe extern "C" fn vp8_get_frame_corrupted(
@@ -1857,10 +1855,10 @@ unsafe extern "C" fn vp8_get_frame_corrupted(
                 return VPX_CODEC_ERROR;
             }
             *corrupted = (*frame).corrupted;
-            return VPX_CODEC_OK;
+            VPX_CODEC_OK
         } else {
-            return VPX_CODEC_INVALID_PARAM;
-        };
+            VPX_CODEC_INVALID_PARAM
+        }
     }
 }
 unsafe extern "C" fn vp8_set_decryptor(
@@ -1876,7 +1874,7 @@ unsafe extern "C" fn vp8_set_decryptor(
             (*ctx).decrypt_cb = None;
             (*ctx).decrypt_state = NULL;
         }
-        return VPX_CODEC_OK;
+        VPX_CODEC_OK
     }
 }
 static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
@@ -1996,7 +1994,7 @@ pub static mut vpx_codec_vp8_dx_algo: vpx_codec_iface_t = vpx_codec_iface {
 };
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_vp8_dx() -> *const vpx_codec_iface_t {
-    return &raw const vpx_codec_vp8_dx_algo;
+    &raw const vpx_codec_vp8_dx_algo
 }
 pub const __ATOMIC_ACQUIRE: ::core::ffi::c_int = 2 as ::core::ffi::c_int;
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;

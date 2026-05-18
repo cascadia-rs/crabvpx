@@ -13,9 +13,9 @@ unsafe extern "C" fn get_prob(
         .wrapping_add((den >> 1 as ::core::ffi::c_int) as uint64_t)
         .wrapping_div(den as uint64_t) as ::core::ffi::c_int;
     let clipped_prob: ::core::ffi::c_int = p
-        | 255 as ::core::ffi::c_int - p >> 23 as ::core::ffi::c_int
+        | (255 as ::core::ffi::c_int - p) >> 23 as ::core::ffi::c_int
         | (p == 0 as ::core::ffi::c_int) as ::core::ffi::c_int;
-    return clipped_prob as vpx_prob;
+    clipped_prob as vpx_prob
 }
 #[inline]
 unsafe extern "C" fn weighted_prob(
@@ -23,10 +23,10 @@ unsafe extern "C" fn weighted_prob(
     mut prob2: ::core::ffi::c_int,
     mut factor: ::core::ffi::c_int,
 ) -> vpx_prob {
-    return (prob1 * (256 as ::core::ffi::c_int - factor)
+    ((prob1 * (256 as ::core::ffi::c_int - factor)
         + prob2 * factor
-        + ((1 as ::core::ffi::c_int) << 8 as ::core::ffi::c_int - 1 as ::core::ffi::c_int)
-        >> 8 as ::core::ffi::c_int) as vpx_prob;
+        + ((1 as ::core::ffi::c_int) << (8 as ::core::ffi::c_int - 1 as ::core::ffi::c_int)))
+        >> 8 as ::core::ffi::c_int) as vpx_prob
 }
 static mut count_to_update_factor: [::core::ffi::c_int; 21] = [
     0 as ::core::ffi::c_int,
@@ -60,7 +60,7 @@ unsafe extern "C" fn mode_mv_merge_probs(
         let den: ::core::ffi::c_uint = (*ct.offset(0 as ::core::ffi::c_int as isize))
             .wrapping_add(*ct.offset(1 as ::core::ffi::c_int as isize));
         if den == 0 as ::core::ffi::c_uint {
-            return pre_prob;
+            pre_prob
         } else {
             let count: ::core::ffi::c_uint = if den < 20 as ::core::ffi::c_uint {
                 den
@@ -71,12 +71,12 @@ unsafe extern "C" fn mode_mv_merge_probs(
                 count_to_update_factor[count as usize] as ::core::ffi::c_uint;
             let prob: vpx_prob =
                 get_prob(*ct.offset(0 as ::core::ffi::c_int as isize), den) as vpx_prob;
-            return weighted_prob(
+            weighted_prob(
                 pre_prob as ::core::ffi::c_int,
                 prob as ::core::ffi::c_int,
                 factor as ::core::ffi::c_int,
-            );
-        };
+            )
+        }
     }
 }
 #[unsafe(no_mangle)]
@@ -366,7 +366,7 @@ unsafe extern "C" fn tree_merge_probs_impl(
             *pre_probs.offset((i >> 1 as ::core::ffi::c_int) as isize),
             &raw const ct as *const ::core::ffi::c_uint,
         );
-        return left_count.wrapping_add(right_count);
+        left_count.wrapping_add(right_count)
     }
 }
 #[unsafe(no_mangle)]

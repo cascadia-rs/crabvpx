@@ -38,7 +38,7 @@ build:
 # Run linting and formatting checks
 lint:
     cargo fmt --all -- --check
-    cargo clippy --workspace
+    cargo clippy --workspace -- -D warnings
 
 # Run tests in the Rust workspace
 test:

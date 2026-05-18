@@ -460,12 +460,11 @@ pub unsafe extern "C" fn vp8_loop_filter_update_sharpness(
             let mut block_inside_limit: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
             block_inside_limit =
                 filt_lvl >> (sharpness_lvl > 0 as ::core::ffi::c_int) as ::core::ffi::c_int;
-            block_inside_limit = block_inside_limit
-                >> (sharpness_lvl > 4 as ::core::ffi::c_int) as ::core::ffi::c_int;
-            if sharpness_lvl > 0 as ::core::ffi::c_int {
-                if block_inside_limit > 9 as ::core::ffi::c_int - sharpness_lvl {
-                    block_inside_limit = 9 as ::core::ffi::c_int - sharpness_lvl;
-                }
+            block_inside_limit >>= (sharpness_lvl > 4 as ::core::ffi::c_int) as ::core::ffi::c_int;
+            if sharpness_lvl > 0 as ::core::ffi::c_int
+                && block_inside_limit > 9 as ::core::ffi::c_int - sharpness_lvl
+            {
+                block_inside_limit = 9 as ::core::ffi::c_int - sharpness_lvl;
             }
             if block_inside_limit < 1 as ::core::ffi::c_int {
                 block_inside_limit = 1 as ::core::ffi::c_int;

@@ -78,7 +78,7 @@ pub unsafe extern "C" fn vp8_yv12_de_alloc_frame_buffer(
         } else {
             return -(1 as ::core::ffi::c_int);
         }
-        return 0 as ::core::ffi::c_int;
+        0 as ::core::ffi::c_int
     }
 }
 #[unsafe(no_mangle)]
@@ -91,11 +91,11 @@ pub unsafe extern "C" fn vp8_yv12_realloc_frame_buffer(
     unsafe {
         if !ybf.is_null() {
             let mut aligned_width: ::core::ffi::c_int =
-                width + 15 as ::core::ffi::c_int & !(15 as ::core::ffi::c_int);
+                (width + 15 as ::core::ffi::c_int) & !(15 as ::core::ffi::c_int);
             let mut aligned_height: ::core::ffi::c_int =
-                height + 15 as ::core::ffi::c_int & !(15 as ::core::ffi::c_int);
+                (height + 15 as ::core::ffi::c_int) & !(15 as ::core::ffi::c_int);
             let mut y_stride: ::core::ffi::c_int =
-                aligned_width + 2 as ::core::ffi::c_int * border + 31 as ::core::ffi::c_int
+                (aligned_width + 2 as ::core::ffi::c_int * border + 31 as ::core::ffi::c_int)
                     & !(31 as ::core::ffi::c_int);
             let mut yplane_size: ::core::ffi::c_int =
                 (aligned_height + 2 as ::core::ffi::c_int * border) * y_stride;
@@ -153,7 +153,7 @@ pub unsafe extern "C" fn vp8_yv12_realloc_frame_buffer(
             (*ybf).corrupted = 0 as ::core::ffi::c_int;
             return 0 as ::core::ffi::c_int;
         }
-        return -(2 as ::core::ffi::c_int);
+        -(2 as ::core::ffi::c_int)
     }
 }
 #[unsafe(no_mangle)]
@@ -168,6 +168,6 @@ pub unsafe extern "C" fn vp8_yv12_alloc_frame_buffer(
             vp8_yv12_de_alloc_frame_buffer(ybf);
             return vp8_yv12_realloc_frame_buffer(ybf, width, height, border);
         }
-        return -(2 as ::core::ffi::c_int);
+        -(2 as ::core::ffi::c_int)
     }
 }

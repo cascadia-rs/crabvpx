@@ -265,14 +265,14 @@ pub unsafe extern "C" fn vp8_dc_quant(
 ) -> ::core::ffi::c_int {
     unsafe {
         let mut retval: ::core::ffi::c_int = 0;
-        QIndex = QIndex + Delta;
+        QIndex += Delta;
         if QIndex > 127 as ::core::ffi::c_int {
             QIndex = 127 as ::core::ffi::c_int;
         } else if QIndex < 0 as ::core::ffi::c_int {
             QIndex = 0 as ::core::ffi::c_int;
         }
         retval = dc_qlookup[QIndex as usize];
-        return retval;
+        retval
     }
 }
 #[unsafe(no_mangle)]
@@ -282,14 +282,14 @@ pub unsafe extern "C" fn vp8_dc2quant(
 ) -> ::core::ffi::c_int {
     unsafe {
         let mut retval: ::core::ffi::c_int = 0;
-        QIndex = QIndex + Delta;
+        QIndex += Delta;
         if QIndex > 127 as ::core::ffi::c_int {
             QIndex = 127 as ::core::ffi::c_int;
         } else if QIndex < 0 as ::core::ffi::c_int {
             QIndex = 0 as ::core::ffi::c_int;
         }
         retval = dc_qlookup[QIndex as usize] * 2 as ::core::ffi::c_int;
-        return retval;
+        retval
     }
 }
 #[unsafe(no_mangle)]
@@ -299,7 +299,7 @@ pub unsafe extern "C" fn vp8_dc_uv_quant(
 ) -> ::core::ffi::c_int {
     unsafe {
         let mut retval: ::core::ffi::c_int = 0;
-        QIndex = QIndex + Delta;
+        QIndex += Delta;
         if QIndex > 127 as ::core::ffi::c_int {
             QIndex = 127 as ::core::ffi::c_int;
         } else if QIndex < 0 as ::core::ffi::c_int {
@@ -309,7 +309,7 @@ pub unsafe extern "C" fn vp8_dc_uv_quant(
         if retval > 132 as ::core::ffi::c_int {
             retval = 132 as ::core::ffi::c_int;
         }
-        return retval;
+        retval
     }
 }
 #[unsafe(no_mangle)]
@@ -322,7 +322,7 @@ pub unsafe extern "C" fn vp8_ac_yquant(mut QIndex: ::core::ffi::c_int) -> ::core
             QIndex = 0 as ::core::ffi::c_int;
         }
         retval = ac_qlookup[QIndex as usize];
-        return retval;
+        retval
     }
 }
 #[unsafe(no_mangle)]
@@ -332,18 +332,18 @@ pub unsafe extern "C" fn vp8_ac2quant(
 ) -> ::core::ffi::c_int {
     unsafe {
         let mut retval: ::core::ffi::c_int = 0;
-        QIndex = QIndex + Delta;
+        QIndex += Delta;
         if QIndex > 127 as ::core::ffi::c_int {
             QIndex = 127 as ::core::ffi::c_int;
         } else if QIndex < 0 as ::core::ffi::c_int {
             QIndex = 0 as ::core::ffi::c_int;
         }
-        retval =
-            ac_qlookup[QIndex as usize] * 101581 as ::core::ffi::c_int >> 16 as ::core::ffi::c_int;
+        retval = (ac_qlookup[QIndex as usize] * 101581 as ::core::ffi::c_int)
+            >> 16 as ::core::ffi::c_int;
         if retval < 8 as ::core::ffi::c_int {
             retval = 8 as ::core::ffi::c_int;
         }
-        return retval;
+        retval
     }
 }
 #[unsafe(no_mangle)]
@@ -353,13 +353,13 @@ pub unsafe extern "C" fn vp8_ac_uv_quant(
 ) -> ::core::ffi::c_int {
     unsafe {
         let mut retval: ::core::ffi::c_int = 0;
-        QIndex = QIndex + Delta;
+        QIndex += Delta;
         if QIndex > 127 as ::core::ffi::c_int {
             QIndex = 127 as ::core::ffi::c_int;
         } else if QIndex < 0 as ::core::ffi::c_int {
             QIndex = 0 as ::core::ffi::c_int;
         }
         retval = ac_qlookup[QIndex as usize];
-        return retval;
+        retval
     }
 }

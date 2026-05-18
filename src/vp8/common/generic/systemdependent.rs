@@ -249,11 +249,11 @@ unsafe extern "C" fn get_cpu_count() -> ::core::ffi::c_int {
     unsafe {
         let mut core_count: ::core::ffi::c_int = 16 as ::core::ffi::c_int;
         core_count = sysconf(_SC_NPROCESSORS_ONLN) as ::core::ffi::c_int;
-        return if core_count > 0 as ::core::ffi::c_int {
+        if core_count > 0 as ::core::ffi::c_int {
             core_count
         } else {
             1 as ::core::ffi::c_int
-        };
+        }
     }
 }
 #[unsafe(no_mangle)]

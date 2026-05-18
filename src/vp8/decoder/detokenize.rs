@@ -469,7 +469,7 @@ unsafe extern "C" fn vp8dx_decode_bool(
         }
         value = (*br).value;
         count = (*br).count;
-        bigsplit = (split as VP8_BD_VALUE) << VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int;
+        bigsplit = (split as VP8_BD_VALUE) << (VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int);
         range = split;
         if value >= bigsplit {
             range = (*br).range.wrapping_sub(split);
@@ -483,7 +483,7 @@ unsafe extern "C" fn vp8dx_decode_bool(
         (*br).value = value;
         (*br).count = count;
         (*br).range = range;
-        return bit as ::core::ffi::c_int;
+        bit as ::core::ffi::c_int
     }
 }
 #[unsafe(no_mangle)]
@@ -502,7 +502,7 @@ pub unsafe extern "C" fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
             (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t).wrapping_sub(1 as size_t),
         );
         if (*(*x).mode_info_context).mbmi.is_4x4 == 0 {
-            let ref mut fresh0 = *l_ctx.offset(8 as ::core::ffi::c_int as isize);
+            let fresh0 = &mut *l_ctx.offset(8 as ::core::ffi::c_int as isize);
             *fresh0 = 0 as ENTROPY_CONTEXT;
             *a_ctx.offset(8 as ::core::ffi::c_int as isize) = *fresh0;
         }
@@ -597,7 +597,7 @@ unsafe extern "C" fn GetSigned(
             >> 1 as ::core::ffi::c_int)
             as ::core::ffi::c_int;
         let mut bigsplit: VP8_BD_VALUE =
-            (split as VP8_BD_VALUE) << VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int;
+            (split as VP8_BD_VALUE) << (VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int);
         let mut v: ::core::ffi::c_int = 0;
         if (*br).count < 0 as ::core::ffi::c_int {
             vp8dx_bool_decoder_fill(br);
@@ -613,7 +613,7 @@ unsafe extern "C" fn GetSigned(
         (*br).range = (*br).range.wrapping_add((*br).range);
         (*br).value = (*br).value.wrapping_add((*br).value);
         (*br).count -= 1;
-        return v;
+        v
     }
 }
 unsafe extern "C" fn GetCoeffs(
@@ -850,6 +850,6 @@ pub unsafe extern "C" fn vp8_decode_mb_tokens(
             qcoeff_ptr = qcoeff_ptr.offset(16 as ::core::ffi::c_int as isize);
             i += 1;
         }
-        return eobtotal;
+        eobtotal
     }
 }
