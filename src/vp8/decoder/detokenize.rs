@@ -49,18 +49,17 @@ pub type ProbaArray = *const [[uint8_t; 11]; 3];
 pub const CHAR_BIT: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
 pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
-#[unsafe(no_mangle)]
-pub extern "C" fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
+pub fn vp8_reset_mb_tokens_context(x: &mut MACROBLOCKD) {
     unsafe {
-        let a_ctx = &mut *(*x).above_context;
-        let l_ctx = &mut *(*x).left_context;
+        let a_ctx = &mut *x.above_context;
+        let l_ctx = &mut *x.left_context;
         a_ctx.y1 = [0; 4];
         a_ctx.u = [0; 2];
         a_ctx.v = [0; 2];
         l_ctx.y1 = [0; 4];
         l_ctx.u = [0; 2];
         l_ctx.v = [0; 2];
-        if (*(*x).mode_info_context).mbmi.is_4x4 == 0 {
+        if (*x.mode_info_context).mbmi.is_4x4 == 0 {
             a_ctx.y2 = 0;
             l_ctx.y2 = 0;
         }
