@@ -1,36 +1,53 @@
 use std::env;
+use std::fs;
 use std::path::PathBuf;
 use std::process::Command;
-use std::fs;
 
 const VP8_VECTORS: &[&str] = &[
-    "vp80-00-comprehensive-001.ivf", "vp80-00-comprehensive-002.ivf",
-    "vp80-00-comprehensive-003.ivf", "vp80-00-comprehensive-004.ivf",
-    "vp80-00-comprehensive-005.ivf", "vp80-00-comprehensive-006.ivf",
-    "vp80-00-comprehensive-007.ivf", "vp80-00-comprehensive-008.ivf",
-    "vp80-00-comprehensive-009.ivf", "vp80-00-comprehensive-010.ivf",
-    "vp80-00-comprehensive-011.ivf", "vp80-00-comprehensive-012.ivf",
-    "vp80-00-comprehensive-013.ivf", "vp80-00-comprehensive-014.ivf",
-    "vp80-00-comprehensive-015.ivf", "vp80-00-comprehensive-016.ivf",
-    "vp80-00-comprehensive-017.ivf", "vp80-00-comprehensive-018.ivf",
-    "vp80-01-intra-1400.ivf", "vp80-01-intra-1411.ivf",
-    "vp80-01-intra-1416.ivf", "vp80-01-intra-1417.ivf",
-    "vp80-02-inter-1402.ivf", "vp80-02-inter-1412.ivf",
-    "vp80-02-inter-1418.ivf", "vp80-02-inter-1424.ivf",
-    "vp80-03-segmentation-01.ivf", "vp80-03-segmentation-02.ivf",
-    "vp80-03-segmentation-03.ivf", "vp80-03-segmentation-04.ivf",
-    "vp80-03-segmentation-1401.ivf", "vp80-03-segmentation-1403.ivf",
-    "vp80-03-segmentation-1407.ivf", "vp80-03-segmentation-1408.ivf",
-    "vp80-03-segmentation-1409.ivf"
+    "vp80-00-comprehensive-001.ivf",
+    "vp80-00-comprehensive-002.ivf",
+    "vp80-00-comprehensive-003.ivf",
+    "vp80-00-comprehensive-004.ivf",
+    "vp80-00-comprehensive-005.ivf",
+    "vp80-00-comprehensive-006.ivf",
+    "vp80-00-comprehensive-007.ivf",
+    "vp80-00-comprehensive-008.ivf",
+    "vp80-00-comprehensive-009.ivf",
+    "vp80-00-comprehensive-010.ivf",
+    "vp80-00-comprehensive-011.ivf",
+    "vp80-00-comprehensive-012.ivf",
+    "vp80-00-comprehensive-013.ivf",
+    "vp80-00-comprehensive-014.ivf",
+    "vp80-00-comprehensive-015.ivf",
+    "vp80-00-comprehensive-016.ivf",
+    "vp80-00-comprehensive-017.ivf",
+    "vp80-00-comprehensive-018.ivf",
+    "vp80-01-intra-1400.ivf",
+    "vp80-01-intra-1411.ivf",
+    "vp80-01-intra-1416.ivf",
+    "vp80-01-intra-1417.ivf",
+    "vp80-02-inter-1402.ivf",
+    "vp80-02-inter-1412.ivf",
+    "vp80-02-inter-1418.ivf",
+    "vp80-02-inter-1424.ivf",
+    "vp80-03-segmentation-01.ivf",
+    "vp80-03-segmentation-02.ivf",
+    "vp80-03-segmentation-03.ivf",
+    "vp80-03-segmentation-04.ivf",
+    "vp80-03-segmentation-1401.ivf",
+    "vp80-03-segmentation-1403.ivf",
+    "vp80-03-segmentation-1407.ivf",
+    "vp80-03-segmentation-1408.ivf",
+    "vp80-03-segmentation-1409.ivf",
 ];
 
 fn download_test_vectors() {
     let manifest_dir = PathBuf::from(env::var("CARGO_MANIFEST_DIR").unwrap());
     let test_data_dir = manifest_dir.parent().unwrap().join("libvpx-test-data");
-    
+
     fs::create_dir_all(&test_data_dir).unwrap();
     let base_url = "https://storage.googleapis.com/downloads.webmproject.org/test_data/libvpx";
-    
+
     for vector in VP8_VECTORS {
         let target = test_data_dir.join(vector);
         if !target.exists() {
@@ -53,8 +70,14 @@ fn main() {
     let out_dir = PathBuf::from(env::var("OUT_DIR").unwrap());
 
     // Tell cargo to invalidate the built crate whenever headers or the static lib change
-    println!("cargo:rerun-if-changed={}", libvpx_dir.join("vpx/vpx_decoder.h").display());
-    println!("cargo:rerun-if-changed={}", libvpx_dir.join("vpx/vp8dx.h").display());
+    println!(
+        "cargo:rerun-if-changed={}",
+        libvpx_dir.join("vpx/vpx_decoder.h").display()
+    );
+    println!(
+        "cargo:rerun-if-changed={}",
+        libvpx_dir.join("vpx/vp8dx.h").display()
+    );
 
     // The bindgen builder
     let bindings = bindgen::Builder::default()

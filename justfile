@@ -28,7 +28,7 @@ bench *args:
 
 # Run complexity and technical debt analysis
 analyze *args:
-    cd scripts/complexity_analyzer && cargo run --release -- {{args}}
+    cd tools/complexity_analyzer && cargo run --release -- {{args}}
 
 # Clean output and build artifacts
 clean:

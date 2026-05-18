@@ -7,7 +7,7 @@ edition = "2024"
 members = [
     ".",
     "harness",
-    "scripts/complexity_analyzer"
+    "tools/complexity_analyzer"
 ]
 
 [dependencies]

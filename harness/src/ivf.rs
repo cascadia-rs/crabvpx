@@ -24,7 +24,10 @@ impl IvfParser {
         file.read_exact(&mut header)?;
 
         if &header[0..4] != b"DKIF" {
-            return Err(io::Error::new(io::ErrorKind::InvalidData, "Invalid IVF header"));
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Invalid IVF header",
+            ));
         }
 
         let width = u16::from_le_bytes(header[12..14].try_into().unwrap());

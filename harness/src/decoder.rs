@@ -40,30 +40,40 @@ impl LibVpxOracleDecoder {
         }
     }
 
-    unsafe fn calculate_frame_info(img: *const ffi::vpx_image_t) -> DecodedFrame { unsafe {
-        let mut context = md5::Context::new();
-        let img = &*img;
+    unsafe fn calculate_frame_info(img: *const ffi::vpx_image_t) -> DecodedFrame {
+        unsafe {
+            let mut context = md5::Context::new();
+            let img = &*img;
 
-        for plane in 0..3 {
-            let data = img.planes[plane];
-            let stride = img.stride[plane] as usize;
-            let w = if plane == 0 { img.d_w } else { (img.d_w + 1) >> 1 };
-            let h = if plane == 0 { img.d_h } else { (img.d_h + 1) >> 1 };
+            for plane in 0..3 {
+                let data = img.planes[plane];
+                let stride = img.stride[plane] as usize;
+                let w = if plane == 0 {
+                    img.d_w
+                } else {
+                    (img.d_w + 1) >> 1
+                };
+                let h = if plane == 0 {
+                    img.d_h
+                } else {
+                    (img.d_h + 1) >> 1
+                };
 
-            for row in 0..h {
-                let row_ptr = data.add(row as usize * stride);
-                let row_data = std::slice::from_raw_parts(row_ptr, w as usize);
-                context.consume(row_data);
+                for row in 0..h {
+                    let row_ptr = data.add(row as usize * stride);
+                    let row_data = std::slice::from_raw_parts(row_ptr, w as usize);
+                    context.consume(row_data);
+                }
+            }
+
+            DecodedFrame {
+                md5: format!("{:x}", context.compute()),
+                width: img.d_w,
+                height: img.d_h,
+                bit_depth: img.bit_depth,
             }
         }
-
-        DecodedFrame {
-            md5: format!("{:x}", context.compute()),
-            width: img.d_w,
-            height: img.d_h,
-            bit_depth: img.bit_depth,
-        }
-    }}
+    }
 }
 
 impl Drop for LibVpxOracleDecoder {
