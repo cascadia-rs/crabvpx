@@ -278,171 +278,197 @@ pub fn vp8_loop_filter_frame_init(
         seg += 1;
     }
 }
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_row_normal(
-    mut cm: *mut VP8_COMMON,
-    mut mode_info_context: *mut MODE_INFO,
-    mut mb_row: ::core::ffi::c_int,
-    mut post_ystride: ::core::ffi::c_int,
-    mut post_uvstride: ::core::ffi::c_int,
-    mut y_ptr: *mut ::core::ffi::c_uchar,
-    mut u_ptr: *mut ::core::ffi::c_uchar,
-    mut v_ptr: *mut ::core::ffi::c_uchar,
-) { unsafe {
+pub fn vp8_loop_filter_row_normal_safe(
+    cm: &mut VP8_COMMON,
+    mode_info_slice: &[MODE_INFO],
+    mode_info_idx: usize,
+    mb_row: ::core::ffi::c_int,
+    post_ystride: ::core::ffi::c_int,
+    post_uvstride: ::core::ffi::c_int,
+    y_slice: &mut [u8],
+    y_offset: usize,
+    u_slice: &mut [u8],
+    u_offset: usize,
+    v_slice: &mut [u8],
+    v_offset: usize,
+) {
     let mut mb_col: ::core::ffi::c_int = 0;
     let mut filter_level: ::core::ffi::c_int = 0;
-    let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
+    let lfi_n = &mut cm.lf_info;
     let mut lfi: loop_filter_info = loop_filter_info {
         mblim: ::core::ptr::null::<::core::ffi::c_uchar>(),
         blim: ::core::ptr::null::<::core::ffi::c_uchar>(),
         lim: ::core::ptr::null::<::core::ffi::c_uchar>(),
         hev_thr: ::core::ptr::null::<::core::ffi::c_uchar>(),
     };
-    let mut frame_type: FRAME_TYPE = (*cm).frame_type;
+    let frame_type: FRAME_TYPE = cm.frame_type;
     mb_col = 0 as ::core::ffi::c_int;
-    while mb_col < (*cm).mb_cols {
-        let mut skip_lf: ::core::ffi::c_int = ((*mode_info_context).mbmi.mode as ::core::ffi::c_int
+    let mut cur_mi_idx = mode_info_idx;
+    let mut cur_y_offset = y_offset;
+    let mut cur_u_offset = u_offset;
+    let mut cur_v_offset = v_offset;
+
+    while mb_col < cm.mb_cols {
+        let mi = &mode_info_slice[cur_mi_idx];
+        let mut skip_lf: ::core::ffi::c_int = (mi.mbmi.mode as ::core::ffi::c_int
             != B_PRED as ::core::ffi::c_int
-            && (*mode_info_context).mbmi.mode as ::core::ffi::c_int
+            && mi.mbmi.mode as ::core::ffi::c_int
                 != SPLITMV as ::core::ffi::c_int
-            && (*mode_info_context).mbmi.mb_skip_coeff as ::core::ffi::c_int != 0)
+            && mi.mbmi.mb_skip_coeff as ::core::ffi::c_int != 0)
             as ::core::ffi::c_int;
         let mode_index: ::core::ffi::c_int =
-            (*lfi_n).mode_lf_lut[(*mode_info_context).mbmi.mode as usize] as ::core::ffi::c_int;
-        let seg: ::core::ffi::c_int = (*mode_info_context).mbmi.segment_id as ::core::ffi::c_int;
+            lfi_n.mode_lf_lut[mi.mbmi.mode as usize] as ::core::ffi::c_int;
+        let seg: ::core::ffi::c_int = mi.mbmi.segment_id as ::core::ffi::c_int;
         let ref_frame: ::core::ffi::c_int =
-            (*mode_info_context).mbmi.ref_frame as ::core::ffi::c_int;
-        filter_level = (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize]
+            mi.mbmi.ref_frame as ::core::ffi::c_int;
+        filter_level = lfi_n.lvl[seg as usize][ref_frame as usize][mode_index as usize]
             as ::core::ffi::c_int;
         if filter_level != 0 {
-            let hev_index: ::core::ffi::c_int = (*lfi_n).hev_thr_lut[frame_type as usize]
+            let hev_index: ::core::ffi::c_int = lfi_n.hev_thr_lut[frame_type as usize]
                 [filter_level as usize]
                 as ::core::ffi::c_int;
-            lfi.mblim = &raw mut *(&raw mut (*lfi_n).mblim as *mut [::core::ffi::c_uchar; 1])
-                .offset(filter_level as isize) as *mut ::core::ffi::c_uchar;
-            lfi.blim = &raw mut *(&raw mut (*lfi_n).blim as *mut [::core::ffi::c_uchar; 1])
-                .offset(filter_level as isize) as *mut ::core::ffi::c_uchar;
-            lfi.lim = &raw mut *(&raw mut (*lfi_n).lim as *mut [::core::ffi::c_uchar; 1])
-                .offset(filter_level as isize) as *mut ::core::ffi::c_uchar;
-            lfi.hev_thr = &raw mut *(&raw mut (*lfi_n).hev_thr as *mut [::core::ffi::c_uchar; 1])
-                .offset(hev_index as isize) as *mut ::core::ffi::c_uchar;
-            if mb_col > 0 as ::core::ffi::c_int {
-                vp8_loop_filter_mbv_neon(
-                    y_ptr,
-                    u_ptr,
-                    v_ptr,
-                    post_ystride,
-                    post_uvstride,
-                    &raw mut lfi,
-                );
-            }
-            if skip_lf == 0 {
-                vp8_loop_filter_bv_neon(
-                    y_ptr,
-                    u_ptr,
-                    v_ptr,
-                    post_ystride,
-                    post_uvstride,
-                    &raw mut lfi,
-                );
-            }
-            if mb_row > 0 as ::core::ffi::c_int {
-                vp8_loop_filter_mbh_neon(
-                    y_ptr,
-                    u_ptr,
-                    v_ptr,
-                    post_ystride,
-                    post_uvstride,
-                    &raw mut lfi,
-                );
-            }
-            if skip_lf == 0 {
-                vp8_loop_filter_bh_neon(
-                    y_ptr,
-                    u_ptr,
-                    v_ptr,
-                    post_ystride,
-                    post_uvstride,
-                    &raw mut lfi,
-                );
+            
+            lfi.mblim = lfi_n.mblim[filter_level as usize].as_ptr();
+            lfi.blim = lfi_n.blim[filter_level as usize].as_ptr();
+            lfi.lim = lfi_n.lim[filter_level as usize].as_ptr();
+            lfi.hev_thr = lfi_n.hev_thr[hev_index as usize].as_ptr();
+
+            let (y_ptr, u_ptr, v_ptr) = unsafe {
+                (
+                    y_slice.as_mut_ptr().add(cur_y_offset),
+                    u_slice.as_mut_ptr().add(cur_u_offset),
+                    v_slice.as_mut_ptr().add(cur_v_offset),
+                )
+            };
+
+            unsafe {
+                if mb_col > 0 as ::core::ffi::c_int {
+                    vp8_loop_filter_mbv_neon(
+                        y_ptr,
+                        u_ptr,
+                        v_ptr,
+                        post_ystride,
+                        post_uvstride,
+                        &raw mut lfi,
+                    );
+                }
+                if skip_lf == 0 {
+                    vp8_loop_filter_bv_neon(
+                        y_ptr,
+                        u_ptr,
+                        v_ptr,
+                        post_ystride,
+                        post_uvstride,
+                        &raw mut lfi,
+                    );
+                }
+                if mb_row > 0 as ::core::ffi::c_int {
+                    vp8_loop_filter_mbh_neon(
+                        y_ptr,
+                        u_ptr,
+                        v_ptr,
+                        post_ystride,
+                        post_uvstride,
+                        &raw mut lfi,
+                    );
+                }
+                if skip_lf == 0 {
+                    vp8_loop_filter_bh_neon(
+                        y_ptr,
+                        u_ptr,
+                        v_ptr,
+                        post_ystride,
+                        post_uvstride,
+                        &raw mut lfi,
+                    );
+                }
             }
         }
-        y_ptr = y_ptr.offset(16 as ::core::ffi::c_int as isize);
-        u_ptr = u_ptr.offset(8 as ::core::ffi::c_int as isize);
-        v_ptr = v_ptr.offset(8 as ::core::ffi::c_int as isize);
-        mode_info_context = mode_info_context.offset(1);
+        cur_y_offset = (cur_y_offset as isize + 16 as isize) as usize;
+        cur_u_offset = (cur_u_offset as isize + 8 as isize) as usize;
+        cur_v_offset = (cur_v_offset as isize + 8 as isize) as usize;
+        cur_mi_idx += 1;
         mb_col += 1;
     }
-}}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_row_simple(
-    mut cm: *mut VP8_COMMON,
-    mut mode_info_context: *mut MODE_INFO,
-    mut mb_row: ::core::ffi::c_int,
-    mut post_ystride: ::core::ffi::c_int,
-    mut y_ptr: *mut ::core::ffi::c_uchar,
-) { unsafe {
+}
+pub fn vp8_loop_filter_row_simple_safe(
+    cm: &mut VP8_COMMON,
+    mode_info_slice: &[MODE_INFO],
+    mode_info_idx: usize,
+    mb_row: ::core::ffi::c_int,
+    post_ystride: ::core::ffi::c_int,
+    y_slice: &mut [u8],
+    y_offset: usize,
+) {
     let mut mb_col: ::core::ffi::c_int = 0;
     let mut filter_level: ::core::ffi::c_int = 0;
-    let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
+    let lfi_n = &mut cm.lf_info;
     mb_col = 0 as ::core::ffi::c_int;
-    while mb_col < (*cm).mb_cols {
-        let mut skip_lf: ::core::ffi::c_int = ((*mode_info_context).mbmi.mode as ::core::ffi::c_int
+    let mut cur_mi_idx = mode_info_idx;
+    let mut cur_y_offset = y_offset;
+
+    while mb_col < cm.mb_cols {
+        let mi = &mode_info_slice[cur_mi_idx];
+        let mut skip_lf: ::core::ffi::c_int = (mi.mbmi.mode as ::core::ffi::c_int
             != B_PRED as ::core::ffi::c_int
-            && (*mode_info_context).mbmi.mode as ::core::ffi::c_int
+            && mi.mbmi.mode as ::core::ffi::c_int
                 != SPLITMV as ::core::ffi::c_int
-            && (*mode_info_context).mbmi.mb_skip_coeff as ::core::ffi::c_int != 0)
+            && mi.mbmi.mb_skip_coeff as ::core::ffi::c_int != 0)
             as ::core::ffi::c_int;
         let mode_index: ::core::ffi::c_int =
-            (*lfi_n).mode_lf_lut[(*mode_info_context).mbmi.mode as usize] as ::core::ffi::c_int;
-        let seg: ::core::ffi::c_int = (*mode_info_context).mbmi.segment_id as ::core::ffi::c_int;
+            lfi_n.mode_lf_lut[mi.mbmi.mode as usize] as ::core::ffi::c_int;
+        let seg: ::core::ffi::c_int = mi.mbmi.segment_id as ::core::ffi::c_int;
         let ref_frame: ::core::ffi::c_int =
-            (*mode_info_context).mbmi.ref_frame as ::core::ffi::c_int;
-        filter_level = (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize]
+            mi.mbmi.ref_frame as ::core::ffi::c_int;
+        filter_level = lfi_n.lvl[seg as usize][ref_frame as usize][mode_index as usize]
             as ::core::ffi::c_int;
         if filter_level != 0 {
+            let y_ptr = unsafe { y_slice.as_mut_ptr().add(cur_y_offset) };
+            let mblim_ptr = lfi_n.mblim[filter_level as usize].as_ptr();
+            let blim_ptr = lfi_n.blim[filter_level as usize].as_ptr();
+
             if mb_col > 0 as ::core::ffi::c_int {
-                vp8_loop_filter_mbvs_neon(
-                    y_ptr,
-                    post_ystride,
-                    &raw mut *(&raw mut (*lfi_n).mblim as *mut [::core::ffi::c_uchar; 1])
-                        .offset(filter_level as isize)
-                        as *mut ::core::ffi::c_uchar,
-                );
+                unsafe {
+                    vp8_loop_filter_mbvs_neon(
+                        y_ptr,
+                        post_ystride,
+                        mblim_ptr as *mut ::core::ffi::c_uchar,
+                    );
+                }
             }
             if skip_lf == 0 {
-                vp8_loop_filter_bvs_neon(
-                    y_ptr,
-                    post_ystride,
-                    &raw mut *(&raw mut (*lfi_n).blim as *mut [::core::ffi::c_uchar; 1])
-                        .offset(filter_level as isize)
-                        as *mut ::core::ffi::c_uchar,
-                );
+                unsafe {
+                    vp8_loop_filter_bvs_neon(
+                        y_ptr,
+                        post_ystride,
+                        blim_ptr as *mut ::core::ffi::c_uchar,
+                    );
+                }
             }
             if mb_row > 0 as ::core::ffi::c_int {
-                vp8_loop_filter_mbhs_neon(
-                    y_ptr,
-                    post_ystride,
-                    &raw mut *(&raw mut (*lfi_n).mblim as *mut [::core::ffi::c_uchar; 1])
-                        .offset(filter_level as isize)
-                        as *mut ::core::ffi::c_uchar,
-                );
+                unsafe {
+                    vp8_loop_filter_mbhs_neon(
+                        y_ptr,
+                        post_ystride,
+                        mblim_ptr as *mut ::core::ffi::c_uchar,
+                    );
+                }
             }
             if skip_lf == 0 {
-                vp8_loop_filter_bhs_neon(
-                    y_ptr,
-                    post_ystride,
-                    &raw mut *(&raw mut (*lfi_n).blim as *mut [::core::ffi::c_uchar; 1])
-                        .offset(filter_level as isize)
-                        as *mut ::core::ffi::c_uchar,
-                );
+                unsafe {
+                    vp8_loop_filter_bhs_neon(
+                        y_ptr,
+                        post_ystride,
+                        blim_ptr as *mut ::core::ffi::c_uchar,
+                    );
+                }
             }
         }
-        y_ptr = y_ptr.offset(16 as ::core::ffi::c_int as isize);
-        mode_info_context = mode_info_context.offset(1);
+        cur_y_offset = (cur_y_offset as isize + 16 as isize) as usize;
+        cur_mi_idx += 1;
         mb_col += 1;
     }
-}}
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_loop_filter_frame(
     mut cm: *mut VP8_COMMON,
