@@ -615,7 +615,7 @@ pub unsafe extern "C" fn vpx_codec_decode(
     mut data: *const uint8_t,
     mut data_sz: ::core::ffi::c_uint,
     mut user_priv: *mut ::core::ffi::c_void,
-    mut deadline: ::core::ffi::c_long,
+    _deadline: ::core::ffi::c_long,
 ) -> vpx_codec_err_t {
     unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;

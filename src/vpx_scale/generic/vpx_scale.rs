@@ -125,11 +125,11 @@ pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 unsafe extern "C" fn scale1d_2t1_i(
     mut source: *const ::core::ffi::c_uchar,
     mut source_step: ::core::ffi::c_int,
-    mut source_scale: ::core::ffi::c_uint,
-    mut source_length: ::core::ffi::c_uint,
+    _source_scale: ::core::ffi::c_uint,
+    _source_length: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
     mut dest_step: ::core::ffi::c_int,
-    mut dest_scale: ::core::ffi::c_uint,
+    _dest_scale: ::core::ffi::c_uint,
     mut dest_length: ::core::ffi::c_uint,
 ) {
     unsafe {
@@ -168,11 +168,11 @@ unsafe extern "C" fn scale1d_2t1_i(
 unsafe extern "C" fn scale1d_2t1_ps(
     mut source: *const ::core::ffi::c_uchar,
     mut source_step: ::core::ffi::c_int,
-    mut source_scale: ::core::ffi::c_uint,
-    mut source_length: ::core::ffi::c_uint,
+    _source_scale: ::core::ffi::c_uint,
+    _source_length: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
     mut dest_step: ::core::ffi::c_int,
-    mut dest_scale: ::core::ffi::c_uint,
+    _dest_scale: ::core::ffi::c_uint,
     mut dest_length: ::core::ffi::c_uint,
 ) {
     unsafe {
@@ -192,7 +192,7 @@ unsafe extern "C" fn scale1d_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_step: ::core::ffi::c_int,
     mut source_scale: ::core::ffi::c_uint,
-    mut source_length: ::core::ffi::c_uint,
+    _source_length: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
     mut dest_step: ::core::ffi::c_int,
     mut dest_scale: ::core::ffi::c_uint,

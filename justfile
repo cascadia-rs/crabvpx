@@ -30,3 +30,11 @@ clean:
     rm -rf out/
     cd harness && cargo clean
     cd libvpx && make clean
+
+# Build the Rust workspace
+build:
+    cargo build --workspace
+
+# Run tests in the Rust workspace
+test:
+    cargo test --workspace

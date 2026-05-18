@@ -506,9 +506,11 @@ pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::co
 pub const _PTHREAD_ONCE_SIG_init: ::core::ffi::c_int = 0x30b1bcba as ::core::ffi::c_int;
 pub const NUM_YV12_BUFFERS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
 unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
-    static INIT: std::sync::Once = std::sync::Once::new();
-    if let Some(f) = func {
-        INIT.call_once(|| f());
+    unsafe {
+        static INIT: std::sync::Once = std::sync::Once::new();
+        if let Some(f) = func {
+            INIT.call_once(|| f());
+        }
     }
 }
 unsafe extern "C" fn initialize_dec() {
@@ -518,7 +520,7 @@ unsafe extern "C" fn initialize_dec() {
             vpx_dsp_rtcd();
             vp8_init_intra_predictors();
             ::core::ptr::write_volatile(
-                &mut init_done as *mut ::core::ffi::c_int,
+                &raw mut init_done as *mut ::core::ffi::c_int,
                 1 as ::core::ffi::c_int,
             );
         }
@@ -530,7 +532,7 @@ unsafe extern "C" fn remove_decompressor(mut pbi: *mut VP8D_COMP) {
         vpx_free(pbi as *mut ::core::ffi::c_void);
     }
 }
-unsafe extern "C" fn create_decompressor(mut oxcf: *mut VP8D_CONFIG) -> *mut VP8D_COMP {
+unsafe extern "C" fn create_decompressor(_oxcf: *mut VP8D_CONFIG) -> *mut VP8D_COMP {
     unsafe {
         let mut pbi: *mut VP8D_COMP =
             vpx_memalign(32 as size_t, ::core::mem::size_of::<VP8D_COMP>() as size_t)
@@ -847,7 +849,7 @@ pub unsafe extern "C" fn vp8dx_receive_compressed_data(
 pub unsafe extern "C" fn vp8dx_get_raw_frame(
     mut pbi: *mut VP8D_COMP,
     mut sd: *mut YV12_BUFFER_CONFIG,
-    mut flags: *mut vp8_ppflags_t,
+    _flags: *mut vp8_ppflags_t,
 ) -> ::core::ffi::c_int {
     unsafe {
         let mut ret: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);

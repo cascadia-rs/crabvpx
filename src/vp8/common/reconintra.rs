@@ -332,9 +332,11 @@ pub type C2RustUnnamed = ::core::ffi::c_uint;
 pub const NUM_SIZES: C2RustUnnamed = 2;
 pub const _PTHREAD_ONCE_SIG_init: ::core::ffi::c_int = 0x30b1bcba as ::core::ffi::c_int;
 unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
-    static INIT: std::sync::Once = std::sync::Once::new();
-    if let Some(f) = func {
-        INIT.call_once(|| f());
+    unsafe {
+        static INIT: std::sync::Once = std::sync::Once::new();
+        if let Some(f) = func {
+            INIT.call_once(|| f());
+        }
     }
 }
 static mut pred: [[intra_pred_fn; 2]; 4] = [[None; 2]; 4];

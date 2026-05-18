@@ -1,4 +1,4 @@
-use std::alloc::{alloc, alloc_zeroed, dealloc, Layout};
+use std::alloc::{Layout, alloc, dealloc};
 
 pub type size_t = usize;
 pub const NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut();

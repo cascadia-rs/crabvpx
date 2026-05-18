@@ -1076,7 +1076,7 @@ unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi:
 }
 unsafe extern "C" fn vp8_init(
     mut ctx: *mut vpx_codec_ctx_t,
-    mut data: *mut vpx_codec_priv_enc_mr_cfg_t,
+    _data: *mut vpx_codec_priv_enc_mr_cfg_t,
 ) -> vpx_codec_err_t {
     unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
@@ -1771,8 +1771,8 @@ unsafe extern "C" fn vp8_get_quantizer(
     }
 }
 unsafe extern "C" fn vp8_set_postproc(
-    mut ctx: *mut vpx_codec_alg_priv_t,
-    mut args: ::core::ffi::VaList,
+    _ctx: *mut vpx_codec_alg_priv_t,
+    _args: ::core::ffi::VaList,
 ) -> vpx_codec_err_t {
     return VPX_CODEC_INCAPABLE;
 }
@@ -1879,7 +1879,7 @@ unsafe extern "C" fn vp8_set_decryptor(
         return VPX_CODEC_OK;
     }
 }
-static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = unsafe {
+static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
     [
         vpx_codec_ctrl_fn_map {
             ctrl_id: VP8_SET_REFERENCE as ::core::ffi::c_int,

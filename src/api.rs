@@ -1,8 +1,8 @@
 use crate::vp8::vp8_dx_iface::vpx_codec_vp8_dx;
 use crate::vpx::src::vpx_codec::vpx_codec_destroy;
 use crate::vpx::src::vpx_decoder::{
-    vpx_codec_ctx_t, vpx_codec_dec_init_ver, vpx_codec_decode, vpx_codec_get_frame,
-    vpx_codec_iter_t, VPX_CODEC_OK, VPX_DECODER_ABI_VERSION,
+    VPX_CODEC_OK, VPX_DECODER_ABI_VERSION, vpx_codec_ctx_t, vpx_codec_dec_init_ver,
+    vpx_codec_decode, vpx_codec_get_frame, vpx_codec_iter_t,
 };
 
 /// A representation of a decoded video frame's metadata and hash.

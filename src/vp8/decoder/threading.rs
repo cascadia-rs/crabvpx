@@ -847,7 +847,7 @@ unsafe extern "C" fn setup_decoding_thread_data(
 unsafe extern "C" fn mt_decode_macroblock(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
-    mut mb_idx: ::core::ffi::c_uint,
+    _mb_idx: ::core::ffi::c_uint,
 ) {
     unsafe {
         let mut mode: MB_PREDICTION_MODE = DC_PRED;

@@ -102,8 +102,4 @@ pub struct yv12_buffer_config {
 }
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_write_yuv_frame(
-    mut yuv_file: *mut FILE,
-    mut s: *mut YV12_BUFFER_CONFIG,
-) {
-}
+pub unsafe extern "C" fn vpx_write_yuv_frame(_yuv_file: *mut FILE, _s: *mut YV12_BUFFER_CONFIG) {}

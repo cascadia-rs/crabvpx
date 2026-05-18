@@ -96,7 +96,7 @@ unsafe extern "C" fn img_alloc_helper(
     mut img_data: *mut ::core::ffi::c_uchar,
 ) -> *mut vpx_image_t {
     unsafe {
-        let mut ret: ::core::ffi::c_int = 0;
+        let mut _ret: ::core::ffi::c_int = 0;
         let mut current_block: u64;
         let mut h: ::core::ffi::c_uint = 0;
         let mut w: ::core::ffi::c_uint = 0;
@@ -283,7 +283,7 @@ unsafe extern "C" fn img_alloc_helper(
                                                     stride_in_bytes >> xcs;
                                                 (*img).stride[VPX_PLANE_U as usize] =
                                                     (*img).stride[VPX_PLANE_V as usize];
-                                                ret = vpx_img_set_rect(
+                                                _ret = vpx_img_set_rect(
                                                     img,
                                                     0 as ::core::ffi::c_uint,
                                                     0 as ::core::ffi::c_uint,

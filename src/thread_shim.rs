@@ -1,5 +1,5 @@
 use std::ffi::c_void;
-use std::sync::{Arc, Condvar, Mutex};
+use std::sync::{Condvar, Mutex};
 use std::thread::{self, JoinHandle};
 
 pub type pthread_t = *mut ::core::ffi::c_void;
@@ -13,9 +13,9 @@ struct Semaphore {
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_semaphore_create(
-    task: u32,
+    _task: u32,
     sem: *mut semaphore_t,
-    policy: i32,
+    _policy: i32,
     value: i32,
 ) -> i32 {
     unsafe {
@@ -29,7 +29,7 @@ pub unsafe extern "C" fn vp8_semaphore_create(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_semaphore_destroy(task: u32, sem: semaphore_t) -> i32 {
+pub unsafe extern "C" fn vp8_semaphore_destroy(_task: u32, sem: semaphore_t) -> i32 {
     unsafe {
         if !sem.is_null() {
             let _ = Box::from_raw(sem as *mut Semaphore);
@@ -78,7 +78,7 @@ unsafe impl Send for ThreadArg {}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_pthread_create(
     thread: *mut pthread_t,
-    attr: *const c_void,
+    _attr: *const c_void,
     start_routine: Option<unsafe extern "C" fn(*mut c_void) -> *mut c_void>,
     arg: *mut c_void,
 ) -> i32 {

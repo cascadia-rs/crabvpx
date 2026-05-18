@@ -562,7 +562,7 @@ static mut kCat6: [uint8_t; 12] = [
     129 as ::core::ffi::c_int as uint8_t,
     0 as ::core::ffi::c_int as uint8_t,
 ];
-static mut kCat3456: [*const uint8_t; 4] = unsafe {
+static mut kCat3456: [*const uint8_t; 4] = {
     [
         &raw const kCat3 as *const uint8_t,
         &raw const kCat4 as *const uint8_t,

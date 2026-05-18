@@ -2130,7 +2130,7 @@ static mut cat6: [vp8_tree_index; 22] = [
     0 as ::core::ffi::c_int as vp8_tree_index,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_extra_bits: [vp8_extra_bit_struct; 12] = unsafe {
+pub static mut vp8_extra_bits: [vp8_extra_bit_struct; 12] = {
     [
         vp8_extra_bit_struct {
             tree: ::core::ptr::null::<vp8_tree_index>(),

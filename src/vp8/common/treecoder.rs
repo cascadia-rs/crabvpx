@@ -143,11 +143,7 @@ pub unsafe extern "C" fn vp8_tree_probs_from_distribution(
                     ) as ::core::ffi::c_uint)
                     .wrapping_div(tot);
                 *probs.offset(t as isize) = (if p < 256 as ::core::ffi::c_uint {
-                    if p != 0 {
-                        p
-                    } else {
-                        1 as ::core::ffi::c_uint
-                    }
+                    if p != 0 { p } else { 1 as ::core::ffi::c_uint }
                 } else {
                     255 as ::core::ffi::c_uint
                 }) as vp8_prob;

@@ -12,7 +12,7 @@ pub unsafe extern "C" fn vp8_horizontal_line_5_4_scale_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_width: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
-    mut dest_width: ::core::ffi::c_uint,
+    _dest_width: ::core::ffi::c_uint,
 ) {
     unsafe {
         let mut i: ::core::ffi::c_uint = 0;
@@ -109,7 +109,7 @@ pub unsafe extern "C" fn vp8_horizontal_line_5_3_scale_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_width: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
-    mut dest_width: ::core::ffi::c_uint,
+    _dest_width: ::core::ffi::c_uint,
 ) {
     unsafe {
         let mut i: ::core::ffi::c_uint = 0;
@@ -196,7 +196,7 @@ pub unsafe extern "C" fn vp8_horizontal_line_2_1_scale_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_width: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
-    mut dest_width: ::core::ffi::c_uint,
+    _dest_width: ::core::ffi::c_uint,
 ) {
     unsafe {
         let mut i: ::core::ffi::c_uint = 0;
@@ -216,9 +216,9 @@ pub unsafe extern "C" fn vp8_horizontal_line_2_1_scale_c(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_vertical_band_2_1_scale_c(
     mut source: *mut ::core::ffi::c_uchar,
-    mut src_pitch: ::core::ffi::c_uint,
+    _src_pitch: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
-    mut dest_pitch: ::core::ffi::c_uint,
+    _dest_pitch: ::core::ffi::c_uint,
     mut dest_width: ::core::ffi::c_uint,
 ) {
     unsafe {
@@ -234,7 +234,7 @@ pub unsafe extern "C" fn vp8_vertical_band_2_1_scale_i_c(
     mut source: *mut ::core::ffi::c_uchar,
     mut src_pitch: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
-    mut dest_pitch: ::core::ffi::c_uint,
+    _dest_pitch: ::core::ffi::c_uint,
     mut dest_width: ::core::ffi::c_uint,
 ) {
     unsafe {

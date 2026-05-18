@@ -4,10 +4,9 @@
 #![allow(non_upper_case_globals)]
 #![allow(unused_assignments)]
 #![allow(unused_mut)]
+#![allow(clashing_extern_declarations)]
 #![feature(c_variadic)]
-#![feature(core_intrinsics)]
 #![feature(extern_types)]
-#![feature(raw_ref_op)]
 
 pub mod api;
 pub mod thread_shim;

@@ -30,7 +30,7 @@ unsafe extern "C" fn d207_predictor(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut bs: ::core::ffi::c_int,
-    mut above: *const uint8_t,
+    _above: *const uint8_t,
     mut left: *const uint8_t,
 ) {
     unsafe {
@@ -97,7 +97,7 @@ unsafe extern "C" fn d63_predictor(
     mut stride: ptrdiff_t,
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
-    mut left: *const uint8_t,
+    _left: *const uint8_t,
 ) {
     unsafe {
         let mut r: ::core::ffi::c_int = 0;
@@ -159,7 +159,7 @@ unsafe extern "C" fn d45_predictor(
     mut stride: ptrdiff_t,
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
-    mut left: *const uint8_t,
+    _left: *const uint8_t,
 ) {
     unsafe {
         let above_right: uint8_t = *above.offset((bs - 1 as ::core::ffi::c_int) as isize);
@@ -424,7 +424,7 @@ unsafe extern "C" fn v_predictor(
     mut stride: ptrdiff_t,
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
-    mut left: *const uint8_t,
+    _left: *const uint8_t,
 ) {
     unsafe {
         let mut r: ::core::ffi::c_int = 0;
@@ -445,7 +445,7 @@ unsafe extern "C" fn h_predictor(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut bs: ::core::ffi::c_int,
-    mut above: *const uint8_t,
+    _above: *const uint8_t,
     mut left: *const uint8_t,
 ) {
     unsafe {
@@ -496,8 +496,8 @@ unsafe extern "C" fn dc_128_predictor(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut bs: ::core::ffi::c_int,
-    mut above: *const uint8_t,
-    mut left: *const uint8_t,
+    _above: *const uint8_t,
+    _left: *const uint8_t,
 ) {
     unsafe {
         let mut r: ::core::ffi::c_int = 0;
@@ -518,7 +518,7 @@ unsafe extern "C" fn dc_left_predictor(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut bs: ::core::ffi::c_int,
-    mut above: *const uint8_t,
+    _above: *const uint8_t,
     mut left: *const uint8_t,
 ) {
     unsafe {
@@ -546,7 +546,7 @@ unsafe extern "C" fn dc_top_predictor(
     mut stride: ptrdiff_t,
     mut bs: ::core::ffi::c_int,
     mut above: *const uint8_t,
-    mut left: *const uint8_t,
+    _left: *const uint8_t,
 ) {
     unsafe {
         let mut i: ::core::ffi::c_int = 0;
@@ -645,7 +645,7 @@ pub unsafe extern "C" fn vpx_ve_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
-    mut left: *const uint8_t,
+    _left: *const uint8_t,
 ) {
     unsafe {
         let H: ::core::ffi::c_int =
@@ -693,7 +693,7 @@ pub unsafe extern "C" fn vpx_ve_predictor_4x4_c(
 pub unsafe extern "C" fn vpx_d207_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
-    mut above: *const uint8_t,
+    _above: *const uint8_t,
     mut left: *const uint8_t,
 ) {
     unsafe {
@@ -742,7 +742,7 @@ pub unsafe extern "C" fn vpx_d63_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
-    mut left: *const uint8_t,
+    _left: *const uint8_t,
 ) {
     unsafe {
         let A: ::core::ffi::c_int =
@@ -797,7 +797,7 @@ pub unsafe extern "C" fn vpx_d63e_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
-    mut left: *const uint8_t,
+    _left: *const uint8_t,
 ) {
     unsafe {
         let A: ::core::ffi::c_int =
@@ -855,7 +855,7 @@ pub unsafe extern "C" fn vpx_d45_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
-    mut left: *const uint8_t,
+    _left: *const uint8_t,
 ) {
     unsafe {
         let A: ::core::ffi::c_int =
@@ -913,7 +913,7 @@ pub unsafe extern "C" fn vpx_d45e_predictor_4x4_c(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
-    mut left: *const uint8_t,
+    _left: *const uint8_t,
 ) {
     unsafe {
         let A: ::core::ffi::c_int =

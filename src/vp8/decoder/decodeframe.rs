@@ -171,9 +171,9 @@ unsafe extern "C" {
     fn vp8_dc2quant(QIndex: ::core::ffi::c_int, Delta: ::core::ffi::c_int) -> ::core::ffi::c_int;
     fn vp8_ac2quant(QIndex: ::core::ffi::c_int, Delta: ::core::ffi::c_int) -> ::core::ffi::c_int;
     fn vp8_dc_uv_quant(QIndex: ::core::ffi::c_int, Delta: ::core::ffi::c_int)
-        -> ::core::ffi::c_int;
+    -> ::core::ffi::c_int;
     fn vp8_ac_uv_quant(QIndex: ::core::ffi::c_int, Delta: ::core::ffi::c_int)
-        -> ::core::ffi::c_int;
+    -> ::core::ffi::c_int;
     fn vp8_build_intra_predictors_mby_s(
         x: *mut MACROBLOCKD,
         yabove_row: *mut ::core::ffi::c_uchar,
@@ -855,11 +855,7 @@ pub unsafe extern "C" fn vp8_mb_init_dequantizer(
                         [(*mbmi).segment_id as usize] as ::core::ffi::c_int;
             }
             QIndex = if QIndex >= 0 as ::core::ffi::c_int {
-                if QIndex <= MAXQ {
-                    QIndex
-                } else {
-                    MAXQ
-                }
+                if QIndex <= MAXQ { QIndex } else { MAXQ }
             } else {
                 0 as ::core::ffi::c_int
             };
@@ -889,7 +885,7 @@ pub unsafe extern "C" fn vp8_mb_init_dequantizer(
 unsafe extern "C" fn decode_macroblock(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
-    mut mb_idx: ::core::ffi::c_uint,
+    _mb_idx: ::core::ffi::c_uint,
 ) {
     unsafe {
         let mut mode: MB_PREDICTION_MODE = DC_PRED;
