@@ -3,11 +3,12 @@ use std::path::PathBuf;
 
 fn main() {
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
-    let libvpx_dir = PathBuf::from(manifest_dir).join("../libvpx");
+    let libvpx_dir = PathBuf::from(manifest_dir).parent().unwrap().join("libvpx");
 
-    // Tell cargo to invalidate the built crate whenever headers change
+    // Tell cargo to invalidate the built crate whenever headers or the static lib change
     println!("cargo:rerun-if-changed={}", libvpx_dir.join("vpx/vpx_decoder.h").display());
     println!("cargo:rerun-if-changed={}", libvpx_dir.join("vpx/vp8dx.h").display());
+    println!("cargo:rerun-if-changed={}", libvpx_dir.join("libvpx.a").display());
 
     if env::var("CARGO_FEATURE_RUST").is_err() {
         println!("cargo:rustc-link-search=native={}", libvpx_dir.display());

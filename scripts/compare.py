@@ -129,7 +129,7 @@ def main():
 
     root_dir = Path(__file__).resolve().parent.parent
     harness_dir = root_dir / "harness"
-    test_data_dir = root_dir / "libvpx-test-data"
+    test_data_dir = root_dir / "test_data"
 
     download_vectors(test_data_dir)
 
