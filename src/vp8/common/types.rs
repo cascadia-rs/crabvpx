@@ -352,6 +352,15 @@ impl macroblockd {
     pub fn mode_info(&self) -> &MODE_INFO {
         unsafe { &*self.mode_info_context }
     }
+    pub fn mode_info_mut(&mut self) -> &mut MODE_INFO {
+        unsafe { &mut *self.mode_info_context }
+    }
+    pub fn above_context_mut(&mut self) -> &mut ENTROPY_CONTEXT_PLANES {
+        unsafe { &mut *self.above_context }
+    }
+    pub fn left_context_mut(&mut self) -> &mut ENTROPY_CONTEXT_PLANES {
+        unsafe { &mut *self.left_context }
+    }
 }
 
 pub type vpx_decrypt_cb = Option<
