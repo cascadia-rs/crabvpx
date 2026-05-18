@@ -15,6 +15,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v4
+      with:
+        submodules: 'recursive'
+
+    - name: Install build dependencies (Linux)
+      run: sudo apt-get update && sudo apt-get install -y yasm
+
+    - name: Install Just
+      uses: extractions/setup-just@v2
+
+    - name: Configure and Build libvpx
+      shell: bash
+      run: just configure
 
     - name: Install Rust nightly
       uses: dtolnay/rust-toolchain@nightly

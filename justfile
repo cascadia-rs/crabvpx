@@ -5,7 +5,7 @@ default:
     @just --list
 
 # libvpx configuration flags for VP8-focused decoding
-libvpx_config_flags := "--target=generic-gnu --enable-vp8 --disable-vp8-encoder --disable-vp9 --enable-multithread --enable-postproc --enable-pic --enable-runtime-cpu-detect"
+libvpx_config_flags := "--enable-shared --disable-static --enable-vp8 --disable-vp8-encoder --disable-vp9 --enable-multithread --enable-postproc --enable-pic --enable-runtime-cpu-detect"
 
 # Configure and build the C Oracle (libvpx) for VP8 decoding
 configure:
@@ -14,17 +14,21 @@ configure:
     cd libvpx && make clean
     cd libvpx && make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
 
-# Run differential testing (Oracle vs Rust)
+# Run all tests (including differential vector testing)
+test *args:
+    cd harness && cargo test --release -- --nocapture {{args}}
+
+# Alias for backwards compatibility
 compare *args:
-    python3 ./scripts/compare.py {{args}}
+    @just test {{args}}
 
 # Run performance benchmarks with statistical distribution
 bench *args:
-    python3 ./scripts/benchmark.py {{args}}
+    cd harness && cargo run --release --bin benchmark -- --dir ../test_data --benchmark {{args}}
 
 # Run complexity and technical debt analysis
 analyze *args:
-    python3 ./scripts/analyze_complexity.py {{args}}
+    cd tools/complexity_analyzer && cargo run --release -- {{args}}
 
 # Clean output and build artifacts
 clean:
@@ -36,11 +40,15 @@ clean:
 build:
     cargo build --workspace
 
+# Format the Rust workspace
+fmt:
+    cargo fmt --all
+
 # Run linting and formatting checks
 lint:
     cargo fmt --all -- --check
     cargo clippy --workspace -- -D warnings
 
 # Run tests in the Rust workspace
-test:
+test-all:
     cargo test --workspace
