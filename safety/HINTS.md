@@ -1,6 +1,7 @@
 # VP8 Decoder Safety Hints
 
 ## Current Progress (May 2026)
+- **Safe Inter Prediction API (Phase 4 Extension)**: Refactored `build_4x4uvmvs` in `src/vp8/common/reconinter.rs` to safe Rust by taking `&mut MACROBLOCKD` instead of raw pointer. Introduced safe encapsulation helper methods `mode_info()` on `macroblockd` and `mv_mut()` on `b_mode_info` in `src/vp8/common/types.rs`. Deleted unused legacy C-style predictor functions (`vp8_build_inter16x16_predictors_mbuv`, `vp8_build_inter4x4_predictors_mbuv`, `vp8_build_inter16x16_predictors_mby`). Reduced unsafe count by 9.
 - **Safe Macroblock Pointer Setup API**: Refactored `vp8_setup_block_dptrs` in `src/vp8/common/mbpitch.rs` to safe Rust by taking `&mut MACROBLOCKD` instead of raw pointer. Eliminated `unsafe extern "C"` linkage and `#[unsafe(no_mangle)]`. Updated call sites in `onyxd_if.rs` and `threading.rs` to pass references. Reduced unsafe count by 2.
 - **Safe Motion Vector Clamping**: Refactored `clamp_mv_to_umv_border` and `clamp_uvmv_to_umv_border` in `src/vp8/common/reconinter.rs` to safe Rust by taking `&mut MV` and explicit edge limits instead of raw pointers. Updated call sites in `reconinter.rs`. Reduced unsafe count by 4.
 - **Safe Frame Buffer Allocation API**: Refactored `get_free_fb` in `src/vp8/decoder/onyxd_if.rs` to take a safe reference `&mut VP8_COMMON` instead of a raw pointer. Eliminated `unsafe extern "C"` linkage and internal `unsafe` block. Updated 3 call sites in `onyxd_if.rs` to pass `&mut *cm`. Reduced unsafe count by 2.

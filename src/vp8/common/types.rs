@@ -74,6 +74,10 @@ impl b_mode_info {
     pub fn mv(&self) -> int_mv {
         unsafe { self.mv }
     }
+    #[inline]
+    pub fn mv_mut(&mut self) -> &mut int_mv {
+        unsafe { &mut self.mv }
+    }
 }
 
 pub type MB_PREDICTION_MODE = ::core::ffi::c_uint;
@@ -259,6 +263,12 @@ pub struct macroblockd {
 }
 
 pub type MACROBLOCKD = macroblockd;
+
+impl macroblockd {
+    pub fn mode_info(&self) -> &MODE_INFO {
+        unsafe { &*self.mode_info_context }
+    }
+}
 
 pub type vpx_decrypt_cb = Option<
     unsafe extern "C" fn(
