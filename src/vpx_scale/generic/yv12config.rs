@@ -13,7 +13,7 @@ pub const VPX_CS_BT_601: u32 = 1;
 pub const VPX_CS_UNKNOWN: u32 = 0;
 pub const VPX_CR_FULL_RANGE: u32 = 1;
 pub const VPX_CR_STUDIO_RANGE: u32 = 0;
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct Yv12BufferConfig {
     pub y_width: i32,
@@ -35,6 +35,8 @@ pub struct Yv12BufferConfig {
     pub alpha_buffer: *mut u8,
     pub buffer_alloc: *mut u8,
     pub buffer_alloc_sz: usize,
+    pub buffer_alloc_base: *mut u8,
+    pub buffer_alloc_cap: usize,
     pub border: i32,
     pub frame_size: usize,
     pub subsampling_x: i32,
@@ -53,14 +55,14 @@ pub const NULL: *mut c_void = __DARWIN_NULL;
 pub unsafe fn vp8_yv12_de_alloc_frame_buffer(mut ybf: *mut Yv12BufferConfig) -> i32 {
     unsafe {
         if !ybf.is_null() {
-            if (*ybf).buffer_alloc_sz > 0 as usize {
-                vpx_free((*ybf).buffer_alloc as *mut c_void);
+            if (*ybf).buffer_alloc_sz > 0 as usize && !(*ybf).buffer_alloc_base.is_null() {
+                let _ = Vec::from_raw_parts(
+                    (*ybf).buffer_alloc_base,
+                    0,
+                    (*ybf).buffer_alloc_cap,
+                );
             }
-            core::ptr::write_bytes(
-                ybf as *mut c_void as *mut u8,
-                0 as u8,
-                ::core::mem::size_of::<Yv12BufferConfig>() as usize,
-            );
+            *ybf = Default::default();
         } else {
             return -(1 as i32);
         }
@@ -86,11 +88,15 @@ pub unsafe fn vp8_yv12_realloc_frame_buffer(
             let mut uvplane_size: i32 = (uv_height + border) * uv_stride;
             let frame_size: usize = (yplane_size + 2 as i32 * uvplane_size) as usize;
             if (*ybf).buffer_alloc.is_null() {
-                (*ybf).buffer_alloc = vpx_memalign(32 as usize, frame_size) as *mut u8;
-                if (*ybf).buffer_alloc.is_null() {
-                    (*ybf).buffer_alloc_sz = 0 as usize;
-                    return -(1 as i32);
-                }
+                let alloc_size = frame_size + 31;
+                let mut vec = Vec::<u8>::with_capacity(alloc_size);
+                let base_ptr = vec.as_mut_ptr();
+                let cap = vec.capacity();
+                core::mem::forget(vec);
+                let aligned_ptr = ((base_ptr as usize + 31) & !31) as *mut u8;
+                (*ybf).buffer_alloc = aligned_ptr;
+                (*ybf).buffer_alloc_base = base_ptr;
+                (*ybf).buffer_alloc_cap = cap;
                 (*ybf).buffer_alloc_sz = frame_size;
             }
             if (*ybf).buffer_alloc_sz < frame_size {

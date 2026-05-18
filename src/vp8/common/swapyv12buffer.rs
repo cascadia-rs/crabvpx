@@ -20,6 +20,12 @@ pub unsafe fn vp8_swap_yv12_buffer(
         temp = (*last_frame).buffer_alloc as *mut u8;
         (*last_frame).buffer_alloc = (*new_frame).buffer_alloc;
         (*new_frame).buffer_alloc = temp as *mut u8;
+        temp = (*last_frame).buffer_alloc_base;
+        (*last_frame).buffer_alloc_base = (*new_frame).buffer_alloc_base;
+        (*new_frame).buffer_alloc_base = temp;
+        let temp_cap = (*last_frame).buffer_alloc_cap;
+        (*last_frame).buffer_alloc_cap = (*new_frame).buffer_alloc_cap;
+        (*new_frame).buffer_alloc_cap = temp_cap;
         temp = (*last_frame).y_buffer as *mut u8;
         (*last_frame).y_buffer = (*new_frame).y_buffer;
         (*new_frame).y_buffer = temp as *mut u8;
