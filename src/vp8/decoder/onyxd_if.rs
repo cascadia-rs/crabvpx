@@ -1,5 +1,6 @@
 use crate::vp8::decoder::decodeframe::vp8cx_init_de_quantizer;
 use crate::vp8::common::mbpitch::vp8_setup_block_dptrs;
+use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_init;
 
 unsafe extern "C" {
     fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
@@ -9,7 +10,6 @@ unsafe extern "C" {
         fmt: *const ::core::ffi::c_char,
         ...
     );
-    fn vp8_loop_filter_init(cm: *mut VP8Common);
     fn pthread_once(
         _: *mut pthread_once_t,
         _: Option<unsafe extern "C" fn() -> ()>,
@@ -149,7 +149,7 @@ unsafe extern "C" fn create_decompressor(mut oxcf: *mut VP8D_CONFIG) -> *mut VP8
     (*pbi).common.current_video_frame = 0 as ::core::ffi::c_uint;
     (*pbi).ready_for_new_data = 1 as ::core::ffi::c_int;
     vp8cx_init_de_quantizer(&mut *pbi);
-    vp8_loop_filter_init(&raw mut (*pbi).common);
+    vp8_loop_filter_init(&mut (*pbi).common);
     (*pbi).common.error.setjmp = 0 as ::core::ffi::c_int;
     (*pbi).ec_enabled = 0 as ::core::ffi::c_int;
     (*pbi).ec_active = 0 as ::core::ffi::c_int;

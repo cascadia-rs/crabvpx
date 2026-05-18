@@ -178,24 +178,14 @@ pub fn vp8_loop_filter_update_sharpness(
         i += 1;
     }
 }
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) { unsafe {
-    let mut lfi: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
-    let mut i: ::core::ffi::c_int = 0;
-    vp8_loop_filter_update_sharpness(&mut (*cm).lf_info, (*cm).sharpness_level);
-    (*cm).last_sharpness_level = (*cm).sharpness_level;
-    lf_init_lut(&mut (*cm).lf_info);
-    i = 0 as ::core::ffi::c_int;
-    while i < 4 as ::core::ffi::c_int {
-        memset(
-            &raw mut *(&raw mut (*lfi).hev_thr as *mut [::core::ffi::c_uchar; 1]).offset(i as isize)
-                as *mut ::core::ffi::c_uchar as *mut ::core::ffi::c_void,
-            i,
-            SIMD_WIDTH as size_t,
-        );
-        i += 1;
+pub fn vp8_loop_filter_init(cm: &mut VP8_COMMON) {
+    vp8_loop_filter_update_sharpness(&mut cm.lf_info, cm.sharpness_level);
+    cm.last_sharpness_level = cm.sharpness_level;
+    lf_init_lut(&mut cm.lf_info);
+    for i in 0..4 {
+        cm.lf_info.hev_thr[i] = [i as u8; 1];
     }
-}}
+}
 #[unsafe(no_mangle)]
 pub fn vp8_loop_filter_frame_init(
     cm: &mut VP8_COMMON,
