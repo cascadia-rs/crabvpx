@@ -20,6 +20,10 @@ impl int_mv {
         unsafe { self.as_int }
     }
     #[inline]
+    pub fn set_as_int(&mut self, val: uint32_t) {
+        *self = int_mv { as_int: val };
+    }
+    #[inline]
     pub fn as_mv(&self) -> MV {
         unsafe { self.as_mv }
     }

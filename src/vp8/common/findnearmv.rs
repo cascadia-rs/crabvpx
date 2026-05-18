@@ -137,6 +137,110 @@ pub static vp8_mbsplit_offset: [[::core::ffi::c_uchar; 16]; 4] = [
         15 as ::core::ffi::c_int as ::core::ffi::c_uchar,
     ],
 ];
+pub fn vp8_find_near_mvs_safe(
+    xd: &MACROBLOCKD,
+    above: &MODE_INFO,
+    left: &MODE_INFO,
+    aboveleft: &MODE_INFO,
+    nearest: &mut int_mv,
+    nearby: &mut int_mv,
+    best_mv: &mut int_mv,
+    near_mv_ref_cnts: &mut [::core::ffi::c_int; 4],
+    refframe: ::core::ffi::c_int,
+    ref_frame_sign_bias: &[::core::ffi::c_int; 4],
+) {
+    let mut near_mvs: [int_mv; 4] = [int_mv { as_int: 0 }; 4];
+    near_mv_ref_cnts.fill(0);
+
+    let mut nmv_idx = 0;
+    let mut cntx_idx = 0;
+
+    if above.mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
+        if above.mbmi.mv.as_int() != 0 {
+            nmv_idx += 1;
+            near_mvs[nmv_idx].set_as_int(above.mbmi.mv.as_int());
+            mv_bias(
+                ref_frame_sign_bias[above.mbmi.ref_frame as usize],
+                refframe,
+                &mut near_mvs[nmv_idx],
+                ref_frame_sign_bias,
+            );
+            cntx_idx += 1;
+        }
+        near_mv_ref_cnts[cntx_idx] += 2 as ::core::ffi::c_int;
+    }
+
+    if left.mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
+        if left.mbmi.mv.as_int() != 0 {
+            let mut this_mv = int_mv { as_int: left.mbmi.mv.as_int() };
+            mv_bias(
+                ref_frame_sign_bias[left.mbmi.ref_frame as usize],
+                refframe,
+                &mut this_mv,
+                ref_frame_sign_bias,
+            );
+            if this_mv.as_int() != near_mvs[nmv_idx].as_int() {
+                nmv_idx += 1;
+                near_mvs[nmv_idx].set_as_int(this_mv.as_int());
+                cntx_idx += 1;
+            }
+            near_mv_ref_cnts[cntx_idx] += 2 as ::core::ffi::c_int;
+        } else {
+            near_mv_ref_cnts[CNT_INTRA as usize] += 2 as ::core::ffi::c_int;
+        }
+    }
+
+    if aboveleft.mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
+        if aboveleft.mbmi.mv.as_int() != 0 {
+            let mut this_mv_0 = int_mv { as_int: aboveleft.mbmi.mv.as_int() };
+            mv_bias(
+                ref_frame_sign_bias[aboveleft.mbmi.ref_frame as usize],
+                refframe,
+                &mut this_mv_0,
+                ref_frame_sign_bias,
+            );
+            if this_mv_0.as_int() != near_mvs[nmv_idx].as_int() {
+                nmv_idx += 1;
+                near_mvs[nmv_idx].set_as_int(this_mv_0.as_int());
+                cntx_idx += 1;
+            }
+            near_mv_ref_cnts[cntx_idx] += 1 as ::core::ffi::c_int;
+        } else {
+            near_mv_ref_cnts[CNT_INTRA as usize] += 1 as ::core::ffi::c_int;
+        }
+    }
+
+    if near_mv_ref_cnts[CNT_SPLITMV as usize] != 0 {
+        if near_mvs[nmv_idx].as_int() == near_mvs[CNT_NEAREST as usize].as_int() {
+            near_mv_ref_cnts[CNT_NEAREST as usize] += 1 as ::core::ffi::c_int;
+        }
+    }
+
+    near_mv_ref_cnts[CNT_SPLITMV as usize] = 
+        (((above.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int
+            + (left.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int)
+            * 2 as ::core::ffi::c_int
+            + (aboveleft.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int);
+
+    if near_mv_ref_cnts[CNT_NEAR as usize] > near_mv_ref_cnts[CNT_NEAREST as usize] {
+        let tmp = near_mv_ref_cnts[CNT_NEAREST as usize];
+        near_mv_ref_cnts[CNT_NEAREST as usize] = near_mv_ref_cnts[CNT_NEAR as usize];
+        near_mv_ref_cnts[CNT_NEAR as usize] = tmp;
+
+        let tmp_mv = near_mvs[CNT_NEAREST as usize].as_int();
+        near_mvs[CNT_NEAREST as usize].set_as_int(near_mvs[CNT_NEAR as usize].as_int());
+        near_mvs[CNT_NEAR as usize].set_as_int(tmp_mv);
+    }
+
+    if near_mv_ref_cnts[CNT_NEAREST as usize] >= near_mv_ref_cnts[CNT_INTRA as usize] {
+        near_mvs[CNT_INTRA as usize] = near_mvs[CNT_NEAREST as usize];
+    }
+
+    best_mv.set_as_int(near_mvs[0].as_int());
+    nearest.set_as_int(near_mvs[CNT_NEAREST as usize].as_int());
+    nearby.set_as_int(near_mvs[CNT_NEAR as usize].as_int());
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_find_near_mvs(
     mut xd: *mut MACROBLOCKD,
@@ -147,119 +251,36 @@ pub unsafe extern "C" fn vp8_find_near_mvs(
     mut near_mv_ref_cnts: *mut ::core::ffi::c_int,
     mut refframe: ::core::ffi::c_int,
     mut ref_frame_sign_bias: *mut ::core::ffi::c_int,
-) { unsafe {
-    let ref_frame_sign_bias_slice = core::slice::from_raw_parts(ref_frame_sign_bias, 4);
-    let mut above: *const MODE_INFO = here.offset(-((*xd).mode_info_stride as isize));
-    let mut left: *const MODE_INFO = here.offset(-(1 as ::core::ffi::c_int as isize));
-    let mut aboveleft: *const MODE_INFO = above.offset(-(1 as ::core::ffi::c_int as isize));
-    let mut near_mvs: [int_mv; 4] = [int_mv { as_int: 0 }; 4];
-    let mut mv: *mut int_mv = &raw mut near_mvs as *mut int_mv;
-    let mut cntx: *mut ::core::ffi::c_int = near_mv_ref_cnts as *mut ::core::ffi::c_int;
-    let ref mut fresh0 = (*mv.offset(2 as ::core::ffi::c_int as isize)).as_int;
-    *fresh0 = 0 as uint32_t;
-    let ref mut fresh1 = (*mv.offset(1 as ::core::ffi::c_int as isize)).as_int;
-    *fresh1 = *fresh0;
-    (*mv.offset(0 as ::core::ffi::c_int as isize)).as_int = *fresh1;
-    let ref mut fresh2 = *near_mv_ref_cnts.offset(3 as ::core::ffi::c_int as isize);
-    *fresh2 = 0 as ::core::ffi::c_int;
-    let ref mut fresh3 = *near_mv_ref_cnts.offset(2 as ::core::ffi::c_int as isize);
-    *fresh3 = *fresh2;
-    let ref mut fresh4 = *near_mv_ref_cnts.offset(1 as ::core::ffi::c_int as isize);
-    *fresh4 = *fresh3;
-    *near_mv_ref_cnts.offset(0 as ::core::ffi::c_int as isize) = *fresh4;
-    if (*above).mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
-        if (*above).mbmi.mv.as_int != 0 {
-            mv = mv.offset(1);
-            (*mv).as_int = (*above).mbmi.mv.as_int;
-            mv_bias(
-                ref_frame_sign_bias_slice[(*above).mbmi.ref_frame as usize],
-                refframe,
-                &mut *mv,
-                ref_frame_sign_bias_slice,
-            );
-            cntx = cntx.offset(1);
-        }
-        *cntx += 2 as ::core::ffi::c_int;
+) {
+    unsafe {
+        let xd_ref = &*xd;
+        let stride = xd_ref.mode_info_stride as isize;
+        let above_ref = &*here.offset(-stride);
+        let left_ref = &*here.offset(-1);
+        let aboveleft_ref = &*here.offset(-stride - 1);
+
+        let nearest_ref = &mut *nearest;
+        let nearby_ref = &mut *nearby;
+        let best_mv_ref = &mut *best_mv;
+
+        let near_mv_ref_cnts_slice = &mut *(near_mv_ref_cnts as *mut [::core::ffi::c_int; 4]);
+        let ref_frame_sign_bias_slice = &*(ref_frame_sign_bias as *const [::core::ffi::c_int; 4]);
+
+        vp8_find_near_mvs_safe(
+            xd_ref,
+            above_ref,
+            left_ref,
+            aboveleft_ref,
+            nearest_ref,
+            nearby_ref,
+            best_mv_ref,
+            near_mv_ref_cnts_slice,
+            refframe,
+            ref_frame_sign_bias_slice,
+        );
     }
-    if (*left).mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
-        if (*left).mbmi.mv.as_int != 0 {
-            let mut this_mv: int_mv = int_mv { as_int: 0 };
-            this_mv.as_int = (*left).mbmi.mv.as_int;
-            mv_bias(
-                ref_frame_sign_bias_slice[(*left).mbmi.ref_frame as usize],
-                refframe,
-                &mut this_mv,
-                ref_frame_sign_bias_slice,
-            );
-            if this_mv.as_int != (*mv).as_int {
-                mv = mv.offset(1);
-                (*mv).as_int = this_mv.as_int;
-                cntx = cntx.offset(1);
-            }
-            *cntx += 2 as ::core::ffi::c_int;
-        } else {
-            *near_mv_ref_cnts.offset(CNT_INTRA as ::core::ffi::c_int as isize) +=
-                2 as ::core::ffi::c_int;
-        }
-    }
-    if (*aboveleft).mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
-        if (*aboveleft).mbmi.mv.as_int != 0 {
-            let mut this_mv_0: int_mv = int_mv { as_int: 0 };
-            this_mv_0.as_int = (*aboveleft).mbmi.mv.as_int;
-            mv_bias(
-                ref_frame_sign_bias_slice[(*aboveleft).mbmi.ref_frame as usize],
-                refframe,
-                &mut this_mv_0,
-                ref_frame_sign_bias_slice,
-            );
-            if this_mv_0.as_int != (*mv).as_int {
-                mv = mv.offset(1);
-                (*mv).as_int = this_mv_0.as_int;
-                cntx = cntx.offset(1);
-            }
-            *cntx += 1 as ::core::ffi::c_int;
-        } else {
-            *near_mv_ref_cnts.offset(CNT_INTRA as ::core::ffi::c_int as isize) +=
-                1 as ::core::ffi::c_int;
-        }
-    }
-    if *near_mv_ref_cnts.offset(CNT_SPLITMV as ::core::ffi::c_int as isize) != 0 {
-        if (*mv).as_int == near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int {
-            *near_mv_ref_cnts.offset(CNT_NEAREST as ::core::ffi::c_int as isize) +=
-                1 as ::core::ffi::c_int;
-        }
-    }
-    *near_mv_ref_cnts.offset(CNT_SPLITMV as ::core::ffi::c_int as isize) =
-        (((*above).mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int)
-            as ::core::ffi::c_int
-            + ((*left).mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int)
-                as ::core::ffi::c_int)
-            * 2 as ::core::ffi::c_int
-            + ((*aboveleft).mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int)
-                as ::core::ffi::c_int;
-    if *near_mv_ref_cnts.offset(CNT_NEAR as ::core::ffi::c_int as isize)
-        > *near_mv_ref_cnts.offset(CNT_NEAREST as ::core::ffi::c_int as isize)
-    {
-        let mut tmp: ::core::ffi::c_int = 0;
-        tmp = *near_mv_ref_cnts.offset(CNT_NEAREST as ::core::ffi::c_int as isize);
-        *near_mv_ref_cnts.offset(CNT_NEAREST as ::core::ffi::c_int as isize) =
-            *near_mv_ref_cnts.offset(CNT_NEAR as ::core::ffi::c_int as isize);
-        *near_mv_ref_cnts.offset(CNT_NEAR as ::core::ffi::c_int as isize) = tmp;
-        tmp = near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int as ::core::ffi::c_int;
-        near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int =
-            near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int;
-        near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int = tmp as uint32_t;
-    }
-    if *near_mv_ref_cnts.offset(CNT_NEAREST as ::core::ffi::c_int as isize)
-        >= *near_mv_ref_cnts.offset(CNT_INTRA as ::core::ffi::c_int as isize)
-    {
-        near_mvs[CNT_INTRA as ::core::ffi::c_int as usize] =
-            near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize];
-    }
-    (*best_mv).as_int = near_mvs[0 as ::core::ffi::c_int as usize].as_int;
-    (*nearest).as_int = near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int;
-    (*nearby).as_int = near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int;
-}}
+}
+
 fn invert_and_clamp_mvs(
     inv: &mut MV,
     src: &mut MV,
@@ -270,6 +291,75 @@ fn invert_and_clamp_mvs(
     vp8_clamp_mv2(inv, xd);
     vp8_clamp_mv2(src, xd);
 }
+
+pub fn vp8_find_near_mvs_bias_safe(
+    xd: &MACROBLOCKD,
+    above: &MODE_INFO,
+    left: &MODE_INFO,
+    aboveleft: &MODE_INFO,
+    mode_mv_sb: &mut [[int_mv; 10]; 2],
+    best_mv_sb: &mut [int_mv; 2],
+    cnt: &mut [::core::ffi::c_int; 4],
+    refframe: ::core::ffi::c_int,
+    ref_frame_sign_bias: &[::core::ffi::c_int; 4],
+) -> ::core::ffi::c_int {
+    let sign_bias = ref_frame_sign_bias[refframe as usize];
+
+    let (mode_first, mode_second) = mode_mv_sb.split_at_mut(1);
+    let sb_mv = if sign_bias == 0 { &mut mode_first[0] } else { &mut mode_second[0] };
+
+    let (best_first, best_second) = best_mv_sb.split_at_mut(1);
+    let best_sb_mv = if sign_bias == 0 { &mut best_first[0] } else { &mut best_second[0] };
+
+    let (nearest, nearby) = {
+        let (first, second) = sb_mv.split_at_mut(6);
+        (&mut first[5], &mut second[0])
+    };
+
+    vp8_find_near_mvs_safe(
+        xd,
+        above,
+        left,
+        aboveleft,
+        nearest,
+        nearby,
+        best_sb_mv,
+        cnt,
+        refframe,
+        ref_frame_sign_bias,
+    );
+
+    let (sb_mv_mut, inv_sb_mv_mut) = if sign_bias == 0 {
+        (&mut mode_first[0], &mut mode_second[0])
+    } else {
+        (&mut mode_second[0], &mut mode_first[0])
+    };
+
+    let (best_sb_mv_mut, best_inv_sb_mv_mut) = if sign_bias == 0 {
+        (&mut best_first[0], &mut best_second[0])
+    } else {
+        (&mut best_second[0], &mut best_first[0])
+    };
+
+    invert_and_clamp_mvs(
+        inv_sb_mv_mut[NEARESTMV as usize].as_mv_mut(),
+        sb_mv_mut[NEARESTMV as usize].as_mv_mut(),
+        xd,
+    );
+    invert_and_clamp_mvs(
+        inv_sb_mv_mut[NEARMV as usize].as_mv_mut(),
+        sb_mv_mut[NEARMV as usize].as_mv_mut(),
+        xd,
+    );
+    invert_and_clamp_mvs(
+        best_inv_sb_mv_mut.as_mv_mut(),
+        best_sb_mv_mut.as_mv_mut(),
+        xd,
+    );
+
+    sign_bias
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_find_near_mvs_bias(
     mut xd: *mut MACROBLOCKD,
@@ -279,55 +369,32 @@ pub unsafe extern "C" fn vp8_find_near_mvs_bias(
     mut cnt: *mut ::core::ffi::c_int,
     mut refframe: ::core::ffi::c_int,
     mut ref_frame_sign_bias: *mut ::core::ffi::c_int,
-) -> ::core::ffi::c_int { unsafe {
-    let mut sign_bias: ::core::ffi::c_int = *ref_frame_sign_bias.offset(refframe as isize);
-    vp8_find_near_mvs(
-        xd,
-        here,
-        (&raw mut *mode_mv_sb.offset(sign_bias as isize) as *mut int_mv)
-            .offset(NEARESTMV as ::core::ffi::c_int as isize) as *mut int_mv,
-        (&raw mut *mode_mv_sb.offset(sign_bias as isize) as *mut int_mv)
-            .offset(NEARMV as ::core::ffi::c_int as isize) as *mut int_mv,
-        best_mv_sb.offset(sign_bias as isize) as *mut int_mv,
-        cnt,
-        refframe,
-        ref_frame_sign_bias,
-    );
-    let mode_mv_sb_slice = core::slice::from_raw_parts_mut(mode_mv_sb, 2);
-    let best_mv_sb_slice = core::slice::from_raw_parts_mut(best_mv_sb, 2);
-    let xd_ref = &*xd;
+) -> ::core::ffi::c_int {
+    unsafe {
+        let xd_ref = &*xd;
+        let stride = xd_ref.mode_info_stride as isize;
+        let above_ref = &*here.offset(-stride);
+        let left_ref = &*here.offset(-1);
+        let aboveleft_ref = &*here.offset(-stride - 1);
 
-    let (mode_first, mode_second) = mode_mv_sb_slice.split_at_mut(1);
-    let (sb_mv, inv_sb_mv) = if sign_bias == 0 {
-        (&mut mode_first[0], &mut mode_second[0])
-    } else {
-        (&mut mode_second[0], &mut mode_first[0])
-    };
+        let mode_mv_sb_ref = &mut *(mode_mv_sb as *mut [[int_mv; 10]; 2]);
+        let best_mv_sb_ref = &mut *(best_mv_sb as *mut [int_mv; 2]);
+        let cnt_ref = &mut *(cnt as *mut [::core::ffi::c_int; 4]);
+        let ref_frame_sign_bias_ref = &*(ref_frame_sign_bias as *const [::core::ffi::c_int; 4]);
 
-    let (best_first, best_second) = best_mv_sb_slice.split_at_mut(1);
-    let (best_sb_mv, best_inv_sb_mv) = if sign_bias == 0 {
-        (&mut best_first[0], &mut best_second[0])
-    } else {
-        (&mut best_second[0], &mut best_first[0])
-    };
-
-    invert_and_clamp_mvs(
-        inv_sb_mv[NEARESTMV as usize].as_mv_mut(),
-        sb_mv[NEARESTMV as usize].as_mv_mut(),
-        xd_ref,
-    );
-    invert_and_clamp_mvs(
-        inv_sb_mv[NEARMV as usize].as_mv_mut(),
-        sb_mv[NEARMV as usize].as_mv_mut(),
-        xd_ref,
-    );
-    invert_and_clamp_mvs(
-        best_inv_sb_mv.as_mv_mut(),
-        best_sb_mv.as_mv_mut(),
-        xd_ref,
-    );
-    return sign_bias;
-}}
+        vp8_find_near_mvs_bias_safe(
+            xd_ref,
+            above_ref,
+            left_ref,
+            aboveleft_ref,
+            mode_mv_sb_ref,
+            best_mv_sb_ref,
+            cnt_ref,
+            refframe,
+            ref_frame_sign_bias_ref,
+        )
+    }
+}
 pub fn vp8_mv_ref_probs_safe(
     p: &mut [vp8_prob; 4],
     near_mv_ref_ct: &[::core::ffi::c_int; 4],
