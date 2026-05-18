@@ -361,8 +361,12 @@ unsafe fn Scale2D(
                     dest_width,
                 );
                 if interpolation != 0 {
-                    core::ptr::copy_nonoverlapping(temp_area.offset((source_band_height * dest_pitch) as isize)
-                            as *const c_void as *const u8, temp_area as *mut c_void as *mut u8, dest_width as size_t);
+                    core::ptr::copy_nonoverlapping(
+                        temp_area.offset((source_band_height * dest_pitch) as isize)
+                            as *const c_void as *const u8,
+                        temp_area as *mut c_void as *mut u8,
+                        dest_width as size_t,
+                    );
                 }
                 source = source
                     .offset((source_band_height as u64).wrapping_mul(source_pitch as u64) as isize);
@@ -450,7 +454,12 @@ unsafe fn Scale2D(
                         dest_width,
                     );
                 } else {
-                    core::ptr::copy_nonoverlapping(temp_area.offset(((i - 1 as i32) * dest_pitch) as isize) as *const c_void as *const u8, temp_area.offset((i * dest_pitch) as isize) as *mut c_void as *mut u8, dest_pitch as size_t);
+                    core::ptr::copy_nonoverlapping(
+                        temp_area.offset(((i - 1 as i32) * dest_pitch) as isize) as *const c_void
+                            as *const u8,
+                        temp_area.offset((i * dest_pitch) as isize) as *mut c_void as *mut u8,
+                        dest_pitch as size_t,
+                    );
                 }
                 i += 1;
             }
@@ -468,7 +477,12 @@ unsafe fn Scale2D(
                 );
                 j += 1;
             }
-            core::ptr::copy_nonoverlapping(temp_area.offset((source_band_height * dest_pitch) as isize) as *const c_void as *const u8, temp_area as *mut c_void as *mut u8, dest_pitch as size_t);
+            core::ptr::copy_nonoverlapping(
+                temp_area.offset((source_band_height * dest_pitch) as isize) as *const c_void
+                    as *const u8,
+                temp_area as *mut c_void as *mut u8,
+                dest_pitch as size_t,
+            );
             source = source.offset((source_band_height * source_pitch) as isize);
             dest = dest.offset((dest_band_height * dest_pitch) as isize);
             k += 1;
@@ -517,24 +531,33 @@ pub unsafe fn vpx_scale_frame(
         if dw < (*dst).y_width {
             i = 0 as i32;
             while i < dh {
-                core::ptr::write_bytes((*dst)
+                core::ptr::write_bytes(
+                    (*dst)
                         .y_buffer
                         .offset((i * (*dst).y_stride) as isize)
                         .offset(dw as isize)
-                        .offset(-(1 as isize)) as *mut c_void as *mut u8, *(*dst)
+                        .offset(-(1 as isize)) as *mut c_void as *mut u8,
+                    *(*dst)
                         .y_buffer
                         .offset((i * (*dst).y_stride + dw - 2 as i32) as isize)
-                        as i32 as u8, ((*dst).y_width - dw + 1 as i32) as size_t);
+                        as i32 as u8,
+                    ((*dst).y_width - dw + 1 as i32) as size_t,
+                );
                 i += 1;
             }
         }
         if dh < (*dst).y_height {
             i = dh - 1 as i32;
             while i < (*dst).y_height {
-                core::ptr::copy_nonoverlapping((*dst)
+                core::ptr::copy_nonoverlapping(
+                    (*dst)
                         .y_buffer
                         .offset(((dh - 2 as i32) * (*dst).y_stride) as isize)
-                        as *const c_void as *const u8, (*dst).y_buffer.offset((i * (*dst).y_stride) as isize) as *mut c_void as *mut u8, ((*dst).y_width + 1 as i32) as size_t);
+                        as *const c_void as *const u8,
+                    (*dst).y_buffer.offset((i * (*dst).y_stride) as isize) as *mut c_void
+                        as *mut u8,
+                    ((*dst).y_width + 1 as i32) as size_t,
+                );
                 i += 1;
             }
         }
@@ -558,24 +581,33 @@ pub unsafe fn vpx_scale_frame(
         if (dw / 2 as i32) < (*dst).uv_width {
             i = 0 as i32;
             while i < (*dst).uv_height {
-                core::ptr::write_bytes((*dst)
+                core::ptr::write_bytes(
+                    (*dst)
                         .u_buffer
                         .offset((i * (*dst).uv_stride) as isize)
                         .offset((dw / 2 as i32) as isize)
-                        .offset(-(1 as isize)) as *mut c_void as *mut u8, *(*dst)
+                        .offset(-(1 as isize)) as *mut c_void as *mut u8,
+                    *(*dst)
                         .u_buffer
                         .offset((i * (*dst).uv_stride + dw / 2 as i32 - 2 as i32) as isize)
-                        as i32 as u8, ((*dst).uv_width - dw / 2 as i32 + 1 as i32) as size_t);
+                        as i32 as u8,
+                    ((*dst).uv_width - dw / 2 as i32 + 1 as i32) as size_t,
+                );
                 i += 1;
             }
         }
         if (dh / 2 as i32) < (*dst).uv_height {
             i = dh / 2 as i32 - 1 as i32;
             while i < (*dst).y_height / 2 as i32 {
-                core::ptr::copy_nonoverlapping((*dst)
+                core::ptr::copy_nonoverlapping(
+                    (*dst)
                         .u_buffer
                         .offset(((dh / 2 as i32 - 2 as i32) * (*dst).uv_stride) as isize)
-                        as *const c_void as *const u8, (*dst).u_buffer.offset((i * (*dst).uv_stride) as isize) as *mut c_void as *mut u8, (*dst).uv_width as size_t);
+                        as *const c_void as *const u8,
+                    (*dst).u_buffer.offset((i * (*dst).uv_stride) as isize) as *mut c_void
+                        as *mut u8,
+                    (*dst).uv_width as size_t,
+                );
                 i += 1;
             }
         }
@@ -599,24 +631,33 @@ pub unsafe fn vpx_scale_frame(
         if (dw / 2 as i32) < (*dst).uv_width {
             i = 0 as i32;
             while i < (*dst).uv_height {
-                core::ptr::write_bytes((*dst)
+                core::ptr::write_bytes(
+                    (*dst)
                         .v_buffer
                         .offset((i * (*dst).uv_stride) as isize)
                         .offset((dw / 2 as i32) as isize)
-                        .offset(-(1 as isize)) as *mut c_void as *mut u8, *(*dst)
+                        .offset(-(1 as isize)) as *mut c_void as *mut u8,
+                    *(*dst)
                         .v_buffer
                         .offset((i * (*dst).uv_stride + dw / 2 as i32 - 2 as i32) as isize)
-                        as i32 as u8, ((*dst).uv_width - dw / 2 as i32 + 1 as i32) as size_t);
+                        as i32 as u8,
+                    ((*dst).uv_width - dw / 2 as i32 + 1 as i32) as size_t,
+                );
                 i += 1;
             }
         }
         if (dh / 2 as i32) < (*dst).uv_height {
             i = dh / 2 as i32 - 1 as i32;
             while i < (*dst).y_height / 2 as i32 {
-                core::ptr::copy_nonoverlapping((*dst)
+                core::ptr::copy_nonoverlapping(
+                    (*dst)
                         .v_buffer
                         .offset(((dh / 2 as i32 - 2 as i32) * (*dst).uv_stride) as isize)
-                        as *const c_void as *const u8, (*dst).v_buffer.offset((i * (*dst).uv_stride) as isize) as *mut c_void as *mut u8, (*dst).uv_width as size_t);
+                        as *const c_void as *const u8,
+                    (*dst).v_buffer.offset((i * (*dst).uv_stride) as isize) as *mut c_void
+                        as *mut u8,
+                    (*dst).uv_width as size_t,
+                );
                 i += 1;
             }
         }

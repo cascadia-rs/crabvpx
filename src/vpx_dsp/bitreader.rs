@@ -120,7 +120,10 @@ pub unsafe fn vpx_reader_fill(mut r: *mut vpx_reader) {
             let bits: i32 = (shift as u32 & 0xfffffff8 as u32).wrapping_add(CHAR_BIT as u32) as i32;
             let mut nv: BD_VALUE = 0;
             let mut big_endian_values: BD_VALUE = 0;
-            core::ptr::copy_nonoverlapping(buffer as *const c_void as *const u8, &raw mut big_endian_values as *mut c_void as *mut u8, ::core::mem::size_of::<BD_VALUE>() as size_t,
+            core::ptr::copy_nonoverlapping(
+                buffer as *const c_void as *const u8,
+                &raw mut big_endian_values as *mut c_void as *mut u8,
+                ::core::mem::size_of::<BD_VALUE>() as size_t,
             );
             big_endian_values = BSwap64(big_endian_values as uint64_t) as BD_VALUE;
             nv = big_endian_values >> (BD_VALUE_SIZE - bits);

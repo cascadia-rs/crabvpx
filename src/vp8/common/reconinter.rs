@@ -1,6 +1,5 @@
 use std::ffi::c_void;
-unsafe extern "Rust" {
-}
+unsafe extern "Rust" {}
 pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
 #[derive(Copy, Clone)]
@@ -229,7 +228,11 @@ pub unsafe fn vp8_copy_mem16x16_c(
         let mut r: i32 = 0;
         r = 0 as i32;
         while r < 16 as i32 {
-            core::ptr::copy_nonoverlapping(src as *const c_void as *const u8, dst as *mut c_void as *mut u8, 16 as size_t);
+            core::ptr::copy_nonoverlapping(
+                src as *const c_void as *const u8,
+                dst as *mut c_void as *mut u8,
+                16 as size_t,
+            );
             src = src.offset(src_stride as isize);
             dst = dst.offset(dst_stride as isize);
             r += 1;
@@ -247,7 +250,11 @@ pub unsafe fn vp8_copy_mem8x8_c(
         let mut r: i32 = 0;
         r = 0 as i32;
         while r < 8 as i32 {
-            core::ptr::copy_nonoverlapping(src as *const c_void as *const u8, dst as *mut c_void as *mut u8, 8 as size_t);
+            core::ptr::copy_nonoverlapping(
+                src as *const c_void as *const u8,
+                dst as *mut c_void as *mut u8,
+                8 as size_t,
+            );
             src = src.offset(src_stride as isize);
             dst = dst.offset(dst_stride as isize);
             r += 1;
@@ -265,7 +272,11 @@ pub unsafe fn vp8_copy_mem8x4_c(
         let mut r: i32 = 0;
         r = 0 as i32;
         while r < 4 as i32 {
-            core::ptr::copy_nonoverlapping(src as *const c_void as *const u8, dst as *mut c_void as *mut u8, 8 as size_t);
+            core::ptr::copy_nonoverlapping(
+                src as *const c_void as *const u8,
+                dst as *mut c_void as *mut u8,
+                8 as size_t,
+            );
             src = src.offset(src_stride as isize);
             dst = dst.offset(dst_stride as isize);
             r += 1;

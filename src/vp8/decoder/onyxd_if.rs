@@ -508,7 +508,10 @@ unsafe fn create_decompressor(_oxcf: *mut VP8D_CONFIG) -> *mut VP8D_COMP {
         if pbi.is_null() {
             return ::core::ptr::null_mut::<VP8D_COMP>();
         }
-        core::ptr::write_bytes(pbi as *mut c_void as *mut u8, 0 as i32 as u8, ::core::mem::size_of::<VP8D_COMP>() as size_t,
+        core::ptr::write_bytes(
+            pbi as *mut c_void as *mut u8,
+            0 as i32 as u8,
+            ::core::mem::size_of::<VP8D_COMP>() as size_t,
         );
         if setjmp(&raw mut (*pbi).common.error.jmp as *mut i32) != 0 {
             (*pbi).common.error.setjmp = 0 as i32;
@@ -772,7 +775,11 @@ pub unsafe fn vp8dx_receive_compressed_data(mut pbi: *mut VP8D_COMP) -> i32 {
             (*pbi).common.error.error_code = VPX_CODEC_ERROR;
             if (*pbi).mb.error_info.error_code as u32 != 0 as u32 {
                 (*pbi).common.error.error_code = (*pbi).mb.error_info.error_code;
-                core::ptr::copy_nonoverlapping(&raw mut (*pbi).mb.error_info.detail as *mut i8 as *const c_void as *const u8, &raw mut (*pbi).common.error.detail as *mut i8 as *mut c_void as *mut u8, ::core::mem::size_of::<[i8; 80]>() as size_t);
+                core::ptr::copy_nonoverlapping(
+                    &raw mut (*pbi).mb.error_info.detail as *mut i8 as *const c_void as *const u8,
+                    &raw mut (*pbi).common.error.detail as *mut i8 as *mut c_void as *mut u8,
+                    ::core::mem::size_of::<[i8; 80]>() as size_t,
+                );
             }
         } else if swap_frame_buffers(cm) != 0 {
             (*pbi).common.error.error_code = VPX_CODEC_ERROR;
@@ -854,7 +861,11 @@ pub unsafe fn vp8_create_decoder_instances(
         {
             (*(*fb).pbi[0 as usize]).common.error.setjmp = 0 as i32;
             vp8_remove_decoder_instances(fb);
-            core::ptr::write_bytes(&raw mut (*fb).pbi as *mut c_void as *mut u8, 0 as i32 as u8, ::core::mem::size_of::<[*mut VP8D_COMP; 32]>() as size_t);
+            core::ptr::write_bytes(
+                &raw mut (*fb).pbi as *mut c_void as *mut u8,
+                0 as i32 as u8,
+                ::core::mem::size_of::<[*mut VP8D_COMP; 32]>() as size_t,
+            );
             return VPX_CODEC_ERROR as i32;
         }
         (*(*fb).pbi[0 as usize]).common.error.setjmp = 1 as i32;

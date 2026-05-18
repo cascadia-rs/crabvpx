@@ -467,9 +467,15 @@ pub unsafe fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
     unsafe {
         let mut a_ctx: *mut ENTROPY_CONTEXT = (*x).above_context as *mut ENTROPY_CONTEXT;
         let mut l_ctx: *mut ENTROPY_CONTEXT = (*x).left_context as *mut ENTROPY_CONTEXT;
-        core::ptr::write_bytes(a_ctx as *mut c_void as *mut u8, 0 as i32 as u8, (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t).wrapping_sub(1 as size_t),
+        core::ptr::write_bytes(
+            a_ctx as *mut c_void as *mut u8,
+            0 as i32 as u8,
+            (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t).wrapping_sub(1 as size_t),
         );
-        core::ptr::write_bytes(l_ctx as *mut c_void as *mut u8, 0 as i32 as u8, (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t).wrapping_sub(1 as size_t),
+        core::ptr::write_bytes(
+            l_ctx as *mut c_void as *mut u8,
+            0 as i32 as u8,
+            (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t).wrapping_sub(1 as size_t),
         );
         if (*(*x).mode_info_context).mbmi.is_4x4 == 0 {
             let fresh0 = &mut *l_ctx.offset(8 as isize);

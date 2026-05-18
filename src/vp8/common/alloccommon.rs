@@ -412,7 +412,11 @@ pub unsafe fn vp8_create_common(mut oci: *mut VP8_COMMON) {
         (*oci).full_pixel = 0 as i32;
         (*oci).multi_token_partition = ONE_PARTITION;
         (*oci).clamp_type = RECON_CLAMP_REQUIRED;
-        core::ptr::write_bytes(&raw mut (*oci).ref_frame_sign_bias as *mut i32 as *mut c_void as *mut u8, 0 as i32 as u8, ::core::mem::size_of::<[i32; 4]>() as size_t);
+        core::ptr::write_bytes(
+            &raw mut (*oci).ref_frame_sign_bias as *mut i32 as *mut c_void as *mut u8,
+            0 as i32 as u8,
+            ::core::mem::size_of::<[i32; 4]>() as size_t,
+        );
         (*oci).copy_buffer_to_gf = 0 as i32;
         (*oci).copy_buffer_to_arf = 0 as i32;
     }

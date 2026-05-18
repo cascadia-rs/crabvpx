@@ -1,6 +1,5 @@
 use std::ffi::c_void;
-unsafe extern "Rust" {
-}
+unsafe extern "Rust" {}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct yv12_buffer_config {
@@ -72,8 +71,16 @@ unsafe fn extend_plane(
         let mut dst_ptr2: *mut uint8_t = src.offset(width as isize);
         i = 0 as i32;
         while i < height {
-            core::ptr::write_bytes(dst_ptr1 as *mut c_void as *mut u8, *src_ptr1.offset(0 as isize) as i32 as u8, extend_left as size_t);
-            core::ptr::write_bytes(dst_ptr2 as *mut c_void as *mut u8, *src_ptr2.offset(0 as isize) as i32 as u8, extend_right as size_t);
+            core::ptr::write_bytes(
+                dst_ptr1 as *mut c_void as *mut u8,
+                *src_ptr1.offset(0 as isize) as i32 as u8,
+                extend_left as size_t,
+            );
+            core::ptr::write_bytes(
+                dst_ptr2 as *mut c_void as *mut u8,
+                *src_ptr2.offset(0 as isize) as i32 as u8,
+                extend_right as size_t,
+            );
             src_ptr1 = src_ptr1.offset(src_stride as isize);
             src_ptr2 = src_ptr2.offset(src_stride as isize);
             dst_ptr1 = dst_ptr1.offset(src_stride as isize);
@@ -92,13 +99,21 @@ unsafe fn extend_plane(
             .offset(-(extend_left as isize));
         i = 0 as i32;
         while i < extend_top {
-            core::ptr::copy_nonoverlapping(src_ptr1 as *const c_void as *const u8, dst_ptr1 as *mut c_void as *mut u8, linesize as size_t);
+            core::ptr::copy_nonoverlapping(
+                src_ptr1 as *const c_void as *const u8,
+                dst_ptr1 as *mut c_void as *mut u8,
+                linesize as size_t,
+            );
             dst_ptr1 = dst_ptr1.offset(src_stride as isize);
             i += 1;
         }
         i = 0 as i32;
         while i < extend_bottom {
-            core::ptr::copy_nonoverlapping(src_ptr2 as *const c_void as *const u8, dst_ptr2 as *mut c_void as *mut u8, linesize as size_t);
+            core::ptr::copy_nonoverlapping(
+                src_ptr2 as *const c_void as *const u8,
+                dst_ptr2 as *mut c_void as *mut u8,
+                linesize as size_t,
+            );
             dst_ptr2 = dst_ptr2.offset(src_stride as isize);
             i += 1;
         }
@@ -151,7 +166,10 @@ pub unsafe fn vp8_yv12_copy_frame_c(
         let mut dst: *mut uint8_t = (*dst_ybc).y_buffer;
         row = 0 as i32;
         while row < (*src_ybc).y_height {
-            core::ptr::copy_nonoverlapping(src as *const c_void as *const u8, dst as *mut c_void as *mut u8, (*src_ybc).y_width as size_t,
+            core::ptr::copy_nonoverlapping(
+                src as *const c_void as *const u8,
+                dst as *mut c_void as *mut u8,
+                (*src_ybc).y_width as size_t,
             );
             src = src.offset((*src_ybc).y_stride as isize);
             dst = dst.offset((*dst_ybc).y_stride as isize);
@@ -161,7 +179,10 @@ pub unsafe fn vp8_yv12_copy_frame_c(
         dst = (*dst_ybc).u_buffer;
         row = 0 as i32;
         while row < (*src_ybc).uv_height {
-            core::ptr::copy_nonoverlapping(src as *const c_void as *const u8, dst as *mut c_void as *mut u8, (*src_ybc).uv_width as size_t,
+            core::ptr::copy_nonoverlapping(
+                src as *const c_void as *const u8,
+                dst as *mut c_void as *mut u8,
+                (*src_ybc).uv_width as size_t,
             );
             src = src.offset((*src_ybc).uv_stride as isize);
             dst = dst.offset((*dst_ybc).uv_stride as isize);
@@ -171,7 +192,10 @@ pub unsafe fn vp8_yv12_copy_frame_c(
         dst = (*dst_ybc).v_buffer;
         row = 0 as i32;
         while row < (*src_ybc).uv_height {
-            core::ptr::copy_nonoverlapping(src as *const c_void as *const u8, dst as *mut c_void as *mut u8, (*src_ybc).uv_width as size_t,
+            core::ptr::copy_nonoverlapping(
+                src as *const c_void as *const u8,
+                dst as *mut c_void as *mut u8,
+                (*src_ybc).uv_width as size_t,
             );
             src = src.offset((*src_ybc).uv_stride as isize);
             dst = dst.offset((*dst_ybc).uv_stride as isize);
@@ -191,7 +215,10 @@ pub unsafe fn vpx_yv12_copy_y_c(
         let mut dst: *mut uint8_t = (*dst_ybc).y_buffer;
         row = 0 as i32;
         while row < (*src_ybc).y_height {
-            core::ptr::copy_nonoverlapping(src as *const c_void as *const u8, dst as *mut c_void as *mut u8, (*src_ybc).y_width as size_t,
+            core::ptr::copy_nonoverlapping(
+                src as *const c_void as *const u8,
+                dst as *mut c_void as *mut u8,
+                (*src_ybc).y_width as size_t,
             );
             src = src.offset((*src_ybc).y_stride as isize);
             dst = dst.offset((*dst_ybc).y_stride as isize);

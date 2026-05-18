@@ -749,7 +749,12 @@ pub unsafe fn vpx_codec_get_cx_data(
                     <= (*priv_0).enc.cx_data_dst_buf.sz
             {
                 let mut modified_pkt: *mut vpx_codec_cx_pkt_t = &raw mut (*priv_0).enc.cx_data_pkt;
-                core::ptr::copy_nonoverlapping((*pkt).data.raw.buf as *const u8, dst_buf.offset((*priv_0).enc.cx_data_pad_before as isize) as *mut c_void as *mut u8, (*pkt).data.raw.sz);
+                core::ptr::copy_nonoverlapping(
+                    (*pkt).data.raw.buf as *const u8,
+                    dst_buf.offset((*priv_0).enc.cx_data_pad_before as isize) as *mut c_void
+                        as *mut u8,
+                    (*pkt).data.raw.sz,
+                );
                 *modified_pkt = *pkt;
                 (*modified_pkt).data.raw.buf = dst_buf as *mut c_void;
                 (*modified_pkt).data.raw.sz = (*modified_pkt).data.raw.sz.wrapping_add(

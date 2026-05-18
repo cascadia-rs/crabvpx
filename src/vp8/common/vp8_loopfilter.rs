@@ -429,12 +429,24 @@ pub unsafe fn vp8_loop_filter_update_sharpness(
             if block_inside_limit < 1 as i32 {
                 block_inside_limit = 1 as i32;
             }
-            core::ptr::write_bytes(&raw mut *(&raw mut (*lfi).lim as *mut [u8; 16]).offset(i as isize) as *mut u8
-                    as *mut c_void as *mut u8, block_inside_limit as u8, SIMD_WIDTH as size_t);
-            core::ptr::write_bytes(&raw mut *(&raw mut (*lfi).blim as *mut [u8; 16]).offset(i as isize) as *mut u8
-                    as *mut c_void as *mut u8, (2 as i32 * filt_lvl + block_inside_limit) as u8, SIMD_WIDTH as size_t);
-            core::ptr::write_bytes(&raw mut *(&raw mut (*lfi).mblim as *mut [u8; 16]).offset(i as isize) as *mut u8
-                    as *mut c_void as *mut u8, (2 as i32 * (filt_lvl + 2 as i32) + block_inside_limit) as u8, SIMD_WIDTH as size_t);
+            core::ptr::write_bytes(
+                &raw mut *(&raw mut (*lfi).lim as *mut [u8; 16]).offset(i as isize) as *mut u8
+                    as *mut c_void as *mut u8,
+                block_inside_limit as u8,
+                SIMD_WIDTH as size_t,
+            );
+            core::ptr::write_bytes(
+                &raw mut *(&raw mut (*lfi).blim as *mut [u8; 16]).offset(i as isize) as *mut u8
+                    as *mut c_void as *mut u8,
+                (2 as i32 * filt_lvl + block_inside_limit) as u8,
+                SIMD_WIDTH as size_t,
+            );
+            core::ptr::write_bytes(
+                &raw mut *(&raw mut (*lfi).mblim as *mut [u8; 16]).offset(i as isize) as *mut u8
+                    as *mut c_void as *mut u8,
+                (2 as i32 * (filt_lvl + 2 as i32) + block_inside_limit) as u8,
+                SIMD_WIDTH as size_t,
+            );
             i += 1;
         }
     }
@@ -449,8 +461,12 @@ pub unsafe fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) {
         lf_init_lut(lfi);
         i = 0 as i32;
         while i < 4 as i32 {
-            core::ptr::write_bytes(&raw mut *(&raw mut (*lfi).hev_thr as *mut [u8; 16]).offset(i as isize) as *mut u8
-                    as *mut c_void as *mut u8, i as u8, SIMD_WIDTH as size_t);
+            core::ptr::write_bytes(
+                &raw mut *(&raw mut (*lfi).hev_thr as *mut [u8; 16]).offset(i as isize) as *mut u8
+                    as *mut c_void as *mut u8,
+                i as u8,
+                SIMD_WIDTH as size_t,
+            );
             i += 1;
         }
     }
@@ -494,9 +510,14 @@ pub unsafe fn vp8_loop_filter_frame_init(
                 };
             }
             if (*mbd).mode_ref_lf_delta_enabled == 0 {
-                core::ptr::write_bytes(&raw mut *(&raw mut *(&raw mut (*lfi).lvl as *mut [[u8; 4]; 4])
+                core::ptr::write_bytes(
+                    &raw mut *(&raw mut *(&raw mut (*lfi).lvl as *mut [[u8; 4]; 4])
                         .offset(seg as isize) as *mut [u8; 4])
-                        .offset(0 as isize) as *mut u8 as *mut c_void as *mut u8, lvl_seg as u8, (4 as i32 * 4 as i32) as size_t);
+                        .offset(0 as isize) as *mut u8 as *mut c_void
+                        as *mut u8,
+                    lvl_seg as u8,
+                    (4 as i32 * 4 as i32) as size_t,
+                );
             } else {
                 ref_0 = INTRA_FRAME as i32;
                 lvl_ref = lvl_seg + (*mbd).ref_lf_deltas[ref_0 as usize] as i32;

@@ -64,7 +64,10 @@ pub unsafe fn vp8_yv12_de_alloc_frame_buffer(mut ybf: *mut YV12_BUFFER_CONFIG) -
             if (*ybf).buffer_alloc_sz > 0 as size_t {
                 vpx_free((*ybf).buffer_alloc as *mut c_void);
             }
-            core::ptr::write_bytes(ybf as *mut c_void as *mut u8, 0 as i32 as u8, ::core::mem::size_of::<YV12_BUFFER_CONFIG>() as size_t,
+            core::ptr::write_bytes(
+                ybf as *mut c_void as *mut u8,
+                0 as i32 as u8,
+                ::core::mem::size_of::<YV12_BUFFER_CONFIG>() as size_t,
             );
         } else {
             return -(1 as i32);

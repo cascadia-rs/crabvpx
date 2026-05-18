@@ -101,7 +101,10 @@ unsafe fn img_alloc_helper(
         let mut stride_in_bytes: i32 = 0;
         let mut align: u32 = 0;
         if !img.is_null() {
-            core::ptr::write_bytes(img as *mut c_void as *mut u8, 0 as i32 as u8, ::core::mem::size_of::<vpx_image_t>() as size_t,
+            core::ptr::write_bytes(
+                img as *mut c_void as *mut u8,
+                0 as i32 as u8,
+                ::core::mem::size_of::<vpx_image_t>() as size_t,
             );
         }
         if !(is_valid_img_fmt(fmt) == 0)

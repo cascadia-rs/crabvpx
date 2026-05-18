@@ -480,7 +480,10 @@ pub unsafe fn vpx_codec_dec_init_ver(
         } else if (*iface).caps & VPX_CODEC_CAP_DECODER as vpx_codec_caps_t == 0 {
             res = VPX_CODEC_INCAPABLE;
         } else {
-            core::ptr::write_bytes(ctx as *mut c_void as *mut u8, 0 as i32 as u8, ::core::mem::size_of::<vpx_codec_ctx_t>() as size_t,
+            core::ptr::write_bytes(
+                ctx as *mut c_void as *mut u8,
+                0 as i32 as u8,
+                ::core::mem::size_of::<vpx_codec_ctx_t>() as size_t,
             );
             (*ctx).iface = iface;
             (*ctx).name = (*iface).name;

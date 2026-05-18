@@ -1104,7 +1104,11 @@ unsafe fn vp8_get_si(
         } else {
             sz = ::core::mem::size_of::<vpx_codec_stream_info_t>() as u32;
         }
-        core::ptr::copy_nonoverlapping(&raw mut (*ctx).si as *const c_void as *const u8, si as *mut c_void as *mut u8, sz as size_t);
+        core::ptr::copy_nonoverlapping(
+            &raw mut (*ctx).si as *const c_void as *const u8,
+            si as *mut c_void as *mut u8,
+            sz as size_t,
+        );
         (*si).sz = sz;
         VPX_CODEC_OK
     }
@@ -1167,8 +1171,16 @@ unsafe fn update_fragments(
     unsafe {
         ::core::ptr::write_volatile(res, VPX_CODEC_OK);
         if (*ctx).fragments.count == 0 as u32 {
-            core::ptr::write_bytes(&raw mut (*ctx).fragments.ptrs as *mut *const u8 as *mut c_void as *mut u8, 0 as i32 as u8, ::core::mem::size_of::<[*const u8; 9]>() as size_t);
-            core::ptr::write_bytes(&raw mut (*ctx).fragments.sizes as *mut u32 as *mut c_void as *mut u8, 0 as i32 as u8, ::core::mem::size_of::<[u32; 9]>() as size_t);
+            core::ptr::write_bytes(
+                &raw mut (*ctx).fragments.ptrs as *mut *const u8 as *mut c_void as *mut u8,
+                0 as i32 as u8,
+                ::core::mem::size_of::<[*const u8; 9]>() as size_t,
+            );
+            core::ptr::write_bytes(
+                &raw mut (*ctx).fragments.sizes as *mut u32 as *mut c_void as *mut u8,
+                0 as i32 as u8,
+                ::core::mem::size_of::<[u32; 9]>() as size_t,
+            );
         }
         if (*ctx).fragments.enabled != 0
             && data.is_null()
@@ -1452,7 +1464,10 @@ unsafe fn vp8_get_frame(
                 display_b_modes_flag: 0,
                 display_mv_flag: 0,
             };
-            core::ptr::write_bytes(&raw mut flags as *mut c_void as *mut u8, 0 as i32 as u8, ::core::mem::size_of::<vp8_ppflags_t>() as size_t,
+            core::ptr::write_bytes(
+                &raw mut flags as *mut c_void as *mut u8,
+                0 as i32 as u8,
+                ::core::mem::size_of::<vp8_ppflags_t>() as size_t,
             );
             if (*ctx).base.init_flags & VPX_CODEC_USE_POSTPROC as vpx_codec_flags_t != 0 {
                 flags.post_proc_flag = (*ctx).postproc_cfg.post_proc_flag;

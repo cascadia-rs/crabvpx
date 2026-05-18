@@ -1,6 +1,5 @@
 use std::ffi::c_void;
-unsafe extern "Rust" {
-}
+unsafe extern "Rust" {}
 pub type vpx_color_space = u32;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
 pub const VPX_CS_RESERVED: vpx_color_space = 6;
@@ -83,9 +82,17 @@ unsafe fn copy_and_extend_plane(
         dest_ptr2 = d.offset(w as isize);
         i = 0 as i32;
         while i < h {
-            core::ptr::write_bytes(dest_ptr1 as *mut c_void as *mut u8, *src_ptr1.offset(0 as isize) as i32 as u8, el as size_t);
+            core::ptr::write_bytes(
+                dest_ptr1 as *mut c_void as *mut u8,
+                *src_ptr1.offset(0 as isize) as i32 as u8,
+                el as size_t,
+            );
             if interleave_step == 1 as i32 {
-                core::ptr::copy_nonoverlapping(src_ptr1 as *const c_void as *const u8, dest_ptr1.offset(el as isize) as *mut c_void as *mut u8, w as size_t);
+                core::ptr::copy_nonoverlapping(
+                    src_ptr1 as *const c_void as *const u8,
+                    dest_ptr1.offset(el as isize) as *mut c_void as *mut u8,
+                    w as size_t,
+                );
             } else {
                 j = 0 as i32;
                 while j < w {
@@ -94,7 +101,11 @@ unsafe fn copy_and_extend_plane(
                     j += 1;
                 }
             }
-            core::ptr::write_bytes(dest_ptr2 as *mut c_void as *mut u8, *src_ptr2.offset(0 as isize) as i32 as u8, er as size_t);
+            core::ptr::write_bytes(
+                dest_ptr2 as *mut c_void as *mut u8,
+                *src_ptr2.offset(0 as isize) as i32 as u8,
+                er as size_t,
+            );
             src_ptr1 = src_ptr1.offset(sp as isize);
             src_ptr2 = src_ptr2.offset(sp as isize);
             dest_ptr1 = dest_ptr1.offset(dp as isize);
@@ -110,13 +121,21 @@ unsafe fn copy_and_extend_plane(
         linesize = el + er + w;
         i = 0 as i32;
         while i < et {
-            core::ptr::copy_nonoverlapping(src_ptr1 as *const c_void as *const u8, dest_ptr1 as *mut c_void as *mut u8, linesize as size_t);
+            core::ptr::copy_nonoverlapping(
+                src_ptr1 as *const c_void as *const u8,
+                dest_ptr1 as *mut c_void as *mut u8,
+                linesize as size_t,
+            );
             dest_ptr1 = dest_ptr1.offset(dp as isize);
             i += 1;
         }
         i = 0 as i32;
         while i < eb {
-            core::ptr::copy_nonoverlapping(src_ptr2 as *const c_void as *const u8, dest_ptr2 as *mut c_void as *mut u8, linesize as size_t);
+            core::ptr::copy_nonoverlapping(
+                src_ptr2 as *const c_void as *const u8,
+                dest_ptr2 as *mut c_void as *mut u8,
+                linesize as size_t,
+            );
             dest_ptr2 = dest_ptr2.offset(dp as isize);
             i += 1;
         }

@@ -1,6 +1,5 @@
 use std::ffi::c_void;
-unsafe extern "Rust" {
-}
+unsafe extern "Rust" {}
 pub type vp8_prob = u8;
 pub type vp8_tree_index = i8;
 pub type vp8_tree_p = *const vp8_tree_index;
@@ -3234,6 +3233,11 @@ static mut default_coef_probs: [[[[vp8_prob; 11]; 3]; 8]; 4] = [
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_default_coef_probs(mut pc: *mut VP8_COMMON) {
     unsafe {
-        core::ptr::copy_nonoverlapping(&raw const default_coef_probs as *const [[[vp8_prob; 11]; 3]; 8] as *const c_void as *const u8, &raw mut (*pc).fc.coef_probs as *mut [[[vp8_prob; 11]; 3]; 8] as *mut c_void as *mut u8, ::core::mem::size_of::<[[[[vp8_prob; 11]; 3]; 8]; 4]>() as size_t);
+        core::ptr::copy_nonoverlapping(
+            &raw const default_coef_probs as *const [[[vp8_prob; 11]; 3]; 8] as *const c_void
+                as *const u8,
+            &raw mut (*pc).fc.coef_probs as *mut [[[vp8_prob; 11]; 3]; 8] as *mut c_void as *mut u8,
+            ::core::mem::size_of::<[[[[vp8_prob; 11]; 3]; 8]; 4]>() as size_t,
+        );
     }
 }
