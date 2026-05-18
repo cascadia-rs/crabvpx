@@ -734,18 +734,16 @@ fn decode_mb_mode_mvs(
         read_mb_modes_mv(pbi, mip_slice, cur_idx, safe_decoder);
     };
 }
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) { unsafe {
-    let stride = (*pbi).common.mode_info_stride as usize;
-    let mip_len = ((*pbi).common.mb_rows + 1) as usize * stride;
-    let mip_slice = core::slice::from_raw_parts_mut((*pbi).common.mip, mip_len);
+pub fn vp8_decode_mode_mvs(pbi: &mut VP8D_COMP) { unsafe {
+    let stride = pbi.common.mode_info_stride as usize;
+    let mip_len = (pbi.common.mb_rows + 1) as usize * stride;
+    let mip_slice = core::slice::from_raw_parts_mut(pbi.common.mip, mip_len);
     let mut cur_idx = stride + 1;
 
     let mut mb_row: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
     let mut mb_to_right_edge_start: ::core::ffi::c_int = 0;
 
-    let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-        .offset(8 as ::core::ffi::c_int as isize) as *mut vp8_reader;
+    let bc: *mut vp8_reader = &raw mut pbi.mbc[8];
     let len = (*bc).user_buffer_end.offset_from((*bc).user_buffer) as usize;
     let slice = if len == 0 {
         &[]
@@ -762,34 +760,34 @@ pub unsafe extern "C" fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) { unsafe {
         decrypt_state: (*bc).decrypt_state,
     };
 
-    mb_mode_mv_init(&mut *pbi, &mut safe_decoder);
-    (*pbi).mb.mb_to_top_edge = 0 as ::core::ffi::c_int;
-    (*pbi).mb.mb_to_bottom_edge = (((*pbi).common.mb_rows - 1 as ::core::ffi::c_int)
+    mb_mode_mv_init(pbi, &mut safe_decoder);
+    pbi.mb.mb_to_top_edge = 0 as ::core::ffi::c_int;
+    pbi.mb.mb_to_bottom_edge = ((pbi.common.mb_rows - 1 as ::core::ffi::c_int)
         * 16 as ::core::ffi::c_int)
         << 3 as ::core::ffi::c_int;
-    mb_to_right_edge_start = (((*pbi).common.mb_cols - 1 as ::core::ffi::c_int)
+    mb_to_right_edge_start = ((pbi.common.mb_cols - 1 as ::core::ffi::c_int)
         * 16 as ::core::ffi::c_int)
         << 3 as ::core::ffi::c_int;
     loop {
         mb_row += 1;
-        if !(mb_row < (*pbi).common.mb_rows) {
+        if !(mb_row < pbi.common.mb_rows) {
             break;
         }
         let mut mb_col: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
-        (*pbi).mb.mb_to_left_edge = 0 as ::core::ffi::c_int;
-        (*pbi).mb.mb_to_right_edge = mb_to_right_edge_start;
+        pbi.mb.mb_to_left_edge = 0 as ::core::ffi::c_int;
+        pbi.mb.mb_to_right_edge = mb_to_right_edge_start;
         loop {
             mb_col += 1;
-            if !(mb_col < (*pbi).common.mb_cols) {
+            if !(mb_col < pbi.common.mb_cols) {
                 break;
             }
             decode_mb_mode_mvs(&*pbi, mip_slice, cur_idx, &mut safe_decoder);
-            (*pbi).mb.mb_to_left_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
-            (*pbi).mb.mb_to_right_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
+            pbi.mb.mb_to_left_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
+            pbi.mb.mb_to_right_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
             cur_idx += 1;
         }
-        (*pbi).mb.mb_to_top_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
-        (*pbi).mb.mb_to_bottom_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
+        pbi.mb.mb_to_top_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
+        pbi.mb.mb_to_bottom_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
         cur_idx += 1;
     }
 

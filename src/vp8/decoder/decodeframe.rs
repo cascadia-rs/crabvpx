@@ -1,5 +1,6 @@
 use crate::vp8::decoder::dboolhuff::SafeBoolDecoder;
 use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_context};
+use crate::vp8::decoder::decodemv::vp8_decode_mode_mvs;
 use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_frame_init;
 use crate::vp8::common::quant_common::{vp8_ac_yquant, vp8_dc_quant, vp8_dc2quant, vp8_ac2quant, vp8_dc_uv_quant, vp8_ac_uv_quant};
 
@@ -164,7 +165,6 @@ unsafe extern "C" {
     );
     fn vp8_setup_version(cm: *mut VP8_COMMON);
     fn vp8_setup_intra_recon_top_line(ybf: *mut YV12_BUFFER_CONFIG);
-    fn vp8_decode_mode_mvs(_: *mut VP8D_COMP);
     fn vp8_extend_mb_row(
         ybf: *mut YV12_BUFFER_CONFIG,
         YPtr: *mut ::core::ffi::c_uchar,
@@ -1661,7 +1661,7 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
         0 as ::core::ffi::c_int,
         ::core::mem::size_of::<[::core::ffi::c_short; 400]>() as size_t,
     );
-    vp8_decode_mode_mvs(pbi);
+    vp8_decode_mode_mvs(&mut *pbi);
     memset(
         (*pc).above_context as *mut ::core::ffi::c_void,
         0 as ::core::ffi::c_int,
