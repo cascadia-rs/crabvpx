@@ -159,52 +159,55 @@ unsafe extern "C" fn create_decompressor(mut oxcf: *mut VP8D_CONFIG) -> *mut VP8
     once(Some(initialize_dec as unsafe extern "C" fn() -> ()));
     return pbi as *mut VP8D_COMP;
 }}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_get_reference(
-    mut pbi: *mut VP8D_COMP,
-    mut ref_frame_flag: vpx_ref_frame_type,
-    mut sd: *mut YV12_BUFFER_CONFIG,
-) -> vpx_codec_err_t { unsafe {
-    let mut cm: *mut VP8_COMMON = &raw mut (*pbi).common;
+pub fn vp8dx_get_reference(
+    pbi: &mut VP8D_COMP,
+    ref_frame_flag: vpx_ref_frame_type,
+    sd: &mut YV12_BUFFER_CONFIG,
+) -> vpx_codec_err_t {
+    let cm = &mut pbi.common;
     let mut ref_fb_idx: ::core::ffi::c_int = 0;
     if ref_frame_flag as ::core::ffi::c_uint
         == VP8_LAST_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
     {
-        ref_fb_idx = (*cm).lst_fb_idx;
+        ref_fb_idx = cm.lst_fb_idx;
     } else if ref_frame_flag as ::core::ffi::c_uint
         == VP8_GOLD_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
     {
-        ref_fb_idx = (*cm).gld_fb_idx;
+        ref_fb_idx = cm.gld_fb_idx;
     } else if ref_frame_flag as ::core::ffi::c_uint
         == VP8_ALTR_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
     {
-        ref_fb_idx = (*cm).alt_fb_idx;
+        ref_fb_idx = cm.alt_fb_idx;
     } else {
-        vpx_internal_error(
-            &raw mut (*pbi).common.error,
-            VPX_CODEC_ERROR,
-            b"Invalid reference frame\0" as *const u8 as *const ::core::ffi::c_char,
-        );
-        return (*pbi).common.error.error_code;
+        unsafe {
+            vpx_internal_error(
+                &raw mut pbi.common.error,
+                VPX_CODEC_ERROR,
+                b"Invalid reference frame\0" as *const u8 as *const ::core::ffi::c_char,
+            );
+        }
+        return pbi.common.error.error_code;
     }
-    if (*cm).yv12_fb[ref_fb_idx as usize].y_height != (*sd).y_height
-        || (*cm).yv12_fb[ref_fb_idx as usize].y_width != (*sd).y_width
-        || (*cm).yv12_fb[ref_fb_idx as usize].uv_height != (*sd).uv_height
-        || (*cm).yv12_fb[ref_fb_idx as usize].uv_width != (*sd).uv_width
+    if cm.yv12_fb[ref_fb_idx as usize].y_height != sd.y_height
+        || cm.yv12_fb[ref_fb_idx as usize].y_width != sd.y_width
+        || cm.yv12_fb[ref_fb_idx as usize].uv_height != sd.uv_height
+        || cm.yv12_fb[ref_fb_idx as usize].uv_width != sd.uv_width
     {
-        vpx_internal_error(
-            &raw mut (*pbi).common.error,
-            VPX_CODEC_ERROR,
-            b"Incorrect buffer dimensions\0" as *const u8 as *const ::core::ffi::c_char,
-        );
+        unsafe {
+            vpx_internal_error(
+                &raw mut pbi.common.error,
+                VPX_CODEC_ERROR,
+                b"Incorrect buffer dimensions\0" as *const u8 as *const ::core::ffi::c_char,
+            );
+        }
     } else {
         vp8_yv12_copy_frame_c(
-            &(*cm).yv12_fb[ref_fb_idx as usize],
-            &mut *sd,
+            &cm.yv12_fb[ref_fb_idx as usize],
+            sd,
         );
     }
-    return (*pbi).common.error.error_code;
-}}
+    return pbi.common.error.error_code;
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8dx_set_reference(
     mut pbi: *mut VP8D_COMP,

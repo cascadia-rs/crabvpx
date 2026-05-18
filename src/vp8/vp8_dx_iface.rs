@@ -28,11 +28,6 @@ unsafe extern "C" {
     fn vpx_calloc(num: size_t, size: size_t) -> *mut ::core::ffi::c_void;
     fn vpx_free(memblk: *mut ::core::ffi::c_void);
     fn vp8dx_receive_compressed_data(pbi: *mut VP8D_COMP) -> ::core::ffi::c_int;
-    fn vp8dx_get_reference(
-        pbi: *mut VP8D_COMP,
-        ref_frame_flag: vpx_ref_frame_type,
-        sd: *mut YV12_BUFFER_CONFIG,
-    ) -> vpx_codec_err_t;
     fn vp8dx_set_reference(
         pbi: *mut VP8D_COMP,
         ref_frame_flag: vpx_ref_frame_type,
@@ -1284,13 +1279,14 @@ unsafe extern "C" fn vp8_get_reference(
             flags: 0,
         };
         image2yuvconfig(&raw mut (*frame).img, &raw mut sd);
-        if (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize].is_null() {
+        let pbi = (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
+        if pbi.is_null() {
             return VPX_CODEC_CORRUPT_FRAME;
         }
-        return vp8dx_get_reference(
-            (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
+        return crate::vp8::decoder::onyxd_if::vp8dx_get_reference(
+            &mut *pbi,
             (*frame).frame_type as vpx_ref_frame_type,
-            &raw mut sd,
+            &mut sd,
         );
     } else {
         return VPX_CODEC_INVALID_PARAM;
