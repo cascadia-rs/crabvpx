@@ -1,25 +1,6 @@
 pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
-pub type vpx_decrypt_cb = Option<
-    unsafe extern "C" fn(
-        *mut ::core::ffi::c_void,
-        *const ::core::ffi::c_uchar,
-        *mut ::core::ffi::c_uchar,
-        ::core::ffi::c_int,
-    ) -> (),
->;
-pub type VP8_BD_VALUE = size_t;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct BOOL_DECODER {
-    pub user_buffer_end: *const ::core::ffi::c_uchar,
-    pub user_buffer: *const ::core::ffi::c_uchar,
-    pub value: VP8_BD_VALUE,
-    pub count: ::core::ffi::c_int,
-    pub range: ::core::ffi::c_uint,
-    pub decrypt_cb: vpx_decrypt_cb,
-    pub decrypt_state: *mut ::core::ffi::c_void,
-}
+pub use crate::vp8::common::types::*;
 pub const CHAR_BIT: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
 pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;

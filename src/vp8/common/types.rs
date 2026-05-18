@@ -242,3 +242,28 @@ pub struct macroblockd {
 
 pub type MACROBLOCKD = macroblockd;
 
+pub type vpx_decrypt_cb = Option<
+    unsafe extern "C" fn(
+        *mut ::core::ffi::c_void,
+        *const ::core::ffi::c_uchar,
+        *mut ::core::ffi::c_uchar,
+        ::core::ffi::c_int,
+    ) -> (),
+>;
+
+pub type VP8_BD_VALUE = size_t;
+
+#[derive(Copy, Clone)]
+#[repr(C)]
+pub struct vp8_reader {
+    pub user_buffer_end: *const ::core::ffi::c_uchar,
+    pub user_buffer: *const ::core::ffi::c_uchar,
+    pub value: VP8_BD_VALUE,
+    pub count: ::core::ffi::c_int,
+    pub range: ::core::ffi::c_uint,
+    pub decrypt_cb: vpx_decrypt_cb,
+    pub decrypt_state: *mut ::core::ffi::c_void,
+}
+
+pub type BOOL_DECODER = vp8_reader;
+

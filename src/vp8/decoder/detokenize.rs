@@ -89,14 +89,6 @@ pub struct VP8D_COMP {
     pub decrypt_state: *mut ::core::ffi::c_void,
     pub restart_threads: ::core::ffi::c_int,
 }
-pub type vpx_decrypt_cb = Option<
-    unsafe extern "C" fn(
-        *mut ::core::ffi::c_void,
-        *const ::core::ffi::c_uchar,
-        *mut ::core::ffi::c_uchar,
-        ::core::ffi::c_int,
-    ) -> (),
->;
 pub type semaphore_t = *mut ::core::ffi::c_void;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -133,19 +125,6 @@ pub struct VP8D_CONFIG {
     pub max_threads: ::core::ffi::c_int,
     pub error_concealment: ::core::ffi::c_int,
 }
-pub type BOOL_DECODER = vp8_reader;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct vp8_reader {
-    pub user_buffer_end: *const ::core::ffi::c_uchar,
-    pub user_buffer: *const ::core::ffi::c_uchar,
-    pub value: VP8_BD_VALUE,
-    pub count: ::core::ffi::c_int,
-    pub range: ::core::ffi::c_uint,
-    pub decrypt_cb: vpx_decrypt_cb,
-    pub decrypt_state: *mut ::core::ffi::c_void,
-}
-pub type VP8_BD_VALUE = size_t;
 pub type VP8_COMMON = VP8Common;
 #[derive(Copy, Clone)]
 #[repr(C)]
