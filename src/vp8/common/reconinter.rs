@@ -173,19 +173,15 @@ fn build_inter_predictors4b_safe(
     let dst_idx = dst_offset;
     
     if row & 7 != 0 || col & 7 != 0 {
-        assert!(pre_idx < pre_slice.len());
-        assert!(dst_idx < dst_slice.len());
-        
-        let ptr = unsafe { pre_slice.as_ptr().add(pre_idx) as *mut u8 };
-        let dst_ptr = unsafe { dst_slice.as_mut_ptr().add(dst_idx) };
-        
+        let sub_pre = &pre_slice[pre_idx..];
+        let sub_dst = &mut dst_slice[dst_idx..];
         unsafe {
             sppf.expect("non-null function pointer")(
-                ptr,
+                sub_pre.as_ptr() as *mut u8,
                 pre_stride,
                 col & 7,
                 row & 7,
-                dst_ptr,
+                sub_dst.as_mut_ptr(),
                 dst_stride,
             );
         }
@@ -224,19 +220,15 @@ fn build_inter_predictors2b_safe(
     let dst_idx = dst_offset;
     
     if row & 7 != 0 || col & 7 != 0 {
-        assert!(pre_idx < pre_slice.len());
-        assert!(dst_idx < dst_slice.len());
-        
-        let ptr = unsafe { pre_slice.as_ptr().add(pre_idx) as *mut u8 };
-        let dst_ptr = unsafe { dst_slice.as_mut_ptr().add(dst_idx) };
-        
+        let sub_pre = &pre_slice[pre_idx..];
+        let sub_dst = &mut dst_slice[dst_idx..];
         unsafe {
             sppf.expect("non-null function pointer")(
-                ptr,
+                sub_pre.as_ptr() as *mut u8,
                 pre_stride,
                 col & 7,
                 row & 7,
-                dst_ptr,
+                sub_dst.as_mut_ptr(),
                 dst_stride,
             );
         }
@@ -275,19 +267,15 @@ fn build_inter_predictors_b_safe(
     let dst_idx = dst_offset;
     
     if row & 7 != 0 || col & 7 != 0 {
-        assert!(pre_idx < pre_slice.len());
-        assert!(dst_idx < dst_slice.len());
-        
-        let ptr = unsafe { pre_slice.as_ptr().add(pre_idx) as *mut u8 };
-        let dst_ptr = unsafe { dst_slice.as_mut_ptr().add(dst_idx) };
-        
+        let sub_pre = &pre_slice[pre_idx..];
+        let sub_dst = &mut dst_slice[dst_idx..];
         unsafe {
             sppf.expect("non-null function pointer")(
-                ptr,
+                sub_pre.as_ptr() as *mut u8,
                 pre_stride,
                 col & 7,
                 row & 7,
-                dst_ptr,
+                sub_dst.as_mut_ptr(),
                 dst_stride,
             );
         }
