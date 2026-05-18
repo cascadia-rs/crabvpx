@@ -6,8 +6,8 @@ unsafe extern "C" {
         __c: ::core::ffi::c_int,
         __len: size_t,
     ) -> *mut ::core::ffi::c_void;
-    fn vp8_machine_specific_config(_: *mut VP8Common);
 }
+use crate::vp8::common::generic::systemdependent::vp8_machine_specific_config;
 use crate::vpx_scale::generic::yv12config::{
     vp8_yv12_alloc_frame_buffer_safe, vp8_yv12_de_alloc_frame_buffer_safe,
 };
@@ -202,9 +202,7 @@ pub fn vp8_setup_version(cm: &mut VP8_COMMON) {
     };
 }
 pub fn vp8_create_common(oci: &mut VP8_COMMON) {
-    unsafe {
-        vp8_machine_specific_config(oci as *mut VP8Common);
-    }
+    vp8_machine_specific_config(oci);
     vp8_init_mbmode_probs(oci);
     vp8_default_bmode_probs(&mut oci.fc.bmode_prob);
     oci.mb_no_coeff_skip = 1 as ::core::ffi::c_int;

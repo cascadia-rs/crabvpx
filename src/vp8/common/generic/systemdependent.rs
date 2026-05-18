@@ -58,7 +58,8 @@ unsafe extern "C" fn get_cpu_count() -> ::core::ffi::c_int { unsafe {
         1 as ::core::ffi::c_int
     };
 }}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_machine_specific_config(mut ctx: *mut VP8_COMMON) { unsafe {
-    (*ctx).processor_core_count = get_cpu_count();
-}}
+pub fn vp8_machine_specific_config(ctx: &mut VP8_COMMON) {
+    unsafe {
+        ctx.processor_core_count = get_cpu_count();
+    }
+}
