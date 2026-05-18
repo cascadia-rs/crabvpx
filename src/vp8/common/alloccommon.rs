@@ -1,12 +1,4 @@
-unsafe extern "C" {
-    fn vpx_calloc(num: size_t, size: size_t) -> *mut ::core::ffi::c_void;
-    fn vpx_free(memblk: *mut ::core::ffi::c_void);
-    fn memset(
-        __b: *mut ::core::ffi::c_void,
-        __c: ::core::ffi::c_int,
-        __len: size_t,
-    ) -> *mut ::core::ffi::c_void;
-}
+// FFI imports removed
 use crate::vp8::common::generic::systemdependent::vp8_machine_specific_config;
 use crate::vpx_scale::generic::yv12config::{
     vp8_yv12_alloc_frame_buffer_safe, vp8_yv12_de_alloc_frame_buffer_safe,
@@ -73,12 +65,26 @@ pub fn vp8_de_alloc_frame_buffers(oci: &mut VP8_COMMON) {
         i += 1;
     }
     vp8_yv12_de_alloc_frame_buffer_safe(&mut oci.temp_scale_frame);
-    unsafe {
-        vpx_free(oci.above_context as *mut ::core::ffi::c_void);
-        vpx_free(oci.mip as *mut ::core::ffi::c_void);
+    
+    if !oci.above_context.is_null() {
+        unsafe {
+            let _ = Box::from_raw(core::ptr::slice_from_raw_parts_mut(
+                oci.above_context,
+                oci.mb_cols as usize,
+            ));
+        }
+        oci.above_context = ::core::ptr::null_mut::<ENTROPY_CONTEXT_PLANES>();
     }
-    oci.above_context = ::core::ptr::null_mut::<ENTROPY_CONTEXT_PLANES>();
-    oci.mip = ::core::ptr::null_mut::<MODE_INFO>();
+    if !oci.mip.is_null() {
+        unsafe {
+            let mip_count = ((oci.mb_cols + 1) * (oci.mb_rows + 1)) as usize;
+            let _ = Box::from_raw(core::ptr::slice_from_raw_parts_mut(
+                oci.mip,
+                mip_count,
+            ));
+        }
+        oci.mip = ::core::ptr::null_mut::<MODE_INFO>();
+    }
     oci.mi = ::core::ptr::null_mut::<MODE_INFO>();
     oci.show_frame_mi = ::core::ptr::null_mut::<MODE_INFO>();
     oci.frame_to_show = ::core::ptr::null_mut::<YV12_BUFFER_CONFIG>();
@@ -136,26 +142,18 @@ pub fn vp8_alloc_frame_buffers(
                 oci.mb_cols = width >> 4 as ::core::ffi::c_int;
                 oci.MBs = oci.mb_rows * oci.mb_cols;
                 oci.mode_info_stride = oci.mb_cols + 1 as ::core::ffi::c_int;
-                oci.mip = unsafe {
-                    vpx_calloc(
-                        ((oci.mb_cols + 1 as ::core::ffi::c_int)
-                            * (oci.mb_rows + 1 as ::core::ffi::c_int)) as size_t,
-                        ::core::mem::size_of::<MODE_INFO>() as size_t,
-                    )
-                } as *mut MODE_INFO;
+                let mip_count = ((oci.mb_cols + 1) * (oci.mb_rows + 1)) as usize;
+                let mip_box = vec![MODE_INFO::default(); mip_count].into_boxed_slice();
+                oci.mip = Box::into_raw(mip_box) as *mut MODE_INFO;
                 if !oci.mip.is_null() {
                     oci.mi = unsafe {
                         oci.mip
                             .offset(oci.mode_info_stride as isize)
                             .offset(1 as ::core::ffi::c_int as isize)
                     };
-                    oci.above_context = unsafe {
-                        vpx_calloc(
-                            (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t)
-                                .wrapping_mul(oci.mb_cols as size_t),
-                            1 as size_t,
-                        )
-                    } as *mut ENTROPY_CONTEXT_PLANES;
+                    let above_context_count = oci.mb_cols as usize;
+                    let above_context_box = vec![ENTROPY_CONTEXT_PLANES::default(); above_context_count].into_boxed_slice();
+                    oci.above_context = Box::into_raw(above_context_box) as *mut ENTROPY_CONTEXT_PLANES;
                     if !oci.above_context.is_null() {
                         return 0 as ::core::ffi::c_int;
                     }

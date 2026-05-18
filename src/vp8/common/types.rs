@@ -46,6 +46,18 @@ pub struct ENTROPY_CONTEXT_PLANES {
     pub y2: ENTROPY_CONTEXT,
 }
 
+impl Default for ENTROPY_CONTEXT_PLANES {
+    #[inline]
+    fn default() -> Self {
+        ENTROPY_CONTEXT_PLANES {
+            y1: [0; 4],
+            u: [0; 2],
+            v: [0; 2],
+            y2: 0,
+        }
+    }
+}
+
 pub type B_PREDICTION_MODE = ::core::ffi::c_uint;
 pub const B_MODE_COUNT: B_PREDICTION_MODE = 14;
 pub const NEW4X4: B_PREDICTION_MODE = 13;
@@ -84,6 +96,13 @@ impl b_mode_info {
     }
 }
 
+impl Default for b_mode_info {
+    #[inline]
+    fn default() -> Self {
+        b_mode_info { as_mode: 0 }
+    }
+}
+
 pub type MB_PREDICTION_MODE = ::core::ffi::c_uint;
 pub const MB_MODE_COUNT: MB_PREDICTION_MODE = 10;
 pub const SPLITMV: MB_PREDICTION_MODE = 9;
@@ -111,6 +130,23 @@ pub struct MB_MODE_INFO {
     pub segment_id: uint8_t,
 }
 
+impl Default for MB_MODE_INFO {
+    #[inline]
+    fn default() -> Self {
+        MB_MODE_INFO {
+            mode: 0,
+            uv_mode: 0,
+            ref_frame: 0,
+            is_4x4: 0,
+            mv: int_mv { as_int: 0 },
+            partitioning: 0,
+            mb_skip_coeff: 0,
+            need_to_clamp_mvs: 0,
+            segment_id: 0,
+        }
+    }
+}
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct blockd {
@@ -130,6 +166,16 @@ pub type BLOCKD = blockd;
 pub struct modeinfo {
     pub mbmi: MB_MODE_INFO,
     pub bmi: [b_mode_info; 16],
+}
+
+impl Default for modeinfo {
+    #[inline]
+    fn default() -> Self {
+        modeinfo {
+            mbmi: MB_MODE_INFO::default(),
+            bmi: [b_mode_info { as_mode: 0 }; 16],
+        }
+    }
 }
 
 pub type MODE_INFO = modeinfo;
