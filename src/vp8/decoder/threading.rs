@@ -2103,10 +2103,7 @@ pub unsafe extern "C" fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) {
                 i += 1;
             }
             if (*pbi).allocated_decoding_thread_count != 0 {
-                crate::thread_shim::vp8_semaphore_destroy(
-                    0 as task_t,
-                    (*pbi).h_event_end_decoding,
-                );
+                crate::thread_shim::vp8_semaphore_destroy(0 as task_t, (*pbi).h_event_end_decoding);
             }
             vpx_free((*pbi).h_decoding_thread as *mut ::core::ffi::c_void);
             (*pbi).h_decoding_thread = ::core::ptr::null_mut::<pthread_t>();
