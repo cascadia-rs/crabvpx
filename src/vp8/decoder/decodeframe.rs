@@ -1651,17 +1651,19 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
         i += 1;
     }
 
-    bc.user_buffer = bc.user_buffer.add(safe_decoder.offset);
-    bc.value = safe_decoder.value;
-    bc.count = safe_decoder.count;
-    bc.range = safe_decoder.range;
-
     memset(
         &raw mut (*xd).qcoeff as *mut ::core::ffi::c_short as *mut ::core::ffi::c_void,
         0 as ::core::ffi::c_int,
         ::core::mem::size_of::<[::core::ffi::c_short; 400]>() as size_t,
     );
-    vp8_decode_mode_mvs(&mut *pbi);
+    let stride = (*pbi).common.mode_info_stride as usize;
+    let mip_len = ((*pbi).common.mb_rows + 1) as usize * stride;
+    let mip_slice = core::slice::from_raw_parts_mut((*pbi).common.mip, mip_len);
+    vp8_decode_mode_mvs(&mut *pbi, mip_slice, &mut safe_decoder);
+    bc.user_buffer = bc.user_buffer.add(safe_decoder.offset);
+    bc.value = safe_decoder.value;
+    bc.count = safe_decoder.count;
+    bc.range = safe_decoder.range;
     memset(
         (*pc).above_context as *mut ::core::ffi::c_void,
         0 as ::core::ffi::c_int,

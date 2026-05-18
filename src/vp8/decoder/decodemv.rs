@@ -734,33 +734,18 @@ fn decode_mb_mode_mvs(
         read_mb_modes_mv(pbi, mip_slice, cur_idx, safe_decoder);
     };
 }
-pub fn vp8_decode_mode_mvs(pbi: &mut VP8D_COMP) { unsafe {
+pub fn vp8_decode_mode_mvs(
+    pbi: &mut VP8D_COMP,
+    mip_slice: &mut [MODE_INFO],
+    safe_decoder: &mut SafeBoolDecoder,
+) {
     let stride = pbi.common.mode_info_stride as usize;
-    let mip_len = (pbi.common.mb_rows + 1) as usize * stride;
-    let mip_slice = core::slice::from_raw_parts_mut(pbi.common.mip, mip_len);
     let mut cur_idx = stride + 1;
 
     let mut mb_row: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
     let mut mb_to_right_edge_start: ::core::ffi::c_int = 0;
 
-    let bc: *mut vp8_reader = &raw mut pbi.mbc[8];
-    let len = (*bc).user_buffer_end.offset_from((*bc).user_buffer) as usize;
-    let slice = if len == 0 {
-        &[]
-    } else {
-        core::slice::from_raw_parts((*bc).user_buffer, len)
-    };
-    let mut safe_decoder = SafeBoolDecoder {
-        buffer: slice,
-        offset: 0,
-        value: (*bc).value,
-        count: (*bc).count,
-        range: (*bc).range,
-        decrypt_cb: (*bc).decrypt_cb,
-        decrypt_state: (*bc).decrypt_state,
-    };
-
-    mb_mode_mv_init(pbi, &mut safe_decoder);
+    mb_mode_mv_init(pbi, safe_decoder);
     pbi.mb.mb_to_top_edge = 0 as ::core::ffi::c_int;
     pbi.mb.mb_to_bottom_edge = ((pbi.common.mb_rows - 1 as ::core::ffi::c_int)
         * 16 as ::core::ffi::c_int)
@@ -781,7 +766,7 @@ pub fn vp8_decode_mode_mvs(pbi: &mut VP8D_COMP) { unsafe {
             if !(mb_col < pbi.common.mb_cols) {
                 break;
             }
-            decode_mb_mode_mvs(&*pbi, mip_slice, cur_idx, &mut safe_decoder);
+            decode_mb_mode_mvs(&*pbi, mip_slice, cur_idx, safe_decoder);
             pbi.mb.mb_to_left_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
             pbi.mb.mb_to_right_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
             cur_idx += 1;
@@ -790,9 +775,4 @@ pub fn vp8_decode_mode_mvs(pbi: &mut VP8D_COMP) { unsafe {
         pbi.mb.mb_to_bottom_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
         cur_idx += 1;
     }
-
-    (*bc).user_buffer = (*bc).user_buffer.add(safe_decoder.offset);
-    (*bc).value = safe_decoder.value;
-    (*bc).count = safe_decoder.count;
-    (*bc).range = safe_decoder.range;
-}}
+}
