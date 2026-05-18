@@ -334,10 +334,10 @@ pub fn vp8cx_init_de_quantizer(pbi: &mut VP8D_COMP) {
 pub fn vp8_mb_init_dequantizer(
     pc: &VP8_COMMON,
     xd: &mut MACROBLOCKD,
-) { unsafe {
+) {
     let mut i: ::core::ffi::c_int = 0;
     let mut QIndex: ::core::ffi::c_int = 0;
-    let mbmi = &mut (*xd.mode_info_context).mbmi;
+    let mbmi = &xd.mode_info().mbmi;
     if xd.segmentation_enabled != 0 {
         if xd.mb_segment_abs_delta as ::core::ffi::c_int == SEGMENT_ABSDATA {
             QIndex = xd.segment_feature_data[MB_LVL_ALT_Q as ::core::ffi::c_int as usize]
@@ -377,7 +377,7 @@ pub fn vp8_mb_init_dequantizer(
             pc.UVdequant[QIndex as usize][1 as ::core::ffi::c_int as usize];
         i += 1;
     }
-}}
+}
 fn decode_macroblock(
     pbi: &mut VP8D_COMP,
     xd: &mut MACROBLOCKD,
