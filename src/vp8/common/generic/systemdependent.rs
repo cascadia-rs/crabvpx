@@ -1,6 +1,4 @@
-unsafe extern "C" {
-    fn sysconf(_: ::core::ffi::c_int) -> ::core::ffi::c_long;
-}
+unsafe extern "C" {}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union b_mode_info {
@@ -244,17 +242,10 @@ pub type CLAMP_TYPE = ::core::ffi::c_uint;
 pub const RECON_CLAMP_NOTREQUIRED: CLAMP_TYPE = 1;
 pub const RECON_CLAMP_REQUIRED: CLAMP_TYPE = 0;
 pub type VP8_COMMON = VP8Common;
-pub const _SC_NPROCESSORS_ONLN: ::core::ffi::c_int = 58 as ::core::ffi::c_int;
 unsafe extern "C" fn get_cpu_count() -> ::core::ffi::c_int {
-    unsafe {
-        let mut core_count: ::core::ffi::c_int = 16 as ::core::ffi::c_int;
-        core_count = sysconf(_SC_NPROCESSORS_ONLN) as ::core::ffi::c_int;
-        if core_count > 0 as ::core::ffi::c_int {
-            core_count
-        } else {
-            1 as ::core::ffi::c_int
-        }
-    }
+    ::std::thread::available_parallelism()
+        .map(|p| p.get())
+        .unwrap_or(1) as ::core::ffi::c_int
 }
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_machine_specific_config(mut ctx: *mut VP8_COMMON) {

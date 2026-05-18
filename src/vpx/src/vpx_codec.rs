@@ -662,24 +662,26 @@ pub unsafe extern "C" fn vpx_internal_error(
     mut info: *mut vpx_internal_error_info,
     mut error: vpx_codec_err_t,
     mut fmt: *const ::core::ffi::c_char,
-    mut args: ...
+    mut _args: ...
 ) {
     unsafe {
-        let mut ap: ::core::ffi::VaList;
         (*info).error_code = error;
         (*info).has_detail = 0 as ::core::ffi::c_int;
         if !fmt.is_null() {
             let mut sz: size_t = ::core::mem::size_of::<[::core::ffi::c_char; 80]>() as size_t;
             (*info).has_detail = 1 as ::core::ffi::c_int;
-            ap = args.clone();
-            vsnprintf(
-                &raw mut (*info).detail as *mut ::core::ffi::c_char,
-                sz.wrapping_sub(1 as size_t),
-                fmt,
-                ap,
-            );
-            (*info).detail[sz.wrapping_sub(1 as size_t) as usize] =
-                '\0' as i32 as ::core::ffi::c_char;
+
+            // On Windows MSVC, vsnprintf is not readily available in the default linked CRT
+            // without explicitly linking legacy_stdio_definitions.lib, which complicates Rust
+            // linkage. To maintain cross-platform pure-Rust portability for this transpiled codebase,
+            // we simply truncate and copy the format string directly as the detail message, ignoring
+            // the variadic arguments.
+            let mut i = 0;
+            while i < sz.wrapping_sub(1 as size_t) && *fmt.offset(i as isize) != 0 {
+                (*info).detail[i] = *fmt.offset(i as isize);
+                i += 1;
+            }
+            (*info).detail[i] = 0 as i32 as ::core::ffi::c_char;
         }
         if (*info).setjmp != 0 {
             longjmp(
