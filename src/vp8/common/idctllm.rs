@@ -82,6 +82,24 @@ pub unsafe extern "C" fn vp8_short_idct4x4llm_c(
         vp8_short_idct4x4llm_safe(input_ref, pred, dst_slice, dst_stride);
     }
 }
+pub fn vp8_dc_only_idct_add_safe(
+    input_dc: i16,
+    pred: &[u8],
+    pred_stride: i32,
+    dst: &mut [u8],
+    dst_stride: i32,
+) {
+    let a1 = (input_dc as i32 + 4) >> 3;
+    for r in 0..4 {
+        for c in 0..4 {
+            let pred_idx = r * pred_stride as usize + c;
+            let dst_idx = r * dst_stride as usize + c;
+            let a = a1 + pred[pred_idx] as i32;
+            dst[dst_idx] = a.clamp(0, 255) as u8;
+        }
+    }
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_dc_only_idct_add_c(
     mut input_dc: ::core::ffi::c_short,
@@ -89,30 +107,17 @@ pub unsafe extern "C" fn vp8_dc_only_idct_add_c(
     mut pred_stride: ::core::ffi::c_int,
     mut dst_ptr: *mut ::core::ffi::c_uchar,
     mut dst_stride: ::core::ffi::c_int,
-) { unsafe {
-    let mut a1: ::core::ffi::c_int =
-        input_dc as ::core::ffi::c_int + 4 as ::core::ffi::c_int >> 3 as ::core::ffi::c_int;
-    let mut r: ::core::ffi::c_int = 0;
-    let mut c: ::core::ffi::c_int = 0;
-    r = 0 as ::core::ffi::c_int;
-    while r < 4 as ::core::ffi::c_int {
-        c = 0 as ::core::ffi::c_int;
-        while c < 4 as ::core::ffi::c_int {
-            let mut a: ::core::ffi::c_int = a1 + *pred_ptr.offset(c as isize) as ::core::ffi::c_int;
-            if a < 0 as ::core::ffi::c_int {
-                a = 0 as ::core::ffi::c_int;
-            }
-            if a > 255 as ::core::ffi::c_int {
-                a = 255 as ::core::ffi::c_int;
-            }
-            *dst_ptr.offset(c as isize) = a as ::core::ffi::c_uchar;
-            c += 1;
-        }
-        dst_ptr = dst_ptr.offset(dst_stride as isize);
-        pred_ptr = pred_ptr.offset(pred_stride as isize);
-        r += 1;
+) {
+    unsafe {
+        let pred_len = (3 * pred_stride + 4) as usize;
+        let pred_slice = std::slice::from_raw_parts(pred_ptr, pred_len);
+        
+        let dst_len = (3 * dst_stride + 4) as usize;
+        let dst_slice = std::slice::from_raw_parts_mut(dst_ptr, dst_len);
+        
+        vp8_dc_only_idct_add_safe(input_dc, pred_slice, pred_stride, dst_slice, dst_stride);
     }
-}}
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_short_inv_walsh4x4_c(
     mut input: *mut ::core::ffi::c_short,
