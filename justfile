@@ -15,15 +15,15 @@ configure:
 
 # Run differential testing (Oracle vs Rust)
 compare *args:
-    ./scripts/compare.py {{args}}
+    python ./scripts/compare.py {{args}}
 
 # Run performance benchmarks with statistical distribution
 bench *args:
-    ./scripts/benchmark.py {{args}}
+    python ./scripts/benchmark.py {{args}}
 
 # Run complexity and technical debt analysis
 analyze *args:
-    ./scripts/analyze_complexity.py {{args}}
+    python ./scripts/analyze_complexity.py {{args}}
 
 # Clean output and build artifacts
 clean:
