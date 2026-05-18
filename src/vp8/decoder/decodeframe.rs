@@ -3,6 +3,7 @@ use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_
 use crate::vp8::decoder::decodemv::vp8_decode_mode_mvs;
 use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_frame_init;
 use crate::vp8::common::quant_common::{vp8_ac_yquant, vp8_dc_quant, vp8_dc2quant, vp8_ac2quant, vp8_dc_uv_quant, vp8_ac_uv_quant};
+use crate::vpx_scale::generic::yv12extend::vp8_yv12_extend_frame_borders_c;
 
 unsafe extern "C" {
     fn vp8dx_decode_bool(br: *mut BOOL_DECODER, probability: ::core::ffi::c_int) -> ::core::ffi::c_int;
@@ -108,7 +109,6 @@ unsafe extern "C" {
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_pitch: ::core::ffi::c_int,
     );
-    fn vp8_yv12_extend_frame_borders_c(ybf: *mut yv12_buffer_config);
     static vp8_norm: [::core::ffi::c_uchar; 256];
     fn vp8dx_start_decode(
         br: *mut BOOL_DECODER,
@@ -1693,7 +1693,7 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
                 ::core::ptr::null::<::core::ffi::c_char>(),
             );
         }
-        vp8_yv12_extend_frame_borders_c(yv12_fb_new as *mut yv12_buffer_config);
+        vp8_yv12_extend_frame_borders_c(&*yv12_fb_new);
         thread = 0 as ::core::ffi::c_uint;
         while thread < (*pbi).decoding_thread_count {
             corrupt_tokens |= (*(*pbi).mb_row_di.offset(thread as isize)).mbd.corrupted;

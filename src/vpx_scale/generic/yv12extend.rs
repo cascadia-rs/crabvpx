@@ -95,38 +95,37 @@ unsafe extern "C" fn extend_plane(
         i += 1;
     }
 }}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_yv12_extend_frame_borders_c(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
-    let uv_border: ::core::ffi::c_int = (*ybf).border / 2 as ::core::ffi::c_int;
+pub fn vp8_yv12_extend_frame_borders_c(ybf: &YV12_BUFFER_CONFIG) { unsafe {
+    let uv_border: ::core::ffi::c_int = ybf.border / 2 as ::core::ffi::c_int;
     extend_plane(
-        (*ybf).y_buffer,
-        (*ybf).y_stride,
-        (*ybf).y_crop_width,
-        (*ybf).y_crop_height,
-        (*ybf).border,
-        (*ybf).border,
-        (*ybf).border + (*ybf).y_height - (*ybf).y_crop_height,
-        (*ybf).border + (*ybf).y_width - (*ybf).y_crop_width,
+        ybf.y_buffer,
+        ybf.y_stride,
+        ybf.y_crop_width,
+        ybf.y_crop_height,
+        ybf.border,
+        ybf.border,
+        ybf.border + ybf.y_height - ybf.y_crop_height,
+        ybf.border + ybf.y_width - ybf.y_crop_width,
     );
     extend_plane(
-        (*ybf).u_buffer,
-        (*ybf).uv_stride,
-        (*ybf).uv_crop_width,
-        (*ybf).uv_crop_height,
+        ybf.u_buffer,
+        ybf.uv_stride,
+        ybf.uv_crop_width,
+        ybf.uv_crop_height,
         uv_border,
         uv_border,
-        uv_border + (*ybf).uv_height - (*ybf).uv_crop_height,
-        uv_border + (*ybf).uv_width - (*ybf).uv_crop_width,
+        uv_border + ybf.uv_height - ybf.uv_crop_height,
+        uv_border + ybf.uv_width - ybf.uv_crop_width,
     );
     extend_plane(
-        (*ybf).v_buffer,
-        (*ybf).uv_stride,
-        (*ybf).uv_crop_width,
-        (*ybf).uv_crop_height,
+        ybf.v_buffer,
+        ybf.uv_stride,
+        ybf.uv_crop_width,
+        ybf.uv_crop_height,
         uv_border,
         uv_border,
-        uv_border + (*ybf).uv_height - (*ybf).uv_crop_height,
-        uv_border + (*ybf).uv_width - (*ybf).uv_crop_width,
+        uv_border + ybf.uv_height - ybf.uv_crop_height,
+        uv_border + ybf.uv_width - ybf.uv_crop_width,
     );
 }}
 #[unsafe(no_mangle)]
@@ -174,7 +173,7 @@ pub unsafe extern "C" fn vp8_yv12_copy_frame_c(
         dst = dst.offset((*dst_ybc).uv_stride as isize);
         row += 1;
     }
-    vp8_yv12_extend_frame_borders_c(dst_ybc);
+    vp8_yv12_extend_frame_borders_c(&*dst_ybc);
 }}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_yv12_copy_y_c(
