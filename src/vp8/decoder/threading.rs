@@ -461,10 +461,10 @@ fn mt_decode_macroblock(
         );
     }
 }}
-unsafe extern "C" fn mt_decode_mb_rows(
-    mut pbi: *mut VP8D_COMP,
-    mut xd: *mut MACROBLOCKD,
-    mut start_mb_row: ::core::ffi::c_int,
+fn mt_decode_mb_rows(
+    pbi: &mut VP8D_COMP,
+    xd: &mut MACROBLOCKD,
+    start_mb_row: ::core::ffi::c_int,
 ) { unsafe {
     let mut last_row_current_mb_col: *const vpx_atomic_int = ::core::ptr::null::<vpx_atomic_int>();
     let mut current_mb_col: *mut vpx_atomic_int = ::core::ptr::null_mut::<vpx_atomic_int>();
@@ -970,7 +970,7 @@ unsafe extern "C" fn thread_decoding_proc(
             crate::thread_shim::vp8_semaphore_signal((*pbi).h_event_end_decoding);
         } else {
             (*xd).error_info.setjmp = 1 as ::core::ffi::c_int;
-            mt_decode_mb_rows(pbi, xd, ithread + 1 as ::core::ffi::c_int);
+            mt_decode_mb_rows(&mut *pbi, &mut *xd, ithread + 1 as ::core::ffi::c_int);
             (*xd).error_info.setjmp = 0 as ::core::ffi::c_int;
         }
     }
@@ -1454,9 +1454,9 @@ pub unsafe extern "C" fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) { u
     }
 }}
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8mt_decode_mb_rows(
-    mut pbi: *mut VP8D_COMP,
-    mut xd: *mut MACROBLOCKD,
+pub fn vp8mt_decode_mb_rows(
+    pbi: &mut VP8D_COMP,
+    xd: &mut MACROBLOCKD,
 ) -> ::core::ffi::c_int { unsafe {
     let mut pc: *mut VP8_COMMON = &raw mut (*pbi).common;
     let mut i: ::core::ffi::c_uint = 0;
@@ -1545,10 +1545,12 @@ pub unsafe extern "C" fn vp8mt_decode_mb_rows(
     } else {
         vp8_setup_intra_recon_top_line(&mut *yv12_fb_new);
     }
+    let mb_row_di = pbi.mb_row_di;
+    let decoding_thread_count = pbi.decoding_thread_count as usize;
     setup_decoding_thread_data(
-        &mut *pbi,
-        &*xd,
-        core::slice::from_raw_parts_mut((*pbi).mb_row_di, (*pbi).decoding_thread_count as usize),
+        pbi,
+        xd,
+        core::slice::from_raw_parts_mut(mb_row_di, decoding_thread_count),
     );
     i = 0 as ::core::ffi::c_uint;
     while i < (*pbi).decoding_thread_count {

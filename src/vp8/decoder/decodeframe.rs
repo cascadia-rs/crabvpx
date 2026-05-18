@@ -117,10 +117,10 @@ unsafe extern "C" {
         dst_stride: ::core::ffi::c_int,
         top_left: ::core::ffi::c_uchar,
     );
-    fn vp8mt_decode_mb_rows(pbi: *mut VP8D_COMP, xd: *mut MACROBLOCKD) -> ::core::ffi::c_int;
     fn vp8_decoder_remove_threads(pbi: *mut VP8D_COMP);
 }
 use crate::vp8::common::alloccommon::vp8_setup_version;
+use crate::vp8::decoder::threading::vp8mt_decode_mb_rows;
 use crate::vp8::common::entropymode::vp8_init_mbmode_probs;
 use crate::vp8::common::setupintrarecon::vp8_setup_intra_recon_top_line;
 pub use crate::vp8::common::types::*;
@@ -1580,7 +1580,7 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
             != ONE_PARTITION as ::core::ffi::c_int as ::core::ffi::c_uint
     {
         let mut thread: ::core::ffi::c_uint = 0;
-        if vp8mt_decode_mb_rows(pbi, xd) != 0 {
+        if vp8mt_decode_mb_rows(&mut *pbi, &mut *xd) != 0 {
             vp8_decoder_remove_threads(pbi);
             (*pbi).restart_threads = 1 as ::core::ffi::c_int;
             vpx_internal_error(
