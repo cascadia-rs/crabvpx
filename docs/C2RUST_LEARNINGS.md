@@ -35,7 +35,7 @@ The `&raw const` (and `&raw mut`) syntax is necessary when casting raw pointers 
 
 When dealing with C-style variadic functions (`...`), `c2rust` uses the unstable `#![feature(c_variadic)]` and maps arguments to `core::ffi::VaList`.
 
-- `c2rust` generates code that attempts to extract arguments using a generic `.arg::<T>()` method (e.g., `args.arg::<*mut i32>()`).
+- `c2rust` generates code that attempts to extract arguments using a generic `.arg::<T>()` method (e.g., `args.arg::<*mut ::core::ffi::c_int>()`).
 - In recent Rust nightlies, the API for `VaList` has changed. The `.arg::<T>()` method no longer exists directly on the struct.
 - **Fix:** Replace `.arg::<T>()` with `.next_arg::<T>()`. Additionally, when passing a `VaList` to another function, `c2rust` may generate `.as_va_list()`, which also no longer exists. Instead, just pass the `VaList` (or a clone of it) directly.
 
