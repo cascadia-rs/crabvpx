@@ -21,6 +21,7 @@ test *args:
 # Alias for backwards compatibility
 compare *args:
     @just test {{args}}
+    @tools/count_unsafe.sh
 
 # Run performance benchmarks with statistical distribution
 bench *args:
