@@ -5,7 +5,7 @@ default:
     @just --list
 
 # libvpx configuration flags for VP8-focused decoding
-libvpx_config_flags := "--enable-vp8 --disable-vp8-encoder --disable-vp9 --enable-multithread --enable-postproc --enable-pic --enable-runtime-cpu-detect"
+libvpx_config_flags := "--target=generic-gnu --enable-vp8 --disable-vp8-encoder --disable-vp9 --enable-multithread --enable-postproc --enable-pic --enable-runtime-cpu-detect"
 
 # Configure and build the C Oracle (libvpx) for VP8 decoding
 configure:
