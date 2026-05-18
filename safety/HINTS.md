@@ -1,6 +1,7 @@
 # VP8 Decoder Safety Hints
 
 ## Current Progress (May 2026)
+- **Safe Frame Border Extension API (Bottom)**: Refactored `yv12_extend_frame_bottom_c` in `src/vp8/decoder/decodeframe.rs` to take safe reference `&YV12_BUFFER_CONFIG` instead of raw pointer. Eliminated `unsafe extern "C"` linkage. Updated call site in `decode_mb_rows`. Reduced unsafe count by 1 (1306 remaining).
 - **Safe Frame Border Extension API (Top)**: Refactored `yv12_extend_frame_top_c` in `src/vp8/decoder/decodeframe.rs` to take safe reference `&YV12_BUFFER_CONFIG` instead of raw pointer. Eliminated `unsafe extern "C"` linkage. Updated call site in `decode_mb_rows`. Reduced unsafe count by 1 (1307 remaining).
 - **Safe Common Lifecycle API**: Refactored `vp8_create_common`, `vp8_remove_common`, and `vp8_de_alloc_frame_buffers` in `src/vp8/common/alloccommon.rs` to take safe Rust references `&mut VP8_COMMON` instead of raw pointers. Eliminated `unsafe extern "C"` linkage, `#[unsafe(no_mangle)]`, and unnecessary `unsafe` blocks. Removed `extern "C"` declarations in `onyxd_if.rs` and updated call sites to pass safe references. Reduced unsafe count by 6 (1308 remaining).
 - **Safe Setup Version API**: Refactored `vp8_setup_version` in `src/vp8/common/alloccommon.rs` to take safe Rust reference `&mut VP8_COMMON` instead of raw pointer. Eliminated `unsafe extern "C"` linkage, `#[unsafe(no_mangle)]`, and internal `unsafe` block. Removed `extern "C"` declaration in `decodeframe.rs` and updated call site in `vp8_decode_frame`. Reduced unsafe count by 3.
@@ -83,7 +84,7 @@
 
 ## Next Steps for Future Agents
 1. **PRIORITY: Safe API Refactoring (Phase 4)**: Now that all core structs (`MACROBLOCKD`, `VP8_COMMON`, `VP8D_COMP`) are centralized into `src/vp8/common/types.rs`, agents can proceed with Phase 4 of [struct_deduplication_strategy.md](struct_deduplication_strategy.md). Refactor inter-module function signatures (like `decode_macroblock`) to take safe Rust references (`&mut MACROBLOCKD`) instead of raw pointers. (`vp8_reset_mb_tokens_context`, `vp8_decode_mb_tokens`, `vp8_build_intra_predictors_mby_s`, `vp8_build_intra_predictors_mbuv_s`, and `vp8_loop_filter_frame_init` have been refactored).
-2. **Module-Internal Refactoring**: While API refactoring is underway, agents can continue refactoring module-internal functions that do not cross FFI boundaries. Explore other modules for internal functions that can be refactored to safe Rust slices and references. For example, `yv12_extend_frame_bottom_c` and `yv12_extend_frame_left_right_c` in `src/vp8/decoder/decodeframe.rs` can be refactored to take `&YV12_BUFFER_CONFIG` similarly to `yv12_extend_frame_top_c`.
+2. **Module-Internal Refactoring**: While API refactoring is underway, agents can continue refactoring module-internal functions that do not cross FFI boundaries. Explore other modules for internal functions that can be refactored to safe Rust slices and references. For example, `yv12_extend_frame_left_right_c` in `src/vp8/decoder/decodeframe.rs` can be refactored to take `&YV12_BUFFER_CONFIG` similarly to `yv12_extend_frame_top_c` and `yv12_extend_frame_bottom_c`.
 
 
 
