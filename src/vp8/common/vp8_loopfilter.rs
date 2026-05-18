@@ -378,7 +378,8 @@ pub const PARTIAL_FRAME_FRACTION: i32 = 8 as i32;
 pub const SIMD_WIDTH: i32 = 16 as i32;
 pub const MAX_MB_SEGMENTS: i32 = 4 as i32;
 pub const SEGMENT_ABSDATA: i32 = 1 as i32;
-unsafe fn lf_init_lut(mut lfi: *mut loop_filter_info_n) { unsafe {
+unsafe fn lf_init_lut(mut lfi: *mut loop_filter_info_n) {
+    unsafe {
         let mut filt_lvl: i32 = 0;
         filt_lvl = 0 as i32;
         while filt_lvl <= MAX_LOOP_FILTER {
@@ -407,12 +408,14 @@ unsafe fn lf_init_lut(mut lfi: *mut loop_filter_info_n) { unsafe {
         (*lfi).mode_lf_lut[NEARMV as usize] = 2 as u8;
         (*lfi).mode_lf_lut[NEWMV as usize] = 2 as u8;
         (*lfi).mode_lf_lut[SPLITMV as usize] = 3 as u8;
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_update_sharpness(
     mut lfi: *mut loop_filter_info_n,
     mut sharpness_lvl: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: i32 = 0;
         i = 0 as i32;
         while i <= MAX_LOOP_FILTER {
@@ -446,9 +449,11 @@ pub unsafe fn vp8_loop_filter_update_sharpness(
             );
             i += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) { unsafe {
+pub unsafe fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) {
+    unsafe {
         let mut lfi: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
         let mut i: i32 = 0;
         vp8_loop_filter_update_sharpness(lfi, (*cm).sharpness_level);
@@ -464,13 +469,15 @@ pub unsafe fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) { unsafe {
             );
             i += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_frame_init(
     mut cm: *mut VP8_COMMON,
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut seg: i32 = 0;
         let mut ref_0: i32 = 0;
         let mut mode: i32 = 0;
@@ -560,7 +567,8 @@ pub unsafe fn vp8_loop_filter_frame_init(
             }
             seg += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_row_normal(
     mut cm: *mut VP8_COMMON,
@@ -571,7 +579,8 @@ pub unsafe fn vp8_loop_filter_row_normal(
     mut y_ptr: *mut u8,
     mut u_ptr: *mut u8,
     mut v_ptr: *mut u8,
-) { unsafe {
+) {
+    unsafe {
         let mut mb_col: i32 = 0;
         let mut filter_level: i32 = 0;
         let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
@@ -652,7 +661,8 @@ pub unsafe fn vp8_loop_filter_row_normal(
             mode_info_context = mode_info_context.offset(1);
             mb_col += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_row_simple(
     mut cm: *mut VP8_COMMON,
@@ -660,7 +670,8 @@ pub unsafe fn vp8_loop_filter_row_simple(
     mut mb_row: i32,
     mut post_ystride: i32,
     mut y_ptr: *mut u8,
-) { unsafe {
+) {
+    unsafe {
         let mut mb_col: i32 = 0;
         let mut filter_level: i32 = 0;
         let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
@@ -714,13 +725,15 @@ pub unsafe fn vp8_loop_filter_row_simple(
             mode_info_context = mode_info_context.offset(1);
             mb_col += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_frame(
     mut cm: *mut VP8_COMMON,
     mut mbd: *mut MACROBLOCKD,
     mut frame_type: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
         let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
         let mut lfi: loop_filter_info = loop_filter_info {
@@ -878,13 +891,15 @@ pub unsafe fn vp8_loop_filter_frame(
                 mb_row += 1;
             }
         };
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_frame_yonly(
     mut cm: *mut VP8_COMMON,
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
         let mut y_ptr: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut mb_row: i32 = 0;
@@ -1018,13 +1033,15 @@ pub unsafe fn vp8_loop_filter_frame_yonly(
             mode_info_context = mode_info_context.offset(1);
             mb_row += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_partial_frame(
     mut cm: *mut VP8_COMMON,
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
         let mut y_ptr: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut mb_row: i32 = 0;
@@ -1169,4 +1186,5 @@ pub unsafe fn vp8_loop_filter_partial_frame(
             mode_info_context = mode_info_context.offset(1 as isize);
             mb_row += 1;
         }
-}}
+    }
+}

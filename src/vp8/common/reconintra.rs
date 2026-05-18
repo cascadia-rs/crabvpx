@@ -320,15 +320,18 @@ pub const SIZE_8: C2RustUnnamed = 1;
 pub type C2RustUnnamed = u32;
 pub const NUM_SIZES: C2RustUnnamed = 2;
 pub const _PTHREAD_ONCE_SIG_init: i32 = 0x30b1bcba as i32;
-unsafe fn once(mut func: Option<unsafe fn() -> ()>) { unsafe {
+unsafe fn once(mut func: Option<unsafe fn() -> ()>) {
+    unsafe {
         static INIT: std::sync::Once = std::sync::Once::new();
         if let Some(f) = func {
             INIT.call_once(|| f());
         }
-}}
+    }
+}
 static mut pred: [[intra_pred_fn; 2]; 4] = [[None; 2]; 4];
 static mut dc_pred: [[[intra_pred_fn; 2]; 2]; 2] = [[[None; 2]; 2]; 2];
-unsafe fn vp8_init_intra_predictors_internal() { unsafe {
+unsafe fn vp8_init_intra_predictors_internal() {
+    unsafe {
         pred[V_PRED as usize][SIZE_16 as usize] = Some(
             vpx_v_predictor_16x16_c
                 as unsafe fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
@@ -386,7 +389,8 @@ unsafe fn vp8_init_intra_predictors_internal() { unsafe {
                 as unsafe fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
         ) as intra_pred_fn;
         vp8_init_intra4x4_predictors_internal();
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_build_intra_predictors_mby_s(
     mut x: *mut MACROBLOCKD,
@@ -395,7 +399,8 @@ pub unsafe fn vp8_build_intra_predictors_mby_s(
     mut left_stride: i32,
     mut ypred_ptr: *mut u8,
     mut y_stride: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut mode: MB_PREDICTION_MODE =
             (*(*x).mode_info_context).mbmi.mode as MB_PREDICTION_MODE;
         let mut yleft_col: [uint8_t; 16] = [0; 16];
@@ -418,7 +423,8 @@ pub unsafe fn vp8_build_intra_predictors_mby_s(
             yabove_row,
             &raw mut yleft_col as *mut uint8_t,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_build_intra_predictors_mbuv_s(
     mut x: *mut MACROBLOCKD,
@@ -430,7 +436,8 @@ pub unsafe fn vp8_build_intra_predictors_mbuv_s(
     mut upred_ptr: *mut u8,
     mut vpred_ptr: *mut u8,
     mut pred_stride: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut uvmode: MB_PREDICTION_MODE =
             (*(*x).mode_info_context).mbmi.uv_mode as MB_PREDICTION_MODE;
         let mut uleft_col: [u8; 8] = [0; 8];
@@ -461,10 +468,13 @@ pub unsafe fn vp8_build_intra_predictors_mbuv_s(
             vabove_row,
             &raw mut vleft_col as *mut u8,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_init_intra_predictors() { unsafe {
+pub unsafe fn vp8_init_intra_predictors() {
+    unsafe {
         once(Some(
             vp8_init_intra_predictors_internal as unsafe fn() -> (),
         ));
-}}
+    }
+}

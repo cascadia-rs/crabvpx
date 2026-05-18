@@ -58,7 +58,8 @@ pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
 pub const NULL: *mut c_void = __DARWIN_NULL;
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_yv12_de_alloc_frame_buffer(mut ybf: *mut YV12_BUFFER_CONFIG) -> i32 { unsafe {
+pub unsafe fn vp8_yv12_de_alloc_frame_buffer(mut ybf: *mut YV12_BUFFER_CONFIG) -> i32 {
+    unsafe {
         if !ybf.is_null() {
             if (*ybf).buffer_alloc_sz > 0 as size_t {
                 vpx_free((*ybf).buffer_alloc as *mut c_void);
@@ -72,14 +73,16 @@ pub unsafe fn vp8_yv12_de_alloc_frame_buffer(mut ybf: *mut YV12_BUFFER_CONFIG) -
             return -(1 as i32);
         }
         0 as i32
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_yv12_realloc_frame_buffer(
     mut ybf: *mut YV12_BUFFER_CONFIG,
     mut width: i32,
     mut height: i32,
     mut border: i32,
-) -> i32 { unsafe {
+) -> i32 {
+    unsafe {
         if !ybf.is_null() {
             let mut aligned_width: i32 = (width + 15 as i32) & !(15 as i32);
             let mut aligned_height: i32 = (height + 15 as i32) & !(15 as i32);
@@ -139,17 +142,20 @@ pub unsafe fn vp8_yv12_realloc_frame_buffer(
             return 0 as i32;
         }
         -(2 as i32)
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_yv12_alloc_frame_buffer(
     mut ybf: *mut YV12_BUFFER_CONFIG,
     mut width: i32,
     mut height: i32,
     mut border: i32,
-) -> i32 { unsafe {
+) -> i32 {
+    unsafe {
         if !ybf.is_null() {
             vp8_yv12_de_alloc_frame_buffer(ybf);
             return vp8_yv12_realloc_frame_buffer(ybf, width, height, border);
         }
         -(2 as i32)
-}}
+    }
+}

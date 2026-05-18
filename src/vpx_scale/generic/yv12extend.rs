@@ -61,7 +61,8 @@ unsafe fn extend_plane(
     mut extend_left: i32,
     mut extend_bottom: i32,
     mut extend_right: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: i32 = 0;
         let linesize: i32 = extend_left + extend_right + width;
         let mut src_ptr1: *mut uint8_t = src;
@@ -116,9 +117,11 @@ unsafe fn extend_plane(
             dst_ptr2 = dst_ptr2.offset(src_stride as isize);
             i += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_yv12_extend_frame_borders_c(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
+pub unsafe fn vp8_yv12_extend_frame_borders_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
+    unsafe {
         let uv_border: i32 = (*ybf).border / 2 as i32;
         extend_plane(
             (*ybf).y_buffer,
@@ -150,12 +153,14 @@ pub unsafe fn vp8_yv12_extend_frame_borders_c(mut ybf: *mut YV12_BUFFER_CONFIG) 
             uv_border + (*ybf).uv_height - (*ybf).uv_crop_height,
             uv_border + (*ybf).uv_width - (*ybf).uv_crop_width,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_yv12_copy_frame_c(
     mut src_ybc: *const YV12_BUFFER_CONFIG,
     mut dst_ybc: *mut YV12_BUFFER_CONFIG,
-) { unsafe {
+) {
+    unsafe {
         let mut row: i32 = 0;
         let mut src: *const uint8_t = (*src_ybc).y_buffer;
         let mut dst: *mut uint8_t = (*dst_ybc).y_buffer;
@@ -197,12 +202,14 @@ pub unsafe fn vp8_yv12_copy_frame_c(
             row += 1;
         }
         vp8_yv12_extend_frame_borders_c(dst_ybc);
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_yv12_copy_y_c(
     mut src_ybc: *const YV12_BUFFER_CONFIG,
     mut dst_ybc: *mut YV12_BUFFER_CONFIG,
-) { unsafe {
+) {
+    unsafe {
         let mut row: i32 = 0;
         let mut src: *const uint8_t = (*src_ybc).y_buffer;
         let mut dst: *mut uint8_t = (*dst_ybc).y_buffer;
@@ -217,4 +224,5 @@ pub unsafe fn vpx_yv12_copy_y_c(
             dst = dst.offset((*dst_ybc).y_stride as isize);
             row += 1;
         }
-}}
+    }
+}

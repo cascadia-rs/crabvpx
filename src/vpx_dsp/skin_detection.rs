@@ -17,7 +17,8 @@ static mut skin_threshold: [i32; 6] = [
 ];
 static mut y_low: i32 = 40 as i32;
 static mut y_high: i32 = 220 as i32;
-unsafe fn vpx_evaluate_skin_color_difference(cb: i32, cr: i32, idx: i32) -> i32 { unsafe {
+unsafe fn vpx_evaluate_skin_color_difference(cb: i32, cr: i32, idx: i32) -> i32 {
+    unsafe {
         let cb_q6: i32 = cb << 6 as i32;
         let cr_q6: i32 = cr << 6 as i32;
         let cb_diff_q12: i32 = (cb_q6 - skin_mean[idx as usize][0 as usize])
@@ -34,9 +35,11 @@ unsafe fn vpx_evaluate_skin_color_difference(cb: i32, cr: i32, idx: i32) -> i32 
             + skin_inv_cov[2 as usize] * cbcr_diff_q2
             + skin_inv_cov[3 as usize] * cr_diff_q2;
         skin_diff
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_skin_pixel(y: i32, cb: i32, cr: i32, mut motion: i32) -> i32 { unsafe {
+pub unsafe fn vpx_skin_pixel(y: i32, cb: i32, cr: i32, mut motion: i32) -> i32 {
+    unsafe {
         if y < y_low || y > y_high {
             0 as i32
         } else if MODEL_MODE == 0 as i32 {
@@ -73,4 +76,5 @@ pub unsafe fn vpx_skin_pixel(y: i32, cb: i32, cr: i32, mut motion: i32) -> i32 {
             }
             0 as i32
         }
-}}
+    }
+}

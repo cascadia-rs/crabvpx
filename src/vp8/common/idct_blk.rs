@@ -18,7 +18,8 @@ pub unsafe fn vp8_dequant_idct_add_y_block_c(
     mut dst: *mut u8,
     mut stride: i32,
     mut eobs: *mut i8,
-) { unsafe {
+) {
+    unsafe {
         let mut i: i32 = 0;
         let mut j: i32 = 0;
         i = 0 as i32;
@@ -50,7 +51,8 @@ pub unsafe fn vp8_dequant_idct_add_y_block_c(
             dst = dst.offset((4 as i32 * stride - 16 as i32) as isize);
             i += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_dequant_idct_add_uv_block_c(
     mut q: *mut i16,
@@ -59,7 +61,8 @@ pub unsafe fn vp8_dequant_idct_add_uv_block_c(
     mut dst_v: *mut u8,
     mut stride: i32,
     mut eobs: *mut i8,
-) { unsafe {
+) {
+    unsafe {
         let mut i: i32 = 0;
         let mut j: i32 = 0;
         i = 0 as i32;
@@ -120,4 +123,5 @@ pub unsafe fn vp8_dequant_idct_add_uv_block_c(
             dst_v = dst_v.offset((4 as i32 * stride - 8 as i32) as isize);
             i += 1;
         }
-}}
+    }
+}

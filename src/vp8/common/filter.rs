@@ -79,7 +79,8 @@ unsafe fn filter_block2d_first_pass(
     mut output_height: u32,
     mut output_width: u32,
     mut vp8_filter: *const i16,
-) { unsafe {
+) {
+    unsafe {
         let mut i: u32 = 0;
         let mut j: u32 = 0;
         let mut Temp: i32 = 0;
@@ -113,7 +114,8 @@ unsafe fn filter_block2d_first_pass(
             output_ptr = output_ptr.offset(output_width as isize);
             i = i.wrapping_add(1);
         }
-}}
+    }
+}
 unsafe fn filter_block2d_second_pass(
     mut src_ptr: *mut i32,
     mut output_ptr: *mut u8,
@@ -123,7 +125,8 @@ unsafe fn filter_block2d_second_pass(
     mut output_height: u32,
     mut output_width: u32,
     mut vp8_filter: *const i16,
-) { unsafe {
+) {
+    unsafe {
         let mut i: u32 = 0;
         let mut j: u32 = 0;
         let mut Temp: i32 = 0;
@@ -156,7 +159,8 @@ unsafe fn filter_block2d_second_pass(
             output_ptr = output_ptr.offset(output_pitch as isize);
             i = i.wrapping_add(1);
         }
-}}
+    }
+}
 unsafe fn filter_block2d(
     mut src_ptr: *mut u8,
     mut output_ptr: *mut u8,
@@ -164,7 +168,8 @@ unsafe fn filter_block2d(
     mut output_pitch: i32,
     mut HFilter: *const i16,
     mut VFilter: *const i16,
-) { unsafe {
+) {
+    unsafe {
         let mut FData: [i32; 36] = [0; 36];
         filter_block2d_first_pass(
             src_ptr.offset(-((2 as u32).wrapping_mul(src_pixels_per_line) as isize)),
@@ -185,7 +190,8 @@ unsafe fn filter_block2d(
             4 as u32,
             VFilter,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_sixtap_predict4x4_c(
     mut src_ptr: *mut u8,
@@ -194,7 +200,8 @@ pub unsafe fn vp8_sixtap_predict4x4_c(
     mut yoffset: i32,
     mut dst_ptr: *mut u8,
     mut dst_pitch: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut HFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut VFilter: *const i16 = ::core::ptr::null::<i16>();
         HFilter = &raw const *(&raw const vp8_sub_pel_filters as *const [i16; 6])
@@ -209,7 +216,8 @@ pub unsafe fn vp8_sixtap_predict4x4_c(
             HFilter,
             VFilter,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_sixtap_predict8x8_c(
     mut src_ptr: *mut u8,
@@ -218,7 +226,8 @@ pub unsafe fn vp8_sixtap_predict8x8_c(
     mut yoffset: i32,
     mut dst_ptr: *mut u8,
     mut dst_pitch: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut HFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut VFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut FData: [i32; 208] = [0; 208];
@@ -245,7 +254,8 @@ pub unsafe fn vp8_sixtap_predict8x8_c(
             8 as u32,
             VFilter,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_sixtap_predict8x4_c(
     mut src_ptr: *mut u8,
@@ -254,7 +264,8 @@ pub unsafe fn vp8_sixtap_predict8x4_c(
     mut yoffset: i32,
     mut dst_ptr: *mut u8,
     mut dst_pitch: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut HFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut VFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut FData: [i32; 208] = [0; 208];
@@ -281,7 +292,8 @@ pub unsafe fn vp8_sixtap_predict8x4_c(
             8 as u32,
             VFilter,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_sixtap_predict16x16_c(
     mut src_ptr: *mut u8,
@@ -290,7 +302,8 @@ pub unsafe fn vp8_sixtap_predict16x16_c(
     mut yoffset: i32,
     mut dst_ptr: *mut u8,
     mut dst_pitch: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut HFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut VFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut FData: [i32; 504] = [0; 504];
@@ -317,7 +330,8 @@ pub unsafe fn vp8_sixtap_predict16x16_c(
             16 as u32,
             VFilter,
         );
-}}
+    }
+}
 unsafe fn filter_block2d_bil_first_pass(
     mut src_ptr: *mut u8,
     mut dst_ptr: *mut u16,
@@ -325,7 +339,8 @@ unsafe fn filter_block2d_bil_first_pass(
     mut height: u32,
     mut width: u32,
     mut vp8_filter: *const i16,
-) { unsafe {
+) {
+    unsafe {
         let mut i: u32 = 0;
         let mut j: u32 = 0;
         i = 0 as u32;
@@ -344,7 +359,8 @@ unsafe fn filter_block2d_bil_first_pass(
             dst_ptr = dst_ptr.offset(width as isize);
             i = i.wrapping_add(1);
         }
-}}
+    }
+}
 unsafe fn filter_block2d_bil_second_pass(
     mut src_ptr: *mut u16,
     mut dst_ptr: *mut u8,
@@ -352,7 +368,8 @@ unsafe fn filter_block2d_bil_second_pass(
     mut height: u32,
     mut width: u32,
     mut vp8_filter: *const i16,
-) { unsafe {
+) {
+    unsafe {
         let mut i: u32 = 0;
         let mut j: u32 = 0;
         let mut Temp: i32 = 0;
@@ -371,7 +388,8 @@ unsafe fn filter_block2d_bil_second_pass(
             dst_ptr = dst_ptr.offset(dst_pitch as isize);
             i = i.wrapping_add(1);
         }
-}}
+    }
+}
 unsafe fn filter_block2d_bil(
     mut src_ptr: *mut u8,
     mut dst_ptr: *mut u8,
@@ -381,7 +399,8 @@ unsafe fn filter_block2d_bil(
     mut VFilter: *const i16,
     mut Width: i32,
     mut Height: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut FData: [u16; 272] = [0; 272];
         filter_block2d_bil_first_pass(
             src_ptr,
@@ -399,7 +418,8 @@ unsafe fn filter_block2d_bil(
             Width as u32,
             VFilter,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_bilinear_predict4x4_c(
     mut src_ptr: *mut u8,
@@ -408,7 +428,8 @@ pub unsafe fn vp8_bilinear_predict4x4_c(
     mut yoffset: i32,
     mut dst_ptr: *mut u8,
     mut dst_pitch: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut HFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut VFilter: *const i16 = ::core::ptr::null::<i16>();
         HFilter = &raw const *(&raw const vp8_bilinear_filters as *const [i16; 2])
@@ -425,7 +446,8 @@ pub unsafe fn vp8_bilinear_predict4x4_c(
             4 as i32,
             4 as i32,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_bilinear_predict8x8_c(
     mut src_ptr: *mut u8,
@@ -434,7 +456,8 @@ pub unsafe fn vp8_bilinear_predict8x8_c(
     mut yoffset: i32,
     mut dst_ptr: *mut u8,
     mut dst_pitch: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut HFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut VFilter: *const i16 = ::core::ptr::null::<i16>();
         HFilter = &raw const *(&raw const vp8_bilinear_filters as *const [i16; 2])
@@ -451,7 +474,8 @@ pub unsafe fn vp8_bilinear_predict8x8_c(
             8 as i32,
             8 as i32,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_bilinear_predict8x4_c(
     mut src_ptr: *mut u8,
@@ -460,7 +484,8 @@ pub unsafe fn vp8_bilinear_predict8x4_c(
     mut yoffset: i32,
     mut dst_ptr: *mut u8,
     mut dst_pitch: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut HFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut VFilter: *const i16 = ::core::ptr::null::<i16>();
         HFilter = &raw const *(&raw const vp8_bilinear_filters as *const [i16; 2])
@@ -477,7 +502,8 @@ pub unsafe fn vp8_bilinear_predict8x4_c(
             8 as i32,
             4 as i32,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_bilinear_predict16x16_c(
     mut src_ptr: *mut u8,
@@ -486,7 +512,8 @@ pub unsafe fn vp8_bilinear_predict16x16_c(
     mut yoffset: i32,
     mut dst_ptr: *mut u8,
     mut dst_pitch: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut HFilter: *const i16 = ::core::ptr::null::<i16>();
         let mut VFilter: *const i16 = ::core::ptr::null::<i16>();
         HFilter = &raw const *(&raw const vp8_bilinear_filters as *const [i16; 2])
@@ -503,4 +530,5 @@ pub unsafe fn vp8_bilinear_predict16x16_c(
             16 as i32,
             16 as i32,
         );
-}}
+    }
+}

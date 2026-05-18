@@ -88,7 +88,8 @@ unsafe fn img_alloc_helper(
     mut buf_align: u32,
     mut stride_align: u32,
     mut img_data: *mut u8,
-) -> *mut vpx_image_t { unsafe {
+) -> *mut vpx_image_t {
+    unsafe {
         let mut _ret: i32 = 0;
         let mut current_block: u64;
         let mut h: u32 = 0;
@@ -273,7 +274,8 @@ unsafe fn img_alloc_helper(
         }
         vpx_img_free(img);
         ::core::ptr::null_mut::<vpx_image_t>()
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_img_alloc(
     mut img: *mut vpx_image_t,
@@ -281,7 +283,8 @@ pub unsafe fn vpx_img_alloc(
     mut d_w: u32,
     mut d_h: u32,
     mut align: u32,
-) -> *mut vpx_image_t { unsafe {
+) -> *mut vpx_image_t {
+    unsafe {
         img_alloc_helper(
             img,
             fmt,
@@ -291,7 +294,8 @@ pub unsafe fn vpx_img_alloc(
             align,
             ::core::ptr::null_mut::<u8>(),
         )
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_img_wrap(
     mut img: *mut vpx_image_t,
@@ -300,7 +304,9 @@ pub unsafe fn vpx_img_wrap(
     mut d_h: u32,
     mut stride_align: u32,
     mut img_data: *mut u8,
-) -> *mut vpx_image_t { unsafe { img_alloc_helper(img, fmt, d_w, d_h, 1 as u32, stride_align, img_data) }}
+) -> *mut vpx_image_t {
+    unsafe { img_alloc_helper(img, fmt, d_w, d_h, 1 as u32, stride_align, img_data) }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_img_set_rect(
     mut img: *mut vpx_image_t,
@@ -308,7 +314,8 @@ pub unsafe fn vpx_img_set_rect(
     mut y: u32,
     mut w: u32,
     mut h: u32,
-) -> i32 { unsafe {
+) -> i32 {
+    unsafe {
         if x <= UINT_MAX.wrapping_sub(w)
             && x.wrapping_add(w) <= (*img).w
             && y <= UINT_MAX.wrapping_sub(h)
@@ -392,9 +399,11 @@ pub unsafe fn vpx_img_set_rect(
             return 0 as i32;
         }
         -(1 as i32)
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_img_flip(mut img: *mut vpx_image_t) { unsafe {
+pub unsafe fn vpx_img_flip(mut img: *mut vpx_image_t) {
+    unsafe {
         (*img).planes[VPX_PLANE_Y as usize] = (*img).planes[VPX_PLANE_Y as usize].offset(
             ((*img).d_h.wrapping_sub(1 as u32) as i32 * (*img).stride[VPX_PLANE_Y as usize])
                 as isize,
@@ -415,9 +424,11 @@ pub unsafe fn vpx_img_flip(mut img: *mut vpx_image_t) { unsafe {
                 as isize,
         );
         (*img).stride[VPX_PLANE_ALPHA as usize] = -(*img).stride[VPX_PLANE_ALPHA as usize];
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_img_free(mut img: *mut vpx_image_t) { unsafe {
+pub unsafe fn vpx_img_free(mut img: *mut vpx_image_t) {
+    unsafe {
         if !img.is_null() {
             if !(*img).img_data.is_null() && (*img).img_data_owner != 0 {
                 vpx_free((*img).img_data as *mut c_void);
@@ -426,4 +437,5 @@ pub unsafe fn vpx_img_free(mut img: *mut vpx_image_t) { unsafe {
                 free(img as *mut c_void);
             }
         }
-}}
+    }
+}

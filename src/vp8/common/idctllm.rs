@@ -7,7 +7,8 @@ pub unsafe fn vp8_short_idct4x4llm_c(
     mut pred_stride: i32,
     mut dst_ptr: *mut u8,
     mut dst_stride: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: i32 = 0;
         let mut r: i32 = 0;
         let mut c: i32 = 0;
@@ -84,7 +85,8 @@ pub unsafe fn vp8_short_idct4x4llm_c(
             pred_ptr = pred_ptr.offset(pred_stride as isize);
             r += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_dc_only_idct_add_c(
     mut input_dc: i16,
@@ -92,7 +94,8 @@ pub unsafe fn vp8_dc_only_idct_add_c(
     mut pred_stride: i32,
     mut dst_ptr: *mut u8,
     mut dst_stride: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut a1: i32 = (input_dc as i32 + 4 as i32) >> 3 as i32;
         let mut r: i32 = 0;
         let mut c: i32 = 0;
@@ -114,9 +117,11 @@ pub unsafe fn vp8_dc_only_idct_add_c(
             pred_ptr = pred_ptr.offset(pred_stride as isize);
             r += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_short_inv_walsh4x4_c(mut input: *mut i16, mut mb_dqcoeff: *mut i16) { unsafe {
+pub unsafe fn vp8_short_inv_walsh4x4_c(mut input: *mut i16, mut mb_dqcoeff: *mut i16) {
+    unsafe {
         let mut output: [i16; 16] = [0; 16];
         let mut i: i32 = 0;
         let mut a1: i32 = 0;
@@ -168,9 +173,11 @@ pub unsafe fn vp8_short_inv_walsh4x4_c(mut input: *mut i16, mut mb_dqcoeff: *mut
             *mb_dqcoeff.offset((i * 16 as i32) as isize) = output[i as usize];
             i += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_short_inv_walsh4x4_1_c(mut input: *mut i16, mut mb_dqcoeff: *mut i16) { unsafe {
+pub unsafe fn vp8_short_inv_walsh4x4_1_c(mut input: *mut i16, mut mb_dqcoeff: *mut i16) {
+    unsafe {
         let mut i: i32 = 0;
         let mut a1: i32 = 0;
         a1 = (*input.offset(0 as isize) as i32 + 3 as i32) >> 3 as i32;
@@ -179,4 +186,5 @@ pub unsafe fn vp8_short_inv_walsh4x4_1_c(mut input: *mut i16, mut mb_dqcoeff: *m
             *mb_dqcoeff.offset((i * 16 as i32) as isize) = a1 as i16;
             i += 1;
         }
-}}
+    }
+}

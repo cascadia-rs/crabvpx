@@ -446,7 +446,9 @@ pub const VPX_CODEC_USE_POSTPROC: i32 = 0x10000 as i32;
 pub const VPX_CODEC_USE_ERROR_CONCEALMENT: i32 = 0x20000 as i32;
 pub const VPX_CODEC_USE_INPUT_FRAGMENTS: i32 = 0x40000 as i32;
 pub const VPX_CODEC_INTERNAL_ABI_VERSION: i32 = 5 as i32;
-unsafe fn get_alg_priv(mut ctx: *mut vpx_codec_ctx_t) -> *mut vpx_codec_alg_priv_t { unsafe { (*ctx).priv_0 as *mut vpx_codec_alg_priv_t }}
+unsafe fn get_alg_priv(mut ctx: *mut vpx_codec_ctx_t) -> *mut vpx_codec_alg_priv_t {
+    unsafe { (*ctx).priv_0 as *mut vpx_codec_alg_priv_t }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_dec_init_ver(
     mut ctx: *mut vpx_codec_ctx_t,
@@ -454,7 +456,8 @@ pub unsafe fn vpx_codec_dec_init_ver(
     mut cfg: *const vpx_codec_dec_cfg_t,
     mut flags: vpx_codec_flags_t,
     mut ver: i32,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         if ver != VPX_DECODER_ABI_VERSION {
             res = VPX_CODEC_ABI_MISMATCH;
@@ -506,14 +509,16 @@ pub unsafe fn vpx_codec_dec_init_ver(
         } else {
             res as u32
         }) as vpx_codec_err_t
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_peek_stream_info(
     mut iface: *const vpx_codec_iface_t,
     mut data: *const uint8_t,
     mut data_sz: u32,
     mut si: *mut vpx_codec_stream_info_t,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         if iface.is_null()
             || data.is_null()
@@ -528,12 +533,14 @@ pub unsafe fn vpx_codec_peek_stream_info(
             res = (*iface).dec.peek_si.expect("non-null function pointer")(data, data_sz, si);
         }
         res
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_get_stream_info(
     mut ctx: *mut vpx_codec_ctx_t,
     mut si: *mut vpx_codec_stream_info_t,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         if ctx.is_null()
             || si.is_null()
@@ -556,7 +563,8 @@ pub unsafe fn vpx_codec_get_stream_info(
         } else {
             res as u32
         }) as vpx_codec_err_t
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_decode(
     mut ctx: *mut vpx_codec_ctx_t,
@@ -564,7 +572,8 @@ pub unsafe fn vpx_codec_decode(
     mut data_sz: u32,
     mut user_priv: *mut c_void,
     _deadline: i64,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         if ctx.is_null() || data.is_null() && data_sz != 0 || !data.is_null() && data_sz == 0 {
             res = VPX_CODEC_INVALID_PARAM;
@@ -584,12 +593,14 @@ pub unsafe fn vpx_codec_decode(
         } else {
             res as u32
         }) as vpx_codec_err_t
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_get_frame(
     mut ctx: *mut vpx_codec_ctx_t,
     mut iter: *mut vpx_codec_iter_t,
-) -> *mut vpx_image_t { unsafe {
+) -> *mut vpx_image_t {
+    unsafe {
         let mut img: *mut vpx_image_t = ::core::ptr::null_mut::<vpx_image_t>();
         if ctx.is_null() || iter.is_null() || (*ctx).iface.is_null() || (*ctx).priv_0.is_null() {
             img = ::core::ptr::null_mut::<vpx_image_t>();
@@ -600,13 +611,15 @@ pub unsafe fn vpx_codec_get_frame(
                 .expect("non-null function pointer")(get_alg_priv(ctx), iter);
         }
         img
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_register_put_frame_cb(
     mut ctx: *mut vpx_codec_ctx_t,
     mut cb: vpx_codec_put_frame_cb_fn_t,
     mut user_priv: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         if ctx.is_null() || cb.is_none() {
             res = VPX_CODEC_INVALID_PARAM;
@@ -625,13 +638,15 @@ pub unsafe fn vpx_codec_register_put_frame_cb(
         } else {
             res as u32
         }) as vpx_codec_err_t
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_register_put_slice_cb(
     mut ctx: *mut vpx_codec_ctx_t,
     mut cb: vpx_codec_put_slice_cb_fn_t,
     mut user_priv: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         if ctx.is_null() || cb.is_none() {
             res = VPX_CODEC_INVALID_PARAM;
@@ -650,14 +665,16 @@ pub unsafe fn vpx_codec_register_put_slice_cb(
         } else {
             res as u32
         }) as vpx_codec_err_t
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_set_frame_buffer_functions(
     mut ctx: *mut vpx_codec_ctx_t,
     mut cb_get: vpx_get_frame_buffer_cb_fn_t,
     mut cb_release: vpx_release_frame_buffer_cb_fn_t,
     mut cb_priv: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         if ctx.is_null() || cb_get.is_none() || cb_release.is_none() {
             res = VPX_CODEC_INVALID_PARAM;
@@ -684,4 +701,5 @@ pub unsafe fn vpx_codec_set_frame_buffer_functions(
         } else {
             res as u32
         }) as vpx_codec_err_t
-}}
+    }
+}

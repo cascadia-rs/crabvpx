@@ -587,39 +587,50 @@ pub const VP8BORDERINPIXELS: i32 = 32 as i32;
 pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
 pub const VP8_LOTS_OF_BITS: i32 = 0x40000000 as i32;
 #[inline]
-unsafe fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> i32 { unsafe {
+unsafe fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> i32 {
+    unsafe {
         if (*br).count > VP8_BD_VALUE_SIZE && (*br).count < VP8_LOTS_OF_BITS {
             return 1 as i32;
         }
         0 as i32
-}}
+    }
+}
 pub const SYNC_POLICY_FIFO: i32 = 0 as i32;
 #[inline]
-unsafe fn vpx_atomic_init(mut atomic: *mut vpx_atomic_int, mut value: i32) { unsafe {
+unsafe fn vpx_atomic_init(mut atomic: *mut vpx_atomic_int, mut value: i32) {
+    unsafe {
         ::core::ptr::write_volatile(&mut (*atomic).value as *mut i32, value);
-}}
+    }
+}
 #[inline]
-unsafe fn vpx_atomic_store_release(mut atomic: *mut vpx_atomic_int, mut value: i32) { unsafe {
+unsafe fn vpx_atomic_store_release(mut atomic: *mut vpx_atomic_int, mut value: i32) {
+    unsafe {
         (*(&raw mut (*atomic).value as *const core::sync::atomic::AtomicI32))
             .store(value, core::sync::atomic::Ordering::Release);
-}}
+    }
+}
 #[inline]
-unsafe fn vpx_atomic_load_acquire(mut atomic: *const vpx_atomic_int) -> i32 { unsafe {
+unsafe fn vpx_atomic_load_acquire(mut atomic: *const vpx_atomic_int) -> i32 {
+    unsafe {
         (*(atomic as *const core::sync::atomic::AtomicI32))
             .load(core::sync::atomic::Ordering::Acquire)
-}}
+    }
+}
 #[inline]
 unsafe fn vp8_atomic_spin_wait(
     mut mb_col: i32,
     mut last_row_current_mb_col: *const vpx_atomic_int,
     nsync: i32,
-) { unsafe {
+) {
+    unsafe {
         while mb_col > vpx_atomic_load_acquire(last_row_current_mb_col) - nsync {
             std::thread::yield_now();
         }
-}}
+    }
+}
 #[inline]
-unsafe fn intra_prediction_down_copy(mut xd: *mut MACROBLOCKD, mut above_right_src: *mut u8) { unsafe {
+unsafe fn intra_prediction_down_copy(mut xd: *mut MACROBLOCKD, mut above_right_src: *mut u8) {
+    unsafe {
         let mut dst_stride: i32 = (*xd).dst.y_stride;
         let mut above_right_dst: *mut u8 = (*xd)
             .dst
@@ -636,7 +647,8 @@ unsafe fn intra_prediction_down_copy(mut xd: *mut MACROBLOCKD, mut above_right_s
         *dst_ptr0 = *src_ptr;
         *dst_ptr1 = *src_ptr;
         *dst_ptr2 = *src_ptr;
-}}
+    }
+}
 #[inline]
 unsafe fn setup_intra_recon_left(
     mut y_buffer: *mut u8,
@@ -644,7 +656,8 @@ unsafe fn setup_intra_recon_left(
     mut v_buffer: *mut u8,
     mut y_stride: i32,
     mut uv_stride: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: i32 = 0;
         i = 0 as i32;
         while i < 16 as i32 {
@@ -661,13 +674,15 @@ unsafe fn setup_intra_recon_left(
             *v_buffer.offset((uv_stride * i) as isize) = 129 as u8;
             i += 1;
         }
-}}
+    }
+}
 unsafe fn setup_decoding_thread_data(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
     mut mbrd: *mut MB_ROW_DEC,
     mut count: i32,
-) { unsafe {
+) {
+    unsafe {
         let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
         let mut i: i32 = 0;
         i = 0 as i32;
@@ -735,8 +750,10 @@ unsafe fn setup_decoding_thread_data(
             );
             i += 1;
         }
-}}
-unsafe fn mt_decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD, _mb_idx: u32) { unsafe {
+    }
+}
+unsafe fn mt_decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD, _mb_idx: u32) {
+    unsafe {
         let mut mode: MB_PREDICTION_MODE = DC_PRED;
         let mut i: i32 = 0;
         if (*(*xd).mode_info_context).mbmi.mb_skip_coeff != 0 {
@@ -903,12 +920,14 @@ unsafe fn mt_decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD
                 (&raw mut (*xd).eobs as *mut i8).offset(16 as isize),
             );
         }
-}}
+    }
+}
 unsafe fn mt_decode_mb_rows(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
     mut start_mb_row: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut last_row_current_mb_col: *const vpx_atomic_int =
             ::core::ptr::null::<vpx_atomic_int>();
         let mut current_mb_col: *mut vpx_atomic_int = ::core::ptr::null_mut::<vpx_atomic_int>();
@@ -1315,8 +1334,10 @@ unsafe fn mt_decode_mb_rows(
         if last_mb_row + (*pbi).decoding_thread_count as i32 + 1 as i32 >= (*pc).mb_rows {
             crate::thread_shim::vp8_semaphore_signal((*pbi).h_event_end_decoding);
         }
-}}
-unsafe fn thread_decoding_proc(mut p_data: *mut c_void) -> *mut c_void { unsafe {
+    }
+}
+unsafe fn thread_decoding_proc(mut p_data: *mut c_void) -> *mut c_void {
+    unsafe {
         let mut ithread: i32 = (*(p_data as *mut DECODETHREAD_DATA)).ithread;
         let mut pbi: *mut VP8D_COMP = (*(p_data as *mut DECODETHREAD_DATA)).ptr1 as *mut VP8D_COMP;
         let mut mbrd: *mut MB_ROW_DEC =
@@ -1349,9 +1370,11 @@ unsafe fn thread_decoding_proc(mut p_data: *mut c_void) -> *mut c_void { unsafe 
             }
         }
         THREAD_EXIT_SUCCESS
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) { unsafe {
+pub unsafe fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
+    unsafe {
         let mut core_count: i32 = 0 as i32;
         let mut ithread: u32 = 0;
         vpx_atomic_init(&raw mut (*pbi).b_multithreaded_rd, 0 as i32);
@@ -1481,9 +1504,11 @@ pub unsafe fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) { unsafe {
                 );
             }
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8mt_de_alloc_temp_buffers(mut pbi: *mut VP8D_COMP, mut mb_rows: i32) { unsafe {
+pub unsafe fn vp8mt_de_alloc_temp_buffers(mut pbi: *mut VP8D_COMP, mut mb_rows: i32) {
+    unsafe {
         let mut i: i32 = 0;
         vpx_free((*pbi).mt_current_mb_col as *mut c_void);
         (*pbi).mt_current_mb_col = ::core::ptr::null_mut::<vpx_atomic_int>();
@@ -1553,13 +1578,15 @@ pub unsafe fn vp8mt_de_alloc_temp_buffers(mut pbi: *mut VP8D_COMP, mut mb_rows: 
             vpx_free((*pbi).mt_vleft_col as *mut c_void);
             (*pbi).mt_vleft_col = ::core::ptr::null_mut::<*mut u8>();
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8mt_alloc_temp_buffers(
     mut pbi: *mut VP8D_COMP,
     mut width: i32,
     mut prev_mb_rows: i32,
-) { unsafe {
+) {
+    unsafe {
         let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
         let mut i: i32 = 0;
         let mut uv_width: i32 = 0;
@@ -1781,9 +1808,11 @@ pub unsafe fn vp8mt_alloc_temp_buffers(
                 i += 1;
             }
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) { unsafe {
+pub unsafe fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) {
+    unsafe {
         if vpx_atomic_load_acquire(&raw mut (*pbi).b_multithreaded_rd) != 0 {
             let mut i: i32 = 0;
             vpx_atomic_store_release(&raw mut (*pbi).b_multithreaded_rd, 0 as i32);
@@ -1819,9 +1848,11 @@ pub unsafe fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) { unsafe {
             (*pbi).de_thread_data = ::core::ptr::null_mut::<DECODETHREAD_DATA>();
             vp8mt_de_alloc_temp_buffers(pbi, (*pbi).common.mb_rows);
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8mt_decode_mb_rows(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD) -> i32 { unsafe {
+pub unsafe fn vp8mt_decode_mb_rows(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD) -> i32 {
+    unsafe {
         let mut pc: *mut VP8_COMMON = &raw mut (*pbi).common;
         let mut i: u32 = 0;
         let mut j: i32 = 0;
@@ -1929,7 +1960,8 @@ pub unsafe fn vp8mt_decode_mb_rows(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBL
             i = i.wrapping_add(1);
         }
         0 as i32
-}}
+    }
+}
 pub const __ATOMIC_ACQUIRE: i32 = 2 as i32;
 pub const __ATOMIC_RELEASE: i32 = 3 as i32;
 pub const NULL: *mut c_void = __DARWIN_NULL;

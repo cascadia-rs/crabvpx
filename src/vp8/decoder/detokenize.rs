@@ -425,7 +425,8 @@ pub const RECON_CLAMP_REQUIRED: CLAMP_TYPE = 0;
 pub type ProbaArray = *const [[uint8_t; 11]; 3];
 pub const CHAR_BIT: i32 = 8 as i32;
 pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
-unsafe fn vp8dx_decode_bool(mut br: *mut BOOL_DECODER, mut probability: i32) -> i32 { unsafe {
+unsafe fn vp8dx_decode_bool(mut br: *mut BOOL_DECODER, mut probability: i32) -> i32 {
+    unsafe {
         let mut bit: u32 = 0 as u32;
         let mut value: VP8_BD_VALUE = 0;
         let mut split: u32 = 0;
@@ -459,9 +460,11 @@ unsafe fn vp8dx_decode_bool(mut br: *mut BOOL_DECODER, mut probability: i32) -> 
         (*br).count = count;
         (*br).range = range;
         bit as i32
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) { unsafe {
+pub unsafe fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
+    unsafe {
         let mut a_ctx: *mut ENTROPY_CONTEXT = (*x).above_context as *mut ENTROPY_CONTEXT;
         let mut l_ctx: *mut ENTROPY_CONTEXT = (*x).left_context as *mut ENTROPY_CONTEXT;
         core::ptr::write_bytes(
@@ -479,7 +482,8 @@ pub unsafe fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) { unsafe {
             *fresh0 = 0 as ENTROPY_CONTEXT;
             *a_ctx.offset(8 as isize) = *fresh0;
         }
-}}
+    }
+}
 static mut kBands: [uint8_t; 17] = [
     0 as uint8_t,
     1 as uint8_t,
@@ -555,7 +559,8 @@ static mut kZigzag: [uint8_t; 16] = [
     14 as uint8_t,
     15 as uint8_t,
 ];
-unsafe fn GetSigned(mut br: *mut BOOL_DECODER, mut value_to_sign: i32) -> i32 { unsafe {
+unsafe fn GetSigned(mut br: *mut BOOL_DECODER, mut value_to_sign: i32) -> i32 {
+    unsafe {
         let mut split: i32 = ((*br).range.wrapping_add(1 as u32) >> 1 as i32) as i32;
         let mut bigsplit: VP8_BD_VALUE = (split as VP8_BD_VALUE) << (VP8_BD_VALUE_SIZE - 8 as i32);
         let mut v: i32 = 0;
@@ -574,14 +579,16 @@ unsafe fn GetSigned(mut br: *mut BOOL_DECODER, mut value_to_sign: i32) -> i32 { 
         (*br).value = (*br).value.wrapping_add((*br).value);
         (*br).count -= 1;
         v
-}}
+    }
+}
 unsafe fn GetCoeffs(
     mut br: *mut BOOL_DECODER,
     mut prob: ProbaArray,
     mut ctx: i32,
     mut n: i32,
     mut out: *mut int16_t,
-) -> i32 { unsafe {
+) -> i32 {
+    unsafe {
         let mut p: *const uint8_t = &raw const *(&raw const *prob.offset(n as isize)
             as *const [uint8_t; 11])
             .offset(ctx as isize) as *const uint8_t;
@@ -648,9 +655,11 @@ unsafe fn GetCoeffs(
                 return 16 as i32;
             }
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_decode_mb_tokens(mut dx: *mut VP8D_COMP, mut x: *mut MACROBLOCKD) -> i32 { unsafe {
+pub unsafe fn vp8_decode_mb_tokens(mut dx: *mut VP8D_COMP, mut x: *mut MACROBLOCKD) -> i32 {
+    unsafe {
         let mut bc: *mut BOOL_DECODER = (*x).current_bc as *mut BOOL_DECODER;
         let fc: *const FRAME_CONTEXT = &raw mut (*dx).common.fc;
         let mut eobs: *mut i8 = &raw mut (*x).eobs as *mut i8;
@@ -738,4 +747,5 @@ pub unsafe fn vp8_decode_mb_tokens(mut dx: *mut VP8D_COMP, mut x: *mut MACROBLOC
             i += 1;
         }
         eobtotal
-}}
+    }
+}

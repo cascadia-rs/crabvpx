@@ -620,7 +620,8 @@ pub const CHAR_BIT: i32 = 8 as i32;
 pub const vp8_prob_half: vp8_prob = 128 as vp8_prob;
 pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
 pub const VP8_LOTS_OF_BITS: i32 = 0x40000000 as i32;
-unsafe fn vp8dx_decode_bool(mut br: *mut BOOL_DECODER, mut probability: i32) -> i32 { unsafe {
+unsafe fn vp8dx_decode_bool(mut br: *mut BOOL_DECODER, mut probability: i32) -> i32 {
+    unsafe {
         let mut bit: u32 = 0 as u32;
         let mut value: VP8_BD_VALUE = 0;
         let mut split: u32 = 0;
@@ -654,9 +655,11 @@ unsafe fn vp8dx_decode_bool(mut br: *mut BOOL_DECODER, mut probability: i32) -> 
         (*br).count = count;
         (*br).range = range;
         bit as i32
-}}
+    }
+}
 #[inline]
-unsafe fn vp8_decode_value(mut br: *mut BOOL_DECODER, mut bits: i32) -> i32 { unsafe {
+unsafe fn vp8_decode_value(mut br: *mut BOOL_DECODER, mut bits: i32) -> i32 {
+    unsafe {
         let mut z: i32 = 0 as i32;
         let mut bit: i32 = 0;
         bit = bits - 1 as i32;
@@ -665,14 +668,17 @@ unsafe fn vp8_decode_value(mut br: *mut BOOL_DECODER, mut bits: i32) -> i32 { un
             bit -= 1;
         }
         z
-}}
+    }
+}
 #[inline]
-unsafe fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> i32 { unsafe {
+unsafe fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> i32 {
+    unsafe {
         if (*br).count > VP8_BD_VALUE_SIZE && (*br).count < VP8_LOTS_OF_BITS {
             return 1 as i32;
         }
         0 as i32
-}}
+    }
+}
 pub const MB_FEATURE_TREE_PROBS: i32 = 3 as i32;
 pub const MAX_MB_SEGMENTS: i32 = 4 as i32;
 pub const MAX_REF_LF_DELTAS: i32 = 4 as i32;
@@ -686,12 +692,15 @@ pub const PREV_COEF_CONTEXTS: i32 = 3 as i32;
 pub const MAXQ: i32 = 127 as i32;
 pub const QINDEX_RANGE: i32 = MAXQ + 1 as i32;
 #[inline]
-unsafe fn vpx_atomic_load_acquire(mut atomic: *const vpx_atomic_int) -> i32 { unsafe {
+unsafe fn vpx_atomic_load_acquire(mut atomic: *const vpx_atomic_int) -> i32 {
+    unsafe {
         (*((&raw const (*atomic).value) as *const core::sync::atomic::AtomicI32))
             .load(core::sync::atomic::Ordering::Acquire)
-}}
+    }
+}
 #[inline]
-unsafe fn intra_prediction_down_copy(mut xd: *mut MACROBLOCKD, mut above_right_src: *mut u8) { unsafe {
+unsafe fn intra_prediction_down_copy(mut xd: *mut MACROBLOCKD, mut above_right_src: *mut u8) {
+    unsafe {
         let mut dst_stride: i32 = (*xd).dst.y_stride;
         let mut above_right_dst: *mut u8 = (*xd)
             .dst
@@ -708,7 +717,8 @@ unsafe fn intra_prediction_down_copy(mut xd: *mut MACROBLOCKD, mut above_right_s
         *dst_ptr0 = *src_ptr;
         *dst_ptr1 = *src_ptr;
         *dst_ptr2 = *src_ptr;
-}}
+    }
+}
 #[inline]
 unsafe fn setup_intra_recon_left(
     mut y_buffer: *mut u8,
@@ -737,7 +747,8 @@ unsafe fn setup_intra_recon_left(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8cx_init_de_quantizer(mut pbi: *mut VP8D_COMP) { unsafe {
+pub unsafe fn vp8cx_init_de_quantizer(mut pbi: *mut VP8D_COMP) {
+    unsafe {
         let mut Q: i32 = 0;
         let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
         Q = 0 as i32;
@@ -750,9 +761,11 @@ pub unsafe fn vp8cx_init_de_quantizer(mut pbi: *mut VP8D_COMP) { unsafe {
             (*pc).UVdequant[Q as usize][1 as usize] = vp8_ac_uv_quant(Q, (*pc).uvac_delta_q) as i16;
             Q += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_mb_init_dequantizer(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD) { unsafe {
+pub unsafe fn vp8_mb_init_dequantizer(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD) {
+    unsafe {
         let mut i: i32 = 0;
         let mut QIndex: i32 = 0;
         let mut mbmi: *mut MB_MODE_INFO = &raw mut (*(*xd).mode_info_context).mbmi;
@@ -786,8 +799,10 @@ pub unsafe fn vp8_mb_init_dequantizer(mut pbi: *mut VP8D_COMP, mut xd: *mut MACR
             (*xd).dequant_uv[i as usize] = (*pc).UVdequant[QIndex as usize][1 as usize];
             i += 1;
         }
-}}
-unsafe fn decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD, _mb_idx: u32) { unsafe {
+    }
+}
+unsafe fn decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD, _mb_idx: u32) {
+    unsafe {
         let mut mode: MB_PREDICTION_MODE = DC_PRED;
         let mut i: i32 = 0;
         if (*(*xd).mode_info_context).mbmi.mb_skip_coeff != 0 {
@@ -933,8 +948,10 @@ unsafe fn decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD, _
                 (&raw mut (*xd).eobs as *mut i8).offset(16 as isize),
             );
         }
-}}
-unsafe fn get_delta_q(mut bc: *mut vp8_reader, mut prev: i32, mut q_update: *mut i32) -> i32 { unsafe {
+    }
+}
+unsafe fn get_delta_q(mut bc: *mut vp8_reader, mut prev: i32, mut q_update: *mut i32) -> i32 {
+    unsafe {
         let mut ret_val: i32 = 0 as i32;
         if vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as i32) != 0 {
             ret_val = vp8_decode_value(bc as *mut BOOL_DECODER, 4 as i32);
@@ -946,8 +963,10 @@ unsafe fn get_delta_q(mut bc: *mut vp8_reader, mut prev: i32, mut q_update: *mut
             *q_update = 1 as i32;
         }
         ret_val
-}}
-unsafe fn yv12_extend_frame_top_c(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
+    }
+}
+unsafe fn yv12_extend_frame_top_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
+    unsafe {
         let mut i: i32 = 0;
         let mut src_ptr1: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut dest_ptr1: *mut u8 = ::core::ptr::null_mut::<u8>();
@@ -993,8 +1012,10 @@ unsafe fn yv12_extend_frame_top_c(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
             dest_ptr1 = dest_ptr1.offset(plane_stride as isize);
             i += 1;
         }
-}}
-unsafe fn yv12_extend_frame_bottom_c(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
+    }
+}
+unsafe fn yv12_extend_frame_bottom_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
+    unsafe {
         let mut i: i32 = 0;
         let mut src_ptr1: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut src_ptr2: *mut u8 = ::core::ptr::null_mut::<u8>();
@@ -1053,13 +1074,15 @@ unsafe fn yv12_extend_frame_bottom_c(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe 
             dest_ptr2 = dest_ptr2.offset(plane_stride as isize);
             i += 1;
         }
-}}
+    }
+}
 unsafe fn yv12_extend_frame_left_right_c(
     mut ybf: *mut YV12_BUFFER_CONFIG,
     mut y_src: *mut u8,
     mut u_src: *mut u8,
     mut v_src: *mut u8,
-) { unsafe {
+) {
+    unsafe {
         let mut i: i32 = 0;
         let mut src_ptr1: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut src_ptr2: *mut u8 = ::core::ptr::null_mut::<u8>();
@@ -1143,8 +1166,10 @@ unsafe fn yv12_extend_frame_left_right_c(
             dest_ptr2 = dest_ptr2.offset(plane_stride as isize);
             i += 1;
         }
-}}
-unsafe fn decode_mb_rows(mut pbi: *mut VP8D_COMP) { unsafe {
+    }
+}
+unsafe fn decode_mb_rows(mut pbi: *mut VP8D_COMP) {
+    unsafe {
         let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
         let xd: *mut MACROBLOCKD = &raw mut (*pbi).mb;
         let mut lf_mic: *mut MODE_INFO = (*xd).mode_info_context;
@@ -1388,8 +1413,10 @@ unsafe fn decode_mb_rows(mut pbi: *mut VP8D_COMP) { unsafe {
         );
         yv12_extend_frame_top_c(yv12_fb_new);
         yv12_extend_frame_bottom_c(yv12_fb_new);
-}}
-unsafe fn read_partition_size(mut pbi: *mut VP8D_COMP, mut cx_size: *const u8) -> u32 { unsafe {
+    }
+}
+unsafe fn read_partition_size(mut pbi: *mut VP8D_COMP, mut cx_size: *const u8) -> u32 {
+    unsafe {
         let mut temp: [u8; 3] = [0; 3];
         if (*pbi).decrypt_cb.is_some() {
             (*pbi).decrypt_cb.expect("non-null function pointer")(
@@ -1403,8 +1430,11 @@ unsafe fn read_partition_size(mut pbi: *mut VP8D_COMP, mut cx_size: *const u8) -
         (*cx_size.offset(0 as isize) as i32
             + ((*cx_size.offset(1 as isize) as i32) << 8 as i32)
             + ((*cx_size.offset(2 as isize) as i32) << 16 as i32)) as u32
-}}
-unsafe fn read_is_valid(mut start: *const u8, mut len: size_t, mut end: *const u8) -> i32 { unsafe { (len != 0 as size_t && end > start && len <= end.offset_from(start) as size_t) as i32 }}
+    }
+}
+unsafe fn read_is_valid(mut start: *const u8, mut len: size_t, mut end: *const u8) -> i32 {
+    unsafe { (len != 0 as size_t && end > start && len <= end.offset_from(start) as size_t) as i32 }
+}
 unsafe fn read_available_partition_size(
     mut pbi: *mut VP8D_COMP,
     mut token_part_sizes: *const u8,
@@ -1413,7 +1443,8 @@ unsafe fn read_available_partition_size(
     mut fragment_end: *const u8,
     mut i: i32,
     mut num_part: i32,
-) -> u32 { unsafe {
+) -> u32 {
+    unsafe {
         let mut pc: *mut VP8_COMMON = &raw mut (*pbi).common;
         let mut partition_size_ptr: *const u8 = token_part_sizes.offset((i * 3 as i32) as isize);
         let mut partition_size: u32 = 0 as u32;
@@ -1453,8 +1484,10 @@ unsafe fn read_available_partition_size(
             }
         }
         partition_size
-}}
-unsafe fn setup_token_decoder(mut pbi: *mut VP8D_COMP, mut token_part_sizes: *const u8) { unsafe {
+    }
+}
+unsafe fn setup_token_decoder(mut pbi: *mut VP8D_COMP, mut token_part_sizes: *const u8) {
+    unsafe {
         let mut bool_decoder: *mut vp8_reader =
             (&raw mut (*pbi).mbc as *mut vp8_reader).offset(0 as isize) as *mut vp8_reader;
         let mut partition_idx: u32 = 0;
@@ -1553,8 +1586,10 @@ unsafe fn setup_token_decoder(mut pbi: *mut VP8D_COMP, mut token_part_sizes: *co
         if (*pbi).decoding_thread_count as i32 > (*pbi).common.mb_rows - 1 as i32 {
             (*pbi).decoding_thread_count = ((*pbi).common.mb_rows - 1 as i32) as u32;
         }
-}}
-unsafe fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
+    }
+}
+unsafe fn init_frame(mut pbi: *mut VP8D_COMP) {
+    unsafe {
         let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
         let xd: *mut MACROBLOCKD = &raw mut (*pbi).mb;
         if (*pc).frame_type as u32 == KEY_FRAME as u32 {
@@ -1638,9 +1673,11 @@ unsafe fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
         if (*pc).full_pixel != 0 {
             (*xd).fullpixel_mask = !(7 as i32);
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> i32 { unsafe {
+pub unsafe fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> i32 {
+    unsafe {
         let bc: *mut vp8_reader =
             (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut vp8_reader;
         let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
@@ -2007,5 +2044,6 @@ pub unsafe fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> i32 { unsafe {
             (*pbi).independent_partitions = prev_independent_partitions;
         }
         0 as i32
-}}
+    }
+}
 pub const __ATOMIC_ACQUIRE: i32 = 2 as i32;

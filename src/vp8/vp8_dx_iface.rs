@@ -969,11 +969,14 @@ pub const VPX_CODEC_INTERNAL_ABI_VERSION: i32 = 5 as i32;
 pub const VP8BORDERINPIXELS: i32 = 32 as i32;
 pub const MAX_PARTITIONS: i32 = 9 as i32;
 #[inline]
-unsafe fn vpx_atomic_load_acquire(mut atomic: *const vpx_atomic_int) -> i32 { unsafe {
+unsafe fn vpx_atomic_load_acquire(mut atomic: *const vpx_atomic_int) -> i32 {
+    unsafe {
         (*((&raw const (*atomic).value) as *const core::sync::atomic::AtomicI32))
             .load(core::sync::atomic::Ordering::Acquire)
-}}
-unsafe fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> i32 { unsafe {
+    }
+}
+unsafe fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> i32 {
+    unsafe {
         let mut priv_0: *mut vpx_codec_alg_priv_t = vpx_calloc(
             1 as size_t,
             ::core::mem::size_of::<vpx_codec_alg_priv_t>() as size_t,
@@ -991,11 +994,13 @@ unsafe fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> i32 { unsafe {
             (*ctx).config.dec = &raw mut (*priv_0).cfg;
         }
         0 as i32
-}}
+    }
+}
 unsafe fn vp8_init(
     mut ctx: *mut vpx_codec_ctx_t,
     _data: *mut vpx_codec_priv_enc_mr_cfg_t,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         vp8_rtcd();
         vpx_dsp_rtcd();
@@ -1013,19 +1018,23 @@ unsafe fn vp8_init(
                 as i32;
         }
         res
-}}
-unsafe fn vp8_destroy(mut ctx: *mut vpx_codec_alg_priv_t) -> vpx_codec_err_t { unsafe {
+    }
+}
+unsafe fn vp8_destroy(mut ctx: *mut vpx_codec_alg_priv_t) -> vpx_codec_err_t {
+    unsafe {
         vp8_remove_decoder_instances(&raw mut (*ctx).yv12_frame_buffers);
         vpx_free(ctx as *mut c_void);
         VPX_CODEC_OK
-}}
+    }
+}
 unsafe fn vp8_peek_si_internal(
     mut data: *const uint8_t,
     mut data_sz: u32,
     mut si: *mut vpx_codec_stream_info_t,
     mut decrypt_cb: vpx_decrypt_cb,
     mut decrypt_state: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         if data.is_null() {
             return VPX_CODEC_INVALID_PARAM;
@@ -1075,16 +1084,20 @@ unsafe fn vp8_peek_si_internal(
             }
         }
         res
-}}
+    }
+}
 unsafe fn vp8_peek_si(
     mut data: *const uint8_t,
     mut data_sz: u32,
     mut si: *mut vpx_codec_stream_info_t,
-) -> vpx_codec_err_t { unsafe { vp8_peek_si_internal(data, data_sz, si, None, NULL) }}
+) -> vpx_codec_err_t {
+    unsafe { vp8_peek_si_internal(data, data_sz, si, None, NULL) }
+}
 unsafe fn vp8_get_si(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut si: *mut vpx_codec_stream_info_t,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut sz: u32 = 0;
         if (*si).sz as usize >= ::core::mem::size_of::<vp8_stream_info_t>() as usize {
             sz = ::core::mem::size_of::<vp8_stream_info_t>() as u32;
@@ -1098,11 +1111,13 @@ unsafe fn vp8_get_si(
         );
         (*si).sz = sz;
         VPX_CODEC_OK
-}}
+    }
+}
 unsafe fn update_error_state(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut error: *const vpx_internal_error_info,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         res = (*error).error_code;
         if res as u64 != 0 {
@@ -1113,12 +1128,14 @@ unsafe fn update_error_state(
             };
         }
         res
-}}
+    }
+}
 unsafe fn yuvconfig2image(
     mut img: *mut vpx_image_t,
     mut yv12: *const YV12_BUFFER_CONFIG,
     mut user_priv: *mut c_void,
-) { unsafe {
+) {
+    unsafe {
         (*img).fmt = VPX_IMG_FMT_I420;
         (*img).w = (*yv12).y_stride as u32;
         (*img).h =
@@ -1143,13 +1160,15 @@ unsafe fn yuvconfig2image(
         (*img).img_data = (*yv12).buffer_alloc as *mut u8;
         (*img).img_data_owner = 0 as i32;
         (*img).self_allocd = 0 as i32;
-}}
+    }
+}
 unsafe fn update_fragments(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *const uint8_t,
     mut data_sz: u32,
     mut res: *mut vpx_codec_err_t,
-) -> i32 { unsafe {
+) -> i32 {
+    unsafe {
         ::core::ptr::write_volatile(res, VPX_CODEC_OK);
         if (*ctx).fragments.count == 0 as u32 {
             core::ptr::write_bytes(
@@ -1190,13 +1209,15 @@ unsafe fn update_fragments(
             (*ctx).fragments.count = 1 as u32;
         }
         1 as i32
-}}
+    }
+}
 unsafe fn vp8_decode(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *const uint8_t,
     mut data_sz: u32,
     mut user_priv: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         let mut resolution_change: u32 = 0 as u32;
         let mut w: u32 = 0;
@@ -1393,11 +1414,13 @@ unsafe fn vp8_decode(
             (*pbi_1).common.error.setjmp = 0 as i32;
         }
         res
-}}
+    }
+}
 unsafe fn vp8_get_frame(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut iter: *mut vpx_codec_iter_t,
-) -> *mut vpx_image_t { unsafe {
+) -> *mut vpx_image_t {
+    unsafe {
         let mut img: *mut vpx_image_t = ::core::ptr::null_mut::<vpx_image_t>();
         if (*iter).is_null() && !(*ctx).yv12_frame_buffers.pbi[0 as usize].is_null() {
             let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
@@ -1464,11 +1487,13 @@ unsafe fn vp8_get_frame(
             }
         }
         img
-}}
+    }
+}
 unsafe fn image2yuvconfig(
     mut img: *const vpx_image_t,
     mut yv12: *mut YV12_BUFFER_CONFIG,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let y_w: i32 = (*img).d_w as i32;
         let y_h: i32 = (*img).d_h as i32;
         let uv_w: i32 = (*img).d_w.wrapping_add(1 as u32).wrapping_div(2 as u32) as i32;
@@ -1491,11 +1516,13 @@ unsafe fn image2yuvconfig(
             .wrapping_sub((*img).d_w)
             .wrapping_div(2 as u32) as i32;
         res
-}}
+    }
+}
 unsafe fn vp8_set_reference(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut data: *mut vpx_ref_frame_t = data as *mut vpx_ref_frame_t;
         if !data.is_null() {
             let mut frame: *mut vpx_ref_frame_t = data;
@@ -1543,11 +1570,13 @@ unsafe fn vp8_set_reference(
         } else {
             VPX_CODEC_INVALID_PARAM
         }
-}}
+    }
+}
 unsafe fn vp8_get_reference(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut data: *mut vpx_ref_frame_t = data as *mut vpx_ref_frame_t;
         if !data.is_null() {
             let mut frame: *mut vpx_ref_frame_t = data;
@@ -1595,11 +1624,13 @@ unsafe fn vp8_get_reference(
         } else {
             VPX_CODEC_INVALID_PARAM
         }
-}}
+    }
+}
 unsafe fn vp8_get_quantizer(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let arg: *mut i32 = data as *mut i32;
         let mut pbi: *mut VP8D_COMP = (*ctx).yv12_frame_buffers.pbi[0 as usize];
         if arg.is_null() {
@@ -1610,14 +1641,16 @@ unsafe fn vp8_get_quantizer(
         }
         *arg = vp8dx_get_quantizer(pbi);
         VPX_CODEC_OK
-}}
+    }
+}
 unsafe fn vp8_set_postproc(_ctx: *mut vpx_codec_alg_priv_t, _args: *mut c_void) -> vpx_codec_err_t {
     VPX_CODEC_INCAPABLE
 }
 unsafe fn vp8_get_last_ref_updates(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut update_info: *mut i32 = data as *mut i32;
         if !update_info.is_null() {
             let mut pbi: *mut VP8D_COMP =
@@ -1632,11 +1665,13 @@ unsafe fn vp8_get_last_ref_updates(
         } else {
             VPX_CODEC_INVALID_PARAM
         }
-}}
+    }
+}
 unsafe fn vp8_get_last_ref_frame(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut ref_info: *mut i32 = data as *mut i32;
         if !ref_info.is_null() {
             let mut pbi: *mut VP8D_COMP =
@@ -1667,11 +1702,13 @@ unsafe fn vp8_get_last_ref_frame(
         } else {
             VPX_CODEC_INVALID_PARAM
         }
-}}
+    }
+}
 unsafe fn vp8_get_frame_corrupted(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut corrupted: *mut i32 = data as *mut i32;
         let mut pbi: *mut VP8D_COMP = (*ctx).yv12_frame_buffers.pbi[0 as usize] as *mut VP8D_COMP;
         if !corrupted.is_null() && !pbi.is_null() {
@@ -1684,11 +1721,13 @@ unsafe fn vp8_get_frame_corrupted(
         } else {
             VPX_CODEC_INVALID_PARAM
         }
-}}
+    }
+}
 unsafe fn vp8_set_decryptor(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut init: *mut vpx_decrypt_init = data as *mut vpx_decrypt_init;
         if !init.is_null() {
             (*ctx).decrypt_cb = (*init).decrypt_cb;
@@ -1698,7 +1737,8 @@ unsafe fn vp8_set_decryptor(
             (*ctx).decrypt_state = NULL;
         }
         VPX_CODEC_OK
-}}
+    }
+}
 static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
     [
         vpx_codec_ctrl_fn_map {
@@ -1796,7 +1836,8 @@ pub unsafe fn vpx_codec_vp8_dx() -> *const vpx_codec_iface_t {
 }
 pub const __ATOMIC_ACQUIRE: i32 = 2 as i32;
 pub const NULL: *mut c_void = __DARWIN_NULL;
-unsafe fn run_static_initializers() { unsafe {
+unsafe fn run_static_initializers() {
+    unsafe {
         vpx_codec_vp8_dx_algo = vpx_codec_iface {
             name: b"WebM Project VP8 Decoder v1.16.0-122-ge9efe034e\0" as *const u8 as *const i8,
             abi_version: VPX_CODEC_INTERNAL_ABI_VERSION,
@@ -1867,7 +1908,8 @@ unsafe fn run_static_initializers() { unsafe {
                 mr_free_mem_loc: None,
             },
         };
-}}
+    }
+}
 #[used]
 #[cfg_attr(target_os = "linux", unsafe(link_section = ".init_array"))]
 #[cfg_attr(target_os = "windows", unsafe(link_section = ".CRT$XCU"))]

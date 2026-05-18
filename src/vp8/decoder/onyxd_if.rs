@@ -476,25 +476,32 @@ pub struct frame_buffers {
 pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
 pub const _PTHREAD_ONCE_SIG_init: i32 = 0x30b1bcba as i32;
 pub const NUM_YV12_BUFFERS: i32 = 4 as i32;
-unsafe fn once(mut func: Option<unsafe fn() -> ()>) { unsafe {
+unsafe fn once(mut func: Option<unsafe fn() -> ()>) {
+    unsafe {
         static INIT: std::sync::Once = std::sync::Once::new();
         if let Some(f) = func {
             INIT.call_once(|| f());
         }
-}}
-unsafe fn initialize_dec() { unsafe {
+    }
+}
+unsafe fn initialize_dec() {
+    unsafe {
         static mut init_done: i32 = 0 as i32;
         if init_done == 0 {
             vpx_dsp_rtcd();
             vp8_init_intra_predictors();
             ::core::ptr::write_volatile(&raw mut init_done as *mut i32, 1 as i32);
         }
-}}
-unsafe fn remove_decompressor(mut pbi: *mut VP8D_COMP) { unsafe {
+    }
+}
+unsafe fn remove_decompressor(mut pbi: *mut VP8D_COMP) {
+    unsafe {
         vp8_remove_common(&raw mut (*pbi).common);
         vpx_free(pbi as *mut c_void);
-}}
-unsafe fn create_decompressor(_oxcf: *mut VP8D_CONFIG) -> *mut VP8D_COMP { unsafe {
+    }
+}
+unsafe fn create_decompressor(_oxcf: *mut VP8D_CONFIG) -> *mut VP8D_COMP {
+    unsafe {
         let mut pbi: *mut VP8D_COMP =
             vpx_memalign(32 as size_t, ::core::mem::size_of::<VP8D_COMP>() as size_t)
                 as *mut VP8D_COMP;
@@ -525,13 +532,15 @@ unsafe fn create_decompressor(_oxcf: *mut VP8D_CONFIG) -> *mut VP8D_COMP { unsaf
         vp8_setup_block_dptrs(&raw mut (*pbi).mb);
         once(Some(initialize_dec as unsafe fn() -> ()));
         pbi as *mut VP8D_COMP
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8dx_get_reference(
     mut pbi: *mut VP8D_COMP,
     mut ref_frame_flag: vpx_ref_frame_type,
     mut sd: *mut YV12_BUFFER_CONFIG,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut cm: *mut VP8_COMMON = &raw mut (*pbi).common;
         let mut ref_fb_idx: i32 = 0;
         if ref_frame_flag as u32 == VP8_LAST_FRAME as u32 {
@@ -566,13 +575,15 @@ pub unsafe fn vp8dx_get_reference(
             );
         }
         (*pbi).common.error.error_code
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8dx_set_reference(
     mut pbi: *mut VP8D_COMP,
     mut ref_frame_flag: vpx_ref_frame_type,
     mut sd: *mut YV12_BUFFER_CONFIG,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut cm: *mut VP8_COMMON = &raw mut (*pbi).common;
         let mut ref_fb_ptr: *mut i32 = ::core::ptr::null_mut::<i32>();
         let mut free_fb: i32 = 0;
@@ -615,8 +626,10 @@ pub unsafe fn vp8dx_set_reference(
             );
         }
         (*pbi).common.error.error_code
-}}
-unsafe fn get_free_fb(mut cm: *mut VP8_COMMON) -> i32 { unsafe {
+    }
+}
+unsafe fn get_free_fb(mut cm: *mut VP8_COMMON) -> i32 {
+    unsafe {
         let mut i: i32 = 0;
         i = 0 as i32;
         while i < NUM_YV12_BUFFERS {
@@ -627,8 +640,10 @@ unsafe fn get_free_fb(mut cm: *mut VP8_COMMON) -> i32 { unsafe {
         }
         (*cm).fb_idx_ref_cnt[i as usize] = 1 as i32;
         i
-}}
-unsafe fn ref_cnt_fb(mut buf: *mut i32, mut idx: *mut i32, mut new_idx: i32) { unsafe {
+    }
+}
+unsafe fn ref_cnt_fb(mut buf: *mut i32, mut idx: *mut i32, mut new_idx: i32) {
+    unsafe {
         if *buf.offset(*idx as isize) > 0 as i32 {
             let fresh0 = &mut *buf.offset(*idx as isize);
             *fresh0 -= 1;
@@ -636,8 +651,10 @@ unsafe fn ref_cnt_fb(mut buf: *mut i32, mut idx: *mut i32, mut new_idx: i32) { u
         *idx = new_idx;
         let fresh1 = &mut *buf.offset(new_idx as isize);
         *fresh1 += 1;
-}}
-unsafe fn swap_frame_buffers(mut cm: *mut VP8_COMMON) -> i32 { unsafe {
+    }
+}
+unsafe fn swap_frame_buffers(mut cm: *mut VP8_COMMON) -> i32 {
+    unsafe {
         let mut err: i32 = 0 as i32;
         if (*cm).copy_buffer_to_arf != 0 {
             let mut new_fb: i32 = 0 as i32;
@@ -699,8 +716,10 @@ unsafe fn swap_frame_buffers(mut cm: *mut VP8_COMMON) -> i32 { unsafe {
         }
         (*cm).fb_idx_ref_cnt[(*cm).new_fb_idx as usize] -= 1;
         err
-}}
-unsafe fn check_fragments_for_errors(mut pbi: *mut VP8D_COMP) -> i32 { unsafe {
+    }
+}
+unsafe fn check_fragments_for_errors(mut pbi: *mut VP8D_COMP) -> i32 {
+    unsafe {
         if (*pbi).ec_active == 0
             && (*pbi).fragments.count <= 1 as u32
             && (*pbi).fragments.sizes[0 as usize] == 0 as u32
@@ -723,9 +742,11 @@ unsafe fn check_fragments_for_errors(mut pbi: *mut VP8D_COMP) -> i32 { unsafe {
             return 0 as i32;
         }
         1 as i32
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8dx_receive_compressed_data(mut pbi: *mut VP8D_COMP) -> i32 { unsafe {
+pub unsafe fn vp8dx_receive_compressed_data(mut pbi: *mut VP8D_COMP) -> i32 {
+    unsafe {
         let mut cm: *mut VP8_COMMON = &raw mut (*pbi).common;
         let mut retcode: i32 = -(1 as i32);
         (*pbi).common.error.error_code = VPX_CODEC_OK;
@@ -770,13 +791,15 @@ pub unsafe fn vp8dx_receive_compressed_data(mut pbi: *mut VP8D_COMP) -> i32 { un
             (*pbi).ready_for_new_data = 0 as i32;
         }
         retcode
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8dx_get_raw_frame(
     mut pbi: *mut VP8D_COMP,
     mut sd: *mut YV12_BUFFER_CONFIG,
     _flags: *mut vp8_ppflags_t,
-) -> i32 { unsafe {
+) -> i32 {
+    unsafe {
         let mut ret: i32 = -(1 as i32);
         if (*pbi).ready_for_new_data == 1 as i32 {
             return ret;
@@ -795,9 +818,11 @@ pub unsafe fn vp8dx_get_raw_frame(
             ret = -(1 as i32);
         }
         ret
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8dx_references_buffer(mut oci: *mut VP8_COMMON, mut ref_frame: i32) -> i32 { unsafe {
+pub unsafe fn vp8dx_references_buffer(mut oci: *mut VP8_COMMON, mut ref_frame: i32) -> i32 {
+    unsafe {
         let mut mi: *const MODE_INFO = (*oci).mi;
         let mut mb_row: i32 = 0;
         let mut mb_col: i32 = 0;
@@ -815,12 +840,14 @@ pub unsafe fn vp8dx_references_buffer(mut oci: *mut VP8_COMMON, mut ref_frame: i
             mb_row += 1;
         }
         0 as i32
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_create_decoder_instances(
     mut fb: *mut frame_buffers,
     mut oxcf: *mut VP8D_CONFIG,
-) -> i32 { unsafe {
+) -> i32 {
+    unsafe {
         (*fb).pbi[0 as usize] = create_decompressor(oxcf);
         if (*fb).pbi[0 as usize].is_null() {
             return VPX_CODEC_ERROR as i32;
@@ -846,9 +873,11 @@ pub unsafe fn vp8_create_decoder_instances(
         vp8_decoder_create_threads((*fb).pbi[0 as usize]);
         (*(*fb).pbi[0 as usize]).common.error.setjmp = 0 as i32;
         VPX_CODEC_OK as i32
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_remove_decoder_instances(mut fb: *mut frame_buffers) -> i32 { unsafe {
+pub unsafe fn vp8_remove_decoder_instances(mut fb: *mut frame_buffers) -> i32 {
+    unsafe {
         let mut pbi: *mut VP8D_COMP = (*fb).pbi[0 as usize];
         if pbi.is_null() {
             return VPX_CODEC_ERROR as i32;
@@ -857,7 +886,10 @@ pub unsafe fn vp8_remove_decoder_instances(mut fb: *mut frame_buffers) -> i32 { 
         remove_decompressor(pbi);
         (*fb).pbi[0 as usize] = ::core::ptr::null_mut::<VP8D_COMP>();
         VPX_CODEC_OK as i32
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8dx_get_quantizer(mut pbi: *const VP8D_COMP) -> i32 { unsafe { (*pbi).common.base_qindex }}
+pub unsafe fn vp8dx_get_quantizer(mut pbi: *const VP8D_COMP) -> i32 {
+    unsafe { (*pbi).common.base_qindex }
+}
 pub const NULL: *mut c_void = __DARWIN_NULL;

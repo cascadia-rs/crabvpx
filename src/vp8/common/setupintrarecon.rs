@@ -53,7 +53,8 @@ pub struct yv12_buffer_config {
 }
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_setup_intra_recon(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
+pub unsafe fn vp8_setup_intra_recon(mut ybf: *mut YV12_BUFFER_CONFIG) {
+    unsafe {
         let mut i: i32 = 0;
         core::ptr::write_bytes(
             (*ybf)
@@ -100,9 +101,11 @@ pub unsafe fn vp8_setup_intra_recon(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
                 .offset(((*ybf).uv_stride * i - 1 as i32) as isize) = 129 as uint8_t;
             i += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_setup_intra_recon_top_line(mut ybf: *mut YV12_BUFFER_CONFIG) { unsafe {
+pub unsafe fn vp8_setup_intra_recon_top_line(mut ybf: *mut YV12_BUFFER_CONFIG) {
+    unsafe {
         core::ptr::write_bytes(
             (*ybf)
                 .y_buffer
@@ -127,4 +130,5 @@ pub unsafe fn vp8_setup_intra_recon_top_line(mut ybf: *mut YV12_BUFFER_CONFIG) {
             127 as i32 as u8,
             ((*ybf).uv_width + 5 as i32) as size_t,
         );
-}}
+    }
+}

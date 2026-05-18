@@ -64,7 +64,8 @@ unsafe fn copy_and_extend_plane(
     mut eb: i32,
     mut er: i32,
     mut interleave_step: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: i32 = 0;
         let mut j: i32 = 0;
         let mut src_ptr1: *mut u8 = ::core::ptr::null_mut::<u8>();
@@ -138,12 +139,14 @@ unsafe fn copy_and_extend_plane(
             dest_ptr2 = dest_ptr2.offset(dp as isize);
             i += 1;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_copy_and_extend_frame(
     mut src: *mut YV12_BUFFER_CONFIG,
     mut dst: *mut YV12_BUFFER_CONFIG,
-) { unsafe {
+) {
+    unsafe {
         let mut et: i32 = (*dst).border;
         let mut el: i32 = (*dst).border;
         let mut eb: i32 = (*dst).border + (*dst).y_height - (*src).y_height;
@@ -197,7 +200,8 @@ pub unsafe fn vp8_copy_and_extend_frame(
             er,
             chroma_step,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_copy_and_extend_frame_with_rect(
     mut src: *mut YV12_BUFFER_CONFIG,
@@ -206,7 +210,8 @@ pub unsafe fn vp8_copy_and_extend_frame_with_rect(
     mut srcx: i32,
     mut srch: i32,
     mut srcw: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut et: i32 = (*dst).border;
         let mut el: i32 = (*dst).border;
         let mut eb: i32 = (*dst).border + (*dst).y_height - (*src).y_height;
@@ -278,14 +283,16 @@ pub unsafe fn vp8_copy_and_extend_frame_with_rect(
             er,
             chroma_step,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_extend_mb_row(
     mut ybf: *mut YV12_BUFFER_CONFIG,
     mut YPtr: *mut u8,
     mut UPtr: *mut u8,
     mut VPtr: *mut u8,
-) { unsafe {
+) {
+    unsafe {
         let mut i: i32 = 0;
         YPtr = YPtr.offset(((*ybf).y_stride * 14 as i32) as isize);
         UPtr = UPtr.offset(((*ybf).uv_stride * 6 as i32) as isize);
@@ -307,4 +314,5 @@ pub unsafe fn vp8_extend_mb_row(
             *VPtr.offset(i as isize) = *VPtr.offset(-(1 as i32) as isize);
             i += 1;
         }
-}}
+    }
+}

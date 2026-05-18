@@ -12,13 +12,17 @@ pub type __darwin_pthread_once_t = _opaque_pthread_once_t;
 pub type pthread_once_t = *mut c_void;
 unsafe fn setup_rtcd_internal() {}
 pub const _PTHREAD_ONCE_SIG_init: i32 = 0x30b1bcba as i32;
-unsafe fn once(mut func: Option<unsafe fn() -> ()>) { unsafe {
+unsafe fn once(mut func: Option<unsafe fn() -> ()>) {
+    unsafe {
         static INIT: std::sync::Once = std::sync::Once::new();
         if let Some(f) = func {
             INIT.call_once(|| f());
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_dsp_rtcd() { unsafe {
+pub unsafe fn vpx_dsp_rtcd() {
+    unsafe {
         once(Some(setup_rtcd_internal as unsafe fn() -> ()));
-}}
+    }
+}

@@ -86,7 +86,8 @@ pub type intra_pred_fn =
     Option<unsafe fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> ()>;
 static mut pred: [intra_pred_fn; 10] = [None; 10];
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_init_intra4x4_predictors_internal() { unsafe {
+pub unsafe fn vp8_init_intra4x4_predictors_internal() {
+    unsafe {
         pred[B_DC_PRED as usize] = Some(
             vpx_dc_predictor_4x4_c
                 as unsafe fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
@@ -127,7 +128,8 @@ pub unsafe fn vp8_init_intra4x4_predictors_internal() { unsafe {
             vpx_d207_predictor_4x4_c
                 as unsafe fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> (),
         ) as intra_pred_fn;
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_intra4x4_predict(
     mut above: *mut u8,
@@ -137,7 +139,8 @@ pub unsafe fn vp8_intra4x4_predict(
     mut dst: *mut u8,
     mut dst_stride: i32,
     mut top_left: u8,
-) { unsafe {
+) {
+    unsafe {
         let mut Aboveb: [u8; 12] = [0; 12];
         let mut Above: *mut u8 = (&raw mut Aboveb as *mut u8).offset(4 as isize);
         let mut Left: [u8; 4] = [0; 4];
@@ -157,4 +160,5 @@ pub unsafe fn vp8_intra4x4_predict(
             Above,
             &raw mut Left as *mut u8,
         );
-}}
+    }
+}

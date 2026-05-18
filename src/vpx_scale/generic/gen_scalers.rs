@@ -8,7 +8,8 @@ pub unsafe fn vp8_horizontal_line_5_4_scale_c(
     mut source_width: u32,
     mut dest: *mut u8,
     _dest_width: u32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: u32 = 0;
         let mut a: u32 = 0;
         let mut b: u32 = 0;
@@ -44,7 +45,8 @@ pub unsafe fn vp8_horizontal_line_5_4_scale_c(
             des = des.offset(4 as isize);
             i = i.wrapping_add(5 as u32);
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_vertical_band_5_4_scale_c(
     mut source: *mut u8,
@@ -52,7 +54,8 @@ pub unsafe fn vp8_vertical_band_5_4_scale_c(
     mut dest: *mut u8,
     mut dest_pitch: u32,
     mut dest_width: u32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: u32 = 0;
         let mut a: u32 = 0;
         let mut b: u32 = 0;
@@ -88,14 +91,16 @@ pub unsafe fn vp8_vertical_band_5_4_scale_c(
             des = des.offset(1);
             i = i.wrapping_add(1);
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_horizontal_line_5_3_scale_c(
     mut source: *const u8,
     mut source_width: u32,
     mut dest: *mut u8,
     _dest_width: u32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: u32 = 0;
         let mut a: u32 = 0;
         let mut b: u32 = 0;
@@ -126,7 +131,8 @@ pub unsafe fn vp8_horizontal_line_5_3_scale_c(
             des = des.offset(3 as isize);
             i = i.wrapping_add(5 as u32);
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_vertical_band_5_3_scale_c(
     mut source: *mut u8,
@@ -134,7 +140,8 @@ pub unsafe fn vp8_vertical_band_5_3_scale_c(
     mut dest: *mut u8,
     mut dest_pitch: u32,
     mut dest_width: u32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: u32 = 0;
         let mut a: u32 = 0;
         let mut b: u32 = 0;
@@ -165,14 +172,16 @@ pub unsafe fn vp8_vertical_band_5_3_scale_c(
             des = des.offset(1);
             i = i.wrapping_add(1);
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_horizontal_line_2_1_scale_c(
     mut source: *const u8,
     mut source_width: u32,
     mut dest: *mut u8,
     _dest_width: u32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: u32 = 0;
         let mut a: u32 = 0;
         let mut des: *mut u8 = dest;
@@ -185,7 +194,8 @@ pub unsafe fn vp8_horizontal_line_2_1_scale_c(
             des = des.offset(1 as isize);
             i = i.wrapping_add(2 as u32);
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_vertical_band_2_1_scale_c(
     mut source: *mut u8,
@@ -193,13 +203,15 @@ pub unsafe fn vp8_vertical_band_2_1_scale_c(
     mut dest: *mut u8,
     _dest_pitch: u32,
     mut dest_width: u32,
-) { unsafe {
+) {
+    unsafe {
         core::ptr::copy_nonoverlapping(
             source as *const c_void as *const u8,
             dest as *mut c_void as *mut u8,
             dest_width as size_t,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_vertical_band_2_1_scale_i_c(
     mut source: *mut u8,
@@ -207,7 +219,8 @@ pub unsafe fn vp8_vertical_band_2_1_scale_i_c(
     mut dest: *mut u8,
     _dest_pitch: u32,
     mut dest_width: u32,
-) { unsafe {
+) {
+    unsafe {
         let mut i: i32 = 0;
         let mut temp: i32 = 0;
         let mut width: i32 = dest_width as i32;
@@ -221,4 +234,5 @@ pub unsafe fn vp8_vertical_band_2_1_scale_i_c(
             *dest.offset(i as isize) = temp as u8;
             i += 1;
         }
-}}
+    }
+}

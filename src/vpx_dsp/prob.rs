@@ -23,7 +23,8 @@ static mut count_to_update_factor: [i32; 21] = [
     102 as i32, 108 as i32, 115 as i32, 121 as i32, 128 as i32,
 ];
 #[inline]
-unsafe fn mode_mv_merge_probs(mut pre_prob: vpx_prob, mut ct: *const u32) -> vpx_prob { unsafe {
+unsafe fn mode_mv_merge_probs(mut pre_prob: vpx_prob, mut ct: *const u32) -> vpx_prob {
+    unsafe {
         let den: u32 = (*ct.offset(0 as isize)).wrapping_add(*ct.offset(1 as isize));
         if den == 0 as u32 {
             pre_prob
@@ -33,7 +34,8 @@ unsafe fn mode_mv_merge_probs(mut pre_prob: vpx_prob, mut ct: *const u32) -> vpx
             let prob: vpx_prob = get_prob(*ct.offset(0 as isize), den) as vpx_prob;
             weighted_prob(pre_prob as i32, prob as i32, factor as i32)
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub static mut vpx_norm: [uint8_t; 256] = [
     0 as uint8_t,
@@ -299,7 +301,8 @@ unsafe fn tree_merge_probs_impl(
     mut pre_probs: *const vpx_prob,
     mut counts: *const u32,
     mut probs: *mut vpx_prob,
-) -> u32 { unsafe {
+) -> u32 {
+    unsafe {
         let l: i32 = *tree.offset(i as isize) as i32;
         let left_count: u32 = if l <= 0 as i32 {
             *counts.offset(-l as isize)
@@ -318,13 +321,16 @@ unsafe fn tree_merge_probs_impl(
             &raw const ct as *const u32,
         );
         left_count.wrapping_add(right_count)
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_tree_merge_probs(
     mut tree: *const vpx_tree_index,
     mut pre_probs: *const vpx_prob,
     mut counts: *const u32,
     mut probs: *mut vpx_prob,
-) { unsafe {
+) {
+    unsafe {
         tree_merge_probs_impl(0 as u32, tree, pre_probs, counts, probs);
-}}
+    }
+}

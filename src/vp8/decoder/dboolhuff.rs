@@ -24,7 +24,8 @@ pub unsafe fn vp8dx_start_decode(
     mut source_sz: u32,
     mut decrypt_cb: vpx_decrypt_cb,
     mut decrypt_state: *mut c_void,
-) -> i32 { unsafe {
+) -> i32 {
+    unsafe {
         if source_sz != 0 && source.is_null() {
             return 1 as i32;
         }
@@ -41,9 +42,11 @@ pub unsafe fn vp8dx_start_decode(
         (*br).decrypt_state = decrypt_state;
         vp8dx_bool_decoder_fill(br);
         0 as i32
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) { unsafe {
+pub unsafe fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) {
+    unsafe {
         let mut bufptr: *const u8 = (*br).user_buffer;
         let mut value: VP8_BD_VALUE = (*br).value;
         let mut count: i32 = (*br).count;
@@ -82,4 +85,5 @@ pub unsafe fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) { unsafe {
         }
         (*br).value = value;
         (*br).count = count;
-}}
+    }
+}

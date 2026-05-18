@@ -471,7 +471,8 @@ pub type C2RustUnnamed_0 = u32;
 pub const CHAR_BIT: i32 = 8 as i32;
 pub const vp8_prob_half: vp8_prob = 128 as vp8_prob;
 pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
-unsafe fn vp8dx_decode_bool(mut br: *mut BOOL_DECODER, mut probability: i32) -> i32 { unsafe {
+unsafe fn vp8dx_decode_bool(mut br: *mut BOOL_DECODER, mut probability: i32) -> i32 {
+    unsafe {
         let mut bit: u32 = 0 as u32;
         let mut value: VP8_BD_VALUE = 0;
         let mut split: u32 = 0;
@@ -505,9 +506,11 @@ unsafe fn vp8dx_decode_bool(mut br: *mut BOOL_DECODER, mut probability: i32) -> 
         (*br).count = count;
         (*br).range = range;
         bit as i32
-}}
+    }
+}
 #[inline]
-unsafe fn vp8_decode_value(mut br: *mut BOOL_DECODER, mut bits: i32) -> i32 { unsafe {
+unsafe fn vp8_decode_value(mut br: *mut BOOL_DECODER, mut bits: i32) -> i32 {
+    unsafe {
         let mut z: i32 = 0 as i32;
         let mut bit: i32 = 0;
         bit = bits - 1 as i32;
@@ -516,13 +519,15 @@ unsafe fn vp8_decode_value(mut br: *mut BOOL_DECODER, mut bits: i32) -> i32 { un
             bit -= 1;
         }
         z
-}}
+    }
+}
 #[inline]
 unsafe fn vp8_treed_read(
     r: *mut vp8_reader,
     mut t: *const vp8_tree_index,
     p: *const vp8_prob,
-) -> i32 { unsafe {
+) -> i32 {
+    unsafe {
         let mut i: vp8_tree_index = 0 as vp8_tree_index;
         loop {
             i = *t.offset(
@@ -537,23 +542,27 @@ unsafe fn vp8_treed_read(
             }
         }
         -(i as i32)
-}}
+    }
+}
 #[inline]
 unsafe fn mv_bias(
     mut refmb_ref_frame_sign_bias: i32,
     mut refframe: i32,
     mut mvp: *mut int_mv,
     mut ref_frame_sign_bias: *const i32,
-) { unsafe {
+) {
+    unsafe {
         if refmb_ref_frame_sign_bias != *ref_frame_sign_bias.offset(refframe as isize) {
             (*mvp).as_mv.row = ((*mvp).as_mv.row as i32 * -(1 as i32)) as i16;
             (*mvp).as_mv.col = ((*mvp).as_mv.col as i32 * -(1 as i32)) as i16;
         }
-}}
+    }
+}
 pub const LEFT_TOP_MARGIN: i32 = (16 as i32) << 3 as i32;
 pub const RIGHT_BOTTOM_MARGIN: i32 = (16 as i32) << 3 as i32;
 #[inline]
-unsafe fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) { unsafe {
+unsafe fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) {
+    unsafe {
         if ((*mv).as_mv.col as i32) < (*xd).mb_to_left_edge - LEFT_TOP_MARGIN {
             (*mv).as_mv.col = ((*xd).mb_to_left_edge - LEFT_TOP_MARGIN) as i16;
         } else if (*mv).as_mv.col as i32 > (*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN {
@@ -564,7 +573,8 @@ unsafe fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) { unsaf
         } else if (*mv).as_mv.row as i32 > (*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN {
             (*mv).as_mv.row = ((*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as i16;
         }
-}}
+    }
+}
 #[inline]
 unsafe fn vp8_check_mv_bounds(
     mut mv: *mut int_mv,
@@ -572,16 +582,19 @@ unsafe fn vp8_check_mv_bounds(
     mut mb_to_right_edge: i32,
     mut mb_to_top_edge: i32,
     mut mb_to_bottom_edge: i32,
-) -> u32 { unsafe {
+) -> u32 {
+    unsafe {
         let mut need_to_clamp: u32 = 0;
         need_to_clamp = (((*mv).as_mv.col as i32) < mb_to_left_edge) as u32;
         need_to_clamp |= ((*mv).as_mv.col as i32 > mb_to_right_edge) as u32;
         need_to_clamp |= (((*mv).as_mv.row as i32) < mb_to_top_edge) as u32;
         need_to_clamp |= ((*mv).as_mv.row as i32 > mb_to_bottom_edge) as u32;
         need_to_clamp
-}}
+    }
+}
 #[inline]
-unsafe fn left_block_mode(mut cur_mb: *const MODE_INFO, mut b: i32) -> B_PREDICTION_MODE { unsafe {
+unsafe fn left_block_mode(mut cur_mb: *const MODE_INFO, mut b: i32) -> B_PREDICTION_MODE {
+    unsafe {
         if b & 3 as i32 == 0 {
             cur_mb = cur_mb.offset(-1);
             match (*cur_mb).mbmi.mode as i32 {
@@ -602,13 +615,15 @@ unsafe fn left_block_mode(mut cur_mb: *const MODE_INFO, mut b: i32) -> B_PREDICT
             .offset(b as isize)
             .offset(-(1 as isize)))
         .as_mode
-}}
+    }
+}
 #[inline]
 unsafe fn above_block_mode(
     mut cur_mb: *const MODE_INFO,
     mut b: i32,
     mut mi_stride: i32,
-) -> B_PREDICTION_MODE { unsafe {
+) -> B_PREDICTION_MODE {
+    unsafe {
         if b >> 2 as i32 == 0 {
             cur_mb = cur_mb.offset(-(mi_stride as isize));
             match (*cur_mb).mbmi.mode as i32 {
@@ -629,28 +644,38 @@ unsafe fn above_block_mode(
             .offset(b as isize)
             .offset(-(4 as isize)))
         .as_mode
-}}
-unsafe fn read_bmode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> B_PREDICTION_MODE { unsafe {
+    }
+}
+unsafe fn read_bmode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> B_PREDICTION_MODE {
+    unsafe {
         let i: i32 =
             vp8_treed_read(bc, &raw const vp8_bmode_tree as *const vp8_tree_index, p) as i32;
         i as B_PREDICTION_MODE
-}}
-unsafe fn read_ymode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> MB_PREDICTION_MODE { unsafe {
+    }
+}
+unsafe fn read_ymode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> MB_PREDICTION_MODE {
+    unsafe {
         let i: i32 =
             vp8_treed_read(bc, &raw const vp8_ymode_tree as *const vp8_tree_index, p) as i32;
         i as MB_PREDICTION_MODE
-}}
-unsafe fn read_kf_ymode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> MB_PREDICTION_MODE { unsafe {
+    }
+}
+unsafe fn read_kf_ymode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> MB_PREDICTION_MODE {
+    unsafe {
         let i: i32 =
             vp8_treed_read(bc, &raw const vp8_kf_ymode_tree as *const vp8_tree_index, p) as i32;
         i as MB_PREDICTION_MODE
-}}
-unsafe fn read_uv_mode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> MB_PREDICTION_MODE { unsafe {
+    }
+}
+unsafe fn read_uv_mode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> MB_PREDICTION_MODE {
+    unsafe {
         let i: i32 =
             vp8_treed_read(bc, &raw const vp8_uv_mode_tree as *const vp8_tree_index, p) as i32;
         i as MB_PREDICTION_MODE
-}}
-unsafe fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) { unsafe {
+    }
+}
+unsafe fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
+    unsafe {
         let bc: *mut vp8_reader =
             (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut vp8_reader;
         let mis: i32 = (*pbi).common.mode_info_stride;
@@ -679,8 +704,10 @@ unsafe fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) { unsaf
         }
         (*mi).mbmi.uv_mode =
             read_uv_mode(bc, &raw const vp8_kf_uv_mode_prob as *const vp8_prob) as uint8_t;
-}}
-unsafe fn read_mvcomponent(mut r: *mut vp8_reader, mut mvc: *const MV_CONTEXT) -> i32 { unsafe {
+    }
+}
+unsafe fn read_mvcomponent(mut r: *mut vp8_reader, mut mvc: *const MV_CONTEXT) -> i32 {
+    unsafe {
         let p: *const vp8_prob = mvc as *const vp8_prob;
         let mut x: i32 = 0 as i32;
         if vp8dx_decode_bool(
@@ -731,13 +758,17 @@ unsafe fn read_mvcomponent(mut r: *mut vp8_reader, mut mvc: *const MV_CONTEXT) -
             x = -x;
         }
         x
-}}
-unsafe fn read_mv(mut r: *mut vp8_reader, mut mv: *mut MV, mut mvc: *const MV_CONTEXT) { unsafe {
+    }
+}
+unsafe fn read_mv(mut r: *mut vp8_reader, mut mv: *mut MV, mut mvc: *const MV_CONTEXT) {
+    unsafe {
         (*mv).row = (read_mvcomponent(r, mvc) * 2 as i32) as i16;
         mvc = mvc.offset(1);
         (*mv).col = (read_mvcomponent(r, mvc) * 2 as i32) as i16;
-}}
-unsafe fn read_mvcontexts(mut bc: *mut vp8_reader, mut mvc: *mut MV_CONTEXT) { unsafe {
+    }
+}
+unsafe fn read_mvcontexts(mut bc: *mut vp8_reader, mut mvc: *mut MV_CONTEXT) {
+    unsafe {
         let mut i: i32 = 0 as i32;
         loop {
             let mut up: *const vp8_prob = &raw const (*(&raw const vp8_mv_update_probs
@@ -768,7 +799,8 @@ unsafe fn read_mvcontexts(mut bc: *mut vp8_reader, mut mvc: *mut MV_CONTEXT) { u
                 break;
             }
         }
-}}
+    }
+}
 static mut mbsplit_fill_count: [u8; 4] = [8 as u8, 8 as u8, 4 as u8, 1 as u8];
 static mut mbsplit_fill_offset: [[u8; 16]; 4] = [
     [
@@ -788,7 +820,8 @@ static mut mbsplit_fill_offset: [[u8; 16]; 4] = [
         10 as u8, 11 as u8, 12 as u8, 13 as u8, 14 as u8, 15 as u8,
     ],
 ];
-unsafe fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) { unsafe {
+unsafe fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) {
+    unsafe {
         let bc: *mut vp8_reader =
             (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut vp8_reader;
         let mvc: *mut MV_CONTEXT = &raw mut (*pbi).common.fc.mvc as *mut MV_CONTEXT;
@@ -827,7 +860,8 @@ unsafe fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) { unsafe {
             }
             read_mvcontexts(bc, mvc);
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub static mut vp8_sub_mv_ref_prob3: [[vp8_prob; 3]; 8] = [
     [147 as vp8_prob, 136 as vp8_prob, 18 as vp8_prob],
@@ -839,7 +873,8 @@ pub static mut vp8_sub_mv_ref_prob3: [[vp8_prob; 3]; 8] = [
     [179 as vp8_prob, 121 as vp8_prob, 1 as vp8_prob],
     [208 as vp8_prob, 1 as vp8_prob, 1 as vp8_prob],
 ];
-unsafe fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> *const vp8_prob { unsafe {
+unsafe fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> *const vp8_prob {
+    unsafe {
         let mut lez: i32 = (left == 0 as uint32_t) as i32;
         let mut aez: i32 = (above == 0 as uint32_t) as i32;
         let mut lea: i32 = (left == above) as i32;
@@ -848,7 +883,8 @@ unsafe fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> *const vp8_pro
             .offset((aez << 2 as i32 | lez << 1 as i32 | lea) as isize)
             as *const vp8_prob;
         prob
-}}
+    }
+}
 unsafe fn decode_split_mv(
     bc: *mut vp8_reader,
     mut mi: *mut MODE_INFO,
@@ -861,7 +897,8 @@ unsafe fn decode_split_mv(
     mut mb_to_right_edge: i32,
     mut mb_to_top_edge: i32,
     mut mb_to_bottom_edge: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut s: i32 = 0;
         let mut num_p: i32 = 0;
         let mut j: i32 = 0 as i32;
@@ -974,12 +1011,14 @@ unsafe fn decode_split_mv(
             }
         }
         (*mbmi).partitioning = s as uint8_t;
-}}
+    }
+}
 unsafe fn read_mb_modes_mv(
     mut pbi: *mut VP8D_COMP,
     mut mi: *mut MODE_INFO,
     mut mbmi: *mut MB_MODE_INFO,
-) { unsafe {
+) {
+    unsafe {
         let bc: *mut vp8_reader =
             (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut vp8_reader;
         (*mbmi).ref_frame =
@@ -1189,12 +1228,14 @@ unsafe fn read_mb_modes_mv(
                 read_uv_mode(bc, &raw mut (*pbi).common.fc.uv_mode_prob as *mut vp8_prob)
                     as uint8_t;
         };
-}}
+    }
+}
 unsafe fn read_mb_features(
     mut r: *mut vp8_reader,
     mut mi: *mut MB_MODE_INFO,
     mut x: *mut MACROBLOCKD,
-) { unsafe {
+) {
+    unsafe {
         if (*x).segmentation_enabled as i32 != 0 && (*x).update_mb_segmentation_map as i32 != 0 {
             if vp8dx_decode_bool(
                 r as *mut BOOL_DECODER,
@@ -1213,8 +1254,10 @@ unsafe fn read_mb_features(
                 ) as uint8_t;
             }
         }
-}}
-unsafe fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) { unsafe {
+    }
+}
+unsafe fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
+    unsafe {
         if (*pbi).mb.update_mb_segmentation_map != 0 {
             read_mb_features(
                 (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut vp8_reader,
@@ -1238,9 +1281,11 @@ unsafe fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) { 
         } else {
             read_mb_modes_mv(pbi, mi, &raw mut (*mi).mbmi);
         };
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) { unsafe {
+pub unsafe fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) {
+    unsafe {
         let mut mi: *mut MODE_INFO = (*pbi).common.mi;
         let mut mb_row: i32 = -(1 as i32);
         let mut mb_to_right_edge_start: i32 = 0;
@@ -1270,4 +1315,5 @@ pub unsafe fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) { unsafe {
             (*pbi).mb.mb_to_bottom_edge -= (16 as i32) << 3 as i32;
             mi = mi.offset(1);
         }
-}}
+    }
+}

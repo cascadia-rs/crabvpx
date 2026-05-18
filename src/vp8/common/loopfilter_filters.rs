@@ -26,7 +26,8 @@ unsafe fn vp8_filter_mask(
     mut q1: uc,
     mut q2: uc,
     mut q3: uc,
-) -> i8 { unsafe {
+) -> i8 {
+    unsafe {
         let mut mask: i8 = 0 as i8;
         mask = (mask as i32 | (abs(p3 as i32 - p2 as i32) > limit as i32) as i32) as i8;
         mask = (mask as i32 | (abs(p2 as i32 - p1 as i32) > limit as i32) as i32) as i8;
@@ -38,15 +39,18 @@ unsafe fn vp8_filter_mask(
             | (abs(p0 as i32 - q0 as i32) * 2 as i32 + abs(p1 as i32 - q1 as i32) / 2 as i32
                 > blimit as i32) as i32) as i8;
         (mask as i32 - 1 as i32) as i8
-}}
-unsafe fn vp8_hevmask(mut thresh: uc, mut p1: uc, mut p0: uc, mut q0: uc, mut q1: uc) -> i8 { unsafe {
+    }
+}
+unsafe fn vp8_hevmask(mut thresh: uc, mut p1: uc, mut p0: uc, mut q0: uc, mut q1: uc) -> i8 {
+    unsafe {
         let mut hev: i8 = 0 as i8;
         hev = (hev as i32 | ((abs(p1 as i32 - p0 as i32) > thresh as i32) as i32 * -(1 as i32)))
             as i8;
         hev = (hev as i32 | ((abs(q1 as i32 - q0 as i32) > thresh as i32) as i32 * -(1 as i32)))
             as i8;
         hev
-}}
+    }
+}
 unsafe fn vp8_filter(
     mut mask: i8,
     mut hev: uc,
@@ -54,7 +58,8 @@ unsafe fn vp8_filter(
     mut op0: *mut uc,
     mut oq0: *mut uc,
     mut oq1: *mut uc,
-) { unsafe {
+) {
+    unsafe {
         let mut ps0: i8 = 0;
         let mut qs0: i8 = 0;
         let mut ps1: i8 = 0;
@@ -88,7 +93,8 @@ unsafe fn vp8_filter(
         *oq1 = (u as i32 ^ 0x80 as i32) as uc;
         u = vp8_signed_char_clamp(ps1 as i32 + filter_value as i32);
         *op1 = (u as i32 ^ 0x80 as i32) as uc;
-}}
+    }
+}
 unsafe fn loop_filter_horizontal_edge_c(
     mut s: *mut u8,
     mut p: i32,
@@ -96,7 +102,8 @@ unsafe fn loop_filter_horizontal_edge_c(
     mut limit: *const u8,
     mut thresh: *const u8,
     mut count: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut hev: i32 = 0 as i32;
         let mut mask: i8 = 0 as i8;
         let mut i: i32 = 0 as i32;
@@ -134,7 +141,8 @@ unsafe fn loop_filter_horizontal_edge_c(
                 break;
             }
         }
-}}
+    }
+}
 unsafe fn loop_filter_vertical_edge_c(
     mut s: *mut u8,
     mut p: i32,
@@ -142,7 +150,8 @@ unsafe fn loop_filter_vertical_edge_c(
     mut limit: *const u8,
     mut thresh: *const u8,
     mut count: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut hev: i32 = 0 as i32;
         let mut mask: i8 = 0 as i8;
         let mut i: i32 = 0 as i32;
@@ -180,7 +189,8 @@ unsafe fn loop_filter_vertical_edge_c(
                 break;
             }
         }
-}}
+    }
+}
 unsafe fn vp8_mbfilter(
     mut mask: i8,
     mut hev: uc,
@@ -190,7 +200,8 @@ unsafe fn vp8_mbfilter(
     mut oq0: *mut uc,
     mut oq1: *mut uc,
     mut oq2: *mut uc,
-) { unsafe {
+) {
+    unsafe {
         let mut s: i8 = 0;
         let mut u: i8 = 0;
         let mut filter_value: i8 = 0;
@@ -231,7 +242,8 @@ unsafe fn vp8_mbfilter(
         *oq2 = (s as i32 ^ 0x80 as i32) as uc;
         s = vp8_signed_char_clamp(ps2 as i32 + u as i32);
         *op2 = (s as i32 ^ 0x80 as i32) as uc;
-}}
+    }
+}
 unsafe fn mbloop_filter_horizontal_edge_c(
     mut s: *mut u8,
     mut p: i32,
@@ -239,7 +251,8 @@ unsafe fn mbloop_filter_horizontal_edge_c(
     mut limit: *const u8,
     mut thresh: *const u8,
     mut count: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut hev: i8 = 0 as i8;
         let mut mask: i8 = 0 as i8;
         let mut i: i32 = 0 as i32;
@@ -279,7 +292,8 @@ unsafe fn mbloop_filter_horizontal_edge_c(
                 break;
             }
         }
-}}
+    }
+}
 unsafe fn mbloop_filter_vertical_edge_c(
     mut s: *mut u8,
     mut p: i32,
@@ -287,7 +301,8 @@ unsafe fn mbloop_filter_vertical_edge_c(
     mut limit: *const u8,
     mut thresh: *const u8,
     mut count: i32,
-) { unsafe {
+) {
+    unsafe {
         let mut hev: i8 = 0 as i8;
         let mut mask: i8 = 0 as i8;
         let mut i: i32 = 0 as i32;
@@ -327,27 +342,31 @@ unsafe fn mbloop_filter_vertical_edge_c(
                 break;
             }
         }
-}}
+    }
+}
 unsafe fn vp8_simple_filter_mask(
     mut blimit: uc,
     mut p1: uc,
     mut p0: uc,
     mut q0: uc,
     mut q1: uc,
-) -> i8 { unsafe {
+) -> i8 {
+    unsafe {
         let mut mask: i8 = ((abs(p0 as i32 - q0 as i32) * 2 as i32
             + abs(p1 as i32 - q1 as i32) / 2 as i32
             <= blimit as i32) as i32
             * -(1 as i32)) as i8;
         mask
-}}
+    }
+}
 unsafe fn vp8_simple_filter(
     mut mask: i8,
     mut op1: *mut uc,
     mut op0: *mut uc,
     mut oq0: *mut uc,
     mut oq1: *mut uc,
-) { unsafe {
+) {
+    unsafe {
         let mut filter_value: i8 = 0;
         let mut Filter1: i8 = 0;
         let mut Filter2: i8 = 0;
@@ -368,13 +387,15 @@ unsafe fn vp8_simple_filter(
         Filter2 = (Filter2 as i32 >> 3 as i32) as i8;
         u = vp8_signed_char_clamp(p0 as i32 + Filter2 as i32);
         *op0 = (u as i32 ^ 0x80 as i32) as uc;
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_simple_horizontal_edge_c(
     mut y_ptr: *mut u8,
     mut y_stride: i32,
     mut blimit: *const u8,
-) { unsafe {
+) {
+    unsafe {
         let mut mask: i8 = 0 as i8;
         let mut i: i32 = 0 as i32;
         loop {
@@ -398,13 +419,15 @@ pub unsafe fn vp8_loop_filter_simple_horizontal_edge_c(
                 break;
             }
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_simple_vertical_edge_c(
     mut y_ptr: *mut u8,
     mut y_stride: i32,
     mut blimit: *const u8,
-) { unsafe {
+) {
+    unsafe {
         let mut mask: i8 = 0 as i8;
         let mut i: i32 = 0 as i32;
         loop {
@@ -428,7 +451,8 @@ pub unsafe fn vp8_loop_filter_simple_vertical_edge_c(
                 break;
             }
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_mbh_c(
     mut y_ptr: *mut u8,
@@ -437,7 +461,8 @@ pub unsafe fn vp8_loop_filter_mbh_c(
     mut y_stride: i32,
     mut uv_stride: i32,
     mut lfi: *mut loop_filter_info,
-) { unsafe {
+) {
+    unsafe {
         mbloop_filter_horizontal_edge_c(
             y_ptr,
             y_stride,
@@ -466,7 +491,8 @@ pub unsafe fn vp8_loop_filter_mbh_c(
                 1 as i32,
             );
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_mbv_c(
     mut y_ptr: *mut u8,
@@ -475,7 +501,8 @@ pub unsafe fn vp8_loop_filter_mbv_c(
     mut y_stride: i32,
     mut uv_stride: i32,
     mut lfi: *mut loop_filter_info,
-) { unsafe {
+) {
+    unsafe {
         mbloop_filter_vertical_edge_c(
             y_ptr,
             y_stride,
@@ -504,7 +531,8 @@ pub unsafe fn vp8_loop_filter_mbv_c(
                 1 as i32,
             );
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_bh_c(
     mut y_ptr: *mut u8,
@@ -513,7 +541,8 @@ pub unsafe fn vp8_loop_filter_bh_c(
     mut y_stride: i32,
     mut uv_stride: i32,
     mut lfi: *mut loop_filter_info,
-) { unsafe {
+) {
+    unsafe {
         loop_filter_horizontal_edge_c(
             y_ptr.offset((4 as i32 * y_stride) as isize),
             y_stride,
@@ -558,9 +587,11 @@ pub unsafe fn vp8_loop_filter_bh_c(
                 1 as i32,
             );
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_loop_filter_bhs_c(mut y_ptr: *mut u8, mut y_stride: i32, mut blimit: *const u8) { unsafe {
+pub unsafe fn vp8_loop_filter_bhs_c(mut y_ptr: *mut u8, mut y_stride: i32, mut blimit: *const u8) {
+    unsafe {
         vp8_loop_filter_simple_horizontal_edge_c(
             y_ptr.offset((4 as i32 * y_stride) as isize),
             y_stride,
@@ -576,7 +607,8 @@ pub unsafe fn vp8_loop_filter_bhs_c(mut y_ptr: *mut u8, mut y_stride: i32, mut b
             y_stride,
             blimit,
         );
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_bv_c(
     mut y_ptr: *mut u8,
@@ -585,7 +617,8 @@ pub unsafe fn vp8_loop_filter_bv_c(
     mut y_stride: i32,
     mut uv_stride: i32,
     mut lfi: *mut loop_filter_info,
-) { unsafe {
+) {
+    unsafe {
         loop_filter_vertical_edge_c(
             y_ptr.offset(4 as isize),
             y_stride,
@@ -630,10 +663,13 @@ pub unsafe fn vp8_loop_filter_bv_c(
                 1 as i32,
             );
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_loop_filter_bvs_c(mut y_ptr: *mut u8, mut y_stride: i32, mut blimit: *const u8) { unsafe {
+pub unsafe fn vp8_loop_filter_bvs_c(mut y_ptr: *mut u8, mut y_stride: i32, mut blimit: *const u8) {
+    unsafe {
         vp8_loop_filter_simple_vertical_edge_c(y_ptr.offset(4 as isize), y_stride, blimit);
         vp8_loop_filter_simple_vertical_edge_c(y_ptr.offset(8 as isize), y_stride, blimit);
         vp8_loop_filter_simple_vertical_edge_c(y_ptr.offset(12 as isize), y_stride, blimit);
-}}
+    }
+}

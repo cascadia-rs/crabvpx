@@ -463,13 +463,15 @@ pub unsafe fn vpx_codec_version_extra_str() -> *const i8 {
     VERSION_EXTRA.as_ptr()
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_codec_iface_name(mut iface: *const vpx_codec_iface_t) -> *const i8 { unsafe {
+pub unsafe fn vpx_codec_iface_name(mut iface: *const vpx_codec_iface_t) -> *const i8 {
+    unsafe {
         if !iface.is_null() {
             (*iface).name
         } else {
             b"<invalid interface>\0" as *const u8 as *const i8
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_err_to_string(mut err: vpx_codec_err_t) -> *const i8 {
     match err as u32 {
@@ -501,15 +503,18 @@ pub unsafe fn vpx_codec_err_to_string(mut err: vpx_codec_err_t) -> *const i8 {
     b"Unrecognized error code\0" as *const u8 as *const i8
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_codec_error(mut ctx: *const vpx_codec_ctx_t) -> *const i8 { unsafe {
+pub unsafe fn vpx_codec_error(mut ctx: *const vpx_codec_ctx_t) -> *const i8 {
+    unsafe {
         if !ctx.is_null() {
             vpx_codec_err_to_string((*ctx).err)
         } else {
             vpx_codec_err_to_string(VPX_CODEC_INVALID_PARAM)
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_codec_error_detail(mut ctx: *const vpx_codec_ctx_t) -> *const i8 { unsafe {
+pub unsafe fn vpx_codec_error_detail(mut ctx: *const vpx_codec_ctx_t) -> *const i8 {
+    unsafe {
         if !ctx.is_null() && (*ctx).err as u32 != 0 {
             return if !(*ctx).priv_0.is_null() {
                 (*(*ctx).priv_0).err_detail
@@ -518,9 +523,11 @@ pub unsafe fn vpx_codec_error_detail(mut ctx: *const vpx_codec_ctx_t) -> *const 
             };
         }
         ::core::ptr::null::<i8>()
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_codec_destroy(mut ctx: *mut vpx_codec_ctx_t) -> vpx_codec_err_t { unsafe {
+pub unsafe fn vpx_codec_destroy(mut ctx: *mut vpx_codec_ctx_t) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         if ctx.is_null() {
             res = VPX_CODEC_INVALID_PARAM;
@@ -541,21 +548,25 @@ pub unsafe fn vpx_codec_destroy(mut ctx: *mut vpx_codec_ctx_t) -> vpx_codec_err_
         } else {
             res as u32
         }) as vpx_codec_err_t
-}}
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_codec_get_caps(mut iface: *const vpx_codec_iface_t) -> vpx_codec_caps_t { unsafe {
+pub unsafe fn vpx_codec_get_caps(mut iface: *const vpx_codec_iface_t) -> vpx_codec_caps_t {
+    unsafe {
         if !iface.is_null() {
             (*iface).caps
         } else {
             0 as vpx_codec_caps_t
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_control_(
     mut ctx: *mut vpx_codec_ctx_t,
     mut ctrl_id: i32,
     mut data: *mut c_void,
-) -> vpx_codec_err_t { unsafe {
+) -> vpx_codec_err_t {
+    unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
         if ctx.is_null() || ctrl_id == 0 {
             res = VPX_CODEC_INVALID_PARAM;
@@ -587,13 +598,15 @@ pub unsafe fn vpx_codec_control_(
         } else {
             res as u32
         }) as vpx_codec_err_t
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_internal_error(
     mut info: *mut vpx_internal_error_info,
     mut error: vpx_codec_err_t,
     mut fmt: *const i8,
-) { unsafe {
+) {
+    unsafe {
         (*info).error_code = error;
         (*info).has_detail = 0 as i32;
         if !fmt.is_null() {
@@ -615,4 +628,5 @@ pub unsafe fn vpx_internal_error(
         if (*info).setjmp != 0 {
             longjmp(&raw mut (*info).jmp as *mut i32, (*info).error_code as i32);
         }
-}}
+    }
+}

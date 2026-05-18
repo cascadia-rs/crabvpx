@@ -235,16 +235,19 @@ unsafe fn mv_bias(
     mut refframe: i32,
     mut mvp: *mut int_mv,
     mut ref_frame_sign_bias: *const i32,
-) { unsafe {
+) {
+    unsafe {
         if refmb_ref_frame_sign_bias != *ref_frame_sign_bias.offset(refframe as isize) {
             (*mvp).as_mv.row = ((*mvp).as_mv.row as i32 * -(1 as i32)) as i16;
             (*mvp).as_mv.col = ((*mvp).as_mv.col as i32 * -(1 as i32)) as i16;
         }
-}}
+    }
+}
 pub const LEFT_TOP_MARGIN: i32 = (16 as i32) << 3 as i32;
 pub const RIGHT_BOTTOM_MARGIN: i32 = (16 as i32) << 3 as i32;
 #[inline]
-unsafe fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) { unsafe {
+unsafe fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) {
+    unsafe {
         if ((*mv).as_mv.col as i32) < (*xd).mb_to_left_edge - LEFT_TOP_MARGIN {
             (*mv).as_mv.col = ((*xd).mb_to_left_edge - LEFT_TOP_MARGIN) as i16;
         } else if (*mv).as_mv.col as i32 > (*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN {
@@ -255,7 +258,8 @@ unsafe fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) { unsaf
         } else if (*mv).as_mv.row as i32 > (*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN {
             (*mv).as_mv.row = ((*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as i16;
         }
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub static mut vp8_mbsplit_offset: [[u8; 16]; 4] = [
     [
@@ -285,7 +289,8 @@ pub unsafe fn vp8_find_near_mvs(
     mut near_mv_ref_cnts: *mut i32,
     mut refframe: i32,
     mut ref_frame_sign_bias: *mut i32,
-) { unsafe {
+) {
+    unsafe {
         let mut above: *const MODE_INFO = here.offset(-((*xd).mode_info_stride as isize));
         let mut left: *const MODE_INFO = here.offset(-(1 as isize));
         let mut aboveleft: *const MODE_INFO = above.offset(-(1 as isize));
@@ -388,17 +393,20 @@ pub unsafe fn vp8_find_near_mvs(
         (*best_mv).as_int = near_mvs[0 as usize].as_int;
         (*nearest).as_int = near_mvs[CNT_NEAREST as usize].as_int;
         (*nearby).as_int = near_mvs[CNT_NEAR as usize].as_int;
-}}
+    }
+}
 unsafe fn invert_and_clamp_mvs(
     mut inv: *mut int_mv,
     mut src: *mut int_mv,
     mut xd: *mut MACROBLOCKD,
-) { unsafe {
+) {
+    unsafe {
         (*inv).as_mv.row = ((*src).as_mv.row as i32 * -(1 as i32)) as i16;
         (*inv).as_mv.col = ((*src).as_mv.col as i32 * -(1 as i32)) as i16;
         vp8_clamp_mv2(inv, xd);
         vp8_clamp_mv2(src, xd);
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_find_near_mvs_bias(
     mut xd: *mut MACROBLOCKD,
@@ -408,7 +416,8 @@ pub unsafe fn vp8_find_near_mvs_bias(
     mut cnt: *mut i32,
     mut refframe: i32,
     mut ref_frame_sign_bias: *mut i32,
-) -> i32 { unsafe {
+) -> i32 {
+    unsafe {
         let mut sign_bias: i32 = *ref_frame_sign_bias.offset(refframe as isize);
         vp8_find_near_mvs(
             xd,
@@ -442,12 +451,14 @@ pub unsafe fn vp8_find_near_mvs_bias(
             xd,
         );
         sign_bias
-}}
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_mv_ref_probs(
     mut p: *mut vp8_prob,
     mut near_mv_ref_ct: *const i32,
-) -> *mut vp8_prob { unsafe {
+) -> *mut vp8_prob {
+    unsafe {
         *p.offset(0 as isize) =
             vp8_mode_contexts[*near_mv_ref_ct.offset(0 as isize) as usize][0 as usize] as vp8_prob;
         *p.offset(1 as isize) =
@@ -457,4 +468,5 @@ pub unsafe fn vp8_mv_ref_probs(
         *p.offset(3 as isize) =
             vp8_mode_contexts[*near_mv_ref_ct.offset(3 as isize) as usize][3 as usize] as vp8_prob;
         p as *mut vp8_prob
-}}
+    }
+}

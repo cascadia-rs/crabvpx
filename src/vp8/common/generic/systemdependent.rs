@@ -248,6 +248,8 @@ unsafe fn get_cpu_count() -> i32 {
         .unwrap_or(1) as i32
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_machine_specific_config(mut ctx: *mut VP8_COMMON) { unsafe {
+pub unsafe fn vp8_machine_specific_config(mut ctx: *mut VP8_COMMON) {
+    unsafe {
         (*ctx).processor_core_count = get_cpu_count();
-}}
+    }
+}

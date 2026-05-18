@@ -12,7 +12,8 @@ struct AllocHeader {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_memalign(mut align: size_t, size: size_t) -> *mut c_void { unsafe {
+pub unsafe fn vpx_memalign(mut align: size_t, size: size_t) -> *mut c_void {
+    unsafe {
         if align == 0 {
             align = DEFAULT_ALIGNMENT;
         }
@@ -47,27 +48,34 @@ pub unsafe fn vpx_memalign(mut align: size_t, size: size_t) -> *mut c_void { uns
         core::ptr::write(header_ptr, AllocHeader { base_ptr, layout });
 
         x as *mut c_void
-}}
+    }
+}
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_malloc(size: size_t) -> *mut c_void { unsafe { vpx_memalign(DEFAULT_ALIGNMENT, size) }}
+pub unsafe fn vpx_malloc(size: size_t) -> *mut c_void {
+    unsafe { vpx_memalign(DEFAULT_ALIGNMENT, size) }
+}
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_calloc(num: size_t, size: size_t) -> *mut c_void { unsafe {
+pub unsafe fn vpx_calloc(num: size_t, size: size_t) -> *mut c_void {
+    unsafe {
         let total = num.wrapping_mul(size);
         let ptr = vpx_malloc(total);
         if !ptr.is_null() {
             core::ptr::write_bytes(ptr as *mut u8, 0, total);
         }
         ptr
-}}
+    }
+}
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_free(memblk: *mut c_void) { unsafe {
+pub unsafe fn vpx_free(memblk: *mut c_void) {
+    unsafe {
         if !memblk.is_null() {
             let x = memblk as *mut u8;
             let header_ptr = (x as *mut AllocHeader).offset(-1);
             let header = core::ptr::read(header_ptr);
             dealloc(header.base_ptr, header.layout);
         }
-}}
+    }
+}
