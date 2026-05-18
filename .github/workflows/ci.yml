@@ -10,6 +10,24 @@ env:
   CARGO_TERM_COLOR: always
 
 jobs:
+  lint:
+    name: Lint & Format
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+
+    - name: Install Rust nightly
+      uses: dtolnay/rust-toolchain@nightly
+      with:
+        components: rustfmt, clippy
+
+    - name: Run cargo fmt
+      run: cargo fmt --all -- --check
+
+    - name: Run cargo clippy
+      # We don't enforce `-D warnings` yet because of the large number of C2Rust artifacts
+      run: cargo clippy --workspace
+
   build-and-test:
     name: Build and Test on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
@@ -30,6 +48,9 @@ jobs:
 
     - name: Install Rust nightly
       uses: dtolnay/rust-toolchain@nightly
+
+    - name: Rust Cache
+      uses: Swatinem/rust-cache@v2
 
     - name: Install Just
       uses: extractions/setup-just@v2
