@@ -1,6 +1,7 @@
 # VP8 Decoder Safety Hints
 
 ## Current Progress (May 2026)
+- **Safe Decompressor Removal API**: Refactored `remove_decompressor` in `src/vp8/decoder/onyxd_if.rs` to safe Rust by taking `Box<VP8D_COMP>` instead of a raw pointer. Eliminated `unsafe extern "C"` linkage and internal `unsafe` block. Updated call sites in `create_decompressor` and `vp8_remove_decoder_instances`. Reduced unsafe count by 2 (1288 remaining).
 - **Safe Quantizer Retrieval API**: Refactored `vp8dx_get_quantizer` in `src/vp8/decoder/onyxd_if.rs` to safe Rust by taking a safe reference `&VP8D_COMP` instead of a raw pointer. Eliminated `unsafe extern "C"` linkage and internal `unsafe` block. Updated call site in `vp8_get_quantizer` in `vp8_dx_iface.rs`. Reduced unsafe count by 3 (1290 remaining).
 - **Safe Frame Buffer Swapping API**: Refactored `swap_frame_buffers` in `src/vp8/decoder/onyxd_if.rs` to safe Rust by taking a safe reference `&mut VP8_COMMON` instead of a raw pointer. Eliminated `unsafe extern "C"` linkage and internal `unsafe` block. Updated call site in `vp8dx_receive_compressed_data` to pass safe reference. Reduced unsafe count by 2 (1293 remaining).
 - **Safe Fragment Error Check API**: Refactored `check_fragments_for_errors` in `src/vp8/decoder/onyxd_if.rs` to safe Rust by taking `&mut VP8D_COMP` reference instead of raw pointer. Eliminated `unsafe extern "C"` linkage and internal `unsafe` block, leveraging safe `split_at_mut` slice splitting to safely copy frame buffers between different array indices. Reduced unsafe count by 2 (1295 remaining).

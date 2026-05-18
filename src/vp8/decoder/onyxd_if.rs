@@ -131,12 +131,9 @@ unsafe extern "C" fn initialize_dec() { unsafe {
         );
     }
 }}
-unsafe extern "C" fn remove_decompressor(mut pbi: *mut VP8D_COMP) { unsafe {
-    vp8_remove_common(&mut (*pbi).common);
-    if !pbi.is_null() {
-        let _ = Box::from_raw(pbi);
-    }
-}}
+fn remove_decompressor(mut pbi: Box<VP8D_COMP>) {
+    vp8_remove_common(&mut pbi.common);
+}
 unsafe extern "C" fn create_decompressor(mut oxcf: *mut VP8D_CONFIG) -> *mut VP8D_COMP { unsafe {
     let mut pbi: *mut VP8D_COMP = match Box::<VP8D_COMP>::try_new_zeroed() {
         Ok(b) => Box::into_raw(b.assume_init()),
@@ -144,7 +141,7 @@ unsafe extern "C" fn create_decompressor(mut oxcf: *mut VP8D_CONFIG) -> *mut VP8
     };
     if setjmp(&raw mut (*pbi).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
         (*pbi).common.error.setjmp = 0 as ::core::ffi::c_int;
-        remove_decompressor(pbi);
+        remove_decompressor(Box::from_raw(pbi));
         return ::core::ptr::null_mut::<VP8D_COMP>();
     }
     (*pbi).common.error.setjmp = 1 as ::core::ffi::c_int;
@@ -521,7 +518,7 @@ pub unsafe extern "C" fn vp8_remove_decoder_instances(
         return VPX_CODEC_ERROR as ::core::ffi::c_int;
     }
     vp8_decoder_remove_threads(pbi);
-    remove_decompressor(pbi);
+    remove_decompressor(Box::from_raw(pbi));
     (*fb).pbi[0 as ::core::ffi::c_int as usize] = ::core::ptr::null_mut::<VP8D_COMP>();
     return VPX_CODEC_OK as ::core::ffi::c_int;
 }}
