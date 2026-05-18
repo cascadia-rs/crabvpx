@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn vp8_horizontal_line_2_1_scale_c(
         source: *const ::core::ffi::c_uchar,
         source_width: ::core::ffi::c_uint,
@@ -108,8 +108,7 @@ pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
 pub type uint8_t = u8;
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
-pub type Scale1D = Option<
-    unsafe extern "C" fn(
+pub type Scale1D = Option<unsafe fn(
         *const ::core::ffi::c_uchar,
         ::core::ffi::c_int,
         ::core::ffi::c_uint,
@@ -122,7 +121,7 @@ pub type Scale1D = Option<
 >;
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
-unsafe extern "C" fn scale1d_2t1_i(
+unsafe fn scale1d_2t1_i(
     mut source: *const ::core::ffi::c_uchar,
     mut source_step: ::core::ffi::c_int,
     _source_scale: ::core::ffi::c_uint,
@@ -165,7 +164,7 @@ unsafe extern "C" fn scale1d_2t1_i(
         }
     }
 }
-unsafe extern "C" fn scale1d_2t1_ps(
+unsafe fn scale1d_2t1_ps(
     mut source: *const ::core::ffi::c_uchar,
     mut source_step: ::core::ffi::c_int,
     _source_scale: ::core::ffi::c_uint,
@@ -188,7 +187,7 @@ unsafe extern "C" fn scale1d_2t1_ps(
         }
     }
 }
-unsafe extern "C" fn scale1d_c(
+unsafe fn scale1d_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_step: ::core::ffi::c_int,
     mut source_scale: ::core::ffi::c_uint,
@@ -227,7 +226,7 @@ unsafe extern "C" fn scale1d_c(
         }
     }
 }
-unsafe extern "C" fn Scale2D(
+unsafe fn Scale2D(
     mut source: *mut ::core::ffi::c_uchar,
     mut source_pitch: ::core::ffi::c_int,
     mut source_width: ::core::ffi::c_uint,
@@ -253,7 +252,7 @@ unsafe extern "C" fn Scale2D(
         let mut source_band_height: ::core::ffi::c_int = 0;
         let mut Scale1Dv: Scale1D = Some(
             scale1d_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *const ::core::ffi::c_uchar,
                     ::core::ffi::c_int,
                     ::core::ffi::c_uint,
@@ -266,7 +265,7 @@ unsafe extern "C" fn Scale2D(
         );
         let mut Scale1Dh: Scale1D = Some(
             scale1d_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *const ::core::ffi::c_uchar,
                     ::core::ffi::c_int,
                     ::core::ffi::c_uint,
@@ -277,16 +276,14 @@ unsafe extern "C" fn Scale2D(
                     ::core::ffi::c_uint,
                 ) -> (),
         );
-        let mut horiz_line_scale: Option<
-            unsafe extern "C" fn(
+        let mut horiz_line_scale: Option<unsafe fn(
                 *const ::core::ffi::c_uchar,
                 ::core::ffi::c_uint,
                 *mut ::core::ffi::c_uchar,
                 ::core::ffi::c_uint,
             ) -> (),
         > = None;
-        let mut vert_band_scale: Option<
-            unsafe extern "C" fn(
+        let mut vert_band_scale: Option<unsafe fn(
                 *mut ::core::ffi::c_uchar,
                 ::core::ffi::c_uint,
                 *mut ::core::ffi::c_uchar,
@@ -314,15 +311,14 @@ unsafe extern "C" fn Scale2D(
             8 => {
                 horiz_line_scale = Some(
                     vp8_horizontal_line_5_4_scale_c
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *const ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                             *mut ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                         ) -> (),
                 )
-                    as Option<
-                        unsafe extern "C" fn(
+                    as Option<unsafe fn(
                             *const ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                             *mut ::core::ffi::c_uchar,
@@ -333,15 +329,14 @@ unsafe extern "C" fn Scale2D(
             6 => {
                 horiz_line_scale = Some(
                     vp8_horizontal_line_5_3_scale_c
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *const ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                             *mut ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                         ) -> (),
                 )
-                    as Option<
-                        unsafe extern "C" fn(
+                    as Option<unsafe fn(
                             *const ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                             *mut ::core::ffi::c_uchar,
@@ -352,15 +347,14 @@ unsafe extern "C" fn Scale2D(
             5 => {
                 horiz_line_scale = Some(
                     vp8_horizontal_line_2_1_scale_c
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *const ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                             *mut ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                         ) -> (),
                 )
-                    as Option<
-                        unsafe extern "C" fn(
+                    as Option<unsafe fn(
                             *const ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                             *mut ::core::ffi::c_uchar,
@@ -379,7 +373,7 @@ unsafe extern "C" fn Scale2D(
             8 => {
                 vert_band_scale = Some(
                     vp8_vertical_band_5_4_scale_c
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *mut ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                             *mut ::core::ffi::c_uchar,
@@ -387,8 +381,7 @@ unsafe extern "C" fn Scale2D(
                             ::core::ffi::c_uint,
                         ) -> (),
                 )
-                    as Option<
-                        unsafe extern "C" fn(
+                    as Option<unsafe fn(
                             *mut ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                             *mut ::core::ffi::c_uchar,
@@ -402,7 +395,7 @@ unsafe extern "C" fn Scale2D(
             6 => {
                 vert_band_scale = Some(
                     vp8_vertical_band_5_3_scale_c
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *mut ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                             *mut ::core::ffi::c_uchar,
@@ -410,8 +403,7 @@ unsafe extern "C" fn Scale2D(
                             ::core::ffi::c_uint,
                         ) -> (),
                 )
-                    as Option<
-                        unsafe extern "C" fn(
+                    as Option<unsafe fn(
                             *mut ::core::ffi::c_uchar,
                             ::core::ffi::c_uint,
                             *mut ::core::ffi::c_uchar,
@@ -426,7 +418,7 @@ unsafe extern "C" fn Scale2D(
                 if interlaced != 0 {
                     vert_band_scale = Some(
                         vp8_vertical_band_2_1_scale_c
-                            as unsafe extern "C" fn(
+                            as unsafe fn(
                                 *mut ::core::ffi::c_uchar,
                                 ::core::ffi::c_uint,
                                 *mut ::core::ffi::c_uchar,
@@ -434,8 +426,7 @@ unsafe extern "C" fn Scale2D(
                                 ::core::ffi::c_uint,
                             ) -> (),
                     )
-                        as Option<
-                            unsafe extern "C" fn(
+                        as Option<unsafe fn(
                                 *mut ::core::ffi::c_uchar,
                                 ::core::ffi::c_uint,
                                 *mut ::core::ffi::c_uchar,
@@ -447,7 +438,7 @@ unsafe extern "C" fn Scale2D(
                     interpolation = 1 as ::core::ffi::c_int;
                     vert_band_scale = Some(
                         vp8_vertical_band_2_1_scale_i_c
-                            as unsafe extern "C" fn(
+                            as unsafe fn(
                                 *mut ::core::ffi::c_uchar,
                                 ::core::ffi::c_uint,
                                 *mut ::core::ffi::c_uchar,
@@ -455,8 +446,7 @@ unsafe extern "C" fn Scale2D(
                                 ::core::ffi::c_uint,
                             ) -> (),
                     )
-                        as Option<
-                            unsafe extern "C" fn(
+                        as Option<unsafe fn(
                                 *mut ::core::ffi::c_uchar,
                                 ::core::ffi::c_uint,
                                 *mut ::core::ffi::c_uchar,
@@ -551,7 +541,7 @@ unsafe extern "C" fn Scale2D(
         if hscale == 2 as ::core::ffi::c_uint && hratio == 1 as ::core::ffi::c_uint {
             Scale1Dh = Some(
                 scale1d_2t1_ps
-                    as unsafe extern "C" fn(
+                    as unsafe fn(
                         *const ::core::ffi::c_uchar,
                         ::core::ffi::c_int,
                         ::core::ffi::c_uint,
@@ -567,7 +557,7 @@ unsafe extern "C" fn Scale2D(
             if interlaced != 0 {
                 Scale1Dv = Some(
                     scale1d_2t1_ps
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *const ::core::ffi::c_uchar,
                             ::core::ffi::c_int,
                             ::core::ffi::c_uint,
@@ -581,7 +571,7 @@ unsafe extern "C" fn Scale2D(
             } else {
                 Scale1Dv = Some(
                     scale1d_2t1_i
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *const ::core::ffi::c_uchar,
                             ::core::ffi::c_int,
                             ::core::ffi::c_uint,
@@ -691,7 +681,7 @@ unsafe extern "C" fn Scale2D(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_scale_frame(
+pub unsafe fn vpx_scale_frame(
     mut src: *mut YV12_BUFFER_CONFIG,
     mut dst: *mut YV12_BUFFER_CONFIG,
     mut temp_area: *mut ::core::ffi::c_uchar,

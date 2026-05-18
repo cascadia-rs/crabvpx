@@ -151,8 +151,7 @@ pub struct blockd {
     pub bmi: b_mode_info,
 }
 pub type BLOCKD = blockd;
-pub type vp8_subpix_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vp8_subpix_fn_t = Option<unsafe fn(
         *mut ::core::ffi::c_uchar,
         ::core::ffi::c_int,
         ::core::ffi::c_int,
@@ -212,7 +211,7 @@ pub struct macroblockd {
 }
 pub type MACROBLOCKD = macroblockd;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) {
+pub unsafe fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) {
     unsafe {
         let mut r: ::core::ffi::c_int = 0;
         let mut c: ::core::ffi::c_int = 0;
@@ -267,7 +266,7 @@ pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_build_block_doffsets(mut x: *mut MACROBLOCKD) {
+pub unsafe fn vp8_build_block_doffsets(mut x: *mut MACROBLOCKD) {
     unsafe {
         let mut block: ::core::ffi::c_int = 0;
         block = 0 as ::core::ffi::c_int;

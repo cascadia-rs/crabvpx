@@ -1,4 +1,4 @@
-extern "C" {
+extern "Rust" {
     fn vp8_loop_filter_horizontal_edge_y_neon(
         _: *mut ::core::ffi::c_uchar,
         _: ::core::ffi::c_int,
@@ -68,7 +68,7 @@ pub struct loop_filter_info {
     pub lim: *const ::core::ffi::c_uchar,
     pub hev_thr: *const ::core::ffi::c_uchar,
 }
-pub type loopfilter_uv_neon = unsafe extern "C" fn(
+pub type loopfilter_uv_neon = unsafe fn(
     *mut ::core::ffi::c_uchar,
     ::core::ffi::c_int,
     ::core::ffi::c_uchar,
@@ -76,7 +76,7 @@ pub type loopfilter_uv_neon = unsafe extern "C" fn(
     ::core::ffi::c_uchar,
     *mut ::core::ffi::c_uchar,
 ) -> ();
-pub type loopfilter_y_neon = unsafe extern "C" fn(
+pub type loopfilter_y_neon = unsafe fn(
     *mut ::core::ffi::c_uchar,
     ::core::ffi::c_int,
     ::core::ffi::c_uchar,
@@ -84,7 +84,7 @@ pub type loopfilter_y_neon = unsafe extern "C" fn(
     ::core::ffi::c_uchar,
 ) -> ();
 #[no_mangle]
-pub unsafe extern "C" fn vp8_loop_filter_mbh_neon(
+pub unsafe fn vp8_loop_filter_mbh_neon(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut u_ptr: *mut ::core::ffi::c_uchar,
     mut v_ptr: *mut ::core::ffi::c_uchar,
@@ -101,7 +101,7 @@ pub unsafe extern "C" fn vp8_loop_filter_mbh_neon(
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn vp8_loop_filter_mbv_neon(
+pub unsafe fn vp8_loop_filter_mbv_neon(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut u_ptr: *mut ::core::ffi::c_uchar,
     mut v_ptr: *mut ::core::ffi::c_uchar,
@@ -118,7 +118,7 @@ pub unsafe extern "C" fn vp8_loop_filter_mbv_neon(
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn vp8_loop_filter_bh_neon(
+pub unsafe fn vp8_loop_filter_bh_neon(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut u_ptr: *mut ::core::ffi::c_uchar,
     mut v_ptr: *mut ::core::ffi::c_uchar,
@@ -162,7 +162,7 @@ pub unsafe extern "C" fn vp8_loop_filter_bh_neon(
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn vp8_loop_filter_bv_neon(
+pub unsafe fn vp8_loop_filter_bv_neon(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut u_ptr: *mut ::core::ffi::c_uchar,
     mut v_ptr: *mut ::core::ffi::c_uchar,

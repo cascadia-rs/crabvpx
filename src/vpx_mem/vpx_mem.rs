@@ -11,7 +11,7 @@ struct AllocHeader {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_memalign(mut align: size_t, size: size_t) -> *mut ::core::ffi::c_void {
+pub unsafe fn vpx_memalign(mut align: size_t, size: size_t) -> *mut ::core::ffi::c_void {
     unsafe {
         if align == 0 {
             align = DEFAULT_ALIGNMENT;
@@ -51,12 +51,12 @@ pub unsafe extern "C" fn vpx_memalign(mut align: size_t, size: size_t) -> *mut :
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_malloc(size: size_t) -> *mut ::core::ffi::c_void {
+pub unsafe fn vpx_malloc(size: size_t) -> *mut ::core::ffi::c_void {
     unsafe { vpx_memalign(DEFAULT_ALIGNMENT, size) }
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_calloc(num: size_t, size: size_t) -> *mut ::core::ffi::c_void {
+pub unsafe fn vpx_calloc(num: size_t, size: size_t) -> *mut ::core::ffi::c_void {
     unsafe {
         let total = num.wrapping_mul(size);
         let ptr = vpx_malloc(total);
@@ -68,7 +68,7 @@ pub unsafe extern "C" fn vpx_calloc(num: size_t, size: size_t) -> *mut ::core::f
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_free(memblk: *mut ::core::ffi::c_void) {
+pub unsafe fn vpx_free(memblk: *mut ::core::ffi::c_void) {
     unsafe {
         if !memblk.is_null() {
             let x = memblk as *mut u8;

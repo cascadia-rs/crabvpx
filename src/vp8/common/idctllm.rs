@@ -1,7 +1,7 @@
 static mut cospi8sqrt2minus1: ::core::ffi::c_int = 20091 as ::core::ffi::c_int;
 static mut sinpi8sqrt2: ::core::ffi::c_int = 35468 as ::core::ffi::c_int;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_short_idct4x4llm_c(
+pub unsafe fn vp8_short_idct4x4llm_c(
     mut input: *mut ::core::ffi::c_short,
     mut pred_ptr: *mut ::core::ffi::c_uchar,
     mut pred_stride: ::core::ffi::c_int,
@@ -120,7 +120,7 @@ pub unsafe extern "C" fn vp8_short_idct4x4llm_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_dc_only_idct_add_c(
+pub unsafe fn vp8_dc_only_idct_add_c(
     mut input_dc: ::core::ffi::c_short,
     mut pred_ptr: *mut ::core::ffi::c_uchar,
     mut pred_stride: ::core::ffi::c_int,
@@ -154,7 +154,7 @@ pub unsafe extern "C" fn vp8_dc_only_idct_add_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_short_inv_walsh4x4_c(
+pub unsafe fn vp8_short_inv_walsh4x4_c(
     mut input: *mut ::core::ffi::c_short,
     mut mb_dqcoeff: *mut ::core::ffi::c_short,
 ) {
@@ -225,7 +225,7 @@ pub unsafe extern "C" fn vp8_short_inv_walsh4x4_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_short_inv_walsh4x4_1_c(
+pub unsafe fn vp8_short_inv_walsh4x4_1_c(
     mut input: *mut ::core::ffi::c_short,
     mut mb_dqcoeff: *mut ::core::ffi::c_short,
 ) {

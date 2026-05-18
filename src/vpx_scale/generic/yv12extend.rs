@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -62,7 +62,7 @@ pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
 pub type uint8_t = u8;
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
-unsafe extern "C" fn extend_plane(
+unsafe fn extend_plane(
     src: *mut uint8_t,
     mut src_stride: ::core::ffi::c_int,
     mut width: ::core::ffi::c_int,
@@ -132,7 +132,7 @@ unsafe extern "C" fn extend_plane(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_yv12_extend_frame_borders_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
+pub unsafe fn vp8_yv12_extend_frame_borders_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
     unsafe {
         let uv_border: ::core::ffi::c_int = (*ybf).border / 2 as ::core::ffi::c_int;
         extend_plane(
@@ -168,7 +168,7 @@ pub unsafe extern "C" fn vp8_yv12_extend_frame_borders_c(mut ybf: *mut YV12_BUFF
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_yv12_copy_frame_c(
+pub unsafe fn vp8_yv12_copy_frame_c(
     mut src_ybc: *const YV12_BUFFER_CONFIG,
     mut dst_ybc: *mut YV12_BUFFER_CONFIG,
 ) {
@@ -217,7 +217,7 @@ pub unsafe extern "C" fn vp8_yv12_copy_frame_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_yv12_copy_y_c(
+pub unsafe fn vpx_yv12_copy_y_c(
     mut src_ybc: *const YV12_BUFFER_CONFIG,
     mut dst_ybc: *mut YV12_BUFFER_CONFIG,
 ) {

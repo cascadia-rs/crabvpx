@@ -1,5 +1,5 @@
 use std::arch::aarch64::*;
-extern "C" {
+extern "Rust" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -23,7 +23,7 @@ pub struct uint32x2x2_t {
 pub type size_t = __darwin_size_t;
 pub type ptrdiff_t = __darwin_ptrdiff_t;
 #[inline]
-unsafe extern "C" fn uint32_to_mem(mut buf: *mut uint8_t, mut a: uint32_t) {
+unsafe fn uint32_to_mem(mut buf: *mut uint8_t, mut a: uint32_t) {
     memcpy(
         buf as *mut ::core::ffi::c_void,
         &raw mut a as *const ::core::ffi::c_void,

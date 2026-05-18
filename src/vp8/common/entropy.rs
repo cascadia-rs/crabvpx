@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -3529,7 +3529,7 @@ static mut default_coef_probs: [[[[vp8_prob; 11]; 3]; 8]; 4] = [
     ],
 ];
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_default_coef_probs(mut pc: *mut VP8_COMMON) {
+pub unsafe fn vp8_default_coef_probs(mut pc: *mut VP8_COMMON) {
     unsafe {
         memcpy(
             &raw mut (*pc).fc.coef_probs as *mut [[[vp8_prob; 11]; 3]; 8]

@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     static vp8_mode_contexts: [[::core::ffi::c_int; 4]; 6];
 }
 pub type __darwin_size_t = usize;
@@ -172,8 +172,7 @@ pub struct blockd {
     pub bmi: b_mode_info,
 }
 pub type BLOCKD = blockd;
-pub type vp8_subpix_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vp8_subpix_fn_t = Option<unsafe fn(
         *mut ::core::ffi::c_uchar,
         ::core::ffi::c_int,
         ::core::ffi::c_int,
@@ -238,7 +237,7 @@ pub const CNT_INTRA: C2RustUnnamed_1 = 0;
 pub const CNT_SPLITMV: C2RustUnnamed_1 = 3;
 pub type C2RustUnnamed_1 = ::core::ffi::c_uint;
 #[inline]
-unsafe extern "C" fn mv_bias(
+unsafe fn mv_bias(
     mut refmb_ref_frame_sign_bias: ::core::ffi::c_int,
     mut refframe: ::core::ffi::c_int,
     mut mvp: *mut int_mv,
@@ -258,7 +257,7 @@ pub const LEFT_TOP_MARGIN: ::core::ffi::c_int =
 pub const RIGHT_BOTTOM_MARGIN: ::core::ffi::c_int =
     (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) {
+unsafe fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) {
     unsafe {
         if ((*mv).as_mv.col as ::core::ffi::c_int) < (*xd).mb_to_left_edge - LEFT_TOP_MARGIN {
             (*mv).as_mv.col = ((*xd).mb_to_left_edge - LEFT_TOP_MARGIN) as ::core::ffi::c_short;
@@ -354,7 +353,7 @@ pub static mut vp8_mbsplit_offset: [[::core::ffi::c_uchar; 16]; 4] = [
     ],
 ];
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_find_near_mvs(
+pub unsafe fn vp8_find_near_mvs(
     mut xd: *mut MACROBLOCKD,
     mut here: *const MODE_INFO,
     mut nearest: *mut int_mv,
@@ -477,7 +476,7 @@ pub unsafe extern "C" fn vp8_find_near_mvs(
         (*nearby).as_int = near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int;
     }
 }
-unsafe extern "C" fn invert_and_clamp_mvs(
+unsafe fn invert_and_clamp_mvs(
     mut inv: *mut int_mv,
     mut src: *mut int_mv,
     mut xd: *mut MACROBLOCKD,
@@ -492,7 +491,7 @@ unsafe extern "C" fn invert_and_clamp_mvs(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_find_near_mvs_bias(
+pub unsafe fn vp8_find_near_mvs_bias(
     mut xd: *mut MACROBLOCKD,
     mut here: *const MODE_INFO,
     mut mode_mv_sb: *mut [int_mv; 10],
@@ -540,7 +539,7 @@ pub unsafe extern "C" fn vp8_find_near_mvs_bias(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_mv_ref_probs(
+pub unsafe fn vp8_mv_ref_probs(
     mut p: *mut vp8_prob,
     mut near_mv_ref_ct: *const ::core::ffi::c_int,
 ) -> *mut vp8_prob {

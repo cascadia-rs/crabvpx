@@ -17,7 +17,7 @@ pub struct int32x4x2_t {
 static mut cospi8sqrt2minus1: int16_t = 20091 as int16_t;
 static mut sinpi8sqrt2: int16_t = 17734 as int16_t;
 #[no_mangle]
-pub unsafe extern "C" fn vp8_dequant_idct_add_y_block_neon(
+pub unsafe fn vp8_dequant_idct_add_y_block_neon(
     mut q: *mut ::core::ffi::c_short,
     mut dq: *mut ::core::ffi::c_short,
     mut dst: *mut ::core::ffi::c_uchar,
@@ -71,7 +71,7 @@ pub unsafe extern "C" fn vp8_dequant_idct_add_y_block_neon(
     }
 }
 #[no_mangle]
-pub unsafe extern "C" fn vp8_dequant_idct_add_uv_block_neon(
+pub unsafe fn vp8_dequant_idct_add_uv_block_neon(
     mut q: *mut ::core::ffi::c_short,
     mut dq: *mut ::core::ffi::c_short,
     mut dst_u: *mut ::core::ffi::c_uchar,

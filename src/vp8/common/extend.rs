@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -62,7 +62,7 @@ pub struct yv12_buffer_config {
     pub flags: ::core::ffi::c_int,
 }
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
-unsafe extern "C" fn copy_and_extend_plane(
+unsafe fn copy_and_extend_plane(
     mut s: *mut ::core::ffi::c_uchar,
     mut sp: ::core::ffi::c_int,
     mut d: *mut ::core::ffi::c_uchar,
@@ -156,7 +156,7 @@ unsafe extern "C" fn copy_and_extend_plane(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_copy_and_extend_frame(
+pub unsafe fn vp8_copy_and_extend_frame(
     mut src: *mut YV12_BUFFER_CONFIG,
     mut dst: *mut YV12_BUFFER_CONFIG,
 ) {
@@ -219,7 +219,7 @@ pub unsafe extern "C" fn vp8_copy_and_extend_frame(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_copy_and_extend_frame_with_rect(
+pub unsafe fn vp8_copy_and_extend_frame_with_rect(
     mut src: *mut YV12_BUFFER_CONFIG,
     mut dst: *mut YV12_BUFFER_CONFIG,
     mut srcy: ::core::ffi::c_int,
@@ -308,7 +308,7 @@ pub unsafe extern "C" fn vp8_copy_and_extend_frame_with_rect(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_extend_mb_row(
+pub unsafe fn vp8_extend_mb_row(
     mut ybf: *mut YV12_BUFFER_CONFIG,
     mut YPtr: *mut ::core::ffi::c_uchar,
     mut UPtr: *mut ::core::ffi::c_uchar,

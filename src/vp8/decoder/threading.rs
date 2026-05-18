@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn vp8_dc_only_idct_add_c(
         input_dc: ::core::ffi::c_short,
         pred_ptr: *mut ::core::ffi::c_uchar,
@@ -91,7 +91,7 @@ unsafe extern "C" {
     fn pthread_create(
         _: *mut pthread_t,
         _: *const pthread_attr_t,
-        _: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> *mut ::core::ffi::c_void>,
+        _: Option<unsafe fn(*mut ::core::ffi::c_void) -> *mut ::core::ffi::c_void>,
         _: *mut ::core::ffi::c_void,
     ) -> ::core::ffi::c_int;
     fn pthread_join(_: pthread_t, _: *mut *mut ::core::ffi::c_void) -> ::core::ffi::c_int;
@@ -100,7 +100,6 @@ unsafe extern "C" {
         info: *mut vpx_internal_error_info,
         error: vpx_codec_err_t,
         fmt: *const ::core::ffi::c_char,
-        ...
     );
     fn vp8_loop_filter_frame_init(
         cm: *mut VP8Common,
@@ -288,8 +287,7 @@ pub const VPX_CODEC_ABI_MISMATCH: vpx_codec_err_t = 3;
 pub const VPX_CODEC_MEM_ERROR: vpx_codec_err_t = 2;
 pub const VPX_CODEC_ERROR: vpx_codec_err_t = 1;
 pub const VPX_CODEC_OK: vpx_codec_err_t = 0;
-pub type vp8_subpix_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vp8_subpix_fn_t = Option<unsafe fn(
         *mut ::core::ffi::c_uchar,
         ::core::ffi::c_int,
         ::core::ffi::c_int,
@@ -398,7 +396,7 @@ pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct __darwin_pthread_handler_rec {
-    pub __routine: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>,
+    pub __routine: Option<unsafe fn(*mut ::core::ffi::c_void) -> ()>,
     pub __arg: *mut ::core::ffi::c_void,
     pub __next: *mut __darwin_pthread_handler_rec,
 }
@@ -462,8 +460,7 @@ pub struct VP8D_COMP {
     pub decrypt_state: *mut ::core::ffi::c_void,
     pub restart_threads: ::core::ffi::c_int,
 }
-pub type vpx_decrypt_cb = Option<
-    unsafe extern "C" fn(
+pub type vpx_decrypt_cb = Option<unsafe fn(
         *mut ::core::ffi::c_void,
         *const ::core::ffi::c_uchar,
         *mut ::core::ffi::c_uchar,
@@ -650,7 +647,7 @@ pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
 pub const VP8_LOTS_OF_BITS: ::core::ffi::c_int = 0x40000000 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> ::core::ffi::c_int {
+unsafe fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> ::core::ffi::c_int {
     unsafe {
         if (*br).count > VP8_BD_VALUE_SIZE && (*br).count < VP8_LOTS_OF_BITS {
             return 1 as ::core::ffi::c_int;
@@ -660,7 +657,7 @@ unsafe extern "C" fn vp8dx_bool_error(mut br: *mut BOOL_DECODER) -> ::core::ffi:
 }
 pub const SYNC_POLICY_FIFO: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vpx_atomic_init(
+unsafe fn vpx_atomic_init(
     mut atomic: *mut vpx_atomic_int,
     mut value: ::core::ffi::c_int,
 ) {
@@ -669,7 +666,7 @@ unsafe extern "C" fn vpx_atomic_init(
     }
 }
 #[inline]
-unsafe extern "C" fn vpx_atomic_store_release(
+unsafe fn vpx_atomic_store_release(
     mut atomic: *mut vpx_atomic_int,
     mut value: ::core::ffi::c_int,
 ) {
@@ -679,7 +676,7 @@ unsafe extern "C" fn vpx_atomic_store_release(
     }
 }
 #[inline]
-unsafe extern "C" fn vpx_atomic_load_acquire(
+unsafe fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int {
     unsafe {
@@ -688,7 +685,7 @@ unsafe extern "C" fn vpx_atomic_load_acquire(
     }
 }
 #[inline]
-unsafe extern "C" fn vp8_atomic_spin_wait(
+unsafe fn vp8_atomic_spin_wait(
     mut mb_col: ::core::ffi::c_int,
     mut last_row_current_mb_col: *const vpx_atomic_int,
     nsync: ::core::ffi::c_int,
@@ -700,7 +697,7 @@ unsafe extern "C" fn vp8_atomic_spin_wait(
     }
 }
 #[inline]
-unsafe extern "C" fn intra_prediction_down_copy(
+unsafe fn intra_prediction_down_copy(
     mut xd: *mut MACROBLOCKD,
     mut above_right_src: *mut ::core::ffi::c_uchar,
 ) {
@@ -727,7 +724,7 @@ unsafe extern "C" fn intra_prediction_down_copy(
     }
 }
 #[inline]
-unsafe extern "C" fn setup_intra_recon_left(
+unsafe fn setup_intra_recon_left(
     mut y_buffer: *mut ::core::ffi::c_uchar,
     mut u_buffer: *mut ::core::ffi::c_uchar,
     mut v_buffer: *mut ::core::ffi::c_uchar,
@@ -756,7 +753,7 @@ unsafe extern "C" fn setup_intra_recon_left(
         }
     }
 }
-unsafe extern "C" fn setup_decoding_thread_data(
+unsafe fn setup_decoding_thread_data(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
     mut mbrd: *mut MB_ROW_DEC,
@@ -844,7 +841,7 @@ unsafe extern "C" fn setup_decoding_thread_data(
         }
     }
 }
-unsafe extern "C" fn mt_decode_macroblock(
+unsafe fn mt_decode_macroblock(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
     _mb_idx: ::core::ffi::c_uint,
@@ -1056,7 +1053,7 @@ unsafe extern "C" fn mt_decode_macroblock(
         }
     }
 }
-unsafe extern "C" fn mt_decode_mb_rows(
+unsafe fn mt_decode_mb_rows(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
     mut start_mb_row: ::core::ffi::c_int,
@@ -1563,7 +1560,7 @@ unsafe extern "C" fn mt_decode_mb_rows(
         }
     }
 }
-unsafe extern "C" fn thread_decoding_proc(
+unsafe fn thread_decoding_proc(
     mut p_data: *mut ::core::ffi::c_void,
 ) -> *mut ::core::ffi::c_void {
     unsafe {
@@ -1606,7 +1603,7 @@ unsafe extern "C" fn thread_decoding_proc(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
+pub unsafe fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
     unsafe {
         let mut core_count: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
         let mut ithread: ::core::ffi::c_uint = 0;
@@ -1716,7 +1713,7 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
                     ::core::ptr::null::<::core::ffi::c_void>(),
                     Some(
                         thread_decoding_proc
-                            as unsafe extern "C" fn(
+                            as unsafe fn(
                                 *mut ::core::ffi::c_void,
                             )
                                 -> *mut ::core::ffi::c_void,
@@ -1754,7 +1751,7 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8mt_de_alloc_temp_buffers(
+pub unsafe fn vp8mt_de_alloc_temp_buffers(
     mut pbi: *mut VP8D_COMP,
     mut mb_rows: ::core::ffi::c_int,
 ) {
@@ -1831,7 +1828,7 @@ pub unsafe extern "C" fn vp8mt_de_alloc_temp_buffers(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
+pub unsafe fn vp8mt_alloc_temp_buffers(
     mut pbi: *mut VP8D_COMP,
     mut width: ::core::ffi::c_int,
     mut prev_mb_rows: ::core::ffi::c_int,
@@ -2078,7 +2075,7 @@ pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) {
+pub unsafe fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) {
     unsafe {
         if vpx_atomic_load_acquire(&raw mut (*pbi).b_multithreaded_rd) != 0 {
             let mut i: ::core::ffi::c_int = 0;
@@ -2118,7 +2115,7 @@ pub unsafe extern "C" fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8mt_decode_mb_rows(
+pub unsafe fn vp8mt_decode_mb_rows(
     mut pbi: *mut VP8D_COMP,
     mut xd: *mut MACROBLOCKD,
 ) -> ::core::ffi::c_int {

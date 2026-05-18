@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     static vp8_norm: [::core::ffi::c_uchar; 256];
     fn vp8dx_bool_decoder_fill(br: *mut BOOL_DECODER);
     fn memset(
@@ -28,7 +28,7 @@ pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct __darwin_pthread_handler_rec {
-    pub __routine: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>,
+    pub __routine: Option<unsafe fn(*mut ::core::ffi::c_void) -> ()>,
     pub __arg: *mut ::core::ffi::c_void,
     pub __next: *mut __darwin_pthread_handler_rec,
 }
@@ -179,8 +179,7 @@ pub struct blockd {
     pub bmi: b_mode_info,
 }
 pub type BLOCKD = blockd;
-pub type vp8_subpix_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vp8_subpix_fn_t = Option<unsafe fn(
         *mut ::core::ffi::c_uchar,
         ::core::ffi::c_int,
         ::core::ffi::c_int,
@@ -283,8 +282,7 @@ pub struct VP8D_COMP {
     pub decrypt_state: *mut ::core::ffi::c_void,
     pub restart_threads: ::core::ffi::c_int,
 }
-pub type vpx_decrypt_cb = Option<
-    unsafe extern "C" fn(
+pub type vpx_decrypt_cb = Option<unsafe fn(
         *mut ::core::ffi::c_void,
         *const ::core::ffi::c_uchar,
         *mut ::core::ffi::c_uchar,
@@ -446,7 +444,7 @@ pub type ProbaArray = *const [[uint8_t; 11]; 3];
 pub const CHAR_BIT: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
 pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
-unsafe extern "C" fn vp8dx_decode_bool(
+unsafe fn vp8dx_decode_bool(
     mut br: *mut BOOL_DECODER,
     mut probability: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -487,7 +485,7 @@ unsafe extern "C" fn vp8dx_decode_bool(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
+pub unsafe fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
     unsafe {
         let mut a_ctx: *mut ENTROPY_CONTEXT = (*x).above_context as *mut ENTROPY_CONTEXT;
         let mut l_ctx: *mut ENTROPY_CONTEXT = (*x).left_context as *mut ENTROPY_CONTEXT;
@@ -588,7 +586,7 @@ static mut kZigzag: [uint8_t; 16] = [
     14 as ::core::ffi::c_int as uint8_t,
     15 as ::core::ffi::c_int as uint8_t,
 ];
-unsafe extern "C" fn GetSigned(
+unsafe fn GetSigned(
     mut br: *mut BOOL_DECODER,
     mut value_to_sign: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -616,7 +614,7 @@ unsafe extern "C" fn GetSigned(
         v
     }
 }
-unsafe extern "C" fn GetCoeffs(
+unsafe fn GetCoeffs(
     mut br: *mut BOOL_DECODER,
     mut prob: ProbaArray,
     mut ctx: ::core::ffi::c_int,
@@ -743,7 +741,7 @@ unsafe extern "C" fn GetCoeffs(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_decode_mb_tokens(
+pub unsafe fn vp8_decode_mb_tokens(
     mut dx: *mut VP8D_COMP,
     mut x: *mut MACROBLOCKD,
 ) -> ::core::ffi::c_int {

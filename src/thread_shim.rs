@@ -12,7 +12,7 @@ struct Semaphore {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_semaphore_create(
+pub unsafe fn vp8_semaphore_create(
     _task: u32,
     sem: *mut semaphore_t,
     _policy: i32,
@@ -29,7 +29,7 @@ pub unsafe extern "C" fn vp8_semaphore_create(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_semaphore_destroy(_task: u32, sem: semaphore_t) -> i32 {
+pub unsafe fn vp8_semaphore_destroy(_task: u32, sem: semaphore_t) -> i32 {
     unsafe {
         if !sem.is_null() {
             let _ = Box::from_raw(sem as *mut Semaphore);
@@ -39,7 +39,7 @@ pub unsafe extern "C" fn vp8_semaphore_destroy(_task: u32, sem: semaphore_t) -> 
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_semaphore_wait(sem: semaphore_t) -> i32 {
+pub unsafe fn vp8_semaphore_wait(sem: semaphore_t) -> i32 {
     unsafe {
         if sem.is_null() {
             return -1;
@@ -55,7 +55,7 @@ pub unsafe extern "C" fn vp8_semaphore_wait(sem: semaphore_t) -> i32 {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_semaphore_signal(sem: semaphore_t) -> i32 {
+pub unsafe fn vp8_semaphore_signal(sem: semaphore_t) -> i32 {
     unsafe {
         if sem.is_null() {
             return -1;
@@ -76,10 +76,10 @@ struct ThreadArg(*mut c_void);
 unsafe impl Send for ThreadArg {}
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_pthread_create(
+pub unsafe fn vp8_pthread_create(
     thread: *mut pthread_t,
     _attr: *const c_void,
-    start_routine: Option<unsafe extern "C" fn(*mut c_void) -> *mut c_void>,
+    start_routine: Option<unsafe fn(*mut c_void) -> *mut c_void>,
     arg: *mut c_void,
 ) -> i32 {
     unsafe {
@@ -88,7 +88,7 @@ pub unsafe extern "C" fn vp8_pthread_create(
             let arg_ptr = arg as usize;
             let handle = thread::spawn(move || {
                 eprintln!("Thread started!");
-                let r: unsafe extern "C" fn(*mut c_void) -> *mut c_void =
+                let r: unsafe fn(*mut c_void) -> *mut c_void =
                     core::mem::transmute(routine_ptr);
                 r(arg_ptr as *mut c_void) as usize
             });
@@ -105,7 +105,7 @@ pub unsafe extern "C" fn vp8_pthread_create(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_pthread_join(thread: pthread_t, retval: *mut *mut c_void) -> i32 {
+pub unsafe fn vp8_pthread_join(thread: pthread_t, retval: *mut *mut c_void) -> i32 {
     unsafe {
         if thread.is_null() {
             return -1;

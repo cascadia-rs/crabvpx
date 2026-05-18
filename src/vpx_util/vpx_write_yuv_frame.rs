@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     pub type __sFILEX;
 }
 pub type __int64_t = i64;
@@ -23,19 +23,16 @@ pub struct __sFILE {
     pub _bf: __sbuf,
     pub _lbfsize: ::core::ffi::c_int,
     pub _cookie: *mut ::core::ffi::c_void,
-    pub _close: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ::core::ffi::c_int>,
-    pub _read: Option<
-        unsafe extern "C" fn(
+    pub _close: Option<unsafe fn(*mut ::core::ffi::c_void) -> ::core::ffi::c_int>,
+    pub _read: Option<unsafe fn(
             *mut ::core::ffi::c_void,
             *mut ::core::ffi::c_char,
             ::core::ffi::c_int,
         ) -> ::core::ffi::c_int,
     >,
-    pub _seek: Option<
-        unsafe extern "C" fn(*mut ::core::ffi::c_void, fpos_t, ::core::ffi::c_int) -> fpos_t,
+    pub _seek: Option<unsafe fn(*mut ::core::ffi::c_void, fpos_t, ::core::ffi::c_int) -> fpos_t,
     >,
-    pub _write: Option<
-        unsafe extern "C" fn(
+    pub _write: Option<unsafe fn(
             *mut ::core::ffi::c_void,
             *const ::core::ffi::c_char,
             ::core::ffi::c_int,
@@ -102,4 +99,4 @@ pub struct yv12_buffer_config {
 }
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_write_yuv_frame(_yuv_file: *mut FILE, _s: *mut YV12_BUFFER_CONFIG) {}
+pub unsafe fn vpx_write_yuv_frame(_yuv_file: *mut FILE, _s: *mut YV12_BUFFER_CONFIG) {}

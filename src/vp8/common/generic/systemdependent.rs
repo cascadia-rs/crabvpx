@@ -1,4 +1,4 @@
-unsafe extern "C" {}
+unsafe extern "Rust" {}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union b_mode_info {
@@ -242,13 +242,13 @@ pub type CLAMP_TYPE = ::core::ffi::c_uint;
 pub const RECON_CLAMP_NOTREQUIRED: CLAMP_TYPE = 1;
 pub const RECON_CLAMP_REQUIRED: CLAMP_TYPE = 0;
 pub type VP8_COMMON = VP8Common;
-unsafe extern "C" fn get_cpu_count() -> ::core::ffi::c_int {
+unsafe fn get_cpu_count() -> ::core::ffi::c_int {
     ::std::thread::available_parallelism()
         .map(|p| p.get())
         .unwrap_or(1) as ::core::ffi::c_int
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_machine_specific_config(mut ctx: *mut VP8_COMMON) {
+pub unsafe fn vp8_machine_specific_config(mut ctx: *mut VP8_COMMON) {
     unsafe {
         (*ctx).processor_core_count = get_cpu_count();
     }

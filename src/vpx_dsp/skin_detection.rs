@@ -22,7 +22,7 @@ static mut skin_threshold: [::core::ffi::c_int; 6] = [
 ];
 static mut y_low: ::core::ffi::c_int = 40 as ::core::ffi::c_int;
 static mut y_high: ::core::ffi::c_int = 220 as ::core::ffi::c_int;
-unsafe extern "C" fn vpx_evaluate_skin_color_difference(
+unsafe fn vpx_evaluate_skin_color_difference(
     cb: ::core::ffi::c_int,
     cr: ::core::ffi::c_int,
     idx: ::core::ffi::c_int,
@@ -57,7 +57,7 @@ unsafe extern "C" fn vpx_evaluate_skin_color_difference(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_skin_pixel(
+pub unsafe fn vpx_skin_pixel(
     y: ::core::ffi::c_int,
     cb: ::core::ffi::c_int,
     cr: ::core::ffi::c_int,

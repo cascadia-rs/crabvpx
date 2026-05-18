@@ -9,7 +9,7 @@ pub struct vp8_token_struct {
 pub type vp8_token = vp8_token_struct;
 pub type uint64_t = u64;
 pub const vp8_prob_half: vp8_prob = 128 as ::core::ffi::c_int as vp8_prob;
-unsafe extern "C" fn tree2tok(
+unsafe fn tree2tok(
     p: *mut vp8_token_struct,
     mut t: *const vp8_tree_index,
     mut i: ::core::ffi::c_int,
@@ -37,7 +37,7 @@ unsafe extern "C" fn tree2tok(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_tokens_from_tree(
+pub unsafe fn vp8_tokens_from_tree(
     mut p: *mut vp8_token_struct,
     mut t: *const vp8_tree_index,
 ) {
@@ -52,7 +52,7 @@ pub unsafe extern "C" fn vp8_tokens_from_tree(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_tokens_from_tree_offset(
+pub unsafe fn vp8_tokens_from_tree_offset(
     mut p: *mut vp8_token_struct,
     mut t: *const vp8_tree_index,
     mut offset: ::core::ffi::c_int,
@@ -67,7 +67,7 @@ pub unsafe extern "C" fn vp8_tokens_from_tree_offset(
         );
     }
 }
-unsafe extern "C" fn branch_counts(
+unsafe fn branch_counts(
     mut n: ::core::ffi::c_int,
     mut tok: *const vp8_token,
     mut tree: *const vp8_tree_index,
@@ -111,7 +111,7 @@ unsafe extern "C" fn branch_counts(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_tree_probs_from_distribution(
+pub unsafe fn vp8_tree_probs_from_distribution(
     mut n: ::core::ffi::c_int,
     mut tok: *const vp8_token,
     mut tree: *const vp8_tree_index,

@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -8,7 +8,7 @@ unsafe extern "C" {
 pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_horizontal_line_5_4_scale_c(
+pub unsafe fn vp8_horizontal_line_5_4_scale_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_width: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
@@ -53,7 +53,7 @@ pub unsafe extern "C" fn vp8_horizontal_line_5_4_scale_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_vertical_band_5_4_scale_c(
+pub unsafe fn vp8_vertical_band_5_4_scale_c(
     mut source: *mut ::core::ffi::c_uchar,
     mut src_pitch: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
@@ -105,7 +105,7 @@ pub unsafe extern "C" fn vp8_vertical_band_5_4_scale_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_horizontal_line_5_3_scale_c(
+pub unsafe fn vp8_horizontal_line_5_3_scale_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_width: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
@@ -145,7 +145,7 @@ pub unsafe extern "C" fn vp8_horizontal_line_5_3_scale_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_vertical_band_5_3_scale_c(
+pub unsafe fn vp8_vertical_band_5_3_scale_c(
     mut source: *mut ::core::ffi::c_uchar,
     mut src_pitch: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
@@ -192,7 +192,7 @@ pub unsafe extern "C" fn vp8_vertical_band_5_3_scale_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_horizontal_line_2_1_scale_c(
+pub unsafe fn vp8_horizontal_line_2_1_scale_c(
     mut source: *const ::core::ffi::c_uchar,
     mut source_width: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
@@ -214,7 +214,7 @@ pub unsafe extern "C" fn vp8_horizontal_line_2_1_scale_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_vertical_band_2_1_scale_c(
+pub unsafe fn vp8_vertical_band_2_1_scale_c(
     mut source: *mut ::core::ffi::c_uchar,
     _src_pitch: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,
@@ -230,7 +230,7 @@ pub unsafe extern "C" fn vp8_vertical_band_2_1_scale_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_vertical_band_2_1_scale_i_c(
+pub unsafe fn vp8_vertical_band_2_1_scale_i_c(
     mut source: *mut ::core::ffi::c_uchar,
     mut src_pitch: ::core::ffi::c_uint,
     mut dest: *mut ::core::ffi::c_uchar,

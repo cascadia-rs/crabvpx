@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn vpx_memalign(align: size_t, size: size_t) -> *mut ::core::ffi::c_void;
     fn vpx_free(memblk: *mut ::core::ffi::c_void);
     fn memset(
@@ -62,7 +62,7 @@ pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_yv12_de_alloc_frame_buffer(
+pub unsafe fn vp8_yv12_de_alloc_frame_buffer(
     mut ybf: *mut YV12_BUFFER_CONFIG,
 ) -> ::core::ffi::c_int {
     unsafe {
@@ -82,7 +82,7 @@ pub unsafe extern "C" fn vp8_yv12_de_alloc_frame_buffer(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_yv12_realloc_frame_buffer(
+pub unsafe fn vp8_yv12_realloc_frame_buffer(
     mut ybf: *mut YV12_BUFFER_CONFIG,
     mut width: ::core::ffi::c_int,
     mut height: ::core::ffi::c_int,
@@ -157,7 +157,7 @@ pub unsafe extern "C" fn vp8_yv12_realloc_frame_buffer(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_yv12_alloc_frame_buffer(
+pub unsafe fn vp8_yv12_alloc_frame_buffer(
     mut ybf: *mut YV12_BUFFER_CONFIG,
     mut width: ::core::ffi::c_int,
     mut height: ::core::ffi::c_int,

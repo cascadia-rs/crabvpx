@@ -1,7 +1,7 @@
 pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
 pub type uint8_t = u8;
-pub type vpx_rb_error_handler = Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>;
+pub type vpx_rb_error_handler = Option<unsafe fn(*mut ::core::ffi::c_void) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vpx_read_bit_buffer {
@@ -14,11 +14,11 @@ pub struct vpx_read_bit_buffer {
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_rb_bytes_read(mut rb: *mut vpx_read_bit_buffer) -> size_t {
+pub unsafe fn vpx_rb_bytes_read(mut rb: *mut vpx_read_bit_buffer) -> size_t {
     unsafe { (*rb).bit_offset.wrapping_add(7 as size_t) >> 3 as ::core::ffi::c_int }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_rb_read_bit(mut rb: *mut vpx_read_bit_buffer) -> ::core::ffi::c_int {
+pub unsafe fn vpx_rb_read_bit(mut rb: *mut vpx_read_bit_buffer) -> ::core::ffi::c_int {
     unsafe {
         let off: size_t = (*rb).bit_offset;
         let p: size_t = off >> 3 as ::core::ffi::c_int;
@@ -38,7 +38,7 @@ pub unsafe extern "C" fn vpx_rb_read_bit(mut rb: *mut vpx_read_bit_buffer) -> ::
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_rb_read_literal(
+pub unsafe fn vpx_rb_read_literal(
     mut rb: *mut vpx_read_bit_buffer,
     mut bits: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -54,7 +54,7 @@ pub unsafe extern "C" fn vpx_rb_read_literal(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_rb_read_signed_literal(
+pub unsafe fn vpx_rb_read_signed_literal(
     mut rb: *mut vpx_read_bit_buffer,
     mut bits: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -68,7 +68,7 @@ pub unsafe extern "C" fn vpx_rb_read_signed_literal(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_rb_read_inv_signed_literal(
+pub unsafe fn vpx_rb_read_inv_signed_literal(
     mut rb: *mut vpx_read_bit_buffer,
     mut bits: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {

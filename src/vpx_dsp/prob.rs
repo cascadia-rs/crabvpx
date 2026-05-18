@@ -4,7 +4,7 @@ pub type uint64_t = u64;
 pub type vpx_prob = uint8_t;
 pub type vpx_tree_index = int8_t;
 #[inline]
-unsafe extern "C" fn get_prob(
+unsafe fn get_prob(
     mut num: ::core::ffi::c_uint,
     mut den: ::core::ffi::c_uint,
 ) -> vpx_prob {
@@ -18,7 +18,7 @@ unsafe extern "C" fn get_prob(
     clipped_prob as vpx_prob
 }
 #[inline]
-unsafe extern "C" fn weighted_prob(
+unsafe fn weighted_prob(
     mut prob1: ::core::ffi::c_int,
     mut prob2: ::core::ffi::c_int,
     mut factor: ::core::ffi::c_int,
@@ -52,7 +52,7 @@ static mut count_to_update_factor: [::core::ffi::c_int; 21] = [
     128 as ::core::ffi::c_int,
 ];
 #[inline]
-unsafe extern "C" fn mode_mv_merge_probs(
+unsafe fn mode_mv_merge_probs(
     mut pre_prob: vpx_prob,
     mut ct: *const ::core::ffi::c_uint,
 ) -> vpx_prob {
@@ -338,7 +338,7 @@ pub static mut vpx_norm: [uint8_t; 256] = [
     0 as ::core::ffi::c_int as uint8_t,
     0 as ::core::ffi::c_int as uint8_t,
 ];
-unsafe extern "C" fn tree_merge_probs_impl(
+unsafe fn tree_merge_probs_impl(
     mut i: ::core::ffi::c_uint,
     mut tree: *const vpx_tree_index,
     mut pre_probs: *const vpx_prob,
@@ -370,7 +370,7 @@ unsafe extern "C" fn tree_merge_probs_impl(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_tree_merge_probs(
+pub unsafe fn vpx_tree_merge_probs(
     mut tree: *const vpx_tree_index,
     mut pre_probs: *const vpx_prob,
     mut counts: *const ::core::ffi::c_uint,

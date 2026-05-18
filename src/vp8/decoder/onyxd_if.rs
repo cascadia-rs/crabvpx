@@ -1,16 +1,15 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
     fn vpx_internal_error(
         info: *mut vpx_internal_error_info,
         error: vpx_codec_err_t,
         fmt: *const ::core::ffi::c_char,
-        ...
     );
     fn vp8_loop_filter_init(cm: *mut VP8Common);
     fn vp8_setup_block_dptrs(x: *mut MACROBLOCKD);
     fn pthread_once(
         _: *mut pthread_once_t,
-        _: Option<unsafe extern "C" fn() -> ()>,
+        _: Option<unsafe fn() -> ()>,
     ) -> ::core::ffi::c_int;
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
@@ -150,8 +149,7 @@ pub const VPX_CODEC_ABI_MISMATCH: vpx_codec_err_t = 3;
 pub const VPX_CODEC_MEM_ERROR: vpx_codec_err_t = 2;
 pub const VPX_CODEC_ERROR: vpx_codec_err_t = 1;
 pub const VPX_CODEC_OK: vpx_codec_err_t = 0;
-pub type vp8_subpix_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vp8_subpix_fn_t = Option<unsafe fn(
         *mut ::core::ffi::c_uchar,
         ::core::ffi::c_int,
         ::core::ffi::c_int,
@@ -252,7 +250,7 @@ pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct __darwin_pthread_handler_rec {
-    pub __routine: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>,
+    pub __routine: Option<unsafe fn(*mut ::core::ffi::c_void) -> ()>,
     pub __arg: *mut ::core::ffi::c_void,
     pub __next: *mut __darwin_pthread_handler_rec,
 }
@@ -437,8 +435,7 @@ pub struct VP8D_COMP {
     pub decrypt_state: *mut ::core::ffi::c_void,
     pub restart_threads: ::core::ffi::c_int,
 }
-pub type vpx_decrypt_cb = Option<
-    unsafe extern "C" fn(
+pub type vpx_decrypt_cb = Option<unsafe fn(
         *mut ::core::ffi::c_void,
         *const ::core::ffi::c_uchar,
         *mut ::core::ffi::c_uchar,
@@ -505,7 +502,7 @@ pub struct frame_buffers {
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
 pub const _PTHREAD_ONCE_SIG_init: ::core::ffi::c_int = 0x30b1bcba as ::core::ffi::c_int;
 pub const NUM_YV12_BUFFERS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
-unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
+unsafe fn once(mut func: Option<unsafe fn() -> ()>) {
     unsafe {
         static INIT: std::sync::Once = std::sync::Once::new();
         if let Some(f) = func {
@@ -513,7 +510,7 @@ unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
         }
     }
 }
-unsafe extern "C" fn initialize_dec() {
+unsafe fn initialize_dec() {
     unsafe {
         static mut init_done: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
         if init_done == 0 {
@@ -526,13 +523,13 @@ unsafe extern "C" fn initialize_dec() {
         }
     }
 }
-unsafe extern "C" fn remove_decompressor(mut pbi: *mut VP8D_COMP) {
+unsafe fn remove_decompressor(mut pbi: *mut VP8D_COMP) {
     unsafe {
         vp8_remove_common(&raw mut (*pbi).common);
         vpx_free(pbi as *mut ::core::ffi::c_void);
     }
 }
-unsafe extern "C" fn create_decompressor(_oxcf: *mut VP8D_CONFIG) -> *mut VP8D_COMP {
+unsafe fn create_decompressor(_oxcf: *mut VP8D_CONFIG) -> *mut VP8D_COMP {
     unsafe {
         let mut pbi: *mut VP8D_COMP =
             vpx_memalign(32 as size_t, ::core::mem::size_of::<VP8D_COMP>() as size_t)
@@ -562,12 +559,12 @@ unsafe extern "C" fn create_decompressor(_oxcf: *mut VP8D_CONFIG) -> *mut VP8D_C
         (*pbi).decoded_key_frame = 0 as ::core::ffi::c_int;
         (*pbi).independent_partitions = 0 as ::core::ffi::c_int;
         vp8_setup_block_dptrs(&raw mut (*pbi).mb);
-        once(Some(initialize_dec as unsafe extern "C" fn() -> ()));
+        once(Some(initialize_dec as unsafe fn() -> ()));
         pbi as *mut VP8D_COMP
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_get_reference(
+pub unsafe fn vp8dx_get_reference(
     mut pbi: *mut VP8D_COMP,
     mut ref_frame_flag: vpx_ref_frame_type,
     mut sd: *mut YV12_BUFFER_CONFIG,
@@ -616,7 +613,7 @@ pub unsafe extern "C" fn vp8dx_get_reference(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_set_reference(
+pub unsafe fn vp8dx_set_reference(
     mut pbi: *mut VP8D_COMP,
     mut ref_frame_flag: vpx_ref_frame_type,
     mut sd: *mut YV12_BUFFER_CONFIG,
@@ -672,7 +669,7 @@ pub unsafe extern "C" fn vp8dx_set_reference(
         (*pbi).common.error.error_code
     }
 }
-unsafe extern "C" fn get_free_fb(mut cm: *mut VP8_COMMON) -> ::core::ffi::c_int {
+unsafe fn get_free_fb(mut cm: *mut VP8_COMMON) -> ::core::ffi::c_int {
     unsafe {
         let mut i: ::core::ffi::c_int = 0;
         i = 0 as ::core::ffi::c_int;
@@ -686,7 +683,7 @@ unsafe extern "C" fn get_free_fb(mut cm: *mut VP8_COMMON) -> ::core::ffi::c_int 
         i
     }
 }
-unsafe extern "C" fn ref_cnt_fb(
+unsafe fn ref_cnt_fb(
     mut buf: *mut ::core::ffi::c_int,
     mut idx: *mut ::core::ffi::c_int,
     mut new_idx: ::core::ffi::c_int,
@@ -701,7 +698,7 @@ unsafe extern "C" fn ref_cnt_fb(
         *fresh1 += 1;
     }
 }
-unsafe extern "C" fn swap_frame_buffers(mut cm: *mut VP8_COMMON) -> ::core::ffi::c_int {
+unsafe fn swap_frame_buffers(mut cm: *mut VP8_COMMON) -> ::core::ffi::c_int {
     unsafe {
         let mut err: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
         if (*cm).copy_buffer_to_arf != 0 {
@@ -766,7 +763,7 @@ unsafe extern "C" fn swap_frame_buffers(mut cm: *mut VP8_COMMON) -> ::core::ffi:
         err
     }
 }
-unsafe extern "C" fn check_fragments_for_errors(mut pbi: *mut VP8D_COMP) -> ::core::ffi::c_int {
+unsafe fn check_fragments_for_errors(mut pbi: *mut VP8D_COMP) -> ::core::ffi::c_int {
     unsafe {
         if (*pbi).ec_active == 0
             && (*pbi).fragments.count <= 1 as ::core::ffi::c_uint
@@ -793,7 +790,7 @@ unsafe extern "C" fn check_fragments_for_errors(mut pbi: *mut VP8D_COMP) -> ::co
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_receive_compressed_data(
+pub unsafe fn vp8dx_receive_compressed_data(
     mut pbi: *mut VP8D_COMP,
 ) -> ::core::ffi::c_int {
     unsafe {
@@ -846,7 +843,7 @@ pub unsafe extern "C" fn vp8dx_receive_compressed_data(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_get_raw_frame(
+pub unsafe fn vp8dx_get_raw_frame(
     mut pbi: *mut VP8D_COMP,
     mut sd: *mut YV12_BUFFER_CONFIG,
     _flags: *mut vp8_ppflags_t,
@@ -873,7 +870,7 @@ pub unsafe extern "C" fn vp8dx_get_raw_frame(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_references_buffer(
+pub unsafe fn vp8dx_references_buffer(
     mut oci: *mut VP8_COMMON,
     mut ref_frame: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -898,7 +895,7 @@ pub unsafe extern "C" fn vp8dx_references_buffer(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_create_decoder_instances(
+pub unsafe fn vp8_create_decoder_instances(
     mut fb: *mut frame_buffers,
     mut oxcf: *mut VP8D_CONFIG,
 ) -> ::core::ffi::c_int {
@@ -941,7 +938,7 @@ pub unsafe extern "C" fn vp8_create_decoder_instances(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_remove_decoder_instances(
+pub unsafe fn vp8_remove_decoder_instances(
     mut fb: *mut frame_buffers,
 ) -> ::core::ffi::c_int {
     unsafe {
@@ -956,7 +953,7 @@ pub unsafe extern "C" fn vp8_remove_decoder_instances(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_get_quantizer(mut pbi: *const VP8D_COMP) -> ::core::ffi::c_int {
+pub unsafe fn vp8dx_get_quantizer(mut pbi: *const VP8D_COMP) -> ::core::ffi::c_int {
     unsafe { (*pbi).common.base_qindex }
 }
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;

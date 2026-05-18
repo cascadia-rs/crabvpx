@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     static vp8_norm: [::core::ffi::c_uchar; 256];
     fn vp8dx_bool_decoder_fill(br: *mut BOOL_DECODER);
     static vp8_mv_update_probs: [MV_CONTEXT; 2];
@@ -20,7 +20,7 @@ pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct __darwin_pthread_handler_rec {
-    pub __routine: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>,
+    pub __routine: Option<unsafe fn(*mut ::core::ffi::c_void) -> ()>,
     pub __arg: *mut ::core::ffi::c_void,
     pub __next: *mut __darwin_pthread_handler_rec,
 }
@@ -139,8 +139,7 @@ pub struct VP8D_COMP {
     pub decrypt_state: *mut ::core::ffi::c_void,
     pub restart_threads: ::core::ffi::c_int,
 }
-pub type vpx_decrypt_cb = Option<
-    unsafe extern "C" fn(
+pub type vpx_decrypt_cb = Option<unsafe fn(
         *mut ::core::ffi::c_void,
         *const ::core::ffi::c_uchar,
         *mut ::core::ffi::c_uchar,
@@ -221,8 +220,7 @@ pub struct vpx_internal_error_info {
     pub jmp: jmp_buf,
 }
 pub type jmp_buf = [::core::ffi::c_int; 48];
-pub type vp8_subpix_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vp8_subpix_fn_t = Option<unsafe fn(
         *mut ::core::ffi::c_uchar,
         ::core::ffi::c_int,
         ::core::ffi::c_int,
@@ -487,7 +485,7 @@ pub const CHAR_BIT: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
 pub const vp8_prob_half: vp8_prob = 128 as ::core::ffi::c_int as vp8_prob;
 pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
-unsafe extern "C" fn vp8dx_decode_bool(
+unsafe fn vp8dx_decode_bool(
     mut br: *mut BOOL_DECODER,
     mut probability: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -528,7 +526,7 @@ unsafe extern "C" fn vp8dx_decode_bool(
     }
 }
 #[inline]
-unsafe extern "C" fn vp8_decode_value(
+unsafe fn vp8_decode_value(
     mut br: *mut BOOL_DECODER,
     mut bits: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -544,7 +542,7 @@ unsafe extern "C" fn vp8_decode_value(
     }
 }
 #[inline]
-unsafe extern "C" fn vp8_treed_read(
+unsafe fn vp8_treed_read(
     r: *mut vp8_reader,
     mut t: *const vp8_tree_index,
     p: *const vp8_prob,
@@ -568,7 +566,7 @@ unsafe extern "C" fn vp8_treed_read(
     }
 }
 #[inline]
-unsafe extern "C" fn mv_bias(
+unsafe fn mv_bias(
     mut refmb_ref_frame_sign_bias: ::core::ffi::c_int,
     mut refframe: ::core::ffi::c_int,
     mut mvp: *mut int_mv,
@@ -588,7 +586,7 @@ pub const LEFT_TOP_MARGIN: ::core::ffi::c_int =
 pub const RIGHT_BOTTOM_MARGIN: ::core::ffi::c_int =
     (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) {
+unsafe fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) {
     unsafe {
         if ((*mv).as_mv.col as ::core::ffi::c_int) < (*xd).mb_to_left_edge - LEFT_TOP_MARGIN {
             (*mv).as_mv.col = ((*xd).mb_to_left_edge - LEFT_TOP_MARGIN) as ::core::ffi::c_short;
@@ -609,7 +607,7 @@ unsafe extern "C" fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOC
     }
 }
 #[inline]
-unsafe extern "C" fn vp8_check_mv_bounds(
+unsafe fn vp8_check_mv_bounds(
     mut mv: *mut int_mv,
     mut mb_to_left_edge: ::core::ffi::c_int,
     mut mb_to_right_edge: ::core::ffi::c_int,
@@ -630,7 +628,7 @@ unsafe extern "C" fn vp8_check_mv_bounds(
     }
 }
 #[inline]
-unsafe extern "C" fn left_block_mode(
+unsafe fn left_block_mode(
     mut cur_mb: *const MODE_INFO,
     mut b: ::core::ffi::c_int,
 ) -> B_PREDICTION_MODE {
@@ -658,7 +656,7 @@ unsafe extern "C" fn left_block_mode(
     }
 }
 #[inline]
-unsafe extern "C" fn above_block_mode(
+unsafe fn above_block_mode(
     mut cur_mb: *const MODE_INFO,
     mut b: ::core::ffi::c_int,
     mut mi_stride: ::core::ffi::c_int,
@@ -686,7 +684,7 @@ unsafe extern "C" fn above_block_mode(
         .as_mode
     }
 }
-unsafe extern "C" fn read_bmode(
+unsafe fn read_bmode(
     mut bc: *mut vp8_reader,
     mut p: *const vp8_prob,
 ) -> B_PREDICTION_MODE {
@@ -697,7 +695,7 @@ unsafe extern "C" fn read_bmode(
         i as B_PREDICTION_MODE
     }
 }
-unsafe extern "C" fn read_ymode(
+unsafe fn read_ymode(
     mut bc: *mut vp8_reader,
     mut p: *const vp8_prob,
 ) -> MB_PREDICTION_MODE {
@@ -708,7 +706,7 @@ unsafe extern "C" fn read_ymode(
         i as MB_PREDICTION_MODE
     }
 }
-unsafe extern "C" fn read_kf_ymode(
+unsafe fn read_kf_ymode(
     mut bc: *mut vp8_reader,
     mut p: *const vp8_prob,
 ) -> MB_PREDICTION_MODE {
@@ -719,7 +717,7 @@ unsafe extern "C" fn read_kf_ymode(
         i as MB_PREDICTION_MODE
     }
 }
-unsafe extern "C" fn read_uv_mode(
+unsafe fn read_uv_mode(
     mut bc: *mut vp8_reader,
     mut p: *const vp8_prob,
 ) -> MB_PREDICTION_MODE {
@@ -730,7 +728,7 @@ unsafe extern "C" fn read_uv_mode(
         i as MB_PREDICTION_MODE
     }
 }
-unsafe extern "C" fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
+unsafe fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
     unsafe {
         let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
             .offset(8 as ::core::ffi::c_int as isize)
@@ -763,7 +761,7 @@ unsafe extern "C" fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_IN
             read_uv_mode(bc, &raw const vp8_kf_uv_mode_prob as *const vp8_prob) as uint8_t;
     }
 }
-unsafe extern "C" fn read_mvcomponent(
+unsafe fn read_mvcomponent(
     mut r: *mut vp8_reader,
     mut mvc: *const MV_CONTEXT,
 ) -> ::core::ffi::c_int {
@@ -824,14 +822,14 @@ unsafe extern "C" fn read_mvcomponent(
         x
     }
 }
-unsafe extern "C" fn read_mv(mut r: *mut vp8_reader, mut mv: *mut MV, mut mvc: *const MV_CONTEXT) {
+unsafe fn read_mv(mut r: *mut vp8_reader, mut mv: *mut MV, mut mvc: *const MV_CONTEXT) {
     unsafe {
         (*mv).row = (read_mvcomponent(r, mvc) * 2 as ::core::ffi::c_int) as ::core::ffi::c_short;
         mvc = mvc.offset(1);
         (*mv).col = (read_mvcomponent(r, mvc) * 2 as ::core::ffi::c_int) as ::core::ffi::c_short;
     }
 }
-unsafe extern "C" fn read_mvcontexts(mut bc: *mut vp8_reader, mut mvc: *mut MV_CONTEXT) {
+unsafe fn read_mvcontexts(mut bc: *mut vp8_reader, mut mvc: *mut MV_CONTEXT) {
     unsafe {
         let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
         loop {
@@ -946,7 +944,7 @@ static mut mbsplit_fill_offset: [[::core::ffi::c_uchar; 16]; 4] = [
         15 as ::core::ffi::c_int as ::core::ffi::c_uchar,
     ],
 ];
-unsafe extern "C" fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) {
+unsafe fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) {
     unsafe {
         let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
             .offset(8 as ::core::ffi::c_int as isize)
@@ -1041,7 +1039,7 @@ pub static mut vp8_sub_mv_ref_prob3: [[vp8_prob; 3]; 8] = [
         1 as ::core::ffi::c_int as vp8_prob,
     ],
 ];
-unsafe extern "C" fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> *const vp8_prob {
+unsafe fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> *const vp8_prob {
     unsafe {
         let mut lez: ::core::ffi::c_int = (left == 0 as uint32_t) as ::core::ffi::c_int;
         let mut aez: ::core::ffi::c_int = (above == 0 as uint32_t) as ::core::ffi::c_int;
@@ -1053,7 +1051,7 @@ unsafe extern "C" fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> *co
         prob
     }
 }
-unsafe extern "C" fn decode_split_mv(
+unsafe fn decode_split_mv(
     bc: *mut vp8_reader,
     mut mi: *mut MODE_INFO,
     mut left_mb: *const MODE_INFO,
@@ -1199,7 +1197,7 @@ unsafe extern "C" fn decode_split_mv(
         (*mbmi).partitioning = s as uint8_t;
     }
 }
-unsafe extern "C" fn read_mb_modes_mv(
+unsafe fn read_mb_modes_mv(
     mut pbi: *mut VP8D_COMP,
     mut mi: *mut MODE_INFO,
     mut mbmi: *mut MB_MODE_INFO,
@@ -1451,7 +1449,7 @@ unsafe extern "C" fn read_mb_modes_mv(
         };
     }
 }
-unsafe extern "C" fn read_mb_features(
+unsafe fn read_mb_features(
     mut r: *mut vp8_reader,
     mut mi: *mut MB_MODE_INFO,
     mut x: *mut MACROBLOCKD,
@@ -1481,7 +1479,7 @@ unsafe extern "C" fn read_mb_features(
         }
     }
 }
-unsafe extern "C" fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
+unsafe fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
     unsafe {
         if (*pbi).mb.update_mb_segmentation_map != 0 {
             read_mb_features(
@@ -1515,7 +1513,7 @@ unsafe extern "C" fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MO
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) {
+pub unsafe fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) {
     unsafe {
         let mut mi: *mut MODE_INFO = (*pbi).common.mi;
         let mut mb_row: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);

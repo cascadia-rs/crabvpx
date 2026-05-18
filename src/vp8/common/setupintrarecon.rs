@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn memset(
         __b: *mut ::core::ffi::c_void,
         __c: ::core::ffi::c_int,
@@ -58,7 +58,7 @@ pub struct yv12_buffer_config {
 }
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_setup_intra_recon(mut ybf: *mut YV12_BUFFER_CONFIG) {
+pub unsafe fn vp8_setup_intra_recon(mut ybf: *mut YV12_BUFFER_CONFIG) {
     unsafe {
         let mut i: ::core::ffi::c_int = 0;
         memset(
@@ -112,7 +112,7 @@ pub unsafe extern "C" fn vp8_setup_intra_recon(mut ybf: *mut YV12_BUFFER_CONFIG)
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_setup_intra_recon_top_line(mut ybf: *mut YV12_BUFFER_CONFIG) {
+pub unsafe fn vp8_setup_intra_recon_top_line(mut ybf: *mut YV12_BUFFER_CONFIG) {
     unsafe {
         memset(
             (*ybf)

@@ -259,7 +259,7 @@ static mut ac_qlookup: [::core::ffi::c_int; 128] = [
     284 as ::core::ffi::c_int,
 ];
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_dc_quant(
+pub unsafe fn vp8_dc_quant(
     mut QIndex: ::core::ffi::c_int,
     mut Delta: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -276,7 +276,7 @@ pub unsafe extern "C" fn vp8_dc_quant(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_dc2quant(
+pub unsafe fn vp8_dc2quant(
     mut QIndex: ::core::ffi::c_int,
     mut Delta: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -293,7 +293,7 @@ pub unsafe extern "C" fn vp8_dc2quant(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_dc_uv_quant(
+pub unsafe fn vp8_dc_uv_quant(
     mut QIndex: ::core::ffi::c_int,
     mut Delta: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -313,7 +313,7 @@ pub unsafe extern "C" fn vp8_dc_uv_quant(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_ac_yquant(mut QIndex: ::core::ffi::c_int) -> ::core::ffi::c_int {
+pub unsafe fn vp8_ac_yquant(mut QIndex: ::core::ffi::c_int) -> ::core::ffi::c_int {
     unsafe {
         let mut retval: ::core::ffi::c_int = 0;
         if QIndex > 127 as ::core::ffi::c_int {
@@ -326,7 +326,7 @@ pub unsafe extern "C" fn vp8_ac_yquant(mut QIndex: ::core::ffi::c_int) -> ::core
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_ac2quant(
+pub unsafe fn vp8_ac2quant(
     mut QIndex: ::core::ffi::c_int,
     mut Delta: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -347,7 +347,7 @@ pub unsafe extern "C" fn vp8_ac2quant(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_ac_uv_quant(
+pub unsafe fn vp8_ac_uv_quant(
     mut QIndex: ::core::ffi::c_int,
     mut Delta: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {

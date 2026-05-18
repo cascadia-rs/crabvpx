@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -87,14 +87,14 @@ pub const B_VE_PRED: B_PREDICTION_MODE = 2;
 pub const B_TM_PRED: B_PREDICTION_MODE = 1;
 pub const B_DC_PRED: B_PREDICTION_MODE = 0;
 pub type intra_pred_fn =
-    Option<unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> ()>;
+    Option<unsafe fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> ()>;
 static mut pred: [intra_pred_fn; 10] = [None; 10];
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
+pub unsafe fn vp8_init_intra4x4_predictors_internal() {
     unsafe {
         pred[B_DC_PRED as ::core::ffi::c_int as usize] = Some(
             vpx_dc_predictor_4x4_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *mut uint8_t,
                     ptrdiff_t,
                     *const uint8_t,
@@ -103,7 +103,7 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
         ) as intra_pred_fn;
         pred[B_TM_PRED as ::core::ffi::c_int as usize] = Some(
             vpx_tm_predictor_4x4_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *mut uint8_t,
                     ptrdiff_t,
                     *const uint8_t,
@@ -112,7 +112,7 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
         ) as intra_pred_fn;
         pred[B_VE_PRED as ::core::ffi::c_int as usize] = Some(
             vpx_ve_predictor_4x4_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *mut uint8_t,
                     ptrdiff_t,
                     *const uint8_t,
@@ -121,7 +121,7 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
         ) as intra_pred_fn;
         pred[B_HE_PRED as ::core::ffi::c_int as usize] = Some(
             vpx_he_predictor_4x4_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *mut uint8_t,
                     ptrdiff_t,
                     *const uint8_t,
@@ -130,7 +130,7 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
         ) as intra_pred_fn;
         pred[B_LD_PRED as ::core::ffi::c_int as usize] = Some(
             vpx_d45e_predictor_4x4_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *mut uint8_t,
                     ptrdiff_t,
                     *const uint8_t,
@@ -139,7 +139,7 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
         ) as intra_pred_fn;
         pred[B_RD_PRED as ::core::ffi::c_int as usize] = Some(
             vpx_d135_predictor_4x4_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *mut uint8_t,
                     ptrdiff_t,
                     *const uint8_t,
@@ -148,7 +148,7 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
         ) as intra_pred_fn;
         pred[B_VR_PRED as ::core::ffi::c_int as usize] = Some(
             vpx_d117_predictor_4x4_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *mut uint8_t,
                     ptrdiff_t,
                     *const uint8_t,
@@ -157,7 +157,7 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
         ) as intra_pred_fn;
         pred[B_VL_PRED as ::core::ffi::c_int as usize] = Some(
             vpx_d63e_predictor_4x4_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *mut uint8_t,
                     ptrdiff_t,
                     *const uint8_t,
@@ -166,7 +166,7 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
         ) as intra_pred_fn;
         pred[B_HD_PRED as ::core::ffi::c_int as usize] = Some(
             vpx_d153_predictor_4x4_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *mut uint8_t,
                     ptrdiff_t,
                     *const uint8_t,
@@ -175,7 +175,7 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
         ) as intra_pred_fn;
         pred[B_HU_PRED as ::core::ffi::c_int as usize] = Some(
             vpx_d207_predictor_4x4_c
-                as unsafe extern "C" fn(
+                as unsafe fn(
                     *mut uint8_t,
                     ptrdiff_t,
                     *const uint8_t,
@@ -185,7 +185,7 @@ pub unsafe extern "C" fn vp8_init_intra4x4_predictors_internal() {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_intra4x4_predict(
+pub unsafe fn vp8_intra4x4_predict(
     mut above: *mut ::core::ffi::c_uchar,
     mut yleft: *mut ::core::ffi::c_uchar,
     mut left_stride: ::core::ffi::c_int,

@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn vp8_yv12_alloc_frame_buffer(
         ybf: *mut YV12_BUFFER_CONFIG,
         width: ::core::ffi::c_int,
@@ -265,7 +265,7 @@ pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 pub const VP8BORDERINPIXELS: ::core::ffi::c_int = 32 as ::core::ffi::c_int;
 pub const NUM_YV12_BUFFERS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_de_alloc_frame_buffers(mut oci: *mut VP8_COMMON) {
+pub unsafe fn vp8_de_alloc_frame_buffers(mut oci: *mut VP8_COMMON) {
     unsafe {
         let mut i: ::core::ffi::c_int = 0;
         i = 0 as ::core::ffi::c_int;
@@ -288,7 +288,7 @@ pub unsafe extern "C" fn vp8_de_alloc_frame_buffers(mut oci: *mut VP8_COMMON) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_alloc_frame_buffers(
+pub unsafe fn vp8_alloc_frame_buffers(
     mut oci: *mut VP8_COMMON,
     mut width: ::core::ffi::c_int,
     mut height: ::core::ffi::c_int,
@@ -368,7 +368,7 @@ pub unsafe extern "C" fn vp8_alloc_frame_buffers(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_setup_version(mut cm: *mut VP8_COMMON) {
+pub unsafe fn vp8_setup_version(mut cm: *mut VP8_COMMON) {
     unsafe {
         match (*cm).version {
             0 => {
@@ -405,7 +405,7 @@ pub unsafe extern "C" fn vp8_setup_version(mut cm: *mut VP8_COMMON) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_create_common(mut oci: *mut VP8_COMMON) {
+pub unsafe fn vp8_create_common(mut oci: *mut VP8_COMMON) {
     unsafe {
         vp8_machine_specific_config(oci as *mut VP8Common);
         vp8_init_mbmode_probs(oci);
@@ -428,7 +428,7 @@ pub unsafe extern "C" fn vp8_create_common(mut oci: *mut VP8_COMMON) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_remove_common(mut oci: *mut VP8_COMMON) {
+pub unsafe fn vp8_remove_common(mut oci: *mut VP8_COMMON) {
     unsafe {
         vp8_de_alloc_frame_buffers(oci);
     }

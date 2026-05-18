@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn vp8_short_idct4x4llm_c(
         input: *mut ::core::ffi::c_short,
         pred_ptr: *mut ::core::ffi::c_uchar,
@@ -62,7 +62,7 @@ pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
 pub type BLOCKD = blockd;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_dequantize_b_c(
+pub unsafe fn vp8_dequantize_b_c(
     mut d: *mut BLOCKD,
     mut DQC: *mut ::core::ffi::c_short,
 ) {
@@ -80,7 +80,7 @@ pub unsafe extern "C" fn vp8_dequantize_b_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_dequant_idct_add_c(
+pub unsafe fn vp8_dequant_idct_add_c(
     mut input: *mut ::core::ffi::c_short,
     mut dq: *mut ::core::ffi::c_short,
     mut dest: *mut ::core::ffi::c_uchar,

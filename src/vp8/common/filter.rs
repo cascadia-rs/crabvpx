@@ -102,7 +102,7 @@ pub static mut vp8_sub_pel_filters: [[::core::ffi::c_short; 6]; 8] = [
         0 as ::core::ffi::c_int as ::core::ffi::c_short,
     ],
 ];
-unsafe extern "C" fn filter_block2d_first_pass(
+unsafe fn filter_block2d_first_pass(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut output_ptr: *mut ::core::ffi::c_int,
     mut src_pixels_per_line: ::core::ffi::c_uint,
@@ -159,7 +159,7 @@ unsafe extern "C" fn filter_block2d_first_pass(
         }
     }
 }
-unsafe extern "C" fn filter_block2d_second_pass(
+unsafe fn filter_block2d_second_pass(
     mut src_ptr: *mut ::core::ffi::c_int,
     mut output_ptr: *mut ::core::ffi::c_uchar,
     mut output_pitch: ::core::ffi::c_int,
@@ -214,7 +214,7 @@ unsafe extern "C" fn filter_block2d_second_pass(
         }
     }
 }
-unsafe extern "C" fn filter_block2d(
+unsafe fn filter_block2d(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut output_ptr: *mut ::core::ffi::c_uchar,
     mut src_pixels_per_line: ::core::ffi::c_uint,
@@ -247,7 +247,7 @@ unsafe extern "C" fn filter_block2d(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_sixtap_predict4x4_c(
+pub unsafe fn vp8_sixtap_predict4x4_c(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut src_pixels_per_line: ::core::ffi::c_int,
     mut xoffset: ::core::ffi::c_int,
@@ -273,7 +273,7 @@ pub unsafe extern "C" fn vp8_sixtap_predict4x4_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_sixtap_predict8x8_c(
+pub unsafe fn vp8_sixtap_predict8x8_c(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut src_pixels_per_line: ::core::ffi::c_int,
     mut xoffset: ::core::ffi::c_int,
@@ -311,7 +311,7 @@ pub unsafe extern "C" fn vp8_sixtap_predict8x8_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_sixtap_predict8x4_c(
+pub unsafe fn vp8_sixtap_predict8x4_c(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut src_pixels_per_line: ::core::ffi::c_int,
     mut xoffset: ::core::ffi::c_int,
@@ -349,7 +349,7 @@ pub unsafe extern "C" fn vp8_sixtap_predict8x4_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_sixtap_predict16x16_c(
+pub unsafe fn vp8_sixtap_predict16x16_c(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut src_pixels_per_line: ::core::ffi::c_int,
     mut xoffset: ::core::ffi::c_int,
@@ -386,7 +386,7 @@ pub unsafe extern "C" fn vp8_sixtap_predict16x16_c(
         );
     }
 }
-unsafe extern "C" fn filter_block2d_bil_first_pass(
+unsafe fn filter_block2d_bil_first_pass(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut dst_ptr: *mut ::core::ffi::c_ushort,
     mut src_stride: ::core::ffi::c_uint,
@@ -419,7 +419,7 @@ unsafe extern "C" fn filter_block2d_bil_first_pass(
         }
     }
 }
-unsafe extern "C" fn filter_block2d_bil_second_pass(
+unsafe fn filter_block2d_bil_second_pass(
     mut src_ptr: *mut ::core::ffi::c_ushort,
     mut dst_ptr: *mut ::core::ffi::c_uchar,
     mut dst_pitch: ::core::ffi::c_int,
@@ -451,7 +451,7 @@ unsafe extern "C" fn filter_block2d_bil_second_pass(
         }
     }
 }
-unsafe extern "C" fn filter_block2d_bil(
+unsafe fn filter_block2d_bil(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut dst_ptr: *mut ::core::ffi::c_uchar,
     mut src_pitch: ::core::ffi::c_uint,
@@ -482,7 +482,7 @@ unsafe extern "C" fn filter_block2d_bil(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_bilinear_predict4x4_c(
+pub unsafe fn vp8_bilinear_predict4x4_c(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut src_pixels_per_line: ::core::ffi::c_int,
     mut xoffset: ::core::ffi::c_int,
@@ -510,7 +510,7 @@ pub unsafe extern "C" fn vp8_bilinear_predict4x4_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_bilinear_predict8x8_c(
+pub unsafe fn vp8_bilinear_predict8x8_c(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut src_pixels_per_line: ::core::ffi::c_int,
     mut xoffset: ::core::ffi::c_int,
@@ -538,7 +538,7 @@ pub unsafe extern "C" fn vp8_bilinear_predict8x8_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_bilinear_predict8x4_c(
+pub unsafe fn vp8_bilinear_predict8x4_c(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut src_pixels_per_line: ::core::ffi::c_int,
     mut xoffset: ::core::ffi::c_int,
@@ -566,7 +566,7 @@ pub unsafe extern "C" fn vp8_bilinear_predict8x4_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_bilinear_predict16x16_c(
+pub unsafe fn vp8_bilinear_predict16x16_c(
     mut src_ptr: *mut ::core::ffi::c_uchar,
     mut src_pixels_per_line: ::core::ffi::c_int,
     mut xoffset: ::core::ffi::c_int,

@@ -51,7 +51,7 @@ pub struct yv12_buffer_config {
 }
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_swap_yv12_buffer(
+pub unsafe fn vp8_swap_yv12_buffer(
     mut new_frame: *mut YV12_BUFFER_CONFIG,
     mut last_frame: *mut YV12_BUFFER_CONFIG,
 ) {

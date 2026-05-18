@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn calloc(__count: size_t, __size: size_t) -> *mut ::core::ffi::c_void;
     fn free(_: *mut ::core::ffi::c_void);
     fn memset(
@@ -78,13 +78,13 @@ pub const VPX_PLANE_Y: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
 pub const VPX_PLANE_U: ::core::ffi::c_int = 1 as ::core::ffi::c_int;
 pub const VPX_PLANE_V: ::core::ffi::c_int = 2 as ::core::ffi::c_int;
 pub const VPX_PLANE_ALPHA: ::core::ffi::c_int = 3 as ::core::ffi::c_int;
-unsafe extern "C" fn is_valid_img_fmt(mut fmt: vpx_img_fmt_t) -> ::core::ffi::c_int {
+unsafe fn is_valid_img_fmt(mut fmt: vpx_img_fmt_t) -> ::core::ffi::c_int {
     match fmt as ::core::ffi::c_uint {
         769 | 258 | 261 | 262 | 263 | 265 | 2306 | 2309 | 2310 | 2311 => 1 as ::core::ffi::c_int,
         _ => 0 as ::core::ffi::c_int,
     }
 }
-unsafe extern "C" fn img_alloc_helper(
+unsafe fn img_alloc_helper(
     mut img: *mut vpx_image_t,
     mut fmt: vpx_img_fmt_t,
     mut d_w: ::core::ffi::c_uint,
@@ -299,7 +299,7 @@ unsafe extern "C" fn img_alloc_helper(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_img_alloc(
+pub unsafe fn vpx_img_alloc(
     mut img: *mut vpx_image_t,
     mut fmt: vpx_img_fmt_t,
     mut d_w: ::core::ffi::c_uint,
@@ -319,7 +319,7 @@ pub unsafe extern "C" fn vpx_img_alloc(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_img_wrap(
+pub unsafe fn vpx_img_wrap(
     mut img: *mut vpx_image_t,
     mut fmt: vpx_img_fmt_t,
     mut d_w: ::core::ffi::c_uint,
@@ -340,7 +340,7 @@ pub unsafe extern "C" fn vpx_img_wrap(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_img_set_rect(
+pub unsafe fn vpx_img_set_rect(
     mut img: *mut vpx_image_t,
     mut x: ::core::ffi::c_uint,
     mut y: ::core::ffi::c_uint,
@@ -450,7 +450,7 @@ pub unsafe extern "C" fn vpx_img_set_rect(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_img_flip(mut img: *mut vpx_image_t) {
+pub unsafe fn vpx_img_flip(mut img: *mut vpx_image_t) {
     unsafe {
         (*img).planes[VPX_PLANE_Y as usize] = (*img).planes[VPX_PLANE_Y as usize].offset(
             ((*img).d_h.wrapping_sub(1 as ::core::ffi::c_uint) as ::core::ffi::c_int
@@ -477,7 +477,7 @@ pub unsafe extern "C" fn vpx_img_flip(mut img: *mut vpx_image_t) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_img_free(mut img: *mut vpx_image_t) {
+pub unsafe fn vpx_img_free(mut img: *mut vpx_image_t) {
     unsafe {
         if !img.is_null() {
             if !(*img).img_data.is_null() && (*img).img_data_owner != 0 {

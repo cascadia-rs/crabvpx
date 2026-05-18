@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -1640,7 +1640,7 @@ pub static mut vp8_kf_bmode_prob: [[[vp8_prob; 9]; 10]; 10] = [
     ],
 ];
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_mv_cont(
+pub unsafe fn vp8_mv_cont(
     mut l: *const int_mv,
     mut a: *const int_mv,
 ) -> ::core::ffi::c_int {
@@ -1883,7 +1883,7 @@ pub static mut vp8_small_mvtree: [vp8_tree_index; 14] = [
     -(7 as ::core::ffi::c_int) as vp8_tree_index,
 ];
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) {
+pub unsafe fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) {
     unsafe {
         memcpy(
             &raw mut (*x).fc.ymode_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
@@ -1903,7 +1903,7 @@ pub unsafe extern "C" fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_default_bmode_probs(mut dest: *mut vp8_prob) {
+pub unsafe fn vp8_default_bmode_probs(mut dest: *mut vp8_prob) {
     unsafe {
         memcpy(
             dest as *mut ::core::ffi::c_void,

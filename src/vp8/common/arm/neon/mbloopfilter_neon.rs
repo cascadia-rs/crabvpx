@@ -19,14 +19,14 @@ pub struct uint16x8x2_t {
 pub struct uint32x4x2_t {
     pub val: [uint32x4_t; 2],
 }
-pub type loopfilter_y_neon = unsafe extern "C" fn(
+pub type loopfilter_y_neon = unsafe fn(
     *mut ::core::ffi::c_uchar,
     ::core::ffi::c_int,
     ::core::ffi::c_uchar,
     ::core::ffi::c_uchar,
     ::core::ffi::c_uchar,
 ) -> ();
-pub type loopfilter_uv_neon = unsafe extern "C" fn(
+pub type loopfilter_uv_neon = unsafe fn(
     *mut ::core::ffi::c_uchar,
     ::core::ffi::c_int,
     ::core::ffi::c_uchar,

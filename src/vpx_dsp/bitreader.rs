@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     static vpx_norm: [uint8_t; 256];
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
@@ -10,8 +10,7 @@ pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
 pub type uint8_t = u8;
 pub type uint64_t = u64;
-pub type vpx_decrypt_cb = Option<
-    unsafe extern "C" fn(
+pub type vpx_decrypt_cb = Option<unsafe fn(
         *mut ::core::ffi::c_void,
         *const ::core::ffi::c_uchar,
         *mut ::core::ffi::c_uchar,
@@ -36,7 +35,7 @@ pub const BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
 pub const LOTS_OF_BITS: ::core::ffi::c_int = 0x40000000 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vpx_read(
+unsafe fn vpx_read(
     mut r: *mut vpx_reader,
     mut prob: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
@@ -74,15 +73,15 @@ unsafe extern "C" fn vpx_read(
     }
 }
 #[inline]
-unsafe extern "C" fn vpx_read_bit(mut r: *mut vpx_reader) -> ::core::ffi::c_int {
+unsafe fn vpx_read_bit(mut r: *mut vpx_reader) -> ::core::ffi::c_int {
     unsafe { vpx_read(r, 128 as ::core::ffi::c_int) }
 }
 #[inline]
-unsafe extern "C" fn BSwap64(mut x: uint64_t) -> uint64_t {
+unsafe fn BSwap64(mut x: uint64_t) -> uint64_t {
     x.swap_bytes()
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_reader_init(
+pub unsafe fn vpx_reader_init(
     mut r: *mut vpx_reader,
     mut buffer: *const uint8_t,
     mut size: size_t,
@@ -106,7 +105,7 @@ pub unsafe extern "C" fn vpx_reader_init(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_reader_fill(mut r: *mut vpx_reader) {
+pub unsafe fn vpx_reader_fill(mut r: *mut vpx_reader) {
     unsafe {
         let buffer_end: *const uint8_t = (*r).buffer_end;
         let mut buffer: *const uint8_t = (*r).buffer;
@@ -173,7 +172,7 @@ pub unsafe extern "C" fn vpx_reader_fill(mut r: *mut vpx_reader) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_reader_find_end(mut r: *mut vpx_reader) -> *const uint8_t {
+pub unsafe fn vpx_reader_find_end(mut r: *mut vpx_reader) -> *const uint8_t {
     unsafe {
         while (*r).count > CHAR_BIT && (*r).count < BD_VALUE_SIZE {
             (*r).count -= CHAR_BIT;

@@ -1,5 +1,5 @@
 use std::arch::aarch64::*;
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -28,7 +28,7 @@ pub struct uint8x16x2_t {
 pub type ptrdiff_t = __darwin_ptrdiff_t;
 pub type size_t = __darwin_size_t;
 #[inline]
-unsafe extern "C" fn load_replicate_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t {
+unsafe fn load_replicate_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t {
     let mut a: uint32_t = 0;
     memcpy(
         &raw mut a as *mut ::core::ffi::c_void,
@@ -38,7 +38,7 @@ unsafe extern "C" fn load_replicate_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t
     return vreinterpret_u8_u32(vdup_n_u32(a));
 }
 #[inline]
-unsafe extern "C" fn load_unaligned_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t {
+unsafe fn load_unaligned_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t {
     let mut a: uint32_t = 0;
     memcpy(
         &raw mut a as *mut ::core::ffi::c_void,
@@ -50,31 +50,31 @@ unsafe extern "C" fn load_unaligned_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t
     return vreinterpret_u8_u32(a_u32);
 }
 #[inline]
-unsafe extern "C" fn horizontal_add_uint8x4(a: uint8x8_t) -> uint16_t {
+unsafe fn horizontal_add_uint8x4(a: uint8x8_t) -> uint16_t {
     return vaddlv_u8(a);
 }
 #[inline]
-unsafe extern "C" fn horizontal_add_uint8x8(a: uint8x8_t) -> uint16_t {
+unsafe fn horizontal_add_uint8x8(a: uint8x8_t) -> uint16_t {
     return vaddlv_u8(a);
 }
 #[inline]
-unsafe extern "C" fn horizontal_add_uint8x16(a: uint8x16_t) -> uint16_t {
+unsafe fn horizontal_add_uint8x16(a: uint8x16_t) -> uint16_t {
     return vaddlvq_u8(a);
 }
 #[inline]
-unsafe extern "C" fn horizontal_add_uint16x4(a: uint16x4_t) -> uint16_t {
+unsafe fn horizontal_add_uint16x4(a: uint16x4_t) -> uint16_t {
     return vaddv_u16(a);
 }
 #[inline]
-unsafe extern "C" fn horizontal_add_uint16x8(a: uint16x8_t) -> uint32_t {
+unsafe fn horizontal_add_uint16x8(a: uint16x8_t) -> uint32_t {
     return vaddlvq_u16(a);
 }
 #[inline]
-unsafe extern "C" fn dc_sum_4(mut ref_0: *const uint8_t) -> uint16_t {
+unsafe fn dc_sum_4(mut ref_0: *const uint8_t) -> uint16_t {
     return horizontal_add_uint8x4(load_unaligned_u8_4x1(ref_0));
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_v_predictor_4x4_neon(
+pub unsafe fn vpx_v_predictor_4x4_neon(
     mut dst: *mut uint8_t,
     mut stride: ptrdiff_t,
     mut above: *const uint8_t,
@@ -90,6 +90,6 @@ pub unsafe extern "C" fn vpx_v_predictor_4x4_neon(
     }
 }
 #[inline]
-unsafe extern "C" fn convert_u8_to_s16(mut v: uint8x8_t) -> int16x8_t {
+unsafe fn convert_u8_to_s16(mut v: uint8x8_t) -> int16x8_t {
     return vreinterpretq_s16_u16(vmovl_u8(v));
 }

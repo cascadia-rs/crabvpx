@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn abs(_: ::core::ffi::c_int) -> ::core::ffi::c_int;
 }
 #[derive(Copy, Clone)]
@@ -10,7 +10,7 @@ pub struct loop_filter_info {
     pub hev_thr: *const ::core::ffi::c_uchar,
 }
 pub type uc = ::core::ffi::c_uchar;
-unsafe extern "C" fn vp8_signed_char_clamp(mut t: ::core::ffi::c_int) -> ::core::ffi::c_schar {
+unsafe fn vp8_signed_char_clamp(mut t: ::core::ffi::c_int) -> ::core::ffi::c_schar {
     t = if t < -(128 as ::core::ffi::c_int) {
         -(128 as ::core::ffi::c_int)
     } else {
@@ -23,7 +23,7 @@ unsafe extern "C" fn vp8_signed_char_clamp(mut t: ::core::ffi::c_int) -> ::core:
     };
     t as ::core::ffi::c_schar
 }
-unsafe extern "C" fn vp8_filter_mask(
+unsafe fn vp8_filter_mask(
     mut limit: uc,
     mut blimit: uc,
     mut p3: uc,
@@ -70,7 +70,7 @@ unsafe extern "C" fn vp8_filter_mask(
         (mask as ::core::ffi::c_int - 1 as ::core::ffi::c_int) as ::core::ffi::c_schar
     }
 }
-unsafe extern "C" fn vp8_hevmask(
+unsafe fn vp8_hevmask(
     mut thresh: uc,
     mut p1: uc,
     mut p0: uc,
@@ -90,7 +90,7 @@ unsafe extern "C" fn vp8_hevmask(
         hev
     }
 }
-unsafe extern "C" fn vp8_filter(
+unsafe fn vp8_filter(
     mut mask: ::core::ffi::c_schar,
     mut hev: uc,
     mut op1: *mut uc,
@@ -149,7 +149,7 @@ unsafe extern "C" fn vp8_filter(
         *op1 = (u as ::core::ffi::c_int ^ 0x80 as ::core::ffi::c_int) as uc;
     }
 }
-unsafe extern "C" fn loop_filter_horizontal_edge_c(
+unsafe fn loop_filter_horizontal_edge_c(
     mut s: *mut ::core::ffi::c_uchar,
     mut p: ::core::ffi::c_int,
     mut blimit: *const ::core::ffi::c_uchar,
@@ -197,7 +197,7 @@ unsafe extern "C" fn loop_filter_horizontal_edge_c(
         }
     }
 }
-unsafe extern "C" fn loop_filter_vertical_edge_c(
+unsafe fn loop_filter_vertical_edge_c(
     mut s: *mut ::core::ffi::c_uchar,
     mut p: ::core::ffi::c_int,
     mut blimit: *const ::core::ffi::c_uchar,
@@ -245,7 +245,7 @@ unsafe extern "C" fn loop_filter_vertical_edge_c(
         }
     }
 }
-unsafe extern "C" fn vp8_mbfilter(
+unsafe fn vp8_mbfilter(
     mut mask: ::core::ffi::c_schar,
     mut hev: uc,
     mut op2: *mut uc,
@@ -326,7 +326,7 @@ unsafe extern "C" fn vp8_mbfilter(
         *op2 = (s as ::core::ffi::c_int ^ 0x80 as ::core::ffi::c_int) as uc;
     }
 }
-unsafe extern "C" fn mbloop_filter_horizontal_edge_c(
+unsafe fn mbloop_filter_horizontal_edge_c(
     mut s: *mut ::core::ffi::c_uchar,
     mut p: ::core::ffi::c_int,
     mut blimit: *const ::core::ffi::c_uchar,
@@ -376,7 +376,7 @@ unsafe extern "C" fn mbloop_filter_horizontal_edge_c(
         }
     }
 }
-unsafe extern "C" fn mbloop_filter_vertical_edge_c(
+unsafe fn mbloop_filter_vertical_edge_c(
     mut s: *mut ::core::ffi::c_uchar,
     mut p: ::core::ffi::c_int,
     mut blimit: *const ::core::ffi::c_uchar,
@@ -426,7 +426,7 @@ unsafe extern "C" fn mbloop_filter_vertical_edge_c(
         }
     }
 }
-unsafe extern "C" fn vp8_simple_filter_mask(
+unsafe fn vp8_simple_filter_mask(
     mut blimit: uc,
     mut p1: uc,
     mut p0: uc,
@@ -443,7 +443,7 @@ unsafe extern "C" fn vp8_simple_filter_mask(
         mask
     }
 }
-unsafe extern "C" fn vp8_simple_filter(
+unsafe fn vp8_simple_filter(
     mut mask: ::core::ffi::c_schar,
     mut op1: *mut uc,
     mut op0: *mut uc,
@@ -489,7 +489,7 @@ unsafe extern "C" fn vp8_simple_filter(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_simple_horizontal_edge_c(
+pub unsafe fn vp8_loop_filter_simple_horizontal_edge_c(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut y_stride: ::core::ffi::c_int,
     mut blimit: *const ::core::ffi::c_uchar,
@@ -521,7 +521,7 @@ pub unsafe extern "C" fn vp8_loop_filter_simple_horizontal_edge_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_simple_vertical_edge_c(
+pub unsafe fn vp8_loop_filter_simple_vertical_edge_c(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut y_stride: ::core::ffi::c_int,
     mut blimit: *const ::core::ffi::c_uchar,
@@ -553,7 +553,7 @@ pub unsafe extern "C" fn vp8_loop_filter_simple_vertical_edge_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_mbh_c(
+pub unsafe fn vp8_loop_filter_mbh_c(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut u_ptr: *mut ::core::ffi::c_uchar,
     mut v_ptr: *mut ::core::ffi::c_uchar,
@@ -593,7 +593,7 @@ pub unsafe extern "C" fn vp8_loop_filter_mbh_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_mbv_c(
+pub unsafe fn vp8_loop_filter_mbv_c(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut u_ptr: *mut ::core::ffi::c_uchar,
     mut v_ptr: *mut ::core::ffi::c_uchar,
@@ -633,7 +633,7 @@ pub unsafe extern "C" fn vp8_loop_filter_mbv_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_bh_c(
+pub unsafe fn vp8_loop_filter_bh_c(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut u_ptr: *mut ::core::ffi::c_uchar,
     mut v_ptr: *mut ::core::ffi::c_uchar,
@@ -689,7 +689,7 @@ pub unsafe extern "C" fn vp8_loop_filter_bh_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_bhs_c(
+pub unsafe fn vp8_loop_filter_bhs_c(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut y_stride: ::core::ffi::c_int,
     mut blimit: *const ::core::ffi::c_uchar,
@@ -713,7 +713,7 @@ pub unsafe extern "C" fn vp8_loop_filter_bhs_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_bv_c(
+pub unsafe fn vp8_loop_filter_bv_c(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut u_ptr: *mut ::core::ffi::c_uchar,
     mut v_ptr: *mut ::core::ffi::c_uchar,
@@ -769,7 +769,7 @@ pub unsafe extern "C" fn vp8_loop_filter_bv_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_loop_filter_bvs_c(
+pub unsafe fn vp8_loop_filter_bvs_c(
     mut y_ptr: *mut ::core::ffi::c_uchar,
     mut y_stride: ::core::ffi::c_int,
     mut blimit: *const ::core::ffi::c_uchar,

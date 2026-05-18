@@ -1,7 +1,7 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn pthread_once(
         _: *mut pthread_once_t,
-        _: Option<unsafe extern "C" fn() -> ()>,
+        _: Option<unsafe fn() -> ()>,
     ) -> ::core::ffi::c_int;
 }
 #[derive(Copy, Clone)]
@@ -12,9 +12,9 @@ pub struct _opaque_pthread_once_t {
 }
 pub type __darwin_pthread_once_t = _opaque_pthread_once_t;
 pub type pthread_once_t = *mut ::core::ffi::c_void;
-unsafe extern "C" fn setup_rtcd_internal() {}
+unsafe fn setup_rtcd_internal() {}
 pub const _PTHREAD_ONCE_SIG_init: ::core::ffi::c_int = 0x30b1bcba as ::core::ffi::c_int;
-unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
+unsafe fn once(mut func: Option<unsafe fn() -> ()>) {
     unsafe {
         static INIT: std::sync::Once = std::sync::Once::new();
         if let Some(f) = func {
@@ -23,8 +23,8 @@ unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_dsp_rtcd() {
+pub unsafe fn vpx_dsp_rtcd() {
     unsafe {
-        once(Some(setup_rtcd_internal as unsafe extern "C" fn() -> ()));
+        once(Some(setup_rtcd_internal as unsafe fn() -> ()));
     }
 }

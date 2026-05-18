@@ -1,4 +1,4 @@
-unsafe extern "C" {
+unsafe extern "Rust" {
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -17,7 +17,6 @@ unsafe extern "C" {
         info: *mut vpx_internal_error_info,
         error: vpx_codec_err_t,
         fmt: *const ::core::ffi::c_char,
-        ...
     );
     fn vp8_build_block_doffsets(x: *mut MACROBLOCKD);
     fn vp8_alloc_frame_buffers(
@@ -70,7 +69,7 @@ pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct __darwin_pthread_handler_rec {
-    pub __routine: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>,
+    pub __routine: Option<unsafe fn(*mut ::core::ffi::c_void) -> ()>,
     pub __arg: *mut ::core::ffi::c_void,
     pub __next: *mut __darwin_pthread_handler_rec,
 }
@@ -202,8 +201,7 @@ pub const VPX_CODEC_ABI_MISMATCH: vpx_codec_err_t = 3;
 pub const VPX_CODEC_MEM_ERROR: vpx_codec_err_t = 2;
 pub const VPX_CODEC_ERROR: vpx_codec_err_t = 1;
 pub const VPX_CODEC_OK: vpx_codec_err_t = 0;
-pub type vp8_subpix_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vp8_subpix_fn_t = Option<unsafe fn(
         *mut ::core::ffi::c_uchar,
         ::core::ffi::c_int,
         ::core::ffi::c_int,
@@ -370,9 +368,8 @@ pub struct vpx_codec_enc_iface {
     pub mr_free_mem_loc: vpx_codec_enc_mr_free_mem_loc_fn_t,
 }
 pub type vpx_codec_enc_mr_free_mem_loc_fn_t =
-    Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>;
-pub type vpx_codec_enc_mr_get_mem_loc_fn_t = Option<
-    unsafe extern "C" fn(
+    Option<unsafe fn(*mut ::core::ffi::c_void) -> ()>;
+pub type vpx_codec_enc_mr_get_mem_loc_fn_t = Option<unsafe fn(
         *const vpx_codec_enc_cfg_t,
         *mut *mut ::core::ffi::c_void,
     ) -> vpx_codec_err_t,
@@ -477,7 +474,7 @@ pub const VPX_BITS_12: vpx_bit_depth = 12;
 pub const VPX_BITS_10: vpx_bit_depth = 10;
 pub const VPX_BITS_8: vpx_bit_depth = 8;
 pub type vpx_codec_get_preview_frame_fn_t =
-    Option<unsafe extern "C" fn(*mut vpx_codec_alg_priv_t) -> *mut vpx_image_t>;
+    Option<unsafe fn(*mut vpx_codec_alg_priv_t) -> *mut vpx_image_t>;
 pub type vpx_codec_alg_priv_t = vpx_codec_alg_priv;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -552,8 +549,7 @@ pub struct VP8D_COMP {
     pub decrypt_state: *mut ::core::ffi::c_void,
     pub restart_threads: ::core::ffi::c_int,
 }
-pub type vpx_decrypt_cb = Option<
-    unsafe extern "C" fn(
+pub type vpx_decrypt_cb = Option<unsafe fn(
         *mut ::core::ffi::c_void,
         *const ::core::ffi::c_uchar,
         *mut ::core::ffi::c_uchar,
@@ -815,8 +811,7 @@ pub union C2RustUnnamed_3 {
     pub put_frame: vpx_codec_put_frame_cb_fn_t,
     pub put_slice: vpx_codec_put_slice_cb_fn_t,
 }
-pub type vpx_codec_put_slice_cb_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vpx_codec_put_slice_cb_fn_t = Option<unsafe fn(
         *mut ::core::ffi::c_void,
         *const vpx_image_t,
         *const vpx_image_rect_t,
@@ -824,21 +819,18 @@ pub type vpx_codec_put_slice_cb_fn_t = Option<
     ) -> (),
 >;
 pub type vpx_codec_put_frame_cb_fn_t =
-    Option<unsafe extern "C" fn(*mut ::core::ffi::c_void, *const vpx_image_t) -> ()>;
+    Option<unsafe fn(*mut ::core::ffi::c_void, *const vpx_image_t) -> ()>;
 pub type vpx_codec_get_global_headers_fn_t =
-    Option<unsafe extern "C" fn(*mut vpx_codec_alg_priv_t) -> *mut vpx_fixed_buf_t>;
-pub type vpx_codec_enc_config_set_fn_t = Option<
-    unsafe extern "C" fn(*mut vpx_codec_alg_priv_t, *const vpx_codec_enc_cfg_t) -> vpx_codec_err_t,
+    Option<unsafe fn(*mut vpx_codec_alg_priv_t) -> *mut vpx_fixed_buf_t>;
+pub type vpx_codec_enc_config_set_fn_t = Option<unsafe fn(*mut vpx_codec_alg_priv_t, *const vpx_codec_enc_cfg_t) -> vpx_codec_err_t,
 >;
-pub type vpx_codec_get_cx_data_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vpx_codec_get_cx_data_fn_t = Option<unsafe fn(
         *mut vpx_codec_alg_priv_t,
         *mut vpx_codec_iter_t,
     ) -> *const vpx_codec_cx_pkt_t,
 >;
 pub type vpx_codec_iter_t = *const ::core::ffi::c_void;
-pub type vpx_codec_encode_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vpx_codec_encode_fn_t = Option<unsafe fn(
         *mut vpx_codec_alg_priv_t,
         *const vpx_image_t,
         vpx_codec_pts_t,
@@ -865,16 +857,14 @@ pub struct vpx_codec_dec_iface {
     pub get_frame: vpx_codec_get_frame_fn_t,
     pub set_fb_fn: vpx_codec_set_fb_fn_t,
 }
-pub type vpx_codec_set_fb_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vpx_codec_set_fb_fn_t = Option<unsafe fn(
         *mut vpx_codec_alg_priv_t,
         vpx_get_frame_buffer_cb_fn_t,
         vpx_release_frame_buffer_cb_fn_t,
         *mut ::core::ffi::c_void,
     ) -> vpx_codec_err_t,
 >;
-pub type vpx_release_frame_buffer_cb_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vpx_release_frame_buffer_cb_fn_t = Option<unsafe fn(
         *mut ::core::ffi::c_void,
         *mut vpx_codec_frame_buffer_t,
     ) -> ::core::ffi::c_int,
@@ -887,32 +877,27 @@ pub struct vpx_codec_frame_buffer {
     pub size: size_t,
     pub priv_0: *mut ::core::ffi::c_void,
 }
-pub type vpx_get_frame_buffer_cb_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vpx_get_frame_buffer_cb_fn_t = Option<unsafe fn(
         *mut ::core::ffi::c_void,
         size_t,
         *mut vpx_codec_frame_buffer_t,
     ) -> ::core::ffi::c_int,
 >;
-pub type vpx_codec_get_frame_fn_t = Option<
-    unsafe extern "C" fn(*mut vpx_codec_alg_priv_t, *mut vpx_codec_iter_t) -> *mut vpx_image_t,
+pub type vpx_codec_get_frame_fn_t = Option<unsafe fn(*mut vpx_codec_alg_priv_t, *mut vpx_codec_iter_t) -> *mut vpx_image_t,
 >;
-pub type vpx_codec_decode_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vpx_codec_decode_fn_t = Option<unsafe fn(
         *mut vpx_codec_alg_priv_t,
         *const uint8_t,
         ::core::ffi::c_uint,
         *mut ::core::ffi::c_void,
     ) -> vpx_codec_err_t,
 >;
-pub type vpx_codec_get_si_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vpx_codec_get_si_fn_t = Option<unsafe fn(
         *mut vpx_codec_alg_priv_t,
         *mut vpx_codec_stream_info_t,
     ) -> vpx_codec_err_t,
 >;
-pub type vpx_codec_peek_si_fn_t = Option<
-    unsafe extern "C" fn(
+pub type vpx_codec_peek_si_fn_t = Option<unsafe fn(
         *const uint8_t,
         ::core::ffi::c_uint,
         *mut vpx_codec_stream_info_t,
@@ -926,12 +911,11 @@ pub struct vpx_codec_ctrl_fn_map {
     pub fn_0: vpx_codec_control_fn_t,
 }
 pub type vpx_codec_control_fn_t =
-    Option<unsafe extern "C" fn(*mut vpx_codec_alg_priv_t, ::core::ffi::VaList) -> vpx_codec_err_t>;
+    Option<unsafe fn(*mut vpx_codec_alg_priv_t, *mut ::core::ffi::c_void) -> vpx_codec_err_t>;
 pub type va_list = __builtin_va_list;
 pub type vpx_codec_destroy_fn_t =
-    Option<unsafe extern "C" fn(*mut vpx_codec_alg_priv_t) -> vpx_codec_err_t>;
-pub type vpx_codec_init_fn_t = Option<
-    unsafe extern "C" fn(*mut vpx_codec_ctx_t, *mut vpx_codec_priv_enc_mr_cfg_t) -> vpx_codec_err_t,
+    Option<unsafe fn(*mut vpx_codec_alg_priv_t) -> vpx_codec_err_t>;
+pub type vpx_codec_init_fn_t = Option<unsafe fn(*mut vpx_codec_ctx_t, *mut vpx_codec_priv_enc_mr_cfg_t) -> vpx_codec_err_t,
 >;
 pub type vpx_codec_priv_enc_mr_cfg_t = vpx_codec_priv_enc_mr_cfg;
 #[derive(Copy, Clone)]
@@ -1045,7 +1029,7 @@ pub const VPX_CODEC_INTERNAL_ABI_VERSION: ::core::ffi::c_int = 5 as ::core::ffi:
 pub const VP8BORDERINPIXELS: ::core::ffi::c_int = 32 as ::core::ffi::c_int;
 pub const MAX_PARTITIONS: ::core::ffi::c_int = 9 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vpx_atomic_load_acquire(
+unsafe fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int {
     unsafe {
@@ -1053,7 +1037,7 @@ unsafe extern "C" fn vpx_atomic_load_acquire(
             .load(core::sync::atomic::Ordering::Acquire)
     }
 }
-unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi::c_int {
+unsafe fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi::c_int {
     unsafe {
         let mut priv_0: *mut vpx_codec_alg_priv_t = vpx_calloc(
             1 as size_t,
@@ -1074,7 +1058,7 @@ unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi:
         0 as ::core::ffi::c_int
     }
 }
-unsafe extern "C" fn vp8_init(
+unsafe fn vp8_init(
     mut ctx: *mut vpx_codec_ctx_t,
     _data: *mut vpx_codec_priv_enc_mr_cfg_t,
 ) -> vpx_codec_err_t {
@@ -1098,14 +1082,14 @@ unsafe extern "C" fn vp8_init(
         res
     }
 }
-unsafe extern "C" fn vp8_destroy(mut ctx: *mut vpx_codec_alg_priv_t) -> vpx_codec_err_t {
+unsafe fn vp8_destroy(mut ctx: *mut vpx_codec_alg_priv_t) -> vpx_codec_err_t {
     unsafe {
         vp8_remove_decoder_instances(&raw mut (*ctx).yv12_frame_buffers);
         vpx_free(ctx as *mut ::core::ffi::c_void);
         VPX_CODEC_OK
     }
 }
-unsafe extern "C" fn vp8_peek_si_internal(
+unsafe fn vp8_peek_si_internal(
     mut data: *const uint8_t,
     mut data_sz: ::core::ffi::c_uint,
     mut si: *mut vpx_codec_stream_info_t,
@@ -1175,14 +1159,14 @@ unsafe extern "C" fn vp8_peek_si_internal(
         res
     }
 }
-unsafe extern "C" fn vp8_peek_si(
+unsafe fn vp8_peek_si(
     mut data: *const uint8_t,
     mut data_sz: ::core::ffi::c_uint,
     mut si: *mut vpx_codec_stream_info_t,
 ) -> vpx_codec_err_t {
     unsafe { vp8_peek_si_internal(data, data_sz, si, None, NULL) }
 }
-unsafe extern "C" fn vp8_get_si(
+unsafe fn vp8_get_si(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut si: *mut vpx_codec_stream_info_t,
 ) -> vpx_codec_err_t {
@@ -1202,7 +1186,7 @@ unsafe extern "C" fn vp8_get_si(
         VPX_CODEC_OK
     }
 }
-unsafe extern "C" fn update_error_state(
+unsafe fn update_error_state(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut error: *const vpx_internal_error_info,
 ) -> vpx_codec_err_t {
@@ -1219,7 +1203,7 @@ unsafe extern "C" fn update_error_state(
         res
     }
 }
-unsafe extern "C" fn yuvconfig2image(
+unsafe fn yuvconfig2image(
     mut img: *mut vpx_image_t,
     mut yv12: *const YV12_BUFFER_CONFIG,
     mut user_priv: *mut ::core::ffi::c_void,
@@ -1253,7 +1237,7 @@ unsafe extern "C" fn yuvconfig2image(
         (*img).self_allocd = 0 as ::core::ffi::c_int;
     }
 }
-unsafe extern "C" fn update_fragments(
+unsafe fn update_fragments(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *const uint8_t,
     mut data_sz: ::core::ffi::c_uint,
@@ -1308,7 +1292,7 @@ unsafe extern "C" fn update_fragments(
         1 as ::core::ffi::c_int
     }
 }
-unsafe extern "C" fn vp8_decode(
+unsafe fn vp8_decode(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *const uint8_t,
     mut data_sz: ::core::ffi::c_uint,
@@ -1530,7 +1514,7 @@ unsafe extern "C" fn vp8_decode(
         res
     }
 }
-unsafe extern "C" fn vp8_get_frame(
+unsafe fn vp8_get_frame(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut iter: *mut vpx_codec_iter_t,
 ) -> *mut vpx_image_t {
@@ -1605,7 +1589,7 @@ unsafe extern "C" fn vp8_get_frame(
         img
     }
 }
-unsafe extern "C" fn image2yuvconfig(
+unsafe fn image2yuvconfig(
     mut img: *const vpx_image_t,
     mut yv12: *mut YV12_BUFFER_CONFIG,
 ) -> vpx_codec_err_t {
@@ -1642,12 +1626,12 @@ unsafe extern "C" fn image2yuvconfig(
         res
     }
 }
-unsafe extern "C" fn vp8_set_reference(
+unsafe fn vp8_set_reference(
     mut ctx: *mut vpx_codec_alg_priv_t,
-    mut args: ::core::ffi::VaList,
+    mut data: *mut ::core::ffi::c_void,
 ) -> vpx_codec_err_t {
     unsafe {
-        let mut data: *mut vpx_ref_frame_t = args.next_arg::<*mut vpx_ref_frame_t>();
+        let mut data: *mut vpx_ref_frame_t = data as *mut vpx_ref_frame_t;
         if !data.is_null() {
             let mut frame: *mut vpx_ref_frame_t = data;
             let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
@@ -1696,12 +1680,12 @@ unsafe extern "C" fn vp8_set_reference(
         }
     }
 }
-unsafe extern "C" fn vp8_get_reference(
+unsafe fn vp8_get_reference(
     mut ctx: *mut vpx_codec_alg_priv_t,
-    mut args: ::core::ffi::VaList,
+    mut data: *mut ::core::ffi::c_void,
 ) -> vpx_codec_err_t {
     unsafe {
-        let mut data: *mut vpx_ref_frame_t = args.next_arg::<*mut vpx_ref_frame_t>();
+        let mut data: *mut vpx_ref_frame_t = data as *mut vpx_ref_frame_t;
         if !data.is_null() {
             let mut frame: *mut vpx_ref_frame_t = data;
             let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
@@ -1750,12 +1734,12 @@ unsafe extern "C" fn vp8_get_reference(
         }
     }
 }
-unsafe extern "C" fn vp8_get_quantizer(
+unsafe fn vp8_get_quantizer(
     mut ctx: *mut vpx_codec_alg_priv_t,
-    mut args: ::core::ffi::VaList,
+    mut data: *mut ::core::ffi::c_void,
 ) -> vpx_codec_err_t {
     unsafe {
-        let arg: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
+        let arg: *mut ::core::ffi::c_int = data as *mut ::core::ffi::c_int;
         let mut pbi: *mut VP8D_COMP =
             (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
         if arg.is_null() {
@@ -1768,18 +1752,18 @@ unsafe extern "C" fn vp8_get_quantizer(
         VPX_CODEC_OK
     }
 }
-unsafe extern "C" fn vp8_set_postproc(
+unsafe fn vp8_set_postproc(
     _ctx: *mut vpx_codec_alg_priv_t,
-    _args: ::core::ffi::VaList,
+    _args: *mut ::core::ffi::c_void,
 ) -> vpx_codec_err_t {
     VPX_CODEC_INCAPABLE
 }
-unsafe extern "C" fn vp8_get_last_ref_updates(
+unsafe fn vp8_get_last_ref_updates(
     mut ctx: *mut vpx_codec_alg_priv_t,
-    mut args: ::core::ffi::VaList,
+    mut data: *mut ::core::ffi::c_void,
 ) -> vpx_codec_err_t {
     unsafe {
-        let mut update_info: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
+        let mut update_info: *mut ::core::ffi::c_int = data as *mut ::core::ffi::c_int;
         if !update_info.is_null() {
             let mut pbi: *mut VP8D_COMP =
                 (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
@@ -1796,12 +1780,12 @@ unsafe extern "C" fn vp8_get_last_ref_updates(
         }
     }
 }
-unsafe extern "C" fn vp8_get_last_ref_frame(
+unsafe fn vp8_get_last_ref_frame(
     mut ctx: *mut vpx_codec_alg_priv_t,
-    mut args: ::core::ffi::VaList,
+    mut data: *mut ::core::ffi::c_void,
 ) -> vpx_codec_err_t {
     unsafe {
-        let mut ref_info: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
+        let mut ref_info: *mut ::core::ffi::c_int = data as *mut ::core::ffi::c_int;
         if !ref_info.is_null() {
             let mut pbi: *mut VP8D_COMP =
                 (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
@@ -1841,12 +1825,12 @@ unsafe extern "C" fn vp8_get_last_ref_frame(
         }
     }
 }
-unsafe extern "C" fn vp8_get_frame_corrupted(
+unsafe fn vp8_get_frame_corrupted(
     mut ctx: *mut vpx_codec_alg_priv_t,
-    mut args: ::core::ffi::VaList,
+    mut data: *mut ::core::ffi::c_void,
 ) -> vpx_codec_err_t {
     unsafe {
-        let mut corrupted: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
+        let mut corrupted: *mut ::core::ffi::c_int = data as *mut ::core::ffi::c_int;
         let mut pbi: *mut VP8D_COMP =
             (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
         if !corrupted.is_null() && !pbi.is_null() {
@@ -1861,12 +1845,12 @@ unsafe extern "C" fn vp8_get_frame_corrupted(
         }
     }
 }
-unsafe extern "C" fn vp8_set_decryptor(
+unsafe fn vp8_set_decryptor(
     mut ctx: *mut vpx_codec_alg_priv_t,
-    mut args: ::core::ffi::VaList,
+    mut data: *mut ::core::ffi::c_void,
 ) -> vpx_codec_err_t {
     unsafe {
-        let mut init: *mut vpx_decrypt_init = args.next_arg::<*mut vpx_decrypt_init>();
+        let mut init: *mut vpx_decrypt_init = data as *mut vpx_decrypt_init;
         if !init.is_null() {
             (*ctx).decrypt_cb = (*init).decrypt_cb;
             (*ctx).decrypt_state = (*init).decrypt_state;
@@ -1883,9 +1867,9 @@ static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
             ctrl_id: VP8_SET_REFERENCE as ::core::ffi::c_int,
             fn_0: Some(
                 vp8_set_reference
-                    as unsafe extern "C" fn(
+                    as unsafe fn(
                         *mut vpx_codec_alg_priv_t,
-                        ::core::ffi::VaList,
+                        *mut ::core::ffi::c_void,
                     ) -> vpx_codec_err_t,
             ),
         },
@@ -1893,9 +1877,9 @@ static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
             ctrl_id: VP8_COPY_REFERENCE as ::core::ffi::c_int,
             fn_0: Some(
                 vp8_get_reference
-                    as unsafe extern "C" fn(
+                    as unsafe fn(
                         *mut vpx_codec_alg_priv_t,
-                        ::core::ffi::VaList,
+                        *mut ::core::ffi::c_void,
                     ) -> vpx_codec_err_t,
             ),
         },
@@ -1903,9 +1887,9 @@ static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
             ctrl_id: VP8_SET_POSTPROC as ::core::ffi::c_int,
             fn_0: Some(
                 vp8_set_postproc
-                    as unsafe extern "C" fn(
+                    as unsafe fn(
                         *mut vpx_codec_alg_priv_t,
-                        ::core::ffi::VaList,
+                        *mut ::core::ffi::c_void,
                     ) -> vpx_codec_err_t,
             ),
         },
@@ -1913,9 +1897,9 @@ static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
             ctrl_id: VP8D_GET_LAST_REF_UPDATES as ::core::ffi::c_int,
             fn_0: Some(
                 vp8_get_last_ref_updates
-                    as unsafe extern "C" fn(
+                    as unsafe fn(
                         *mut vpx_codec_alg_priv_t,
-                        ::core::ffi::VaList,
+                        *mut ::core::ffi::c_void,
                     ) -> vpx_codec_err_t,
             ),
         },
@@ -1923,9 +1907,9 @@ static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
             ctrl_id: VP8D_GET_FRAME_CORRUPTED as ::core::ffi::c_int,
             fn_0: Some(
                 vp8_get_frame_corrupted
-                    as unsafe extern "C" fn(
+                    as unsafe fn(
                         *mut vpx_codec_alg_priv_t,
-                        ::core::ffi::VaList,
+                        *mut ::core::ffi::c_void,
                     ) -> vpx_codec_err_t,
             ),
         },
@@ -1933,9 +1917,9 @@ static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
             ctrl_id: VP8D_GET_LAST_REF_USED as ::core::ffi::c_int,
             fn_0: Some(
                 vp8_get_last_ref_frame
-                    as unsafe extern "C" fn(
+                    as unsafe fn(
                         *mut vpx_codec_alg_priv_t,
-                        ::core::ffi::VaList,
+                        *mut ::core::ffi::c_void,
                     ) -> vpx_codec_err_t,
             ),
         },
@@ -1943,9 +1927,9 @@ static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
             ctrl_id: VPXD_GET_LAST_QUANTIZER as ::core::ffi::c_int,
             fn_0: Some(
                 vp8_get_quantizer
-                    as unsafe extern "C" fn(
+                    as unsafe fn(
                         *mut vpx_codec_alg_priv_t,
-                        ::core::ffi::VaList,
+                        *mut ::core::ffi::c_void,
                     ) -> vpx_codec_err_t,
             ),
         },
@@ -1953,9 +1937,9 @@ static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = {
             ctrl_id: VPXD_SET_DECRYPTOR as ::core::ffi::c_int,
             fn_0: Some(
                 vp8_set_decryptor
-                    as unsafe extern "C" fn(
+                    as unsafe fn(
                         *mut vpx_codec_alg_priv_t,
-                        ::core::ffi::VaList,
+                        *mut ::core::ffi::c_void,
                     ) -> vpx_codec_err_t,
             ),
         },
@@ -1993,12 +1977,12 @@ pub static mut vpx_codec_vp8_dx_algo: vpx_codec_iface_t = vpx_codec_iface {
     },
 };
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_codec_vp8_dx() -> *const vpx_codec_iface_t {
+pub unsafe fn vpx_codec_vp8_dx() -> *const vpx_codec_iface_t {
     &raw const vpx_codec_vp8_dx_algo
 }
 pub const __ATOMIC_ACQUIRE: ::core::ffi::c_int = 2 as ::core::ffi::c_int;
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
-unsafe extern "C" fn run_static_initializers() {
+unsafe fn run_static_initializers() {
     unsafe {
         vpx_codec_vp8_dx_algo = vpx_codec_iface {
             name: b"WebM Project VP8 Decoder v1.16.0-122-ge9efe034e\0" as *const u8
@@ -2018,19 +2002,19 @@ unsafe extern "C" fn run_static_initializers() {
                 | VPX_CODEC_CAP_INPUT_FRAGMENTS) as vpx_codec_caps_t,
             init: Some(
                 vp8_init
-                    as unsafe extern "C" fn(
+                    as unsafe fn(
                         *mut vpx_codec_ctx_t,
                         *mut vpx_codec_priv_enc_mr_cfg_t,
                     ) -> vpx_codec_err_t,
             ),
             destroy: Some(
-                vp8_destroy as unsafe extern "C" fn(*mut vpx_codec_alg_priv_t) -> vpx_codec_err_t,
+                vp8_destroy as unsafe fn(*mut vpx_codec_alg_priv_t) -> vpx_codec_err_t,
             ),
             ctrl_maps: &raw const vp8_ctf_maps as *const vpx_codec_ctrl_fn_map_t,
             dec: vpx_codec_dec_iface {
                 peek_si: Some(
                     vp8_peek_si
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *const uint8_t,
                             ::core::ffi::c_uint,
                             *mut vpx_codec_stream_info_t,
@@ -2038,14 +2022,14 @@ unsafe extern "C" fn run_static_initializers() {
                 ),
                 get_si: Some(
                     vp8_get_si
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *mut vpx_codec_alg_priv_t,
                             *mut vpx_codec_stream_info_t,
                         ) -> vpx_codec_err_t,
                 ),
                 decode: Some(
                     vp8_decode
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *mut vpx_codec_alg_priv_t,
                             *const uint8_t,
                             ::core::ffi::c_uint,
@@ -2054,7 +2038,7 @@ unsafe extern "C" fn run_static_initializers() {
                 ),
                 get_frame: Some(
                     vp8_get_frame
-                        as unsafe extern "C" fn(
+                        as unsafe fn(
                             *mut vpx_codec_alg_priv_t,
                             *mut vpx_codec_iter_t,
                         ) -> *mut vpx_image_t,
@@ -2079,4 +2063,4 @@ unsafe extern "C" fn run_static_initializers() {
 #[cfg_attr(target_os = "linux", unsafe(link_section = ".init_array"))]
 #[cfg_attr(target_os = "windows", unsafe(link_section = ".CRT$XCU"))]
 #[cfg_attr(target_os = "macos", unsafe(link_section = "__DATA,__mod_init_func"))]
-static INIT_ARRAY: [unsafe extern "C" fn(); 1] = [run_static_initializers];
+static INIT_ARRAY: [unsafe fn(); 1] = [run_static_initializers];

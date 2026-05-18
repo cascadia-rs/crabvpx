@@ -1,7 +1,6 @@
 pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
-pub type vpx_decrypt_cb = Option<
-    unsafe extern "C" fn(
+pub type vpx_decrypt_cb = Option<unsafe fn(
         *mut ::core::ffi::c_void,
         *const ::core::ffi::c_uchar,
         *mut ::core::ffi::c_uchar,
@@ -25,7 +24,7 @@ pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
 pub const VP8_LOTS_OF_BITS: ::core::ffi::c_int = 0x40000000 as ::core::ffi::c_int;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_start_decode(
+pub unsafe fn vp8dx_start_decode(
     mut br: *mut BOOL_DECODER,
     mut source: *const ::core::ffi::c_uchar,
     mut source_sz: ::core::ffi::c_uint,
@@ -52,7 +51,7 @@ pub unsafe extern "C" fn vp8dx_start_decode(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) {
+pub unsafe fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) {
     unsafe {
         let mut bufptr: *const ::core::ffi::c_uchar = (*br).user_buffer;
         let mut value: VP8_BD_VALUE = (*br).value;
