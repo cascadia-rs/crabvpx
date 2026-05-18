@@ -65,8 +65,8 @@ unsafe fn vp8_filter(
         let mut ps1: i8 = 0;
         let mut qs1: i8 = 0;
         let mut filter_value: i8 = 0;
-        let mut Filter1: i8 = 0;
-        let mut Filter2: i8 = 0;
+        let mut filter1: i8 = 0;
+        let mut filter2: i8 = 0;
         let mut u: i8 = 0;
         ps1 = (*op1 as i32 ^ 0x80 as i32) as i8;
         ps0 = (*op0 as i32 ^ 0x80 as i32) as i8;
@@ -77,15 +77,15 @@ unsafe fn vp8_filter(
         filter_value =
             vp8_signed_char_clamp(filter_value as i32 + 3 as i32 * (qs0 as i32 - ps0 as i32));
         filter_value = (filter_value as i32 & mask as i32) as i8;
-        Filter1 = vp8_signed_char_clamp(filter_value as i32 + 4 as i32);
-        Filter2 = vp8_signed_char_clamp(filter_value as i32 + 3 as i32);
-        Filter1 = (Filter1 as i32 >> 3 as i32) as i8;
-        Filter2 = (Filter2 as i32 >> 3 as i32) as i8;
-        u = vp8_signed_char_clamp(qs0 as i32 - Filter1 as i32);
+        filter1 = vp8_signed_char_clamp(filter_value as i32 + 4 as i32);
+        filter2 = vp8_signed_char_clamp(filter_value as i32 + 3 as i32);
+        filter1 = (filter1 as i32 >> 3 as i32) as i8;
+        filter2 = (filter2 as i32 >> 3 as i32) as i8;
+        u = vp8_signed_char_clamp(qs0 as i32 - filter1 as i32);
         *oq0 = (u as i32 ^ 0x80 as i32) as uc;
-        u = vp8_signed_char_clamp(ps0 as i32 + Filter2 as i32);
+        u = vp8_signed_char_clamp(ps0 as i32 + filter2 as i32);
         *op0 = (u as i32 ^ 0x80 as i32) as uc;
-        filter_value = Filter1;
+        filter_value = filter1;
         filter_value = (filter_value as i32 + 1 as i32) as i8;
         filter_value = (filter_value as i32 >> 1 as i32) as i8;
         filter_value = (filter_value as i32 & !(hev as i32)) as i8;
@@ -205,8 +205,8 @@ unsafe fn vp8_mbfilter(
         let mut s: i8 = 0;
         let mut u: i8 = 0;
         let mut filter_value: i8 = 0;
-        let mut Filter1: i8 = 0;
-        let mut Filter2: i8 = 0;
+        let mut filter1: i8 = 0;
+        let mut filter2: i8 = 0;
         let mut ps2: i8 = (*op2 as i32 ^ 0x80 as i32) as i8;
         let mut ps1: i8 = (*op1 as i32 ^ 0x80 as i32) as i8;
         let mut ps0: i8 = (*op0 as i32 ^ 0x80 as i32) as i8;
@@ -217,27 +217,27 @@ unsafe fn vp8_mbfilter(
         filter_value =
             vp8_signed_char_clamp(filter_value as i32 + 3 as i32 * (qs0 as i32 - ps0 as i32));
         filter_value = (filter_value as i32 & mask as i32) as i8;
-        Filter2 = filter_value;
-        Filter2 = (Filter2 as i32 & hev as i32) as i8;
-        Filter1 = vp8_signed_char_clamp(Filter2 as i32 + 4 as i32);
-        Filter2 = vp8_signed_char_clamp(Filter2 as i32 + 3 as i32);
-        Filter1 = (Filter1 as i32 >> 3 as i32) as i8;
-        Filter2 = (Filter2 as i32 >> 3 as i32) as i8;
-        qs0 = vp8_signed_char_clamp(qs0 as i32 - Filter1 as i32);
-        ps0 = vp8_signed_char_clamp(ps0 as i32 + Filter2 as i32);
+        filter2 = filter_value;
+        filter2 = (filter2 as i32 & hev as i32) as i8;
+        filter1 = vp8_signed_char_clamp(filter2 as i32 + 4 as i32);
+        filter2 = vp8_signed_char_clamp(filter2 as i32 + 3 as i32);
+        filter1 = (filter1 as i32 >> 3 as i32) as i8;
+        filter2 = (filter2 as i32 >> 3 as i32) as i8;
+        qs0 = vp8_signed_char_clamp(qs0 as i32 - filter1 as i32);
+        ps0 = vp8_signed_char_clamp(ps0 as i32 + filter2 as i32);
         filter_value = (filter_value as i32 & !(hev as i32)) as i8;
-        Filter2 = filter_value;
-        u = vp8_signed_char_clamp((63 as i32 + Filter2 as i32 * 27 as i32) >> 7 as i32);
+        filter2 = filter_value;
+        u = vp8_signed_char_clamp((63 as i32 + filter2 as i32 * 27 as i32) >> 7 as i32);
         s = vp8_signed_char_clamp(qs0 as i32 - u as i32);
         *oq0 = (s as i32 ^ 0x80 as i32) as uc;
         s = vp8_signed_char_clamp(ps0 as i32 + u as i32);
         *op0 = (s as i32 ^ 0x80 as i32) as uc;
-        u = vp8_signed_char_clamp((63 as i32 + Filter2 as i32 * 18 as i32) >> 7 as i32);
+        u = vp8_signed_char_clamp((63 as i32 + filter2 as i32 * 18 as i32) >> 7 as i32);
         s = vp8_signed_char_clamp(qs1 as i32 - u as i32);
         *oq1 = (s as i32 ^ 0x80 as i32) as uc;
         s = vp8_signed_char_clamp(ps1 as i32 + u as i32);
         *op1 = (s as i32 ^ 0x80 as i32) as uc;
-        u = vp8_signed_char_clamp((63 as i32 + Filter2 as i32 * 9 as i32) >> 7 as i32);
+        u = vp8_signed_char_clamp((63 as i32 + filter2 as i32 * 9 as i32) >> 7 as i32);
         s = vp8_signed_char_clamp(qs2 as i32 - u as i32);
         *oq2 = (s as i32 ^ 0x80 as i32) as uc;
         s = vp8_signed_char_clamp(ps2 as i32 + u as i32);
@@ -368,8 +368,8 @@ unsafe fn vp8_simple_filter(
 ) {
     unsafe {
         let mut filter_value: i8 = 0;
-        let mut Filter1: i8 = 0;
-        let mut Filter2: i8 = 0;
+        let mut filter1: i8 = 0;
+        let mut filter2: i8 = 0;
         let mut p1: i8 = (*op1 as i32 ^ 0x80 as i32) as i8;
         let mut p0: i8 = (*op0 as i32 ^ 0x80 as i32) as i8;
         let mut q0: i8 = (*oq0 as i32 ^ 0x80 as i32) as i8;
@@ -379,13 +379,13 @@ unsafe fn vp8_simple_filter(
         filter_value =
             vp8_signed_char_clamp(filter_value as i32 + 3 as i32 * (q0 as i32 - p0 as i32));
         filter_value = (filter_value as i32 & mask as i32) as i8;
-        Filter1 = vp8_signed_char_clamp(filter_value as i32 + 4 as i32);
-        Filter1 = (Filter1 as i32 >> 3 as i32) as i8;
-        u = vp8_signed_char_clamp(q0 as i32 - Filter1 as i32);
+        filter1 = vp8_signed_char_clamp(filter_value as i32 + 4 as i32);
+        filter1 = (filter1 as i32 >> 3 as i32) as i8;
+        u = vp8_signed_char_clamp(q0 as i32 - filter1 as i32);
         *oq0 = (u as i32 ^ 0x80 as i32) as uc;
-        Filter2 = vp8_signed_char_clamp(filter_value as i32 + 3 as i32);
-        Filter2 = (Filter2 as i32 >> 3 as i32) as i8;
-        u = vp8_signed_char_clamp(p0 as i32 + Filter2 as i32);
+        filter2 = vp8_signed_char_clamp(filter_value as i32 + 3 as i32);
+        filter2 = (filter2 as i32 >> 3 as i32) as i8;
+        u = vp8_signed_char_clamp(p0 as i32 + filter2 as i32);
         *op0 = (u as i32 ^ 0x80 as i32) as uc;
     }
 }

@@ -539,9 +539,9 @@ pub struct vpx_atomic_int {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VP8D_CONFIG {
-    pub Width: i32,
-    pub Height: i32,
-    pub Version: i32,
+    pub width: i32,
+    pub height: i32,
+    pub version: i32,
     pub postprocess: i32,
     pub max_threads: i32,
     pub error_concealment: i32,
@@ -564,11 +564,11 @@ pub type VP8_COMMON = VP8Common;
 #[repr(C)]
 pub struct VP8Common {
     pub error: vpx_internal_error_info,
-    pub Y1dequant: [[i16; 2]; 128],
-    pub Y2dequant: [[i16; 2]; 128],
-    pub UVdequant: [[i16; 2]; 128],
-    pub Width: i32,
-    pub Height: i32,
+    pub y1dequant: [[i16; 2]; 128],
+    pub y2dequant: [[i16; 2]; 128],
+    pub uvdequant: [[i16; 2]; 128],
+    pub width: i32,
+    pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
     pub clamp_type: CLAMP_TYPE,
@@ -584,7 +584,7 @@ pub struct VP8Common {
     pub frame_type: FRAME_TYPE,
     pub show_frame: i32,
     pub frame_flags: i32,
-    pub MBs: i32,
+    pub mbs: i32,
     pub mb_rows: i32,
     pub mb_cols: i32,
     pub mode_info_stride: i32,
@@ -1280,23 +1280,23 @@ unsafe fn vp8_decode(
             (*pbi_0).max_threads = (*ctx).cfg.threads as i32;
             vp8_decoder_create_threads(pbi_0);
             if vpx_atomic_load_acquire(&raw mut (*pbi_0).b_multithreaded_rd) != 0 {
-                vp8mt_alloc_temp_buffers(pbi_0, (*pc).Width, (*pc).mb_rows);
+                vp8mt_alloc_temp_buffers(pbi_0, (*pc).width, (*pc).mb_rows);
             }
             (*ctx).restart_threads = 0 as i32;
             (*pbi_0).common.error.setjmp = 0 as i32;
         }
         if res as u64 == 0 && (*ctx).decoder_init == 0 {
             let mut oxcf: VP8D_CONFIG = VP8D_CONFIG {
-                Width: 0,
-                Height: 0,
-                Version: 0,
+                width: 0,
+                height: 0,
+                version: 0,
                 postprocess: 0,
                 max_threads: 0,
                 error_concealment: 0,
             };
-            oxcf.Width = (*ctx).si.w as i32;
-            oxcf.Height = (*ctx).si.h as i32;
-            oxcf.Version = 9 as i32;
+            oxcf.width = (*ctx).si.w as i32;
+            oxcf.height = (*ctx).si.h as i32;
+            oxcf.version = 9 as i32;
             oxcf.postprocess = 0 as i32;
             oxcf.max_threads = (*ctx).cfg.threads as i32;
             oxcf.error_concealment = ((*ctx).base.init_flags
@@ -1332,8 +1332,8 @@ unsafe fn vp8_decode(
             if resolution_change != 0 {
                 let xd: *mut MACROBLOCKD = &raw mut (*pbi_1).mb;
                 let mut i: i32 = 0;
-                (*pc_0).Width = (*ctx).si.w as i32;
-                (*pc_0).Height = (*ctx).si.h as i32;
+                (*pc_0).width = (*ctx).si.w as i32;
+                (*pc_0).height = (*ctx).si.h as i32;
                 if setjmp(&raw mut (*pbi_1).common.error.jmp as *mut i32) != 0 {
                     (*pbi_1).common.error.setjmp = 0 as i32;
                     (*ctx).si.w = 0 as u32;
@@ -1341,16 +1341,16 @@ unsafe fn vp8_decode(
                     return 4294967295 as vpx_codec_err_t;
                 }
                 (*pbi_1).common.error.setjmp = 1 as i32;
-                if (*pc_0).Width <= 0 as i32 {
-                    (*pc_0).Width = w as i32;
+                if (*pc_0).width <= 0 as i32 {
+                    (*pc_0).width = w as i32;
                     vpx_internal_error(
                         &raw mut (*pc_0).error,
                         VPX_CODEC_CORRUPT_FRAME,
                         b"Invalid frame width\0" as *const u8 as *const i8,
                     );
                 }
-                if (*pc_0).Height <= 0 as i32 {
-                    (*pc_0).Height = h as i32;
+                if (*pc_0).height <= 0 as i32 {
+                    (*pc_0).height = h as i32;
                     vpx_internal_error(
                         &raw mut (*pc_0).error,
                         VPX_CODEC_CORRUPT_FRAME,
@@ -1360,7 +1360,7 @@ unsafe fn vp8_decode(
                 if vpx_atomic_load_acquire(&raw mut (*pbi_1).b_multithreaded_rd) != 0 {
                     vp8mt_de_alloc_temp_buffers(pbi_1, (*pc_0).mb_rows);
                 }
-                if vp8_alloc_frame_buffers(pc_0, (*pc_0).Width, (*pc_0).Height) != 0 {
+                if vp8_alloc_frame_buffers(pc_0, (*pc_0).width, (*pc_0).height) != 0 {
                     vpx_internal_error(
                         &raw mut (*pc_0).error,
                         VPX_CODEC_MEM_ERROR,
@@ -1378,7 +1378,7 @@ unsafe fn vp8_decode(
                 }
                 vp8_build_block_doffsets(&raw mut (*pbi_1).mb);
                 if vpx_atomic_load_acquire(&raw mut (*pbi_1).b_multithreaded_rd) != 0 {
-                    vp8mt_alloc_temp_buffers(pbi_1, (*pc_0).Width, 0 as i32);
+                    vp8mt_alloc_temp_buffers(pbi_1, (*pc_0).width, 0 as i32);
                 }
                 (*pbi_1).common.error.setjmp = 0 as i32;
                 (*pbi_1).common.fb_idx_ref_cnt[0 as usize] = 0 as i32;

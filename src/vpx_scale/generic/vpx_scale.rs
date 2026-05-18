@@ -198,7 +198,7 @@ unsafe fn scale1d_c(
         }
     }
 }
-unsafe fn Scale2D(
+unsafe fn scale2_d(
     mut source: *mut u8,
     mut source_pitch: i32,
     mut source_width: u32,
@@ -222,9 +222,9 @@ unsafe fn Scale2D(
         let mut bands: i32 = 0;
         let mut dest_band_height: i32 = 0;
         let mut source_band_height: i32 = 0;
-        let mut Scale1Dv: Scale1D =
+        let mut scale1_dv: Scale1D =
             Some(scale1d_c as unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> ());
-        let mut Scale1Dh: Scale1D =
+        let mut scale1_dh: Scale1D =
             Some(scale1d_c as unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> ());
         let mut horiz_line_scale: Option<unsafe fn(*const u8, u32, *mut u8, u32) -> ()> = None;
         let mut vert_band_scale: Option<unsafe fn(*mut u8, u32, *mut u8, u32, u32) -> ()> = None;
@@ -377,18 +377,18 @@ unsafe fn Scale2D(
             return;
         }
         if hscale == 2 as u32 && hratio == 1 as u32 {
-            Scale1Dh = Some(
+            scale1_dh = Some(
                 scale1d_2t1_ps as unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> (),
             ) as Scale1D;
         }
         if vscale == 2 as u32 && vratio == 1 as u32 {
             if interlaced != 0 {
-                Scale1Dv = Some(
+                scale1_dv = Some(
                     scale1d_2t1_ps
                         as unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> (),
                 ) as Scale1D;
             } else {
-                Scale1Dv = Some(
+                scale1_dv = Some(
                     scale1d_2t1_i
                         as unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> (),
                 ) as Scale1D;
@@ -397,7 +397,7 @@ unsafe fn Scale2D(
         if source_height == dest_height {
             k = 0 as i32;
             while k < dest_height as i32 {
-                Scale1Dh.expect("non-null function pointer")(
+                scale1_dh.expect("non-null function pointer")(
                     source,
                     1 as i32,
                     hscale,
@@ -424,7 +424,7 @@ unsafe fn Scale2D(
                 .wrapping_mul(vratio)
                 .wrapping_div(vscale) as i32;
         }
-        Scale1Dh.expect("non-null function pointer")(
+        scale1_dh.expect("non-null function pointer")(
             source,
             1 as i32,
             hscale,
@@ -443,7 +443,7 @@ unsafe fn Scale2D(
             i = 1 as i32;
             while i < source_band_height + 1 as i32 {
                 if k * source_band_height + i < source_height as i32 {
-                    Scale1Dh.expect("non-null function pointer")(
+                    scale1_dh.expect("non-null function pointer")(
                         source.offset((i * source_pitch) as isize),
                         1 as i32,
                         hscale,
@@ -465,7 +465,7 @@ unsafe fn Scale2D(
             }
             j = 0 as i32;
             while j < dest_width as i32 {
-                Scale1Dv.expect("non-null function pointer")(
+                scale1_dv.expect("non-null function pointer")(
                     temp_area.offset(j as isize) as *mut u8,
                     dest_pitch,
                     vscale,
@@ -511,7 +511,7 @@ pub unsafe fn vpx_scale_frame(
             .wrapping_sub(1 as u32)
             .wrapping_add(((*src).y_height as u32).wrapping_mul(vratio))
             .wrapping_div(vscale) as i32;
-        Scale2D(
+        scale2_d(
             (*src).y_buffer as *mut u8,
             (*src).y_stride,
             (*src).y_width as u32,
@@ -561,7 +561,7 @@ pub unsafe fn vpx_scale_frame(
                 i += 1;
             }
         }
-        Scale2D(
+        scale2_d(
             (*src).u_buffer as *mut u8,
             (*src).uv_stride,
             (*src).uv_width as u32,
@@ -611,7 +611,7 @@ pub unsafe fn vpx_scale_frame(
                 i += 1;
             }
         }
-        Scale2D(
+        scale2_d(
             (*src).v_buffer as *mut u8,
             (*src).uv_stride,
             (*src).uv_width as u32,

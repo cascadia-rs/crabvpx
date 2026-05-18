@@ -300,9 +300,9 @@ pub struct FRAGMENT_DATA {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VP8D_CONFIG {
-    pub Width: i32,
-    pub Height: i32,
-    pub Version: i32,
+    pub width: i32,
+    pub height: i32,
+    pub version: i32,
     pub postprocess: i32,
     pub max_threads: i32,
     pub error_concealment: i32,
@@ -325,11 +325,11 @@ pub type VP8_COMMON = VP8Common;
 #[repr(C)]
 pub struct VP8Common {
     pub error: vpx_internal_error_info,
-    pub Y1dequant: [[i16; 2]; 128],
-    pub Y2dequant: [[i16; 2]; 128],
-    pub UVdequant: [[i16; 2]; 128],
-    pub Width: i32,
-    pub Height: i32,
+    pub y1dequant: [[i16; 2]; 128],
+    pub y2dequant: [[i16; 2]; 128],
+    pub uvdequant: [[i16; 2]; 128],
+    pub width: i32,
+    pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
     pub clamp_type: CLAMP_TYPE,
@@ -345,7 +345,7 @@ pub struct VP8Common {
     pub frame_type: FRAME_TYPE,
     pub show_frame: i32,
     pub frame_flags: i32,
-    pub MBs: i32,
+    pub mbs: i32,
     pub mb_rows: i32,
     pub mb_cols: i32,
     pub mode_info_stride: i32,
@@ -559,7 +559,7 @@ static mut kZigzag: [uint8_t; 16] = [
     14 as uint8_t,
     15 as uint8_t,
 ];
-unsafe fn GetSigned(mut br: *mut BOOL_DECODER, mut value_to_sign: i32) -> i32 {
+unsafe fn get_signed(mut br: *mut BOOL_DECODER, mut value_to_sign: i32) -> i32 {
     unsafe {
         let mut split: i32 = ((*br).range.wrapping_add(1 as u32) >> 1 as i32) as i32;
         let mut bigsplit: VP8_BD_VALUE = (split as VP8_BD_VALUE) << (VP8_BD_VALUE_SIZE - 8 as i32);
@@ -581,7 +581,7 @@ unsafe fn GetSigned(mut br: *mut BOOL_DECODER, mut value_to_sign: i32) -> i32 {
         v
     }
 }
-unsafe fn GetCoeffs(
+unsafe fn get_coeffs(
     mut br: *mut BOOL_DECODER,
     mut prob: ProbaArray,
     mut ctx: i32,
@@ -646,7 +646,7 @@ unsafe fn GetCoeffs(
                         .offset(2 as isize) as *const uint8_t;
                 }
                 j = kZigzag[(n - 1 as i32) as usize] as i32;
-                *out.offset(j as isize) = GetSigned(br, v) as int16_t;
+                *out.offset(j as isize) = get_signed(br, v) as int16_t;
                 if n == 16 as i32 || vp8dx_decode_bool(br, *p.offset(0 as isize) as i32) == 0 {
                     return n;
                 }
@@ -680,7 +680,7 @@ pub unsafe fn vp8_decode_mb_tokens(mut dx: *mut VP8D_COMP, mut x: *mut MACROBLOC
             coef_probs =
                 &raw const *(&raw const (*fc).coef_probs as *const [[[vp8_prob; 11]; 3]; 8])
                     .offset(1 as isize) as *const [[vp8_prob; 11]; 3] as ProbaArray;
-            nonzeros = GetCoeffs(
+            nonzeros = get_coeffs(
                 bc,
                 coef_probs,
                 *a as i32 + *l as i32,
@@ -705,7 +705,7 @@ pub unsafe fn vp8_decode_mb_tokens(mut dx: *mut VP8D_COMP, mut x: *mut MACROBLOC
         while i < 16 as i32 {
             a = a_ctx.offset((i & 3 as i32) as isize);
             l = l_ctx.offset(((i & 0xc as i32) >> 2 as i32) as isize);
-            nonzeros = GetCoeffs(
+            nonzeros = get_coeffs(
                 bc,
                 coef_probs,
                 *a as i32 + *l as i32,
@@ -732,7 +732,7 @@ pub unsafe fn vp8_decode_mb_tokens(mut dx: *mut VP8D_COMP, mut x: *mut MACROBLOC
             l = l_ctx
                 .offset((((i > 19 as i32) as i32) << 1 as i32) as isize)
                 .offset((i & 3 as i32 > 1 as i32) as isize);
-            nonzeros = GetCoeffs(
+            nonzeros = get_coeffs(
                 bc,
                 coef_probs,
                 *a as i32 + *l as i32,

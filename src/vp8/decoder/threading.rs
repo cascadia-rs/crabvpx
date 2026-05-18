@@ -23,7 +23,7 @@ unsafe extern "Rust" {
         stride: i32,
         eobs: *mut i8,
     );
-    fn vp8_dequantize_b_c(_: *mut blockd, DQC: *mut i16);
+    fn vp8_dequantize_b_c(_: *mut blockd, dqc: *mut i16);
     fn vp8_loop_filter_bh_c(
         y_ptr: *mut u8,
         u_ptr: *mut u8,
@@ -92,7 +92,7 @@ unsafe extern "Rust" {
     fn vpx_malloc(size: size_t) -> *mut c_void;
     fn vpx_calloc(num: size_t, size: size_t) -> *mut c_void;
     fn vpx_free(memblk: *mut c_void);
-    fn vp8_extend_mb_row(ybf: *mut YV12_BUFFER_CONFIG, YPtr: *mut u8, UPtr: *mut u8, VPtr: *mut u8);
+    fn vp8_extend_mb_row(ybf: *mut YV12_BUFFER_CONFIG, yptr: *mut u8, uptr: *mut u8, vptr: *mut u8);
     fn vp8_reset_mb_tokens_context(x: *mut MACROBLOCKD);
     fn vp8_decode_mb_tokens(_: *mut VP8D_COMP, _: *mut MACROBLOCKD) -> i32;
     fn vp8_intra4x4_predict(
@@ -438,9 +438,9 @@ pub struct FRAGMENT_DATA {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VP8D_CONFIG {
-    pub Width: i32,
-    pub Height: i32,
-    pub Version: i32,
+    pub width: i32,
+    pub height: i32,
+    pub version: i32,
     pub postprocess: i32,
     pub max_threads: i32,
     pub error_concealment: i32,
@@ -463,11 +463,11 @@ pub type VP8_COMMON = VP8Common;
 #[repr(C)]
 pub struct VP8Common {
     pub error: vpx_internal_error_info,
-    pub Y1dequant: [[i16; 2]; 128],
-    pub Y2dequant: [[i16; 2]; 128],
-    pub UVdequant: [[i16; 2]; 128],
-    pub Width: i32,
-    pub Height: i32,
+    pub y1dequant: [[i16; 2]; 128],
+    pub y2dequant: [[i16; 2]; 128],
+    pub uvdequant: [[i16; 2]; 128],
+    pub width: i32,
+    pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
     pub clamp_type: CLAMP_TYPE,
@@ -483,7 +483,7 @@ pub struct VP8Common {
     pub frame_type: FRAME_TYPE,
     pub show_frame: i32,
     pub frame_flags: i32,
-    pub MBs: i32,
+    pub mbs: i32,
     pub mb_rows: i32,
     pub mb_cols: i32,
     pub mode_info_stride: i32,
@@ -789,7 +789,7 @@ unsafe fn mt_decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD
                     (*xd).dst.y_stride,
                 );
             } else {
-                let mut DQC: *mut i16 = &raw mut (*xd).dequant_y1 as *mut i16;
+                let mut dqc: *mut i16 = &raw mut (*xd).dequant_y1 as *mut i16;
                 let mut dst_stride: i32 = (*xd).dst.y_stride;
                 if (*(*xd).mode_info_context).mbmi.mb_skip_coeff != 0 {
                     core::ptr::write_bytes(
@@ -842,11 +842,11 @@ unsafe fn mt_decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD
                     );
                     if (*xd).eobs[i as usize] != 0 {
                         if (*xd).eobs[i as usize] as i32 > 1 as i32 {
-                            vp8_dequant_idct_add_c((*b).qcoeff, DQC, dst, dst_stride);
+                            vp8_dequant_idct_add_c((*b).qcoeff, dqc, dst, dst_stride);
                         } else {
                             vp8_dc_only_idct_add_c(
                                 (*(*b).qcoeff.offset(0 as isize) as i32
-                                    * *DQC.offset(0 as isize) as i32)
+                                    * *dqc.offset(0 as isize) as i32)
                                     as i16,
                                 dst,
                                 dst_stride,
@@ -868,7 +868,7 @@ unsafe fn mt_decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD
         }
         if (*(*xd).mode_info_context).mbmi.mb_skip_coeff == 0 {
             if mode as u32 != B_PRED as u32 {
-                let mut DQC_0: *mut i16 = &raw mut (*xd).dequant_y1 as *mut i16;
+                let mut dqc_0: *mut i16 = &raw mut (*xd).dequant_y1 as *mut i16;
                 if mode as u32 != SPLITMV as u32 {
                     let mut b_0: *mut BLOCKD =
                         (&raw mut (*xd).block as *mut BLOCKD).offset(24 as isize) as *mut BLOCKD;
@@ -901,11 +901,11 @@ unsafe fn mt_decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD
                             (2 as size_t).wrapping_mul(::core::mem::size_of::<i16>() as size_t),
                         );
                     }
-                    DQC_0 = &raw mut (*xd).dequant_y1_dc as *mut i16;
+                    dqc_0 = &raw mut (*xd).dequant_y1_dc as *mut i16;
                 }
                 vp8_dequant_idct_add_y_block_c(
                     &raw mut (*xd).qcoeff as *mut i16,
-                    DQC_0,
+                    dqc_0,
                     (*xd).dst.y_buffer as *mut u8,
                     (*xd).dst.y_stride,
                     &raw mut (*xd).eobs as *mut i8,

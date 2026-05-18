@@ -7,7 +7,7 @@ pub type vp8_tree_p = *const vp8_tree_index;
 #[repr(C)]
 pub struct vp8_token_struct {
     pub value: i32,
-    pub Len: i32,
+    pub len: i32,
 }
 pub type vp8_token = vp8_token_struct;
 pub type vpx_color_space = u32;
@@ -155,18 +155,18 @@ pub type MODE_INFO = modeinfo;
 pub struct vp8_extra_bit_struct {
     pub tree: vp8_tree_p,
     pub prob: *const vp8_prob,
-    pub Len: i32,
+    pub len: i32,
     pub base_val: i32,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VP8Common {
     pub error: vpx_internal_error_info,
-    pub Y1dequant: [[i16; 2]; 128],
-    pub Y2dequant: [[i16; 2]; 128],
-    pub UVdequant: [[i16; 2]; 128],
-    pub Width: i32,
-    pub Height: i32,
+    pub y1dequant: [[i16; 2]; 128],
+    pub y2dequant: [[i16; 2]; 128],
+    pub uvdequant: [[i16; 2]; 128],
+    pub width: i32,
+    pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
     pub clamp_type: CLAMP_TYPE,
@@ -182,7 +182,7 @@ pub struct VP8Common {
     pub frame_type: FRAME_TYPE,
     pub show_frame: i32,
     pub frame_flags: i32,
-    pub MBs: i32,
+    pub mbs: i32,
     pub mb_rows: i32,
     pub mb_cols: i32,
     pub mode_info_stride: i32,
@@ -1694,51 +1694,51 @@ pub static mut vp8_coef_tree: [vp8_tree_index; 22] = [
 pub static mut vp8_coef_encodings: [vp8_token; 12] = [
     vp8_token_struct {
         value: 2 as i32,
-        Len: 2 as i32,
+        len: 2 as i32,
     },
     vp8_token_struct {
         value: 6 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 28 as i32,
-        Len: 5 as i32,
+        len: 5 as i32,
     },
     vp8_token_struct {
         value: 58 as i32,
-        Len: 6 as i32,
+        len: 6 as i32,
     },
     vp8_token_struct {
         value: 59 as i32,
-        Len: 6 as i32,
+        len: 6 as i32,
     },
     vp8_token_struct {
         value: 60 as i32,
-        Len: 6 as i32,
+        len: 6 as i32,
     },
     vp8_token_struct {
         value: 61 as i32,
-        Len: 6 as i32,
+        len: 6 as i32,
     },
     vp8_token_struct {
         value: 124 as i32,
-        Len: 7 as i32,
+        len: 7 as i32,
     },
     vp8_token_struct {
         value: 125 as i32,
-        Len: 7 as i32,
+        len: 7 as i32,
     },
     vp8_token_struct {
         value: 126 as i32,
-        Len: 7 as i32,
+        len: 7 as i32,
     },
     vp8_token_struct {
         value: 127 as i32,
-        Len: 7 as i32,
+        len: 7 as i32,
     },
     vp8_token_struct {
         value: 0 as i32,
-        Len: 1 as i32,
+        len: 1 as i32,
     },
 ];
 static mut Pcat1: [vp8_prob; 1] = [159 as vp8_prob];
@@ -1837,73 +1837,73 @@ pub static mut vp8_extra_bits: [vp8_extra_bit_struct; 12] = {
         vp8_extra_bit_struct {
             tree: ::core::ptr::null::<vp8_tree_index>(),
             prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as i32,
+            len: 0 as i32,
             base_val: 0 as i32,
         },
         vp8_extra_bit_struct {
             tree: ::core::ptr::null::<vp8_tree_index>(),
             prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as i32,
+            len: 0 as i32,
             base_val: 1 as i32,
         },
         vp8_extra_bit_struct {
             tree: ::core::ptr::null::<vp8_tree_index>(),
             prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as i32,
+            len: 0 as i32,
             base_val: 2 as i32,
         },
         vp8_extra_bit_struct {
             tree: ::core::ptr::null::<vp8_tree_index>(),
             prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as i32,
+            len: 0 as i32,
             base_val: 3 as i32,
         },
         vp8_extra_bit_struct {
             tree: ::core::ptr::null::<vp8_tree_index>(),
             prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as i32,
+            len: 0 as i32,
             base_val: 4 as i32,
         },
         vp8_extra_bit_struct {
             tree: &raw const cat1 as vp8_tree_p,
             prob: &raw const Pcat1 as *const vp8_prob,
-            Len: 1 as i32,
+            len: 1 as i32,
             base_val: 5 as i32,
         },
         vp8_extra_bit_struct {
             tree: &raw const cat2 as vp8_tree_p,
             prob: &raw const Pcat2 as *const vp8_prob,
-            Len: 2 as i32,
+            len: 2 as i32,
             base_val: 7 as i32,
         },
         vp8_extra_bit_struct {
             tree: &raw const cat3 as vp8_tree_p,
             prob: &raw const Pcat3 as *const vp8_prob,
-            Len: 3 as i32,
+            len: 3 as i32,
             base_val: 11 as i32,
         },
         vp8_extra_bit_struct {
             tree: &raw const cat4 as vp8_tree_p,
             prob: &raw const Pcat4 as *const vp8_prob,
-            Len: 4 as i32,
+            len: 4 as i32,
             base_val: 19 as i32,
         },
         vp8_extra_bit_struct {
             tree: &raw const cat5 as vp8_tree_p,
             prob: &raw const Pcat5 as *const vp8_prob,
-            Len: 5 as i32,
+            len: 5 as i32,
             base_val: 35 as i32,
         },
         vp8_extra_bit_struct {
             tree: &raw const cat6 as vp8_tree_p,
             prob: &raw const Pcat6 as *const vp8_prob,
-            Len: 11 as i32,
+            len: 11 as i32,
             base_val: 67 as i32,
         },
         vp8_extra_bit_struct {
             tree: ::core::ptr::null::<vp8_tree_index>(),
             prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as i32,
+            len: 0 as i32,
             base_val: 0 as i32,
         },
     ]

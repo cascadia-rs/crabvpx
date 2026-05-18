@@ -636,8 +636,8 @@ pub unsafe fn vpx_codec_enc_config_default(
         res
     }
 }
-unsafe fn FLOATING_POINT_INIT() {}
-unsafe fn FLOATING_POINT_RESTORE() {}
+unsafe fn floating_point_init() {}
+unsafe fn floating_point_restore() {}
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_encode(
     mut ctx: *mut vpx_codec_ctx_t,
@@ -659,7 +659,7 @@ pub unsafe fn vpx_codec_encode(
             res = VPX_CODEC_INVALID_PARAM;
         } else {
             let mut num_enc: u32 = (*(*ctx).priv_0).enc.total_encoders;
-            FLOATING_POINT_INIT();
+            floating_point_init();
             if num_enc == 1 as u32 {
                 res = (*(*ctx).iface)
                     .enc
@@ -702,7 +702,7 @@ pub unsafe fn vpx_codec_encode(
                 }
                 ctx = ctx.offset(1);
             }
-            FLOATING_POINT_RESTORE();
+            floating_point_restore();
         }
         (if !ctx.is_null() {
             (*ctx).err = res;

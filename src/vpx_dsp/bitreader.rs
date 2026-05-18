@@ -63,7 +63,7 @@ unsafe fn vpx_read_bit(mut r: *mut vpx_reader) -> i32 {
     unsafe { vpx_read(r, 128 as i32) }
 }
 #[inline]
-unsafe fn BSwap64(mut x: uint64_t) -> uint64_t {
+unsafe fn bswap64(mut x: uint64_t) -> uint64_t {
     x.swap_bytes()
 }
 #[unsafe(no_mangle)]
@@ -125,7 +125,7 @@ pub unsafe fn vpx_reader_fill(mut r: *mut vpx_reader) {
                 &raw mut big_endian_values as *mut c_void as *mut u8,
                 ::core::mem::size_of::<BD_VALUE>() as size_t,
             );
-            big_endian_values = BSwap64(big_endian_values as uint64_t) as BD_VALUE;
+            big_endian_values = bswap64(big_endian_values as uint64_t) as BD_VALUE;
             nv = big_endian_values >> (BD_VALUE_SIZE - bits);
             count += bits;
             buffer = buffer.offset((bits >> 3 as i32) as isize);

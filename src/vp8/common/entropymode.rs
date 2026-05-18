@@ -159,11 +159,11 @@ pub struct loop_filter_info_n {
 #[repr(C)]
 pub struct VP8Common {
     pub error: vpx_internal_error_info,
-    pub Y1dequant: [[i16; 2]; 128],
-    pub Y2dequant: [[i16; 2]; 128],
-    pub UVdequant: [[i16; 2]; 128],
-    pub Width: i32,
-    pub Height: i32,
+    pub y1dequant: [[i16; 2]; 128],
+    pub y2dequant: [[i16; 2]; 128],
+    pub uvdequant: [[i16; 2]; 128],
+    pub width: i32,
+    pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
     pub clamp_type: CLAMP_TYPE,
@@ -179,7 +179,7 @@ pub struct VP8Common {
     pub frame_type: FRAME_TYPE,
     pub show_frame: i32,
     pub frame_flags: i32,
-    pub MBs: i32,
+    pub mbs: i32,
     pub mb_rows: i32,
     pub mb_cols: i32,
     pub mode_info_stride: i32,
@@ -247,7 +247,7 @@ pub type vp8_tree_index = i8;
 #[repr(C)]
 pub struct vp8_token_struct {
     pub value: i32,
-    pub Len: i32,
+    pub len: i32,
 }
 pub type C2RustUnnamed = u32;
 pub const MB_MODE_COUNT: C2RustUnnamed = 10;
@@ -273,204 +273,204 @@ pub type vp8_mbsplit = [i32; 16];
 pub static mut vp8_bmode_encodings: [vp8_token_struct; 10] = [
     vp8_token_struct {
         value: 0 as i32,
-        Len: 1 as i32,
+        len: 1 as i32,
     },
     vp8_token_struct {
         value: 2 as i32,
-        Len: 2 as i32,
+        len: 2 as i32,
     },
     vp8_token_struct {
         value: 6 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 28 as i32,
-        Len: 5 as i32,
+        len: 5 as i32,
     },
     vp8_token_struct {
         value: 30 as i32,
-        Len: 5 as i32,
+        len: 5 as i32,
     },
     vp8_token_struct {
         value: 58 as i32,
-        Len: 6 as i32,
+        len: 6 as i32,
     },
     vp8_token_struct {
         value: 59 as i32,
-        Len: 6 as i32,
+        len: 6 as i32,
     },
     vp8_token_struct {
         value: 62 as i32,
-        Len: 6 as i32,
+        len: 6 as i32,
     },
     vp8_token_struct {
         value: 126 as i32,
-        Len: 7 as i32,
+        len: 7 as i32,
     },
     vp8_token_struct {
         value: 127 as i32,
-        Len: 7 as i32,
+        len: 7 as i32,
     },
 ];
 #[unsafe(no_mangle)]
 pub static mut vp8_ymode_encodings: [vp8_token_struct; 5] = [
     vp8_token_struct {
         value: 0 as i32,
-        Len: 1 as i32,
+        len: 1 as i32,
     },
     vp8_token_struct {
         value: 4 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 5 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 6 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 7 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
 ];
 #[unsafe(no_mangle)]
 pub static mut vp8_kf_ymode_encodings: [vp8_token_struct; 5] = [
     vp8_token_struct {
         value: 4 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 5 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 6 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 7 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 0 as i32,
-        Len: 1 as i32,
+        len: 1 as i32,
     },
 ];
 #[unsafe(no_mangle)]
 pub static mut vp8_uv_mode_encodings: [vp8_token_struct; 4] = [
     vp8_token_struct {
         value: 0 as i32,
-        Len: 1 as i32,
+        len: 1 as i32,
     },
     vp8_token_struct {
         value: 2 as i32,
-        Len: 2 as i32,
+        len: 2 as i32,
     },
     vp8_token_struct {
         value: 6 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 7 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
 ];
 #[unsafe(no_mangle)]
 pub static mut vp8_mbsplit_encodings: [vp8_token_struct; 4] = [
     vp8_token_struct {
         value: 6 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 7 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 2 as i32,
-        Len: 2 as i32,
+        len: 2 as i32,
     },
     vp8_token_struct {
         value: 0 as i32,
-        Len: 1 as i32,
+        len: 1 as i32,
     },
 ];
 #[unsafe(no_mangle)]
 pub static mut vp8_mv_ref_encoding_array: [vp8_token_struct; 5] = [
     vp8_token_struct {
         value: 2 as i32,
-        Len: 2 as i32,
+        len: 2 as i32,
     },
     vp8_token_struct {
         value: 6 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 0 as i32,
-        Len: 1 as i32,
+        len: 1 as i32,
     },
     vp8_token_struct {
         value: 14 as i32,
-        Len: 4 as i32,
+        len: 4 as i32,
     },
     vp8_token_struct {
         value: 15 as i32,
-        Len: 4 as i32,
+        len: 4 as i32,
     },
 ];
 #[unsafe(no_mangle)]
 pub static mut vp8_sub_mv_ref_encoding_array: [vp8_token_struct; 4] = [
     vp8_token_struct {
         value: 0 as i32,
-        Len: 1 as i32,
+        len: 1 as i32,
     },
     vp8_token_struct {
         value: 2 as i32,
-        Len: 2 as i32,
+        len: 2 as i32,
     },
     vp8_token_struct {
         value: 6 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 7 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
 ];
 #[unsafe(no_mangle)]
 pub static mut vp8_small_mvencodings: [vp8_token_struct; 8] = [
     vp8_token_struct {
         value: 0 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 1 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 2 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 3 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 4 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 5 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 6 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
     vp8_token_struct {
         value: 7 as i32,
-        Len: 3 as i32,
+        len: 3 as i32,
     },
 ];
 #[unsafe(no_mangle)]

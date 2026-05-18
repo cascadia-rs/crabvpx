@@ -310,9 +310,9 @@ pub struct FRAGMENT_DATA {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VP8D_CONFIG {
-    pub Width: i32,
-    pub Height: i32,
-    pub Version: i32,
+    pub width: i32,
+    pub height: i32,
+    pub version: i32,
     pub postprocess: i32,
     pub max_threads: i32,
     pub error_concealment: i32,
@@ -335,11 +335,11 @@ pub type VP8_COMMON = VP8Common;
 #[repr(C)]
 pub struct VP8Common {
     pub error: vpx_internal_error_info,
-    pub Y1dequant: [[i16; 2]; 128],
-    pub Y2dequant: [[i16; 2]; 128],
-    pub UVdequant: [[i16; 2]; 128],
-    pub Width: i32,
-    pub Height: i32,
+    pub y1dequant: [[i16; 2]; 128],
+    pub y2dequant: [[i16; 2]; 128],
+    pub uvdequant: [[i16; 2]; 128],
+    pub width: i32,
+    pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
     pub clamp_type: CLAMP_TYPE,
@@ -355,7 +355,7 @@ pub struct VP8Common {
     pub frame_type: FRAME_TYPE,
     pub show_frame: i32,
     pub frame_flags: i32,
-    pub MBs: i32,
+    pub mbs: i32,
     pub mb_rows: i32,
     pub mb_cols: i32,
     pub mode_info_stride: i32,

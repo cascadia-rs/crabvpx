@@ -143,11 +143,11 @@ pub unsafe fn vp8_intra4x4_predict(
     unsafe {
         let mut Aboveb: [u8; 12] = [0; 12];
         let mut Above: *mut u8 = (&raw mut Aboveb as *mut u8).offset(4 as isize);
-        let mut Left: [u8; 4] = [0; 4];
-        Left[0 as usize] = *yleft.offset(0 as isize);
-        Left[1 as usize] = *yleft.offset(left_stride as isize);
-        Left[2 as usize] = *yleft.offset((2 as i32 * left_stride) as isize);
-        Left[3 as usize] = *yleft.offset((3 as i32 * left_stride) as isize);
+        let mut left: [u8; 4] = [0; 4];
+        left[0 as usize] = *yleft.offset(0 as isize);
+        left[1 as usize] = *yleft.offset(left_stride as isize);
+        left[2 as usize] = *yleft.offset((2 as i32 * left_stride) as isize);
+        left[3 as usize] = *yleft.offset((3 as i32 * left_stride) as isize);
         core::ptr::copy_nonoverlapping(
             above as *const c_void as *const u8,
             Above as *mut c_void as *mut u8,
@@ -158,7 +158,7 @@ pub unsafe fn vp8_intra4x4_predict(
             dst as *mut uint8_t,
             dst_stride as ptrdiff_t,
             Above,
-            &raw mut Left as *mut u8,
+            &raw mut left as *mut u8,
         );
     }
 }

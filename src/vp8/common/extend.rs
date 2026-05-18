@@ -288,30 +288,30 @@ pub unsafe fn vp8_copy_and_extend_frame_with_rect(
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_extend_mb_row(
     mut ybf: *mut YV12_BUFFER_CONFIG,
-    mut YPtr: *mut u8,
-    mut UPtr: *mut u8,
-    mut VPtr: *mut u8,
+    mut yptr: *mut u8,
+    mut uptr: *mut u8,
+    mut vptr: *mut u8,
 ) {
     unsafe {
         let mut i: i32 = 0;
-        YPtr = YPtr.offset(((*ybf).y_stride * 14 as i32) as isize);
-        UPtr = UPtr.offset(((*ybf).uv_stride * 6 as i32) as isize);
-        VPtr = VPtr.offset(((*ybf).uv_stride * 6 as i32) as isize);
+        yptr = yptr.offset(((*ybf).y_stride * 14 as i32) as isize);
+        uptr = uptr.offset(((*ybf).uv_stride * 6 as i32) as isize);
+        vptr = vptr.offset(((*ybf).uv_stride * 6 as i32) as isize);
         i = 0 as i32;
         while i < 4 as i32 {
-            *YPtr.offset(i as isize) = *YPtr.offset(-(1 as i32) as isize);
-            *UPtr.offset(i as isize) = *UPtr.offset(-(1 as i32) as isize);
-            *VPtr.offset(i as isize) = *VPtr.offset(-(1 as i32) as isize);
+            *yptr.offset(i as isize) = *yptr.offset(-(1 as i32) as isize);
+            *uptr.offset(i as isize) = *uptr.offset(-(1 as i32) as isize);
+            *vptr.offset(i as isize) = *vptr.offset(-(1 as i32) as isize);
             i += 1;
         }
-        YPtr = YPtr.offset((*ybf).y_stride as isize);
-        UPtr = UPtr.offset((*ybf).uv_stride as isize);
-        VPtr = VPtr.offset((*ybf).uv_stride as isize);
+        yptr = yptr.offset((*ybf).y_stride as isize);
+        uptr = uptr.offset((*ybf).uv_stride as isize);
+        vptr = vptr.offset((*ybf).uv_stride as isize);
         i = 0 as i32;
         while i < 4 as i32 {
-            *YPtr.offset(i as isize) = *YPtr.offset(-(1 as i32) as isize);
-            *UPtr.offset(i as isize) = *UPtr.offset(-(1 as i32) as isize);
-            *VPtr.offset(i as isize) = *VPtr.offset(-(1 as i32) as isize);
+            *yptr.offset(i as isize) = *yptr.offset(-(1 as i32) as isize);
+            *uptr.offset(i as isize) = *uptr.offset(-(1 as i32) as isize);
+            *vptr.offset(i as isize) = *vptr.offset(-(1 as i32) as isize);
             i += 1;
         }
     }

@@ -58,15 +58,15 @@ pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
 pub type BLOCKD = blockd;
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_dequantize_b_c(mut d: *mut BLOCKD, mut DQC: *mut i16) {
+pub unsafe fn vp8_dequantize_b_c(mut d: *mut BLOCKD, mut dqc: *mut i16) {
     unsafe {
         let mut i: i32 = 0;
-        let mut DQ: *mut i16 = (*d).dqcoeff;
+        let mut dq: *mut i16 = (*d).dqcoeff;
         let mut Q: *mut i16 = (*d).qcoeff;
         i = 0 as i32;
         while i < 16 as i32 {
-            *DQ.offset(i as isize) =
-                (*Q.offset(i as isize) as i32 * *DQC.offset(i as isize) as i32) as i16;
+            *dq.offset(i as isize) =
+                (*Q.offset(i as isize) as i32 * *dqc.offset(i as isize) as i32) as i16;
             i += 1;
         }
     }

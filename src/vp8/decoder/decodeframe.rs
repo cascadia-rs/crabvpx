@@ -55,7 +55,7 @@ unsafe extern "Rust" {
         stride: i32,
         eobs: *mut i8,
     );
-    fn vp8_dequantize_b_c(_: *mut blockd, DQC: *mut i16);
+    fn vp8_dequantize_b_c(_: *mut blockd, dqc: *mut i16);
     fn vp8_short_inv_walsh4x4_c(input: *mut i16, mb_dqcoeff: *mut i16);
     fn vp8_short_inv_walsh4x4_1_c(input: *mut i16, mb_dqcoeff: *mut i16);
     fn vp8_sixtap_predict16x16_c(
@@ -141,12 +141,12 @@ unsafe extern "Rust" {
     fn vp8_decode_mb_tokens(_: *mut VP8D_COMP, _: *mut MACROBLOCKD) -> i32;
     fn vp8_setup_version(cm: *mut VP8_COMMON);
     fn vp8_init_mbmode_probs(x: *mut VP8_COMMON);
-    fn vp8_ac_yquant(QIndex: i32) -> i32;
-    fn vp8_dc_quant(QIndex: i32, Delta: i32) -> i32;
-    fn vp8_dc2quant(QIndex: i32, Delta: i32) -> i32;
-    fn vp8_ac2quant(QIndex: i32, Delta: i32) -> i32;
-    fn vp8_dc_uv_quant(QIndex: i32, Delta: i32) -> i32;
-    fn vp8_ac_uv_quant(QIndex: i32, Delta: i32) -> i32;
+    fn vp8_ac_yquant(qindex: i32) -> i32;
+    fn vp8_dc_quant(qindex: i32, delta: i32) -> i32;
+    fn vp8_dc2quant(qindex: i32, delta: i32) -> i32;
+    fn vp8_ac2quant(qindex: i32, delta: i32) -> i32;
+    fn vp8_dc_uv_quant(qindex: i32, delta: i32) -> i32;
+    fn vp8_ac_uv_quant(qindex: i32, delta: i32) -> i32;
     fn vp8_build_intra_predictors_mby_s(
         x: *mut MACROBLOCKD,
         yabove_row: *mut u8,
@@ -168,7 +168,7 @@ unsafe extern "Rust" {
     );
     fn vp8_setup_intra_recon_top_line(ybf: *mut YV12_BUFFER_CONFIG);
     fn vp8_decode_mode_mvs(_: *mut VP8D_COMP);
-    fn vp8_extend_mb_row(ybf: *mut YV12_BUFFER_CONFIG, YPtr: *mut u8, UPtr: *mut u8, VPtr: *mut u8);
+    fn vp8_extend_mb_row(ybf: *mut YV12_BUFFER_CONFIG, yptr: *mut u8, uptr: *mut u8, vptr: *mut u8);
     fn vp8mt_decode_mb_rows(pbi: *mut VP8D_COMP, xd: *mut MACROBLOCKD) -> i32;
     fn vp8_decoder_remove_threads(pbi: *mut VP8D_COMP);
 }
@@ -470,9 +470,9 @@ pub struct FRAGMENT_DATA {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VP8D_CONFIG {
-    pub Width: i32,
-    pub Height: i32,
-    pub Version: i32,
+    pub width: i32,
+    pub height: i32,
+    pub version: i32,
     pub postprocess: i32,
     pub max_threads: i32,
     pub error_concealment: i32,
@@ -495,11 +495,11 @@ pub type VP8_COMMON = VP8Common;
 #[repr(C)]
 pub struct VP8Common {
     pub error: vpx_internal_error_info,
-    pub Y1dequant: [[i16; 2]; 128],
-    pub Y2dequant: [[i16; 2]; 128],
-    pub UVdequant: [[i16; 2]; 128],
-    pub Width: i32,
-    pub Height: i32,
+    pub y1dequant: [[i16; 2]; 128],
+    pub y2dequant: [[i16; 2]; 128],
+    pub uvdequant: [[i16; 2]; 128],
+    pub width: i32,
+    pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
     pub clamp_type: CLAMP_TYPE,
@@ -515,7 +515,7 @@ pub struct VP8Common {
     pub frame_type: FRAME_TYPE,
     pub show_frame: i32,
     pub frame_flags: i32,
-    pub MBs: i32,
+    pub mbs: i32,
     pub mb_rows: i32,
     pub mb_cols: i32,
     pub mode_info_stride: i32,
@@ -753,12 +753,12 @@ pub unsafe fn vp8cx_init_de_quantizer(mut pbi: *mut VP8D_COMP) {
         let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
         Q = 0 as i32;
         while Q < QINDEX_RANGE {
-            (*pc).Y1dequant[Q as usize][0 as usize] = vp8_dc_quant(Q, (*pc).y1dc_delta_q) as i16;
-            (*pc).Y2dequant[Q as usize][0 as usize] = vp8_dc2quant(Q, (*pc).y2dc_delta_q) as i16;
-            (*pc).UVdequant[Q as usize][0 as usize] = vp8_dc_uv_quant(Q, (*pc).uvdc_delta_q) as i16;
-            (*pc).Y1dequant[Q as usize][1 as usize] = vp8_ac_yquant(Q) as i16;
-            (*pc).Y2dequant[Q as usize][1 as usize] = vp8_ac2quant(Q, (*pc).y2ac_delta_q) as i16;
-            (*pc).UVdequant[Q as usize][1 as usize] = vp8_ac_uv_quant(Q, (*pc).uvac_delta_q) as i16;
+            (*pc).y1dequant[Q as usize][0 as usize] = vp8_dc_quant(Q, (*pc).y1dc_delta_q) as i16;
+            (*pc).y2dequant[Q as usize][0 as usize] = vp8_dc2quant(Q, (*pc).y2dc_delta_q) as i16;
+            (*pc).uvdequant[Q as usize][0 as usize] = vp8_dc_uv_quant(Q, (*pc).uvdc_delta_q) as i16;
+            (*pc).y1dequant[Q as usize][1 as usize] = vp8_ac_yquant(Q) as i16;
+            (*pc).y2dequant[Q as usize][1 as usize] = vp8_ac2quant(Q, (*pc).y2ac_delta_q) as i16;
+            (*pc).uvdequant[Q as usize][1 as usize] = vp8_ac_uv_quant(Q, (*pc).uvac_delta_q) as i16;
             Q += 1;
         }
     }
@@ -767,36 +767,36 @@ pub unsafe fn vp8cx_init_de_quantizer(mut pbi: *mut VP8D_COMP) {
 pub unsafe fn vp8_mb_init_dequantizer(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD) {
     unsafe {
         let mut i: i32 = 0;
-        let mut QIndex: i32 = 0;
+        let mut qindex: i32 = 0;
         let mut mbmi: *mut MB_MODE_INFO = &raw mut (*(*xd).mode_info_context).mbmi;
         let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
         if (*xd).segmentation_enabled != 0 {
             if (*xd).mb_segment_abs_delta as i32 == SEGMENT_ABSDATA {
-                QIndex = (*xd).segment_feature_data[MB_LVL_ALT_Q as usize]
+                qindex = (*xd).segment_feature_data[MB_LVL_ALT_Q as usize]
                     [(*mbmi).segment_id as usize] as i32;
             } else {
-                QIndex = (*pc).base_qindex
+                qindex = (*pc).base_qindex
                     + (*xd).segment_feature_data[MB_LVL_ALT_Q as usize][(*mbmi).segment_id as usize]
                         as i32;
             }
-            QIndex = if QIndex >= 0 as i32 {
-                if QIndex <= MAXQ { QIndex } else { MAXQ }
+            qindex = if qindex >= 0 as i32 {
+                if qindex <= MAXQ { qindex } else { MAXQ }
             } else {
                 0 as i32
             };
         } else {
-            QIndex = (*pc).base_qindex;
+            qindex = (*pc).base_qindex;
         }
         (*xd).dequant_y1_dc[0 as usize] = 1 as i16;
-        (*xd).dequant_y1[0 as usize] = (*pc).Y1dequant[QIndex as usize][0 as usize];
-        (*xd).dequant_y2[0 as usize] = (*pc).Y2dequant[QIndex as usize][0 as usize];
-        (*xd).dequant_uv[0 as usize] = (*pc).UVdequant[QIndex as usize][0 as usize];
+        (*xd).dequant_y1[0 as usize] = (*pc).y1dequant[qindex as usize][0 as usize];
+        (*xd).dequant_y2[0 as usize] = (*pc).y2dequant[qindex as usize][0 as usize];
+        (*xd).dequant_uv[0 as usize] = (*pc).uvdequant[qindex as usize][0 as usize];
         i = 1 as i32;
         while i < 16 as i32 {
-            (*xd).dequant_y1[i as usize] = (*pc).Y1dequant[QIndex as usize][1 as usize];
+            (*xd).dequant_y1[i as usize] = (*pc).y1dequant[qindex as usize][1 as usize];
             (*xd).dequant_y1_dc[i as usize] = (*xd).dequant_y1[i as usize];
-            (*xd).dequant_y2[i as usize] = (*pc).Y2dequant[QIndex as usize][1 as usize];
-            (*xd).dequant_uv[i as usize] = (*pc).UVdequant[QIndex as usize][1 as usize];
+            (*xd).dequant_y2[i as usize] = (*pc).y2dequant[qindex as usize][1 as usize];
+            (*xd).dequant_uv[i as usize] = (*pc).uvdequant[qindex as usize][1 as usize];
             i += 1;
         }
     }
@@ -838,7 +838,7 @@ unsafe fn decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD, _
                     (*xd).dst.y_stride,
                 );
             } else {
-                let mut DQC: *mut i16 = &raw mut (*xd).dequant_y1 as *mut i16;
+                let mut dqc: *mut i16 = &raw mut (*xd).dequant_y1 as *mut i16;
                 let mut dst_stride: i32 = (*xd).dst.y_stride;
                 if (*(*xd).mode_info_context).mbmi.mb_skip_coeff != 0 {
                     core::ptr::write_bytes(
@@ -870,11 +870,11 @@ unsafe fn decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD, _
                     );
                     if (*xd).eobs[i as usize] != 0 {
                         if (*xd).eobs[i as usize] as i32 > 1 as i32 {
-                            vp8_dequant_idct_add_c((*b).qcoeff, DQC, dst, dst_stride);
+                            vp8_dequant_idct_add_c((*b).qcoeff, dqc, dst, dst_stride);
                         } else {
                             vp8_dc_only_idct_add_c(
                                 (*(*b).qcoeff.offset(0 as isize) as i32
-                                    * *DQC.offset(0 as isize) as i32)
+                                    * *dqc.offset(0 as isize) as i32)
                                     as i16,
                                 dst,
                                 dst_stride,
@@ -896,7 +896,7 @@ unsafe fn decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD, _
         }
         if (*(*xd).mode_info_context).mbmi.mb_skip_coeff == 0 {
             if mode as u32 != B_PRED as u32 {
-                let mut DQC_0: *mut i16 = &raw mut (*xd).dequant_y1 as *mut i16;
+                let mut dqc_0: *mut i16 = &raw mut (*xd).dequant_y1 as *mut i16;
                 if mode as u32 != SPLITMV as u32 {
                     let mut b_0: *mut BLOCKD =
                         (&raw mut (*xd).block as *mut BLOCKD).offset(24 as isize) as *mut BLOCKD;
@@ -929,11 +929,11 @@ unsafe fn decode_macroblock(mut pbi: *mut VP8D_COMP, mut xd: *mut MACROBLOCKD, _
                             (2 as size_t).wrapping_mul(::core::mem::size_of::<i16>() as size_t),
                         );
                     }
-                    DQC_0 = &raw mut (*xd).dequant_y1_dc as *mut i16;
+                    dqc_0 = &raw mut (*xd).dequant_y1_dc as *mut i16;
                 }
                 vp8_dequant_idct_add_y_block_c(
                     &raw mut (*xd).qcoeff as *mut i16,
-                    DQC_0,
+                    dqc_0,
                     (*xd).dst.y_buffer as *mut u8,
                     (*xd).dst.y_stride,
                     &raw mut (*xd).eobs as *mut i8,
@@ -970,14 +970,14 @@ unsafe fn yv12_extend_frame_top_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
         let mut i: i32 = 0;
         let mut src_ptr1: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut dest_ptr1: *mut u8 = ::core::ptr::null_mut::<u8>();
-        let mut Border: u32 = 0;
+        let mut border: u32 = 0;
         let mut plane_stride: i32 = 0;
-        Border = (*ybf).border as u32;
+        border = (*ybf).border as u32;
         plane_stride = (*ybf).y_stride;
-        src_ptr1 = (*ybf).y_buffer.offset(-(Border as isize)) as *mut u8;
-        dest_ptr1 = src_ptr1.offset(-(Border.wrapping_mul(plane_stride as u32) as isize));
+        src_ptr1 = (*ybf).y_buffer.offset(-(border as isize)) as *mut u8;
+        dest_ptr1 = src_ptr1.offset(-(border.wrapping_mul(plane_stride as u32) as isize));
         i = 0 as i32;
-        while i < Border as i32 {
+        while i < border as i32 {
             core::ptr::copy_nonoverlapping(
                 src_ptr1 as *const c_void as *const u8,
                 dest_ptr1 as *mut c_void as *mut u8,
@@ -987,11 +987,11 @@ unsafe fn yv12_extend_frame_top_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
             i += 1;
         }
         plane_stride = (*ybf).uv_stride;
-        Border = Border.wrapping_div(2 as u32);
-        src_ptr1 = (*ybf).u_buffer.offset(-(Border as isize)) as *mut u8;
-        dest_ptr1 = src_ptr1.offset(-(Border.wrapping_mul(plane_stride as u32) as isize));
+        border = border.wrapping_div(2 as u32);
+        src_ptr1 = (*ybf).u_buffer.offset(-(border as isize)) as *mut u8;
+        dest_ptr1 = src_ptr1.offset(-(border.wrapping_mul(plane_stride as u32) as isize));
         i = 0 as i32;
-        while i < Border as i32 {
+        while i < border as i32 {
             core::ptr::copy_nonoverlapping(
                 src_ptr1 as *const c_void as *const u8,
                 dest_ptr1 as *mut c_void as *mut u8,
@@ -1000,10 +1000,10 @@ unsafe fn yv12_extend_frame_top_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
             dest_ptr1 = dest_ptr1.offset(plane_stride as isize);
             i += 1;
         }
-        src_ptr1 = (*ybf).v_buffer.offset(-(Border as isize)) as *mut u8;
-        dest_ptr1 = src_ptr1.offset(-(Border.wrapping_mul(plane_stride as u32) as isize));
+        src_ptr1 = (*ybf).v_buffer.offset(-(border as isize)) as *mut u8;
+        dest_ptr1 = src_ptr1.offset(-(border.wrapping_mul(plane_stride as u32) as isize));
         i = 0 as i32;
-        while i < Border as i32 {
+        while i < border as i32 {
             core::ptr::copy_nonoverlapping(
                 src_ptr1 as *const c_void as *const u8,
                 dest_ptr1 as *mut c_void as *mut u8,
@@ -1020,19 +1020,19 @@ unsafe fn yv12_extend_frame_bottom_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
         let mut src_ptr1: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut src_ptr2: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut dest_ptr2: *mut u8 = ::core::ptr::null_mut::<u8>();
-        let mut Border: u32 = 0;
+        let mut border: u32 = 0;
         let mut plane_stride: i32 = 0;
         let mut plane_height: i32 = 0;
-        Border = (*ybf).border as u32;
+        border = (*ybf).border as u32;
         plane_stride = (*ybf).y_stride;
         plane_height = (*ybf).y_height;
-        src_ptr1 = (*ybf).y_buffer.offset(-(Border as isize)) as *mut u8;
+        src_ptr1 = (*ybf).y_buffer.offset(-(border as isize)) as *mut u8;
         src_ptr2 = src_ptr1
             .offset((plane_height * plane_stride) as isize)
             .offset(-(plane_stride as isize));
         dest_ptr2 = src_ptr2.offset(plane_stride as isize);
         i = 0 as i32;
-        while i < Border as i32 {
+        while i < border as i32 {
             core::ptr::copy_nonoverlapping(
                 src_ptr2 as *const c_void as *const u8,
                 dest_ptr2 as *mut c_void as *mut u8,
@@ -1043,14 +1043,14 @@ unsafe fn yv12_extend_frame_bottom_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
         }
         plane_stride = (*ybf).uv_stride;
         plane_height = (*ybf).uv_height;
-        Border = Border.wrapping_div(2 as u32);
-        src_ptr1 = (*ybf).u_buffer.offset(-(Border as isize)) as *mut u8;
+        border = border.wrapping_div(2 as u32);
+        src_ptr1 = (*ybf).u_buffer.offset(-(border as isize)) as *mut u8;
         src_ptr2 = src_ptr1
             .offset((plane_height * plane_stride) as isize)
             .offset(-(plane_stride as isize));
         dest_ptr2 = src_ptr2.offset(plane_stride as isize);
         i = 0 as i32;
-        while i < Border as i32 {
+        while i < border as i32 {
             core::ptr::copy_nonoverlapping(
                 src_ptr2 as *const c_void as *const u8,
                 dest_ptr2 as *mut c_void as *mut u8,
@@ -1059,13 +1059,13 @@ unsafe fn yv12_extend_frame_bottom_c(mut ybf: *mut YV12_BUFFER_CONFIG) {
             dest_ptr2 = dest_ptr2.offset(plane_stride as isize);
             i += 1;
         }
-        src_ptr1 = (*ybf).v_buffer.offset(-(Border as isize)) as *mut u8;
+        src_ptr1 = (*ybf).v_buffer.offset(-(border as isize)) as *mut u8;
         src_ptr2 = src_ptr1
             .offset((plane_height * plane_stride) as isize)
             .offset(-(plane_stride as isize));
         dest_ptr2 = src_ptr2.offset(plane_stride as isize);
         i = 0 as i32;
-        while i < Border as i32 {
+        while i < border as i32 {
             core::ptr::copy_nonoverlapping(
                 src_ptr2 as *const c_void as *const u8,
                 dest_ptr2 as *mut c_void as *mut u8,
@@ -1088,29 +1088,29 @@ unsafe fn yv12_extend_frame_left_right_c(
         let mut src_ptr2: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut dest_ptr1: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut dest_ptr2: *mut u8 = ::core::ptr::null_mut::<u8>();
-        let mut Border: u32 = 0;
+        let mut border: u32 = 0;
         let mut plane_stride: i32 = 0;
         let mut plane_height: i32 = 0;
         let mut plane_width: i32 = 0;
-        Border = (*ybf).border as u32;
+        border = (*ybf).border as u32;
         plane_stride = (*ybf).y_stride;
         plane_height = 16 as i32;
         plane_width = (*ybf).y_width;
         src_ptr1 = y_src;
         src_ptr2 = src_ptr1.offset(plane_width as isize).offset(-(1 as isize));
-        dest_ptr1 = src_ptr1.offset(-(Border as isize));
+        dest_ptr1 = src_ptr1.offset(-(border as isize));
         dest_ptr2 = src_ptr2.offset(1 as isize);
         i = 0 as i32;
         while i < plane_height {
             core::ptr::write_bytes(
                 dest_ptr1 as *mut c_void as *mut u8,
                 *src_ptr1.offset(0 as isize) as i32 as u8,
-                Border as size_t,
+                border as size_t,
             );
             core::ptr::write_bytes(
                 dest_ptr2 as *mut c_void as *mut u8,
                 *src_ptr2.offset(0 as isize) as i32 as u8,
-                Border as size_t,
+                border as size_t,
             );
             src_ptr1 = src_ptr1.offset(plane_stride as isize);
             src_ptr2 = src_ptr2.offset(plane_stride as isize);
@@ -1121,22 +1121,22 @@ unsafe fn yv12_extend_frame_left_right_c(
         plane_stride = (*ybf).uv_stride;
         plane_height = 8 as i32;
         plane_width = (*ybf).uv_width;
-        Border = Border.wrapping_div(2 as u32);
+        border = border.wrapping_div(2 as u32);
         src_ptr1 = u_src;
         src_ptr2 = src_ptr1.offset(plane_width as isize).offset(-(1 as isize));
-        dest_ptr1 = src_ptr1.offset(-(Border as isize));
+        dest_ptr1 = src_ptr1.offset(-(border as isize));
         dest_ptr2 = src_ptr2.offset(1 as isize);
         i = 0 as i32;
         while i < plane_height {
             core::ptr::write_bytes(
                 dest_ptr1 as *mut c_void as *mut u8,
                 *src_ptr1.offset(0 as isize) as i32 as u8,
-                Border as size_t,
+                border as size_t,
             );
             core::ptr::write_bytes(
                 dest_ptr2 as *mut c_void as *mut u8,
                 *src_ptr2.offset(0 as isize) as i32 as u8,
-                Border as size_t,
+                border as size_t,
             );
             src_ptr1 = src_ptr1.offset(plane_stride as isize);
             src_ptr2 = src_ptr2.offset(plane_stride as isize);
@@ -1146,19 +1146,19 @@ unsafe fn yv12_extend_frame_left_right_c(
         }
         src_ptr1 = v_src;
         src_ptr2 = src_ptr1.offset(plane_width as isize).offset(-(1 as isize));
-        dest_ptr1 = src_ptr1.offset(-(Border as isize));
+        dest_ptr1 = src_ptr1.offset(-(border as isize));
         dest_ptr2 = src_ptr2.offset(1 as isize);
         i = 0 as i32;
         while i < plane_height {
             core::ptr::write_bytes(
                 dest_ptr1 as *mut c_void as *mut u8,
                 *src_ptr1.offset(0 as isize) as i32 as u8,
-                Border as size_t,
+                border as size_t,
             );
             core::ptr::write_bytes(
                 dest_ptr2 as *mut c_void as *mut u8,
                 *src_ptr2.offset(0 as isize) as i32 as u8,
-                Border as size_t,
+                border as size_t,
             );
             src_ptr1 = src_ptr1.offset(plane_stride as isize);
             src_ptr2 = src_ptr2.offset(plane_stride as isize);
@@ -1755,11 +1755,11 @@ pub unsafe fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> i32 {
                             b"Invalid frame sync code\0" as *const u8 as *const i8,
                         );
                     }
-                    (*pc).Width = (*clear.offset(3 as isize) as i32
+                    (*pc).width = (*clear.offset(3 as isize) as i32
                         | (*clear.offset(4 as isize) as i32) << 8 as i32)
                         & 0x3fff as i32;
                     (*pc).horiz_scale = *clear.offset(4 as isize) as i32 >> 6 as i32;
-                    (*pc).Height = (*clear.offset(5 as isize) as i32
+                    (*pc).height = (*clear.offset(5 as isize) as i32
                         | (*clear.offset(6 as isize) as i32) << 8 as i32)
                         & 0x3fff as i32;
                     (*pc).vert_scale = *clear.offset(6 as isize) as i32 >> 6 as i32;
