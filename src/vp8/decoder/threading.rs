@@ -214,33 +214,7 @@ unsafe extern "C" fn vp8_atomic_spin_wait(
 }}
 
 #[inline]
-unsafe extern "C" fn setup_intra_recon_left(
-    mut y_buffer: *mut ::core::ffi::c_uchar,
-    mut u_buffer: *mut ::core::ffi::c_uchar,
-    mut v_buffer: *mut ::core::ffi::c_uchar,
-    mut y_stride: ::core::ffi::c_int,
-    mut uv_stride: ::core::ffi::c_int,
-) { unsafe {
-    let mut i: ::core::ffi::c_int = 0;
-    i = 0 as ::core::ffi::c_int;
-    while i < 16 as ::core::ffi::c_int {
-        *y_buffer.offset((y_stride * i) as isize) =
-            129 as ::core::ffi::c_int as ::core::ffi::c_uchar;
-        i += 1;
-    }
-    i = 0 as ::core::ffi::c_int;
-    while i < 8 as ::core::ffi::c_int {
-        *u_buffer.offset((uv_stride * i) as isize) =
-            129 as ::core::ffi::c_int as ::core::ffi::c_uchar;
-        i += 1;
-    }
-    i = 0 as ::core::ffi::c_int;
-    while i < 8 as ::core::ffi::c_int {
-        *v_buffer.offset((uv_stride * i) as isize) =
-            129 as ::core::ffi::c_int as ::core::ffi::c_uchar;
-        i += 1;
-    }
-}}
+
 fn setup_decoding_thread_data(
     pbi: &mut VP8D_COMP,
     xd: &MACROBLOCKD,
@@ -618,12 +592,9 @@ unsafe extern "C" fn mt_decode_mb_rows(
                 .offset(-((*xd).dst.uv_stride as isize));
             (*xd).recon_left_stride[0 as ::core::ffi::c_int as usize] = (*xd).dst.y_stride;
             (*xd).recon_left_stride[1 as ::core::ffi::c_int as usize] = (*xd).dst.uv_stride;
-            setup_intra_recon_left(
-                (*xd).recon_left[0 as ::core::ffi::c_int as usize],
-                (*xd).recon_left[1 as ::core::ffi::c_int as usize],
-                (*xd).recon_left[2 as ::core::ffi::c_int as usize],
-                (*xd).dst.y_stride,
-                (*xd).dst.uv_stride,
+            crate::vp8::decoder::decodeframe::setup_intra_recon_left(
+                &mut (*xd).dst,
+                mb_row,
             );
         }
         mb_col = 0 as ::core::ffi::c_int;

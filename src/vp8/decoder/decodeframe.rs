@@ -216,7 +216,7 @@ unsafe extern "C" fn vpx_atomic_load_acquire(
     return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
 }}
 
-fn setup_intra_recon_left(
+pub(crate) fn setup_intra_recon_left(
     ybf: &mut YV12_BUFFER_CONFIG,
     mb_row: ::core::ffi::c_int,
 ) {
