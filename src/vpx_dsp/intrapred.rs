@@ -1,14 +1,7 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn memcpy(
-        __dst: *mut core::ffi::c_void,
-        __src: *const core::ffi::c_void,
-        __n: size_t,
-    ) -> *mut core::ffi::c_void;
-    fn memset(
-        __b: *mut core::ffi::c_void,
-        __c: i32,
-        __len: size_t,
-    ) -> *mut core::ffi::c_void;
+    fn memcpy(__dst: *mut c_void, __src: *const c_void, __n: size_t) -> *mut c_void;
+    fn memset(__b: *mut c_void, __c: i32, __len: size_t) -> *mut c_void;
 }
 pub type __darwin_ptrdiff_t = isize;
 pub type __darwin_size_t = usize;
@@ -38,22 +31,19 @@ unsafe fn d207_predictor(
         let mut c: i32 = 0;
         r = 0 as i32;
         while r < bs - 1 as i32 {
-            *dst.offset((r as ptrdiff_t * stride) as isize) =
-                ((*left.offset(r as isize) as i32
-                    + *left.offset((r + 1 as i32) as isize) as i32
-                    + 1 as i32)
-                    >> 1 as i32) as uint8_t;
+            *dst.offset((r as ptrdiff_t * stride) as isize) = ((*left.offset(r as isize) as i32
+                + *left.offset((r + 1 as i32) as isize) as i32
+                + 1 as i32)
+                >> 1 as i32)
+                as uint8_t;
             r += 1;
         }
-        *dst.offset((bs - 1 as i32) as ptrdiff_t * stride) =
-            *left.offset((bs - 1 as i32) as isize);
+        *dst.offset((bs - 1 as i32) as ptrdiff_t * stride) = *left.offset((bs - 1 as i32) as isize);
         dst = dst.offset(1);
         r = 0 as i32;
         while r < bs - 2 as i32 {
-            *dst.offset((r as ptrdiff_t * stride) as isize) = ((*left.offset(r as isize)
-                as i32
-                + 2 as i32
-                    * *left.offset((r + 1 as i32) as isize) as i32
+            *dst.offset((r as ptrdiff_t * stride) as isize) = ((*left.offset(r as isize) as i32
+                + 2 as i32 * *left.offset((r + 1 as i32) as isize) as i32
                 + *left.offset((r + 2 as i32) as isize) as i32
                 + 2 as i32)
                 >> 2 as i32)
@@ -62,19 +52,16 @@ unsafe fn d207_predictor(
         }
         *dst.offset((bs - 2 as i32) as ptrdiff_t * stride) =
             ((*left.offset((bs - 2 as i32) as isize) as i32
-                + 2 as i32
-                    * *left.offset((bs - 1 as i32) as isize) as i32
+                + 2 as i32 * *left.offset((bs - 1 as i32) as isize) as i32
                 + *left.offset((bs - 1 as i32) as isize) as i32
                 + 2 as i32)
                 >> 2 as i32) as uint8_t;
-        *dst.offset((bs - 1 as i32) as ptrdiff_t * stride) =
-            *left.offset((bs - 1 as i32) as isize);
+        *dst.offset((bs - 1 as i32) as ptrdiff_t * stride) = *left.offset((bs - 1 as i32) as isize);
         dst = dst.offset(1);
         c = 0 as i32;
         while c < bs - 2 as i32 {
-            *dst.offset(
-                ((bs - 1 as i32) as ptrdiff_t * stride + c as ptrdiff_t) as isize,
-            ) = *left.offset((bs - 1 as i32) as isize);
+            *dst.offset(((bs - 1 as i32) as ptrdiff_t * stride + c as ptrdiff_t) as isize) =
+                *left.offset((bs - 1 as i32) as isize);
             c += 1;
         }
         r = bs - 2 as i32;
@@ -82,8 +69,8 @@ unsafe fn d207_predictor(
             c = 0 as i32;
             while c < bs - 2 as i32 {
                 *dst.offset((r as ptrdiff_t * stride + c as ptrdiff_t) as isize) = *dst.offset(
-                    ((r + 1 as i32) as ptrdiff_t * stride + c as ptrdiff_t
-                        - 2 as ptrdiff_t) as isize,
+                    ((r + 1 as i32) as ptrdiff_t * stride + c as ptrdiff_t - 2 as ptrdiff_t)
+                        as isize,
                 );
                 c += 1;
             }
@@ -109,10 +96,8 @@ unsafe fn d63_predictor(
                 + *above.offset((c + 1 as i32) as isize) as i32
                 + 1 as i32)
                 >> 1 as i32) as uint8_t;
-            *dst.offset((stride + c as ptrdiff_t) as isize) = ((*above.offset(c as isize)
-                as i32
-                + 2 as i32
-                    * *above.offset((c + 1 as i32) as isize) as i32
+            *dst.offset((stride + c as ptrdiff_t) as isize) = ((*above.offset(c as isize) as i32
+                + 2 as i32 * *above.offset((c + 1 as i32) as isize) as i32
                 + *above.offset((c + 2 as i32) as isize) as i32
                 + 2 as i32)
                 >> 2 as i32)
@@ -123,28 +108,24 @@ unsafe fn d63_predictor(
         size = bs - 2 as i32;
         while r < bs {
             memcpy(
-                dst.offset(((r + 0 as i32) as ptrdiff_t * stride) as isize)
-                    as *mut core::ffi::c_void,
-                dst.offset((r >> 1 as i32) as isize) as *const core::ffi::c_void,
+                dst.offset(((r + 0 as i32) as ptrdiff_t * stride) as isize) as *mut c_void,
+                dst.offset((r >> 1 as i32) as isize) as *const c_void,
                 size as size_t,
             );
             memset(
                 dst.offset(((r + 0 as i32) as ptrdiff_t * stride) as isize)
-                    .offset(size as isize) as *mut core::ffi::c_void,
+                    .offset(size as isize) as *mut c_void,
                 *above.offset((bs - 1 as i32) as isize) as i32,
                 (bs - size) as size_t,
             );
             memcpy(
-                dst.offset(((r + 1 as i32) as ptrdiff_t * stride) as isize)
-                    as *mut core::ffi::c_void,
-                dst.offset(stride)
-                    .offset((r >> 1 as i32) as isize)
-                    as *const core::ffi::c_void,
+                dst.offset(((r + 1 as i32) as ptrdiff_t * stride) as isize) as *mut c_void,
+                dst.offset(stride).offset((r >> 1 as i32) as isize) as *const c_void,
                 size as size_t,
             );
             memset(
                 dst.offset(((r + 1 as i32) as ptrdiff_t * stride) as isize)
-                    .offset(size as isize) as *mut core::ffi::c_void,
+                    .offset(size as isize) as *mut c_void,
                 *above.offset((bs - 1 as i32) as isize) as i32,
                 (bs - size) as size_t,
             );
@@ -169,8 +150,7 @@ unsafe fn d45_predictor(
         x = 0 as i32;
         while x < bs - 1 as i32 {
             *dst.offset(x as isize) = ((*above.offset(x as isize) as i32
-                + 2 as i32
-                    * *above.offset((x + 1 as i32) as isize) as i32
+                + 2 as i32 * *above.offset((x + 1 as i32) as isize) as i32
                 + *above.offset((x + 2 as i32) as isize) as i32
                 + 2 as i32)
                 >> 2 as i32) as uint8_t;
@@ -182,12 +162,12 @@ unsafe fn d45_predictor(
         size = bs - 2 as i32;
         while x < bs {
             memcpy(
-                dst as *mut core::ffi::c_void,
-                dst_row0.offset(x as isize) as *const core::ffi::c_void,
+                dst as *mut c_void,
+                dst_row0.offset(x as isize) as *const c_void,
                 size as size_t,
             );
             memset(
-                dst.offset(size as isize) as *mut core::ffi::c_void,
+                dst.offset(size as isize) as *mut c_void,
                 above_right as i32,
                 (x + 1 as i32) as size_t,
             );
@@ -210,47 +190,38 @@ unsafe fn d117_predictor(
         let mut c: i32 = 0;
         c = 0 as i32;
         while c < bs {
-            *dst.offset(c as isize) = ((*above.offset((c - 1 as i32) as isize)
-                as i32
+            *dst.offset(c as isize) = ((*above.offset((c - 1 as i32) as isize) as i32
                 + *above.offset(c as isize) as i32
                 + 1 as i32)
                 >> 1 as i32) as uint8_t;
             c += 1;
         }
         dst = dst.offset(stride);
-        *dst.offset(0 as isize) =
-            ((*left.offset(0 as isize) as i32
-                + 2 as i32
-                    * *above.offset(-(1 as i32) as isize) as i32
-                + *above.offset(0 as isize) as i32
-                + 2 as i32)
-                >> 2 as i32) as uint8_t;
+        *dst.offset(0 as isize) = ((*left.offset(0 as isize) as i32
+            + 2 as i32 * *above.offset(-(1 as i32) as isize) as i32
+            + *above.offset(0 as isize) as i32
+            + 2 as i32)
+            >> 2 as i32) as uint8_t;
         c = 1 as i32;
         while c < bs {
-            *dst.offset(c as isize) = ((*above.offset((c - 2 as i32) as isize)
-                as i32
-                + 2 as i32
-                    * *above.offset((c - 1 as i32) as isize) as i32
+            *dst.offset(c as isize) = ((*above.offset((c - 2 as i32) as isize) as i32
+                + 2 as i32 * *above.offset((c - 1 as i32) as isize) as i32
                 + *above.offset(c as isize) as i32
                 + 2 as i32)
                 >> 2 as i32) as uint8_t;
             c += 1;
         }
         dst = dst.offset(stride);
-        *dst.offset(0 as isize) =
-            ((*above.offset(-(1 as i32) as isize) as i32
-                + 2 as i32
-                    * *left.offset(0 as isize) as i32
-                + *left.offset(1 as isize) as i32
-                + 2 as i32)
-                >> 2 as i32) as uint8_t;
+        *dst.offset(0 as isize) = ((*above.offset(-(1 as i32) as isize) as i32
+            + 2 as i32 * *left.offset(0 as isize) as i32
+            + *left.offset(1 as isize) as i32
+            + 2 as i32)
+            >> 2 as i32) as uint8_t;
         r = 3 as i32;
         while r < bs {
             *dst.offset(((r - 2 as i32) as ptrdiff_t * stride) as isize) =
                 ((*left.offset((r - 3 as i32) as isize) as i32
-                    + 2 as i32
-                        * *left.offset((r - 2 as i32) as isize)
-                            as i32
+                    + 2 as i32 * *left.offset((r - 2 as i32) as isize) as i32
                     + *left.offset((r - 1 as i32) as isize) as i32
                     + 2 as i32)
                     >> 2 as i32) as uint8_t;
@@ -261,8 +232,7 @@ unsafe fn d117_predictor(
             c = 1 as i32;
             while c < bs {
                 *dst.offset(c as isize) = *dst.offset(
-                    (-(2 as i32) as ptrdiff_t * stride + c as ptrdiff_t
-                        - 1 as ptrdiff_t) as isize,
+                    (-(2 as i32) as ptrdiff_t * stride + c as ptrdiff_t - 1 as ptrdiff_t) as isize,
                 );
                 c += 1;
             }
@@ -284,57 +254,45 @@ unsafe fn d135_predictor(
         let mut border: [uint8_t; 63] = [0; 63];
         i = 0 as i32;
         while i < bs - 2 as i32 {
-            border[i as usize] = ((*left.offset((bs - 3 as i32 - i) as isize)
-                as i32
-                + 2 as i32
-                    * *left.offset((bs - 2 as i32 - i) as isize)
-                        as i32
+            border[i as usize] = ((*left.offset((bs - 3 as i32 - i) as isize) as i32
+                + 2 as i32 * *left.offset((bs - 2 as i32 - i) as isize) as i32
                 + *left.offset((bs - 1 as i32 - i) as isize) as i32
                 + 2 as i32)
                 >> 2 as i32) as uint8_t;
             i += 1;
         }
-        border[(bs - 2 as i32) as usize] =
-            ((*above.offset(-(1 as i32) as isize) as i32
-                + 2 as i32
-                    * *left.offset(0 as isize) as i32
-                + *left.offset(1 as isize) as i32
-                + 2 as i32)
-                >> 2 as i32) as uint8_t;
-        border[(bs - 1 as i32) as usize] =
-            ((*left.offset(0 as isize) as i32
-                + 2 as i32
-                    * *above.offset(-(1 as i32) as isize) as i32
-                + *above.offset(0 as isize) as i32
-                + 2 as i32)
-                >> 2 as i32) as uint8_t;
-        border[(bs - 0 as i32) as usize] =
-            ((*above.offset(-(1 as i32) as isize) as i32
-                + 2 as i32
-                    * *above.offset(0 as isize) as i32
-                + *above.offset(1 as isize) as i32
-                + 2 as i32)
-                >> 2 as i32) as uint8_t;
+        border[(bs - 2 as i32) as usize] = ((*above.offset(-(1 as i32) as isize) as i32
+            + 2 as i32 * *left.offset(0 as isize) as i32
+            + *left.offset(1 as isize) as i32
+            + 2 as i32)
+            >> 2 as i32) as uint8_t;
+        border[(bs - 1 as i32) as usize] = ((*left.offset(0 as isize) as i32
+            + 2 as i32 * *above.offset(-(1 as i32) as isize) as i32
+            + *above.offset(0 as isize) as i32
+            + 2 as i32)
+            >> 2 as i32) as uint8_t;
+        border[(bs - 0 as i32) as usize] = ((*above.offset(-(1 as i32) as isize) as i32
+            + 2 as i32 * *above.offset(0 as isize) as i32
+            + *above.offset(1 as isize) as i32
+            + 2 as i32)
+            >> 2 as i32) as uint8_t;
         i = 0 as i32;
         while i < bs - 2 as i32 {
-            border[(bs + 1 as i32 + i) as usize] = ((*above.offset(i as isize)
-                as i32
-                + 2 as i32
-                    * *above.offset((i + 1 as i32) as isize) as i32
+            border[(bs + 1 as i32 + i) as usize] = ((*above.offset(i as isize) as i32
+                + 2 as i32 * *above.offset((i + 1 as i32) as isize) as i32
                 + *above.offset((i + 2 as i32) as isize) as i32
                 + 2 as i32)
-                >> 2 as i32)
-                as uint8_t;
+                >> 2 as i32) as uint8_t;
             i += 1;
         }
         i = 0 as i32;
         while i < bs {
             memcpy(
-                dst.offset((i as ptrdiff_t * stride) as isize) as *mut core::ffi::c_void,
+                dst.offset((i as ptrdiff_t * stride) as isize) as *mut c_void,
                 (&raw mut border as *mut uint8_t)
                     .offset(bs as isize)
                     .offset(-(1 as isize))
-                    .offset(-(i as isize)) as *const core::ffi::c_void,
+                    .offset(-(i as isize)) as *const c_void,
                 bs as size_t,
             );
             i += 1;
@@ -352,11 +310,10 @@ unsafe fn d153_predictor(
     unsafe {
         let mut r: i32 = 0;
         let mut c: i32 = 0;
-        *dst.offset(0 as isize) =
-            ((*above.offset(-(1 as i32) as isize) as i32
-                + *left.offset(0 as isize) as i32
-                + 1 as i32)
-                >> 1 as i32) as uint8_t;
+        *dst.offset(0 as isize) = ((*above.offset(-(1 as i32) as isize) as i32
+            + *left.offset(0 as isize) as i32
+            + 1 as i32)
+            >> 1 as i32) as uint8_t;
         r = 1 as i32;
         while r < bs {
             *dst.offset((r as ptrdiff_t * stride) as isize) =
@@ -367,17 +324,13 @@ unsafe fn d153_predictor(
             r += 1;
         }
         dst = dst.offset(1);
-        *dst.offset(0 as isize) =
-            ((*left.offset(0 as isize) as i32
-                + 2 as i32
-                    * *above.offset(-(1 as i32) as isize) as i32
-                + *above.offset(0 as isize) as i32
-                + 2 as i32)
-                >> 2 as i32) as uint8_t;
-        *dst.offset(stride) = ((*above.offset(-(1 as i32) as isize)
-            as i32
-            + 2 as i32
-                * *left.offset(0 as isize) as i32
+        *dst.offset(0 as isize) = ((*left.offset(0 as isize) as i32
+            + 2 as i32 * *above.offset(-(1 as i32) as isize) as i32
+            + *above.offset(0 as isize) as i32
+            + 2 as i32)
+            >> 2 as i32) as uint8_t;
+        *dst.offset(stride) = ((*above.offset(-(1 as i32) as isize) as i32
+            + 2 as i32 * *left.offset(0 as isize) as i32
             + *left.offset(1 as isize) as i32
             + 2 as i32)
             >> 2 as i32) as uint8_t;
@@ -385,9 +338,7 @@ unsafe fn d153_predictor(
         while r < bs {
             *dst.offset((r as ptrdiff_t * stride) as isize) =
                 ((*left.offset((r - 2 as i32) as isize) as i32
-                    + 2 as i32
-                        * *left.offset((r - 1 as i32) as isize)
-                            as i32
+                    + 2 as i32 * *left.offset((r - 1 as i32) as isize) as i32
                     + *left.offset(r as isize) as i32
                     + 2 as i32)
                     >> 2 as i32) as uint8_t;
@@ -396,8 +347,7 @@ unsafe fn d153_predictor(
         dst = dst.offset(1);
         c = 0 as i32;
         while c < bs - 2 as i32 {
-            *dst.offset(c as isize) = ((*above.offset((c - 1 as i32) as isize)
-                as i32
+            *dst.offset(c as isize) = ((*above.offset((c - 1 as i32) as isize) as i32
                 + 2 as i32 * *above.offset(c as isize) as i32
                 + *above.offset((c + 1 as i32) as isize) as i32
                 + 2 as i32)
@@ -430,11 +380,7 @@ unsafe fn v_predictor(
         let mut r: i32 = 0;
         r = 0 as i32;
         while r < bs {
-            memcpy(
-                dst as *mut core::ffi::c_void,
-                above as *const core::ffi::c_void,
-                bs as size_t,
-            );
+            memcpy(dst as *mut c_void, above as *const c_void, bs as size_t);
             dst = dst.offset(stride);
             r += 1;
         }
@@ -453,7 +399,7 @@ unsafe fn h_predictor(
         r = 0 as i32;
         while r < bs {
             memset(
-                dst as *mut core::ffi::c_void,
+                dst as *mut c_void,
                 *left.offset(r as isize) as i32,
                 bs as size_t,
             );
@@ -473,16 +419,13 @@ unsafe fn tm_predictor(
     unsafe {
         let mut r: i32 = 0;
         let mut c: i32 = 0;
-        let mut ytop_left: i32 =
-            *above.offset(-(1 as i32) as isize) as i32;
+        let mut ytop_left: i32 = *above.offset(-(1 as i32) as isize) as i32;
         r = 0 as i32;
         while r < bs {
             c = 0 as i32;
             while c < bs {
                 *dst.offset(c as isize) = clip_pixel(
-                    *left.offset(r as isize) as i32
-                        + *above.offset(c as isize) as i32
-                        - ytop_left,
+                    *left.offset(r as isize) as i32 + *above.offset(c as isize) as i32 - ytop_left,
                 );
                 c += 1;
             }
@@ -503,11 +446,7 @@ unsafe fn dc_128_predictor(
         let mut r: i32 = 0;
         r = 0 as i32;
         while r < bs {
-            memset(
-                dst as *mut core::ffi::c_void,
-                128 as i32,
-                bs as size_t,
-            );
+            memset(dst as *mut c_void, 128 as i32, bs as size_t);
             dst = dst.offset(stride);
             r += 1;
         }
@@ -534,7 +473,7 @@ unsafe fn dc_left_predictor(
         expected_dc = (sum + (bs >> 1 as i32)) / bs;
         r = 0 as i32;
         while r < bs {
-            memset(dst as *mut core::ffi::c_void, expected_dc, bs as size_t);
+            memset(dst as *mut c_void, expected_dc, bs as size_t);
             dst = dst.offset(stride);
             r += 1;
         }
@@ -561,7 +500,7 @@ unsafe fn dc_top_predictor(
         expected_dc = (sum + (bs >> 1 as i32)) / bs;
         r = 0 as i32;
         while r < bs {
-            memset(dst as *mut core::ffi::c_void, expected_dc, bs as size_t);
+            memset(dst as *mut c_void, expected_dc, bs as size_t);
             dst = dst.offset(stride);
             r += 1;
         }
@@ -590,7 +529,7 @@ unsafe fn dc_predictor(
         expected_dc = (sum + (count >> 1 as i32)) / count;
         r = 0 as i32;
         while r < bs {
-            memset(dst as *mut core::ffi::c_void, expected_dc, bs as size_t);
+            memset(dst as *mut c_void, expected_dc, bs as size_t);
             dst = dst.offset(stride);
             r += 1;
         }
@@ -604,38 +543,29 @@ pub unsafe fn vpx_he_predictor_4x4_c(
     mut left: *const uint8_t,
 ) {
     unsafe {
-        let H: i32 =
-            *above.offset(-(1 as i32) as isize) as i32;
-        let I: i32 =
-            *left.offset(0 as isize) as i32;
-        let J: i32 =
-            *left.offset(1 as isize) as i32;
-        let K: i32 =
-            *left.offset(2 as isize) as i32;
-        let L: i32 =
-            *left.offset(3 as isize) as i32;
+        let H: i32 = *above.offset(-(1 as i32) as isize) as i32;
+        let I: i32 = *left.offset(0 as isize) as i32;
+        let J: i32 = *left.offset(1 as isize) as i32;
+        let K: i32 = *left.offset(2 as isize) as i32;
+        let L: i32 = *left.offset(3 as isize) as i32;
         memset(
-            dst.offset(stride * 0 as ptrdiff_t) as *mut core::ffi::c_void,
-            (H + 2 as i32 * I + J + 2 as i32)
-                >> 2 as i32,
+            dst.offset(stride * 0 as ptrdiff_t) as *mut c_void,
+            (H + 2 as i32 * I + J + 2 as i32) >> 2 as i32,
             4 as size_t,
         );
         memset(
-            dst.offset(stride * 1 as ptrdiff_t) as *mut core::ffi::c_void,
-            (I + 2 as i32 * J + K + 2 as i32)
-                >> 2 as i32,
+            dst.offset(stride * 1 as ptrdiff_t) as *mut c_void,
+            (I + 2 as i32 * J + K + 2 as i32) >> 2 as i32,
             4 as size_t,
         );
         memset(
-            dst.offset(stride * 2 as ptrdiff_t) as *mut core::ffi::c_void,
-            (J + 2 as i32 * K + L + 2 as i32)
-                >> 2 as i32,
+            dst.offset(stride * 2 as ptrdiff_t) as *mut c_void,
+            (J + 2 as i32 * K + L + 2 as i32) >> 2 as i32,
             4 as size_t,
         );
         memset(
-            dst.offset(stride * 3 as ptrdiff_t) as *mut core::ffi::c_void,
-            (K + 2 as i32 * L + L + 2 as i32)
-                >> 2 as i32,
+            dst.offset(stride * 3 as ptrdiff_t) as *mut c_void,
+            (K + 2 as i32 * L + L + 2 as i32) >> 2 as i32,
             4 as size_t,
         );
     }
@@ -648,43 +578,29 @@ pub unsafe fn vpx_ve_predictor_4x4_c(
     _left: *const uint8_t,
 ) {
     unsafe {
-        let H: i32 =
-            *above.offset(-(1 as i32) as isize) as i32;
-        let I: i32 =
-            *above.offset(0 as isize) as i32;
-        let J: i32 =
-            *above.offset(1 as isize) as i32;
-        let K: i32 =
-            *above.offset(2 as isize) as i32;
-        let L: i32 =
-            *above.offset(3 as isize) as i32;
-        let M: i32 =
-            *above.offset(4 as isize) as i32;
-        *dst.offset(0 as isize) =
-            ((H + 2 as i32 * I + J + 2 as i32)
-                >> 2 as i32) as uint8_t;
-        *dst.offset(1 as isize) =
-            ((I + 2 as i32 * J + K + 2 as i32)
-                >> 2 as i32) as uint8_t;
-        *dst.offset(2 as isize) =
-            ((J + 2 as i32 * K + L + 2 as i32)
-                >> 2 as i32) as uint8_t;
-        *dst.offset(3 as isize) =
-            ((K + 2 as i32 * L + M + 2 as i32)
-                >> 2 as i32) as uint8_t;
+        let H: i32 = *above.offset(-(1 as i32) as isize) as i32;
+        let I: i32 = *above.offset(0 as isize) as i32;
+        let J: i32 = *above.offset(1 as isize) as i32;
+        let K: i32 = *above.offset(2 as isize) as i32;
+        let L: i32 = *above.offset(3 as isize) as i32;
+        let M: i32 = *above.offset(4 as isize) as i32;
+        *dst.offset(0 as isize) = ((H + 2 as i32 * I + J + 2 as i32) >> 2 as i32) as uint8_t;
+        *dst.offset(1 as isize) = ((I + 2 as i32 * J + K + 2 as i32) >> 2 as i32) as uint8_t;
+        *dst.offset(2 as isize) = ((J + 2 as i32 * K + L + 2 as i32) >> 2 as i32) as uint8_t;
+        *dst.offset(3 as isize) = ((K + 2 as i32 * L + M + 2 as i32) >> 2 as i32) as uint8_t;
         memcpy(
-            dst.offset(stride * 1 as ptrdiff_t) as *mut core::ffi::c_void,
-            dst as *const core::ffi::c_void,
+            dst.offset(stride * 1 as ptrdiff_t) as *mut c_void,
+            dst as *const c_void,
             4 as size_t,
         );
         memcpy(
-            dst.offset(stride * 2 as ptrdiff_t) as *mut core::ffi::c_void,
-            dst as *const core::ffi::c_void,
+            dst.offset(stride * 2 as ptrdiff_t) as *mut c_void,
+            dst as *const c_void,
             4 as size_t,
         );
         memcpy(
-            dst.offset(stride * 3 as ptrdiff_t) as *mut core::ffi::c_void,
-            dst as *const core::ffi::c_void,
+            dst.offset(stride * 3 as ptrdiff_t) as *mut c_void,
+            dst as *const c_void,
             4 as size_t,
         );
     }
@@ -697,14 +613,10 @@ pub unsafe fn vpx_d207_predictor_4x4_c(
     mut left: *const uint8_t,
 ) {
     unsafe {
-        let I: i32 =
-            *left.offset(0 as isize) as i32;
-        let J: i32 =
-            *left.offset(1 as isize) as i32;
-        let K: i32 =
-            *left.offset(2 as isize) as i32;
-        let L: i32 =
-            *left.offset(3 as isize) as i32;
+        let I: i32 = *left.offset(0 as isize) as i32;
+        let J: i32 = *left.offset(1 as isize) as i32;
+        let K: i32 = *left.offset(2 as isize) as i32;
+        let L: i32 = *left.offset(3 as isize) as i32;
         *dst.offset(0 as ptrdiff_t + 0 as ptrdiff_t * stride) =
             ((I + J + 1 as i32) >> 1 as i32) as uint8_t;
         let fresh21 = &mut *dst.offset(0 as ptrdiff_t + 1 as ptrdiff_t * stride);
@@ -714,15 +626,12 @@ pub unsafe fn vpx_d207_predictor_4x4_c(
         *fresh22 = ((K + L + 1 as i32) >> 1 as i32) as uint8_t;
         *dst.offset(2 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh22;
         *dst.offset(1 as ptrdiff_t + 0 as ptrdiff_t * stride) =
-            ((I + 2 as i32 * J + K + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((I + 2 as i32 * J + K + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh23 = &mut *dst.offset(1 as ptrdiff_t + 1 as ptrdiff_t * stride);
-        *fresh23 = ((J + 2 as i32 * K + L + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh23 = ((J + 2 as i32 * K + L + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(3 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh23;
         let fresh24 = &mut *dst.offset(1 as ptrdiff_t + 2 as ptrdiff_t * stride);
-        *fresh24 = ((K + 2 as i32 * L + L + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh24 = ((K + 2 as i32 * L + L + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(3 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh24;
         let fresh25 = &mut *dst.offset(3 as ptrdiff_t + 3 as ptrdiff_t * stride);
         *fresh25 = L as uint8_t;
@@ -745,20 +654,13 @@ pub unsafe fn vpx_d63_predictor_4x4_c(
     _left: *const uint8_t,
 ) {
     unsafe {
-        let A: i32 =
-            *above.offset(0 as isize) as i32;
-        let B: i32 =
-            *above.offset(1 as isize) as i32;
-        let C: i32 =
-            *above.offset(2 as isize) as i32;
-        let D: i32 =
-            *above.offset(3 as isize) as i32;
-        let E: i32 =
-            *above.offset(4 as isize) as i32;
-        let F: i32 =
-            *above.offset(5 as isize) as i32;
-        let G: i32 =
-            *above.offset(6 as isize) as i32;
+        let A: i32 = *above.offset(0 as isize) as i32;
+        let B: i32 = *above.offset(1 as isize) as i32;
+        let C: i32 = *above.offset(2 as isize) as i32;
+        let D: i32 = *above.offset(3 as isize) as i32;
+        let E: i32 = *above.offset(4 as isize) as i32;
+        let F: i32 = *above.offset(5 as isize) as i32;
+        let G: i32 = *above.offset(6 as isize) as i32;
         *dst.offset(0 as ptrdiff_t + 0 as ptrdiff_t * stride) =
             ((A + B + 1 as i32) >> 1 as i32) as uint8_t;
         let fresh48 = &mut *dst.offset(0 as ptrdiff_t + 2 as ptrdiff_t * stride);
@@ -773,23 +675,18 @@ pub unsafe fn vpx_d63_predictor_4x4_c(
         *dst.offset(3 as ptrdiff_t + 2 as ptrdiff_t * stride) =
             ((E + F + 1 as i32) >> 1 as i32) as uint8_t;
         *dst.offset(0 as ptrdiff_t + 1 as ptrdiff_t * stride) =
-            ((A + 2 as i32 * B + C + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((A + 2 as i32 * B + C + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh51 = &mut *dst.offset(0 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh51 = ((B + 2 as i32 * C + D + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh51 = ((B + 2 as i32 * C + D + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(1 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh51;
         let fresh52 = &mut *dst.offset(1 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh52 = ((C + 2 as i32 * D + E + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh52 = ((C + 2 as i32 * D + E + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(2 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh52;
         let fresh53 = &mut *dst.offset(2 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh53 = ((D + 2 as i32 * E + F + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh53 = ((D + 2 as i32 * E + F + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(3 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh53;
         *dst.offset(3 as ptrdiff_t + 3 as ptrdiff_t * stride) =
-            ((E + 2 as i32 * F + G + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((E + 2 as i32 * F + G + 2 as i32) >> 2 as i32) as uint8_t;
     }
 }
 #[unsafe(no_mangle)]
@@ -800,22 +697,14 @@ pub unsafe fn vpx_d63e_predictor_4x4_c(
     _left: *const uint8_t,
 ) {
     unsafe {
-        let A: i32 =
-            *above.offset(0 as isize) as i32;
-        let B: i32 =
-            *above.offset(1 as isize) as i32;
-        let C: i32 =
-            *above.offset(2 as isize) as i32;
-        let D: i32 =
-            *above.offset(3 as isize) as i32;
-        let E: i32 =
-            *above.offset(4 as isize) as i32;
-        let F: i32 =
-            *above.offset(5 as isize) as i32;
-        let G: i32 =
-            *above.offset(6 as isize) as i32;
-        let H: i32 =
-            *above.offset(7 as isize) as i32;
+        let A: i32 = *above.offset(0 as isize) as i32;
+        let B: i32 = *above.offset(1 as isize) as i32;
+        let C: i32 = *above.offset(2 as isize) as i32;
+        let D: i32 = *above.offset(3 as isize) as i32;
+        let E: i32 = *above.offset(4 as isize) as i32;
+        let F: i32 = *above.offset(5 as isize) as i32;
+        let G: i32 = *above.offset(6 as isize) as i32;
+        let H: i32 = *above.offset(7 as isize) as i32;
         *dst.offset(0 as ptrdiff_t + 0 as ptrdiff_t * stride) =
             ((A + B + 1 as i32) >> 1 as i32) as uint8_t;
         let fresh54 = &mut *dst.offset(0 as ptrdiff_t + 2 as ptrdiff_t * stride);
@@ -828,26 +717,20 @@ pub unsafe fn vpx_d63e_predictor_4x4_c(
         *fresh56 = ((D + E + 1 as i32) >> 1 as i32) as uint8_t;
         *dst.offset(3 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh56;
         *dst.offset(3 as ptrdiff_t + 2 as ptrdiff_t * stride) =
-            ((E + 2 as i32 * F + G + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((E + 2 as i32 * F + G + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(0 as ptrdiff_t + 1 as ptrdiff_t * stride) =
-            ((A + 2 as i32 * B + C + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((A + 2 as i32 * B + C + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh57 = &mut *dst.offset(0 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh57 = ((B + 2 as i32 * C + D + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh57 = ((B + 2 as i32 * C + D + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(1 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh57;
         let fresh58 = &mut *dst.offset(1 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh58 = ((C + 2 as i32 * D + E + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh58 = ((C + 2 as i32 * D + E + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(2 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh58;
         let fresh59 = &mut *dst.offset(2 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh59 = ((D + 2 as i32 * E + F + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh59 = ((D + 2 as i32 * E + F + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(3 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh59;
         *dst.offset(3 as ptrdiff_t + 3 as ptrdiff_t * stride) =
-            ((F + 2 as i32 * G + H + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((F + 2 as i32 * G + H + 2 as i32) >> 2 as i32) as uint8_t;
     }
 }
 #[unsafe(no_mangle)]
@@ -858,52 +741,38 @@ pub unsafe fn vpx_d45_predictor_4x4_c(
     _left: *const uint8_t,
 ) {
     unsafe {
-        let A: i32 =
-            *above.offset(0 as isize) as i32;
-        let B: i32 =
-            *above.offset(1 as isize) as i32;
-        let C: i32 =
-            *above.offset(2 as isize) as i32;
-        let D: i32 =
-            *above.offset(3 as isize) as i32;
-        let E: i32 =
-            *above.offset(4 as isize) as i32;
-        let F: i32 =
-            *above.offset(5 as isize) as i32;
-        let G: i32 =
-            *above.offset(6 as isize) as i32;
-        let H: i32 =
-            *above.offset(7 as isize) as i32;
+        let A: i32 = *above.offset(0 as isize) as i32;
+        let B: i32 = *above.offset(1 as isize) as i32;
+        let C: i32 = *above.offset(2 as isize) as i32;
+        let D: i32 = *above.offset(3 as isize) as i32;
+        let E: i32 = *above.offset(4 as isize) as i32;
+        let F: i32 = *above.offset(5 as isize) as i32;
+        let G: i32 = *above.offset(6 as isize) as i32;
+        let H: i32 = *above.offset(7 as isize) as i32;
         *dst.offset(0 as ptrdiff_t + 0 as ptrdiff_t * stride) =
-            ((A + 2 as i32 * B + C + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((A + 2 as i32 * B + C + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh30 = &mut *dst.offset(0 as ptrdiff_t + 1 as ptrdiff_t * stride);
-        *fresh30 = ((B + 2 as i32 * C + D + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh30 = ((B + 2 as i32 * C + D + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(1 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh30;
         let fresh31 = &mut *dst.offset(0 as ptrdiff_t + 2 as ptrdiff_t * stride);
-        *fresh31 = ((C + 2 as i32 * D + E + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh31 = ((C + 2 as i32 * D + E + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh32 = &mut *dst.offset(1 as ptrdiff_t + 1 as ptrdiff_t * stride);
         *fresh32 = *fresh31;
         *dst.offset(2 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh32;
         let fresh33 = &mut *dst.offset(0 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh33 = ((D + 2 as i32 * E + F + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh33 = ((D + 2 as i32 * E + F + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh34 = &mut *dst.offset(1 as ptrdiff_t + 2 as ptrdiff_t * stride);
         *fresh34 = *fresh33;
         let fresh35 = &mut *dst.offset(2 as ptrdiff_t + 1 as ptrdiff_t * stride);
         *fresh35 = *fresh34;
         *dst.offset(3 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh35;
         let fresh36 = &mut *dst.offset(1 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh36 = ((E + 2 as i32 * F + G + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh36 = ((E + 2 as i32 * F + G + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh37 = &mut *dst.offset(2 as ptrdiff_t + 2 as ptrdiff_t * stride);
         *fresh37 = *fresh36;
         *dst.offset(3 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh37;
         let fresh38 = &mut *dst.offset(2 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh38 = ((F + 2 as i32 * G + H + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh38 = ((F + 2 as i32 * G + H + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(3 as ptrdiff_t + 2 as ptrdiff_t * stride) = *fresh38;
         *dst.offset(3 as ptrdiff_t + 3 as ptrdiff_t * stride) = H as uint8_t;
     }
@@ -916,56 +785,41 @@ pub unsafe fn vpx_d45e_predictor_4x4_c(
     _left: *const uint8_t,
 ) {
     unsafe {
-        let A: i32 =
-            *above.offset(0 as isize) as i32;
-        let B: i32 =
-            *above.offset(1 as isize) as i32;
-        let C: i32 =
-            *above.offset(2 as isize) as i32;
-        let D: i32 =
-            *above.offset(3 as isize) as i32;
-        let E: i32 =
-            *above.offset(4 as isize) as i32;
-        let F: i32 =
-            *above.offset(5 as isize) as i32;
-        let G: i32 =
-            *above.offset(6 as isize) as i32;
-        let H: i32 =
-            *above.offset(7 as isize) as i32;
+        let A: i32 = *above.offset(0 as isize) as i32;
+        let B: i32 = *above.offset(1 as isize) as i32;
+        let C: i32 = *above.offset(2 as isize) as i32;
+        let D: i32 = *above.offset(3 as isize) as i32;
+        let E: i32 = *above.offset(4 as isize) as i32;
+        let F: i32 = *above.offset(5 as isize) as i32;
+        let G: i32 = *above.offset(6 as isize) as i32;
+        let H: i32 = *above.offset(7 as isize) as i32;
         *dst.offset(0 as ptrdiff_t + 0 as ptrdiff_t * stride) =
-            ((A + 2 as i32 * B + C + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((A + 2 as i32 * B + C + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh39 = &mut *dst.offset(0 as ptrdiff_t + 1 as ptrdiff_t * stride);
-        *fresh39 = ((B + 2 as i32 * C + D + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh39 = ((B + 2 as i32 * C + D + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(1 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh39;
         let fresh40 = &mut *dst.offset(0 as ptrdiff_t + 2 as ptrdiff_t * stride);
-        *fresh40 = ((C + 2 as i32 * D + E + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh40 = ((C + 2 as i32 * D + E + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh41 = &mut *dst.offset(1 as ptrdiff_t + 1 as ptrdiff_t * stride);
         *fresh41 = *fresh40;
         *dst.offset(2 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh41;
         let fresh42 = &mut *dst.offset(0 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh42 = ((D + 2 as i32 * E + F + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh42 = ((D + 2 as i32 * E + F + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh43 = &mut *dst.offset(1 as ptrdiff_t + 2 as ptrdiff_t * stride);
         *fresh43 = *fresh42;
         let fresh44 = &mut *dst.offset(2 as ptrdiff_t + 1 as ptrdiff_t * stride);
         *fresh44 = *fresh43;
         *dst.offset(3 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh44;
         let fresh45 = &mut *dst.offset(1 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh45 = ((E + 2 as i32 * F + G + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh45 = ((E + 2 as i32 * F + G + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh46 = &mut *dst.offset(2 as ptrdiff_t + 2 as ptrdiff_t * stride);
         *fresh46 = *fresh45;
         *dst.offset(3 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh46;
         let fresh47 = &mut *dst.offset(2 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh47 = ((F + 2 as i32 * G + H + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh47 = ((F + 2 as i32 * G + H + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(3 as ptrdiff_t + 2 as ptrdiff_t * stride) = *fresh47;
         *dst.offset(3 as ptrdiff_t + 3 as ptrdiff_t * stride) =
-            ((G + 2 as i32 * H + H + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((G + 2 as i32 * H + H + 2 as i32) >> 2 as i32) as uint8_t;
     }
 }
 #[unsafe(no_mangle)]
@@ -976,22 +830,14 @@ pub unsafe fn vpx_d117_predictor_4x4_c(
     mut left: *const uint8_t,
 ) {
     unsafe {
-        let I: i32 =
-            *left.offset(0 as isize) as i32;
-        let J: i32 =
-            *left.offset(1 as isize) as i32;
-        let K: i32 =
-            *left.offset(2 as isize) as i32;
-        let X: i32 =
-            *above.offset(-(1 as i32) as isize) as i32;
-        let A: i32 =
-            *above.offset(0 as isize) as i32;
-        let B: i32 =
-            *above.offset(1 as isize) as i32;
-        let C: i32 =
-            *above.offset(2 as isize) as i32;
-        let D: i32 =
-            *above.offset(3 as isize) as i32;
+        let I: i32 = *left.offset(0 as isize) as i32;
+        let J: i32 = *left.offset(1 as isize) as i32;
+        let K: i32 = *left.offset(2 as isize) as i32;
+        let X: i32 = *above.offset(-(1 as i32) as isize) as i32;
+        let A: i32 = *above.offset(0 as isize) as i32;
+        let B: i32 = *above.offset(1 as isize) as i32;
+        let C: i32 = *above.offset(2 as isize) as i32;
+        let D: i32 = *above.offset(3 as isize) as i32;
         let fresh0 = &mut *dst.offset(1 as ptrdiff_t + 2 as ptrdiff_t * stride);
         *fresh0 = ((X + A + 1 as i32) >> 1 as i32) as uint8_t;
         *dst.offset(0 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh0;
@@ -1004,26 +850,20 @@ pub unsafe fn vpx_d117_predictor_4x4_c(
         *dst.offset(3 as ptrdiff_t + 0 as ptrdiff_t * stride) =
             ((C + D + 1 as i32) >> 1 as i32) as uint8_t;
         *dst.offset(0 as ptrdiff_t + 3 as ptrdiff_t * stride) =
-            ((K + 2 as i32 * J + I + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((K + 2 as i32 * J + I + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(0 as ptrdiff_t + 2 as ptrdiff_t * stride) =
-            ((J + 2 as i32 * I + X + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((J + 2 as i32 * I + X + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh3 = &mut *dst.offset(1 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh3 = ((I + 2 as i32 * X + A + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh3 = ((I + 2 as i32 * X + A + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(0 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh3;
         let fresh4 = &mut *dst.offset(2 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh4 = ((X + 2 as i32 * A + B + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh4 = ((X + 2 as i32 * A + B + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(1 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh4;
         let fresh5 = &mut *dst.offset(3 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh5 = ((A + 2 as i32 * B + C + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh5 = ((A + 2 as i32 * B + C + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(2 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh5;
         *dst.offset(3 as ptrdiff_t + 1 as ptrdiff_t * stride) =
-            ((B + 2 as i32 * C + D + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((B + 2 as i32 * C + D + 2 as i32) >> 2 as i32) as uint8_t;
     }
 }
 #[unsafe(no_mangle)]
@@ -1034,58 +874,42 @@ pub unsafe fn vpx_d135_predictor_4x4_c(
     mut left: *const uint8_t,
 ) {
     unsafe {
-        let I: i32 =
-            *left.offset(0 as isize) as i32;
-        let J: i32 =
-            *left.offset(1 as isize) as i32;
-        let K: i32 =
-            *left.offset(2 as isize) as i32;
-        let L: i32 =
-            *left.offset(3 as isize) as i32;
-        let X: i32 =
-            *above.offset(-(1 as i32) as isize) as i32;
-        let A: i32 =
-            *above.offset(0 as isize) as i32;
-        let B: i32 =
-            *above.offset(1 as isize) as i32;
-        let C: i32 =
-            *above.offset(2 as isize) as i32;
-        let D: i32 =
-            *above.offset(3 as isize) as i32;
+        let I: i32 = *left.offset(0 as isize) as i32;
+        let J: i32 = *left.offset(1 as isize) as i32;
+        let K: i32 = *left.offset(2 as isize) as i32;
+        let L: i32 = *left.offset(3 as isize) as i32;
+        let X: i32 = *above.offset(-(1 as i32) as isize) as i32;
+        let A: i32 = *above.offset(0 as isize) as i32;
+        let B: i32 = *above.offset(1 as isize) as i32;
+        let C: i32 = *above.offset(2 as isize) as i32;
+        let D: i32 = *above.offset(3 as isize) as i32;
         *dst.offset(0 as ptrdiff_t + 3 as ptrdiff_t * stride) =
-            ((J + 2 as i32 * K + L + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((J + 2 as i32 * K + L + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh6 = &mut *dst.offset(0 as ptrdiff_t + 2 as ptrdiff_t * stride);
-        *fresh6 = ((I + 2 as i32 * J + K + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh6 = ((I + 2 as i32 * J + K + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(1 as ptrdiff_t + 3 as ptrdiff_t * stride) = *fresh6;
         let fresh7 = &mut *dst.offset(0 as ptrdiff_t + 1 as ptrdiff_t * stride);
-        *fresh7 = ((X + 2 as i32 * I + J + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh7 = ((X + 2 as i32 * I + J + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh8 = &mut *dst.offset(1 as ptrdiff_t + 2 as ptrdiff_t * stride);
         *fresh8 = *fresh7;
         *dst.offset(2 as ptrdiff_t + 3 as ptrdiff_t * stride) = *fresh8;
         let fresh9 = &mut *dst.offset(0 as ptrdiff_t + 0 as ptrdiff_t * stride);
-        *fresh9 = ((A + 2 as i32 * X + I + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh9 = ((A + 2 as i32 * X + I + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh10 = &mut *dst.offset(1 as ptrdiff_t + 1 as ptrdiff_t * stride);
         *fresh10 = *fresh9;
         let fresh11 = &mut *dst.offset(2 as ptrdiff_t + 2 as ptrdiff_t * stride);
         *fresh11 = *fresh10;
         *dst.offset(3 as ptrdiff_t + 3 as ptrdiff_t * stride) = *fresh11;
         let fresh12 = &mut *dst.offset(1 as ptrdiff_t + 0 as ptrdiff_t * stride);
-        *fresh12 = ((B + 2 as i32 * A + X + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh12 = ((B + 2 as i32 * A + X + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh13 = &mut *dst.offset(2 as ptrdiff_t + 1 as ptrdiff_t * stride);
         *fresh13 = *fresh12;
         *dst.offset(3 as ptrdiff_t + 2 as ptrdiff_t * stride) = *fresh13;
         let fresh14 = &mut *dst.offset(2 as ptrdiff_t + 0 as ptrdiff_t * stride);
-        *fresh14 = ((C + 2 as i32 * B + A + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh14 = ((C + 2 as i32 * B + A + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(3 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh14;
         *dst.offset(3 as ptrdiff_t + 0 as ptrdiff_t * stride) =
-            ((D + 2 as i32 * C + B + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((D + 2 as i32 * C + B + 2 as i32) >> 2 as i32) as uint8_t;
     }
 }
 #[unsafe(no_mangle)]
@@ -1096,22 +920,14 @@ pub unsafe fn vpx_d153_predictor_4x4_c(
     mut left: *const uint8_t,
 ) {
     unsafe {
-        let I: i32 =
-            *left.offset(0 as isize) as i32;
-        let J: i32 =
-            *left.offset(1 as isize) as i32;
-        let K: i32 =
-            *left.offset(2 as isize) as i32;
-        let L: i32 =
-            *left.offset(3 as isize) as i32;
-        let X: i32 =
-            *above.offset(-(1 as i32) as isize) as i32;
-        let A: i32 =
-            *above.offset(0 as isize) as i32;
-        let B: i32 =
-            *above.offset(1 as isize) as i32;
-        let C: i32 =
-            *above.offset(2 as isize) as i32;
+        let I: i32 = *left.offset(0 as isize) as i32;
+        let J: i32 = *left.offset(1 as isize) as i32;
+        let K: i32 = *left.offset(2 as isize) as i32;
+        let L: i32 = *left.offset(3 as isize) as i32;
+        let X: i32 = *above.offset(-(1 as i32) as isize) as i32;
+        let A: i32 = *above.offset(0 as isize) as i32;
+        let B: i32 = *above.offset(1 as isize) as i32;
+        let C: i32 = *above.offset(2 as isize) as i32;
         let fresh15 = &mut *dst.offset(2 as ptrdiff_t + 1 as ptrdiff_t * stride);
         *fresh15 = ((I + X + 1 as i32) >> 1 as i32) as uint8_t;
         *dst.offset(0 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh15;
@@ -1124,26 +940,20 @@ pub unsafe fn vpx_d153_predictor_4x4_c(
         *dst.offset(0 as ptrdiff_t + 3 as ptrdiff_t * stride) =
             ((L + K + 1 as i32) >> 1 as i32) as uint8_t;
         *dst.offset(3 as ptrdiff_t + 0 as ptrdiff_t * stride) =
-            ((A + 2 as i32 * B + C + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((A + 2 as i32 * B + C + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(2 as ptrdiff_t + 0 as ptrdiff_t * stride) =
-            ((X + 2 as i32 * A + B + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((X + 2 as i32 * A + B + 2 as i32) >> 2 as i32) as uint8_t;
         let fresh18 = &mut *dst.offset(3 as ptrdiff_t + 1 as ptrdiff_t * stride);
-        *fresh18 = ((I + 2 as i32 * X + A + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh18 = ((I + 2 as i32 * X + A + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(1 as ptrdiff_t + 0 as ptrdiff_t * stride) = *fresh18;
         let fresh19 = &mut *dst.offset(3 as ptrdiff_t + 2 as ptrdiff_t * stride);
-        *fresh19 = ((J + 2 as i32 * I + X + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh19 = ((J + 2 as i32 * I + X + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(1 as ptrdiff_t + 1 as ptrdiff_t * stride) = *fresh19;
         let fresh20 = &mut *dst.offset(3 as ptrdiff_t + 3 as ptrdiff_t * stride);
-        *fresh20 = ((K + 2 as i32 * J + I + 2 as i32)
-            >> 2 as i32) as uint8_t;
+        *fresh20 = ((K + 2 as i32 * J + I + 2 as i32) >> 2 as i32) as uint8_t;
         *dst.offset(1 as ptrdiff_t + 2 as ptrdiff_t * stride) = *fresh20;
         *dst.offset(1 as ptrdiff_t + 3 as ptrdiff_t * stride) =
-            ((L + 2 as i32 * K + J + 2 as i32)
-                >> 2 as i32) as uint8_t;
+            ((L + 2 as i32 * K + J + 2 as i32) >> 2 as i32) as uint8_t;
     }
 }
 #[unsafe(no_mangle)]

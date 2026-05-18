@@ -1,8 +1,6 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn pthread_once(
-        _: *mut pthread_once_t,
-        _: Option<unsafe fn() -> ()>,
-    ) -> i32;
+    fn pthread_once(_: *mut pthread_once_t, _: Option<unsafe fn() -> ()>) -> i32;
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -11,7 +9,7 @@ pub struct _opaque_pthread_once_t {
     pub __opaque: [i8; 8],
 }
 pub type __darwin_pthread_once_t = _opaque_pthread_once_t;
-pub type pthread_once_t = *mut core::ffi::c_void;
+pub type pthread_once_t = *mut c_void;
 unsafe fn setup_rtcd_internal() {}
 pub const _PTHREAD_ONCE_SIG_init: i32 = 0x30b1bcba as i32;
 unsafe fn once(mut func: Option<unsafe fn() -> ()>) {

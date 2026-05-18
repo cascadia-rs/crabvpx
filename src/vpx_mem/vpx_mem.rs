@@ -1,7 +1,8 @@
 use std::alloc::{Layout, alloc, dealloc};
+use std::ffi::c_void;
 
 pub type size_t = usize;
-pub const NULL: *mut core::ffi::c_void = ::core::ptr::null_mut();
+pub const NULL: *mut c_void = ::core::ptr::null_mut();
 pub const DEFAULT_ALIGNMENT: usize = 32;
 
 #[repr(C)]
@@ -11,7 +12,7 @@ struct AllocHeader {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_memalign(mut align: size_t, size: size_t) -> *mut core::ffi::c_void {
+pub unsafe fn vpx_memalign(mut align: size_t, size: size_t) -> *mut c_void {
     unsafe {
         if align == 0 {
             align = DEFAULT_ALIGNMENT;
@@ -46,17 +47,17 @@ pub unsafe fn vpx_memalign(mut align: size_t, size: size_t) -> *mut core::ffi::c
         let header_ptr = (x as *mut AllocHeader).offset(-1);
         core::ptr::write(header_ptr, AllocHeader { base_ptr, layout });
 
-        x as *mut core::ffi::c_void
+        x as *mut c_void
     }
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_malloc(size: size_t) -> *mut core::ffi::c_void {
+pub unsafe fn vpx_malloc(size: size_t) -> *mut c_void {
     unsafe { vpx_memalign(DEFAULT_ALIGNMENT, size) }
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_calloc(num: size_t, size: size_t) -> *mut core::ffi::c_void {
+pub unsafe fn vpx_calloc(num: size_t, size: size_t) -> *mut c_void {
     unsafe {
         let total = num.wrapping_mul(size);
         let ptr = vpx_malloc(total);
@@ -68,7 +69,7 @@ pub unsafe fn vpx_calloc(num: size_t, size: size_t) -> *mut core::ffi::c_void {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_free(memblk: *mut core::ffi::c_void) {
+pub unsafe fn vpx_free(memblk: *mut c_void) {
     unsafe {
         if !memblk.is_null() {
             let x = memblk as *mut u8;

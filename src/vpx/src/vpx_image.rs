@@ -1,13 +1,10 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn calloc(__count: size_t, __size: size_t) -> *mut core::ffi::c_void;
-    fn free(_: *mut core::ffi::c_void);
-    fn memset(
-        __b: *mut core::ffi::c_void,
-        __c: i32,
-        __len: size_t,
-    ) -> *mut core::ffi::c_void;
-    fn vpx_memalign(align: size_t, size: size_t) -> *mut core::ffi::c_void;
-    fn vpx_free(memblk: *mut core::ffi::c_void);
+    fn calloc(__count: size_t, __size: size_t) -> *mut c_void;
+    fn free(_: *mut c_void);
+    fn memset(__b: *mut c_void, __c: i32, __len: size_t) -> *mut c_void;
+    fn vpx_memalign(align: size_t, size: size_t) -> *mut c_void;
+    fn vpx_free(memblk: *mut c_void);
 }
 pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
@@ -58,17 +55,17 @@ pub struct vpx_image {
     pub planes: [*mut u8; 4],
     pub stride: [i32; 4],
     pub bps: i32,
-    pub user_priv: *mut core::ffi::c_void,
+    pub user_priv: *mut c_void,
     pub img_data: *mut u8,
     pub img_data_owner: i32,
     pub self_allocd: i32,
-    pub fb_priv: *mut core::ffi::c_void,
+    pub fb_priv: *mut c_void,
 }
 pub type vpx_image_t = vpx_image;
 pub const UINT_MAX: u32 = 0xffffffff as u32;
 pub const INT_MAX: i32 = 2147483647 as i32;
-pub const __DARWIN_NULL: *mut core::ffi::c_void = ::core::ptr::null_mut::<core::ffi::c_void>();
-pub const NULL: *mut core::ffi::c_void = __DARWIN_NULL;
+pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
+pub const NULL: *mut c_void = __DARWIN_NULL;
 pub const VPX_IMG_FMT_PLANAR: i32 = 0x100 as i32;
 pub const VPX_IMG_FMT_UV_FLIP: i32 = 0x200 as i32;
 pub const VPX_IMG_FMT_HAS_ALPHA: i32 = 0x400 as i32;
@@ -106,7 +103,7 @@ unsafe fn img_alloc_helper(
         let mut align: u32 = 0;
         if !img.is_null() {
             memset(
-                img as *mut core::ffi::c_void,
+                img as *mut c_void,
                 0 as i32,
                 ::core::mem::size_of::<vpx_image_t>() as size_t,
             );
@@ -168,26 +165,19 @@ unsafe fn img_alloc_helper(
                         w = d_w;
                         h = d_h;
                     } else {
-                        align = (((1 as i32) << xcs) - 1 as i32)
-                            as u32;
+                        align = (((1 as i32) << xcs) - 1 as i32) as u32;
                         w = d_w.wrapping_add(align) & !align;
-                        align = (((1 as i32) << ycs) - 1 as i32)
-                            as u32;
+                        align = (((1 as i32) << ycs) - 1 as i32) as u32;
                         h = d_h.wrapping_add(align) & !align;
                     }
-                    s = if fmt as u32 & VPX_IMG_FMT_PLANAR as u32
-                        != 0
-                    {
+                    s = if fmt as u32 & VPX_IMG_FMT_PLANAR as u32 != 0 {
                         w as uint64_t
                     } else {
                         (bps as uint64_t)
                             .wrapping_mul(w as uint64_t)
                             .wrapping_div(8 as uint64_t)
                     };
-                    s = if fmt as u32
-                        & VPX_IMG_FMT_HIGHBITDEPTH as u32
-                        != 0
-                    {
+                    s = if fmt as u32 & VPX_IMG_FMT_HIGHBITDEPTH as u32 != 0 {
                         s.wrapping_mul(2 as uint64_t)
                     } else {
                         s
@@ -198,10 +188,7 @@ unsafe fn img_alloc_helper(
                         & !(stride_align as uint64_t).wrapping_sub(1 as uint64_t);
                     if !(s > INT_MAX as uint64_t) {
                         stride_in_bytes = s as i32;
-                        s = if fmt as u32
-                            & VPX_IMG_FMT_HIGHBITDEPTH as u32
-                            != 0
-                        {
+                        s = if fmt as u32 & VPX_IMG_FMT_HIGHBITDEPTH as u32 != 0 {
                             s.wrapping_div(2 as uint64_t)
                         } else {
                             s
@@ -226,10 +213,7 @@ unsafe fn img_alloc_helper(
                                 (*img).img_data = img_data;
                                 if img_data.is_null() {
                                     let mut alloc_size: uint64_t = 0;
-                                    alloc_size = if fmt as u32
-                                        & VPX_IMG_FMT_PLANAR as u32
-                                        != 0
-                                    {
+                                    alloc_size = if fmt as u32 & VPX_IMG_FMT_PLANAR as u32 != 0 {
                                         (h as uint64_t)
                                             .wrapping_mul(s)
                                             .wrapping_mul(bps as uint64_t)
@@ -277,13 +261,8 @@ unsafe fn img_alloc_helper(
                                                 stride_in_bytes >> xcs;
                                             (*img).stride[VPX_PLANE_U as usize] =
                                                 (*img).stride[VPX_PLANE_V as usize];
-                                            _ret = vpx_img_set_rect(
-                                                img,
-                                                0 as u32,
-                                                0 as u32,
-                                                d_w,
-                                                d_h,
-                                            );
+                                            _ret =
+                                                vpx_img_set_rect(img, 0 as u32, 0 as u32, d_w, d_h);
                                             return img;
                                         }
                                     }
@@ -327,17 +306,7 @@ pub unsafe fn vpx_img_wrap(
     mut stride_align: u32,
     mut img_data: *mut u8,
 ) -> *mut vpx_image_t {
-    unsafe {
-        img_alloc_helper(
-            img,
-            fmt,
-            d_w,
-            d_h,
-            1 as u32,
-            stride_align,
-            img_data,
-        )
-    }
+    unsafe { img_alloc_helper(img, fmt, d_w, d_h, 1 as u32, stride_align, img_data) }
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_img_set_rect(
@@ -358,90 +327,74 @@ pub unsafe fn vpx_img_set_rect(
             if (*img).fmt as u32 & VPX_IMG_FMT_PLANAR as u32 == 0 {
                 (*img).planes[VPX_PLANE_PACKED as usize] = (*img)
                     .img_data
+                    .offset(x.wrapping_mul((*img).bps as u32).wrapping_div(8 as u32) as isize)
                     .offset(
-                        x.wrapping_mul((*img).bps as u32)
-                            .wrapping_div(8 as u32)
-                            as isize,
-                    )
-                    .offset(y.wrapping_mul(
-                        (*img).stride[VPX_PLANE_PACKED as usize] as u32,
-                    ) as isize);
+                        y.wrapping_mul((*img).stride[VPX_PLANE_PACKED as usize] as u32) as isize,
+                    );
             } else {
-                let bytes_per_sample: i32 = if (*img).fmt as u32
-                    & VPX_IMG_FMT_HIGHBITDEPTH as u32
-                    != 0
-                {
-                    2 as i32
-                } else {
-                    1 as i32
-                };
+                let bytes_per_sample: i32 =
+                    if (*img).fmt as u32 & VPX_IMG_FMT_HIGHBITDEPTH as u32 != 0 {
+                        2 as i32
+                    } else {
+                        1 as i32
+                    };
                 let mut data: *mut u8 = (*img).img_data;
-                if (*img).fmt as u32 & VPX_IMG_FMT_HAS_ALPHA as u32
-                    != 0
-                {
+                if (*img).fmt as u32 & VPX_IMG_FMT_HAS_ALPHA as u32 != 0 {
                     (*img).planes[VPX_PLANE_ALPHA as usize] = data
                         .offset(x.wrapping_mul(bytes_per_sample as u32) as isize)
-                        .offset(y.wrapping_mul(
-                            (*img).stride[VPX_PLANE_ALPHA as usize] as u32,
-                        ) as isize);
+                        .offset(
+                            y.wrapping_mul((*img).stride[VPX_PLANE_ALPHA as usize] as u32) as isize,
+                        );
                     data = data.add(
                         ((*img).h as size_t)
                             .wrapping_mul((*img).stride[VPX_PLANE_ALPHA as usize] as size_t),
                     );
                 }
-                (*img).planes[VPX_PLANE_Y as usize] =
-                    data.offset(x.wrapping_mul(bytes_per_sample as u32) as isize)
-                        .offset(y.wrapping_mul(
-                            (*img).stride[VPX_PLANE_Y as usize] as u32,
-                        ) as isize);
+                (*img).planes[VPX_PLANE_Y as usize] = data
+                    .offset(x.wrapping_mul(bytes_per_sample as u32) as isize)
+                    .offset(y.wrapping_mul((*img).stride[VPX_PLANE_Y as usize] as u32) as isize);
                 data = data.add(
                     ((*img).h as size_t)
                         .wrapping_mul((*img).stride[VPX_PLANE_Y as usize] as size_t),
                 );
                 let mut uv_x: u32 = x >> (*img).x_chroma_shift;
                 let mut uv_y: u32 = y >> (*img).y_chroma_shift;
-                if (*img).fmt as u32
-                    == VPX_IMG_FMT_NV12 as u32
-                {
-                    (*img).planes[VPX_PLANE_U as usize] =
-                        data.offset(uv_x as isize).offset(uv_y.wrapping_mul(
-                            (*img).stride[VPX_PLANE_U as usize] as u32,
-                        ) as isize);
-                    (*img).planes[VPX_PLANE_V as usize] = (*img).planes[VPX_PLANE_U as usize]
-                        .offset(1 as isize);
-                } else if (*img).fmt as u32
-                    & VPX_IMG_FMT_UV_FLIP as u32
-                    == 0
-                {
+                if (*img).fmt as u32 == VPX_IMG_FMT_NV12 as u32 {
+                    (*img).planes[VPX_PLANE_U as usize] = data.offset(uv_x as isize).offset(
+                        uv_y.wrapping_mul((*img).stride[VPX_PLANE_U as usize] as u32) as isize,
+                    );
+                    (*img).planes[VPX_PLANE_V as usize] =
+                        (*img).planes[VPX_PLANE_U as usize].offset(1 as isize);
+                } else if (*img).fmt as u32 & VPX_IMG_FMT_UV_FLIP as u32 == 0 {
                     (*img).planes[VPX_PLANE_U as usize] = data
                         .offset(uv_x.wrapping_mul(bytes_per_sample as u32) as isize)
-                        .offset(uv_y.wrapping_mul(
-                            (*img).stride[VPX_PLANE_U as usize] as u32,
-                        ) as isize);
+                        .offset(
+                            uv_y.wrapping_mul((*img).stride[VPX_PLANE_U as usize] as u32) as isize,
+                        );
                     data = data.add(
                         (((*img).h >> (*img).y_chroma_shift) as size_t)
                             .wrapping_mul((*img).stride[VPX_PLANE_U as usize] as size_t),
                     );
                     (*img).planes[VPX_PLANE_V as usize] = data
                         .offset(uv_x.wrapping_mul(bytes_per_sample as u32) as isize)
-                        .offset(uv_y.wrapping_mul(
-                            (*img).stride[VPX_PLANE_V as usize] as u32,
-                        ) as isize);
+                        .offset(
+                            uv_y.wrapping_mul((*img).stride[VPX_PLANE_V as usize] as u32) as isize,
+                        );
                 } else {
                     (*img).planes[VPX_PLANE_V as usize] = data
                         .offset(uv_x.wrapping_mul(bytes_per_sample as u32) as isize)
-                        .offset(uv_y.wrapping_mul(
-                            (*img).stride[VPX_PLANE_V as usize] as u32,
-                        ) as isize);
+                        .offset(
+                            uv_y.wrapping_mul((*img).stride[VPX_PLANE_V as usize] as u32) as isize,
+                        );
                     data = data.add(
                         (((*img).h >> (*img).y_chroma_shift) as size_t)
                             .wrapping_mul((*img).stride[VPX_PLANE_V as usize] as size_t),
                     );
                     (*img).planes[VPX_PLANE_U as usize] = data
                         .offset(uv_x.wrapping_mul(bytes_per_sample as u32) as isize)
-                        .offset(uv_y.wrapping_mul(
-                            (*img).stride[VPX_PLANE_U as usize] as u32,
-                        ) as isize);
+                        .offset(
+                            uv_y.wrapping_mul((*img).stride[VPX_PLANE_U as usize] as u32) as isize,
+                        );
                 }
             }
             return 0 as i32;
@@ -453,25 +406,23 @@ pub unsafe fn vpx_img_set_rect(
 pub unsafe fn vpx_img_flip(mut img: *mut vpx_image_t) {
     unsafe {
         (*img).planes[VPX_PLANE_Y as usize] = (*img).planes[VPX_PLANE_Y as usize].offset(
-            ((*img).d_h.wrapping_sub(1 as u32) as i32
-                * (*img).stride[VPX_PLANE_Y as usize]) as isize,
+            ((*img).d_h.wrapping_sub(1 as u32) as i32 * (*img).stride[VPX_PLANE_Y as usize])
+                as isize,
         );
         (*img).stride[VPX_PLANE_Y as usize] = -(*img).stride[VPX_PLANE_Y as usize];
         (*img).planes[VPX_PLANE_U as usize] = (*img).planes[VPX_PLANE_U as usize].offset(
-            (((*img).d_h >> (*img).y_chroma_shift).wrapping_sub(1 as u32)
-                as i32
+            (((*img).d_h >> (*img).y_chroma_shift).wrapping_sub(1 as u32) as i32
                 * (*img).stride[VPX_PLANE_U as usize]) as isize,
         );
         (*img).stride[VPX_PLANE_U as usize] = -(*img).stride[VPX_PLANE_U as usize];
         (*img).planes[VPX_PLANE_V as usize] = (*img).planes[VPX_PLANE_V as usize].offset(
-            (((*img).d_h >> (*img).y_chroma_shift).wrapping_sub(1 as u32)
-                as i32
+            (((*img).d_h >> (*img).y_chroma_shift).wrapping_sub(1 as u32) as i32
                 * (*img).stride[VPX_PLANE_V as usize]) as isize,
         );
         (*img).stride[VPX_PLANE_V as usize] = -(*img).stride[VPX_PLANE_V as usize];
         (*img).planes[VPX_PLANE_ALPHA as usize] = (*img).planes[VPX_PLANE_ALPHA as usize].offset(
-            ((*img).d_h.wrapping_sub(1 as u32) as i32
-                * (*img).stride[VPX_PLANE_ALPHA as usize]) as isize,
+            ((*img).d_h.wrapping_sub(1 as u32) as i32 * (*img).stride[VPX_PLANE_ALPHA as usize])
+                as isize,
         );
         (*img).stride[VPX_PLANE_ALPHA as usize] = -(*img).stride[VPX_PLANE_ALPHA as usize];
     }
@@ -481,10 +432,10 @@ pub unsafe fn vpx_img_free(mut img: *mut vpx_image_t) {
     unsafe {
         if !img.is_null() {
             if !(*img).img_data.is_null() && (*img).img_data_owner != 0 {
-                vpx_free((*img).img_data as *mut core::ffi::c_void);
+                vpx_free((*img).img_data as *mut c_void);
             }
             if (*img).self_allocd != 0 {
-                free(img as *mut core::ffi::c_void);
+                free(img as *mut c_void);
             }
         }
     }

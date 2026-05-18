@@ -11,16 +11,8 @@ pub struct loop_filter_info {
 }
 pub type uc = u8;
 unsafe fn vp8_signed_char_clamp(mut t: i32) -> i8 {
-    t = if t < -(128 as i32) {
-        -(128 as i32)
-    } else {
-        t
-    };
-    t = if t > 127 as i32 {
-        127 as i32
-    } else {
-        t
-    };
+    t = if t < -(128 as i32) { -(128 as i32) } else { t };
+    t = if t > 127 as i32 { 127 as i32 } else { t };
     t as i8
 }
 unsafe fn vp8_filter_mask(
@@ -37,56 +29,25 @@ unsafe fn vp8_filter_mask(
 ) -> i8 {
     unsafe {
         let mut mask: i8 = 0 as i8;
+        mask = (mask as i32 | (abs(p3 as i32 - p2 as i32) > limit as i32) as i32) as i8;
+        mask = (mask as i32 | (abs(p2 as i32 - p1 as i32) > limit as i32) as i32) as i8;
+        mask = (mask as i32 | (abs(p1 as i32 - p0 as i32) > limit as i32) as i32) as i8;
+        mask = (mask as i32 | (abs(q1 as i32 - q0 as i32) > limit as i32) as i32) as i8;
+        mask = (mask as i32 | (abs(q2 as i32 - q1 as i32) > limit as i32) as i32) as i8;
+        mask = (mask as i32 | (abs(q3 as i32 - q2 as i32) > limit as i32) as i32) as i8;
         mask = (mask as i32
-            | (abs(p3 as i32 - p2 as i32)
-                > limit as i32) as i32)
-            as i8;
-        mask = (mask as i32
-            | (abs(p2 as i32 - p1 as i32)
-                > limit as i32) as i32)
-            as i8;
-        mask = (mask as i32
-            | (abs(p1 as i32 - p0 as i32)
-                > limit as i32) as i32)
-            as i8;
-        mask = (mask as i32
-            | (abs(q1 as i32 - q0 as i32)
-                > limit as i32) as i32)
-            as i8;
-        mask = (mask as i32
-            | (abs(q2 as i32 - q1 as i32)
-                > limit as i32) as i32)
-            as i8;
-        mask = (mask as i32
-            | (abs(q3 as i32 - q2 as i32)
-                > limit as i32) as i32)
-            as i8;
-        mask = (mask as i32
-            | (abs(p0 as i32 - q0 as i32) * 2 as i32
-                + abs(p1 as i32 - q1 as i32)
-                    / 2 as i32
-                > blimit as i32) as i32)
-            as i8;
+            | (abs(p0 as i32 - q0 as i32) * 2 as i32 + abs(p1 as i32 - q1 as i32) / 2 as i32
+                > blimit as i32) as i32) as i8;
         (mask as i32 - 1 as i32) as i8
     }
 }
-unsafe fn vp8_hevmask(
-    mut thresh: uc,
-    mut p1: uc,
-    mut p0: uc,
-    mut q0: uc,
-    mut q1: uc,
-) -> i8 {
+unsafe fn vp8_hevmask(mut thresh: uc, mut p1: uc, mut p0: uc, mut q0: uc, mut q1: uc) -> i8 {
     unsafe {
         let mut hev: i8 = 0 as i8;
-        hev = (hev as i32
-            | ((abs(p1 as i32 - p0 as i32)
-                > thresh as i32) as i32
-                * -(1 as i32))) as i8;
-        hev = (hev as i32
-            | ((abs(q1 as i32 - q0 as i32)
-                > thresh as i32) as i32
-                * -(1 as i32))) as i8;
+        hev = (hev as i32 | ((abs(p1 as i32 - p0 as i32) > thresh as i32) as i32 * -(1 as i32)))
+            as i8;
+        hev = (hev as i32 | ((abs(q1 as i32 - q0 as i32) > thresh as i32) as i32 * -(1 as i32)))
+            as i8;
         hev
     }
 }
@@ -107,42 +68,27 @@ unsafe fn vp8_filter(
         let mut Filter1: i8 = 0;
         let mut Filter2: i8 = 0;
         let mut u: i8 = 0;
-        ps1 = (*op1 as i32 ^ 0x80 as i32)
-            as i8;
-        ps0 = (*op0 as i32 ^ 0x80 as i32)
-            as i8;
-        qs0 = (*oq0 as i32 ^ 0x80 as i32)
-            as i8;
-        qs1 = (*oq1 as i32 ^ 0x80 as i32)
-            as i8;
+        ps1 = (*op1 as i32 ^ 0x80 as i32) as i8;
+        ps0 = (*op0 as i32 ^ 0x80 as i32) as i8;
+        qs0 = (*oq0 as i32 ^ 0x80 as i32) as i8;
+        qs1 = (*oq1 as i32 ^ 0x80 as i32) as i8;
         filter_value = vp8_signed_char_clamp(ps1 as i32 - qs1 as i32);
-        filter_value = (filter_value as i32 & hev as i32)
-            as i8;
-        filter_value = vp8_signed_char_clamp(
-            filter_value as i32
-                + 3 as i32 * (qs0 as i32 - ps0 as i32),
-        );
-        filter_value = (filter_value as i32 & mask as i32)
-            as i8;
-        Filter1 =
-            vp8_signed_char_clamp(filter_value as i32 + 4 as i32);
-        Filter2 =
-            vp8_signed_char_clamp(filter_value as i32 + 3 as i32);
-        Filter1 =
-            (Filter1 as i32 >> 3 as i32) as i8;
-        Filter2 =
-            (Filter2 as i32 >> 3 as i32) as i8;
+        filter_value = (filter_value as i32 & hev as i32) as i8;
+        filter_value =
+            vp8_signed_char_clamp(filter_value as i32 + 3 as i32 * (qs0 as i32 - ps0 as i32));
+        filter_value = (filter_value as i32 & mask as i32) as i8;
+        Filter1 = vp8_signed_char_clamp(filter_value as i32 + 4 as i32);
+        Filter2 = vp8_signed_char_clamp(filter_value as i32 + 3 as i32);
+        Filter1 = (Filter1 as i32 >> 3 as i32) as i8;
+        Filter2 = (Filter2 as i32 >> 3 as i32) as i8;
         u = vp8_signed_char_clamp(qs0 as i32 - Filter1 as i32);
         *oq0 = (u as i32 ^ 0x80 as i32) as uc;
         u = vp8_signed_char_clamp(ps0 as i32 + Filter2 as i32);
         *op0 = (u as i32 ^ 0x80 as i32) as uc;
         filter_value = Filter1;
-        filter_value =
-            (filter_value as i32 + 1 as i32) as i8;
-        filter_value =
-            (filter_value as i32 >> 1 as i32) as i8;
-        filter_value = (filter_value as i32 & !(hev as i32))
-            as i8;
+        filter_value = (filter_value as i32 + 1 as i32) as i8;
+        filter_value = (filter_value as i32 >> 1 as i32) as i8;
+        filter_value = (filter_value as i32 & !(hev as i32)) as i8;
         u = vp8_signed_char_clamp(qs1 as i32 - filter_value as i32);
         *oq1 = (u as i32 ^ 0x80 as i32) as uc;
         u = vp8_signed_char_clamp(ps1 as i32 + filter_value as i32);
@@ -261,65 +207,37 @@ unsafe fn vp8_mbfilter(
         let mut filter_value: i8 = 0;
         let mut Filter1: i8 = 0;
         let mut Filter2: i8 = 0;
-        let mut ps2: i8 = (*op2 as i32
-            ^ 0x80 as i32)
-            as i8;
-        let mut ps1: i8 = (*op1 as i32
-            ^ 0x80 as i32)
-            as i8;
-        let mut ps0: i8 = (*op0 as i32
-            ^ 0x80 as i32)
-            as i8;
-        let mut qs0: i8 = (*oq0 as i32
-            ^ 0x80 as i32)
-            as i8;
-        let mut qs1: i8 = (*oq1 as i32
-            ^ 0x80 as i32)
-            as i8;
-        let mut qs2: i8 = (*oq2 as i32
-            ^ 0x80 as i32)
-            as i8;
+        let mut ps2: i8 = (*op2 as i32 ^ 0x80 as i32) as i8;
+        let mut ps1: i8 = (*op1 as i32 ^ 0x80 as i32) as i8;
+        let mut ps0: i8 = (*op0 as i32 ^ 0x80 as i32) as i8;
+        let mut qs0: i8 = (*oq0 as i32 ^ 0x80 as i32) as i8;
+        let mut qs1: i8 = (*oq1 as i32 ^ 0x80 as i32) as i8;
+        let mut qs2: i8 = (*oq2 as i32 ^ 0x80 as i32) as i8;
         filter_value = vp8_signed_char_clamp(ps1 as i32 - qs1 as i32);
-        filter_value = vp8_signed_char_clamp(
-            filter_value as i32
-                + 3 as i32 * (qs0 as i32 - ps0 as i32),
-        );
-        filter_value = (filter_value as i32 & mask as i32)
-            as i8;
+        filter_value =
+            vp8_signed_char_clamp(filter_value as i32 + 3 as i32 * (qs0 as i32 - ps0 as i32));
+        filter_value = (filter_value as i32 & mask as i32) as i8;
         Filter2 = filter_value;
-        Filter2 =
-            (Filter2 as i32 & hev as i32) as i8;
+        Filter2 = (Filter2 as i32 & hev as i32) as i8;
         Filter1 = vp8_signed_char_clamp(Filter2 as i32 + 4 as i32);
         Filter2 = vp8_signed_char_clamp(Filter2 as i32 + 3 as i32);
-        Filter1 =
-            (Filter1 as i32 >> 3 as i32) as i8;
-        Filter2 =
-            (Filter2 as i32 >> 3 as i32) as i8;
+        Filter1 = (Filter1 as i32 >> 3 as i32) as i8;
+        Filter2 = (Filter2 as i32 >> 3 as i32) as i8;
         qs0 = vp8_signed_char_clamp(qs0 as i32 - Filter1 as i32);
         ps0 = vp8_signed_char_clamp(ps0 as i32 + Filter2 as i32);
-        filter_value = (filter_value as i32 & !(hev as i32))
-            as i8;
+        filter_value = (filter_value as i32 & !(hev as i32)) as i8;
         Filter2 = filter_value;
-        u = vp8_signed_char_clamp(
-            (63 as i32 + Filter2 as i32 * 27 as i32)
-                >> 7 as i32,
-        );
+        u = vp8_signed_char_clamp((63 as i32 + Filter2 as i32 * 27 as i32) >> 7 as i32);
         s = vp8_signed_char_clamp(qs0 as i32 - u as i32);
         *oq0 = (s as i32 ^ 0x80 as i32) as uc;
         s = vp8_signed_char_clamp(ps0 as i32 + u as i32);
         *op0 = (s as i32 ^ 0x80 as i32) as uc;
-        u = vp8_signed_char_clamp(
-            (63 as i32 + Filter2 as i32 * 18 as i32)
-                >> 7 as i32,
-        );
+        u = vp8_signed_char_clamp((63 as i32 + Filter2 as i32 * 18 as i32) >> 7 as i32);
         s = vp8_signed_char_clamp(qs1 as i32 - u as i32);
         *oq1 = (s as i32 ^ 0x80 as i32) as uc;
         s = vp8_signed_char_clamp(ps1 as i32 + u as i32);
         *op1 = (s as i32 ^ 0x80 as i32) as uc;
-        u = vp8_signed_char_clamp(
-            (63 as i32 + Filter2 as i32 * 9 as i32)
-                >> 7 as i32,
-        );
+        u = vp8_signed_char_clamp((63 as i32 + Filter2 as i32 * 9 as i32) >> 7 as i32);
         s = vp8_signed_char_clamp(qs2 as i32 - u as i32);
         *oq2 = (s as i32 ^ 0x80 as i32) as uc;
         s = vp8_signed_char_clamp(ps2 as i32 + u as i32);
@@ -434,12 +352,10 @@ unsafe fn vp8_simple_filter_mask(
     mut q1: uc,
 ) -> i8 {
     unsafe {
-        let mut mask: i8 =
-            ((abs(p0 as i32 - q0 as i32) * 2 as i32
-                + abs(p1 as i32 - q1 as i32)
-                    / 2 as i32
-                <= blimit as i32) as i32
-                * -(1 as i32)) as i8;
+        let mut mask: i8 = ((abs(p0 as i32 - q0 as i32) * 2 as i32
+            + abs(p1 as i32 - q1 as i32) / 2 as i32
+            <= blimit as i32) as i32
+            * -(1 as i32)) as i8;
         mask
     }
 }
@@ -454,36 +370,21 @@ unsafe fn vp8_simple_filter(
         let mut filter_value: i8 = 0;
         let mut Filter1: i8 = 0;
         let mut Filter2: i8 = 0;
-        let mut p1: i8 = (*op1 as i32
-            ^ 0x80 as i32)
-            as i8;
-        let mut p0: i8 = (*op0 as i32
-            ^ 0x80 as i32)
-            as i8;
-        let mut q0: i8 = (*oq0 as i32
-            ^ 0x80 as i32)
-            as i8;
-        let mut q1: i8 = (*oq1 as i32
-            ^ 0x80 as i32)
-            as i8;
+        let mut p1: i8 = (*op1 as i32 ^ 0x80 as i32) as i8;
+        let mut p0: i8 = (*op0 as i32 ^ 0x80 as i32) as i8;
+        let mut q0: i8 = (*oq0 as i32 ^ 0x80 as i32) as i8;
+        let mut q1: i8 = (*oq1 as i32 ^ 0x80 as i32) as i8;
         let mut u: i8 = 0;
         filter_value = vp8_signed_char_clamp(p1 as i32 - q1 as i32);
-        filter_value = vp8_signed_char_clamp(
-            filter_value as i32
-                + 3 as i32 * (q0 as i32 - p0 as i32),
-        );
-        filter_value = (filter_value as i32 & mask as i32)
-            as i8;
-        Filter1 =
-            vp8_signed_char_clamp(filter_value as i32 + 4 as i32);
-        Filter1 =
-            (Filter1 as i32 >> 3 as i32) as i8;
+        filter_value =
+            vp8_signed_char_clamp(filter_value as i32 + 3 as i32 * (q0 as i32 - p0 as i32));
+        filter_value = (filter_value as i32 & mask as i32) as i8;
+        Filter1 = vp8_signed_char_clamp(filter_value as i32 + 4 as i32);
+        Filter1 = (Filter1 as i32 >> 3 as i32) as i8;
         u = vp8_signed_char_clamp(q0 as i32 - Filter1 as i32);
         *oq0 = (u as i32 ^ 0x80 as i32) as uc;
-        Filter2 =
-            vp8_signed_char_clamp(filter_value as i32 + 3 as i32);
-        Filter2 =
-            (Filter2 as i32 >> 3 as i32) as i8;
+        Filter2 = vp8_signed_char_clamp(filter_value as i32 + 3 as i32);
+        Filter2 = (Filter2 as i32 >> 3 as i32) as i8;
         u = vp8_signed_char_clamp(p0 as i32 + Filter2 as i32);
         *op0 = (u as i32 ^ 0x80 as i32) as uc;
     }
@@ -689,11 +590,7 @@ pub unsafe fn vp8_loop_filter_bh_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_loop_filter_bhs_c(
-    mut y_ptr: *mut u8,
-    mut y_stride: i32,
-    mut blimit: *const u8,
-) {
+pub unsafe fn vp8_loop_filter_bhs_c(mut y_ptr: *mut u8, mut y_stride: i32, mut blimit: *const u8) {
     unsafe {
         vp8_loop_filter_simple_horizontal_edge_c(
             y_ptr.offset((4 as i32 * y_stride) as isize),
@@ -769,26 +666,10 @@ pub unsafe fn vp8_loop_filter_bv_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_loop_filter_bvs_c(
-    mut y_ptr: *mut u8,
-    mut y_stride: i32,
-    mut blimit: *const u8,
-) {
+pub unsafe fn vp8_loop_filter_bvs_c(mut y_ptr: *mut u8, mut y_stride: i32, mut blimit: *const u8) {
     unsafe {
-        vp8_loop_filter_simple_vertical_edge_c(
-            y_ptr.offset(4 as isize),
-            y_stride,
-            blimit,
-        );
-        vp8_loop_filter_simple_vertical_edge_c(
-            y_ptr.offset(8 as isize),
-            y_stride,
-            blimit,
-        );
-        vp8_loop_filter_simple_vertical_edge_c(
-            y_ptr.offset(12 as isize),
-            y_stride,
-            blimit,
-        );
+        vp8_loop_filter_simple_vertical_edge_c(y_ptr.offset(4 as isize), y_stride, blimit);
+        vp8_loop_filter_simple_vertical_edge_c(y_ptr.offset(8 as isize), y_stride, blimit);
+        vp8_loop_filter_simple_vertical_edge_c(y_ptr.offset(12 as isize), y_stride, blimit);
     }
 }

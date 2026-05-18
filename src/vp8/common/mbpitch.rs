@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 pub type vpx_color_space = u32;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
 pub const VPX_CS_RESERVED: vpx_color_space = 6;
@@ -151,15 +152,7 @@ pub struct blockd {
     pub bmi: b_mode_info,
 }
 pub type BLOCKD = blockd;
-pub type vp8_subpix_fn_t = Option<unsafe fn(
-        *mut u8,
-        i32,
-        i32,
-        i32,
-        *mut u8,
-        i32,
-    ) -> (),
->;
+pub type vp8_subpix_fn_t = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct macroblockd {
@@ -205,7 +198,7 @@ pub struct macroblockd {
     pub subpixel_predict8x4: vp8_subpix_fn_t,
     pub subpixel_predict8x8: vp8_subpix_fn_t,
     pub subpixel_predict16x16: vp8_subpix_fn_t,
-    pub current_bc: *mut core::ffi::c_void,
+    pub current_bc: *mut c_void,
     pub corrupted: i32,
     pub error_info: vpx_internal_error_info,
 }
@@ -219,9 +212,22 @@ pub unsafe fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) {
         while r < 4 as i32 {
             c = 0 as i32;
             while c < 4 as i32 {
-                (*x).block[(r * 4 as i32 + c) as usize].predictor =
+                (*x).block[(r * 4 as i32 + c) as usize].predictor = (&raw mut (*x).predictor
+                    as *mut u8)
+                    .offset((r * 4 as i32 * 16 as i32) as isize)
+                    .offset((c * 4 as i32) as isize);
+                c += 1;
+            }
+            r += 1;
+        }
+        r = 0 as i32;
+        while r < 2 as i32 {
+            c = 0 as i32;
+            while c < 2 as i32 {
+                (*x).block[(16 as i32 + r * 2 as i32 + c) as usize].predictor =
                     (&raw mut (*x).predictor as *mut u8)
-                        .offset((r * 4 as i32 * 16 as i32) as isize)
+                        .offset(256 as isize)
+                        .offset((r * 4 as i32 * 8 as i32) as isize)
                         .offset((c * 4 as i32) as isize);
                 c += 1;
             }
@@ -231,36 +237,22 @@ pub unsafe fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) {
         while r < 2 as i32 {
             c = 0 as i32;
             while c < 2 as i32 {
-                (*x).block[(16 as i32 + r * 2 as i32 + c) as usize]
-                    .predictor = (&raw mut (*x).predictor as *mut u8)
-                    .offset(256 as isize)
-                    .offset((r * 4 as i32 * 8 as i32) as isize)
-                    .offset((c * 4 as i32) as isize);
-                c += 1;
-            }
-            r += 1;
-        }
-        r = 0 as i32;
-        while r < 2 as i32 {
-            c = 0 as i32;
-            while c < 2 as i32 {
-                (*x).block[(20 as i32 + r * 2 as i32 + c) as usize]
-                    .predictor = (&raw mut (*x).predictor as *mut u8)
-                    .offset(320 as isize)
-                    .offset((r * 4 as i32 * 8 as i32) as isize)
-                    .offset((c * 4 as i32) as isize);
+                (*x).block[(20 as i32 + r * 2 as i32 + c) as usize].predictor =
+                    (&raw mut (*x).predictor as *mut u8)
+                        .offset(320 as isize)
+                        .offset((r * 4 as i32 * 8 as i32) as isize)
+                        .offset((c * 4 as i32) as isize);
                 c += 1;
             }
             r += 1;
         }
         r = 0 as i32;
         while r < 25 as i32 {
-            (*x).block[r as usize].qcoeff = (&raw mut (*x).qcoeff as *mut i16)
-                .offset((r * 16 as i32) as isize);
-            (*x).block[r as usize].dqcoeff = (&raw mut (*x).dqcoeff as *mut i16)
-                .offset((r * 16 as i32) as isize);
-            (*x).block[r as usize].eob =
-                (&raw mut (*x).eobs as *mut i8).offset(r as isize);
+            (*x).block[r as usize].qcoeff =
+                (&raw mut (*x).qcoeff as *mut i16).offset((r * 16 as i32) as isize);
+            (*x).block[r as usize].dqcoeff =
+                (&raw mut (*x).dqcoeff as *mut i16).offset((r * 16 as i32) as isize);
+            (*x).block[r as usize].eob = (&raw mut (*x).eobs as *mut i8).offset(r as isize);
             r += 1;
         }
     }
@@ -272,19 +264,15 @@ pub unsafe fn vp8_build_block_doffsets(mut x: *mut MACROBLOCKD) {
         block = 0 as i32;
         while block < 16 as i32 {
             (*x).block[block as usize].offset =
-                (block >> 2 as i32) * 4 as i32 * (*x).dst.y_stride
-                    + (block & 3 as i32) * 4 as i32;
+                (block >> 2 as i32) * 4 as i32 * (*x).dst.y_stride + (block & 3 as i32) * 4 as i32;
             block += 1;
         }
         block = 16 as i32;
         while block < 20 as i32 {
-            (*x).block[block as usize].offset = ((block - 16 as i32)
-                >> 1 as i32)
-                * 4 as i32
-                * (*x).dst.uv_stride
-                + (block & 1 as i32) * 4 as i32;
-            (*x).block[(block + 4 as i32) as usize].offset =
-                (*x).block[block as usize].offset;
+            (*x).block[block as usize].offset =
+                ((block - 16 as i32) >> 1 as i32) * 4 as i32 * (*x).dst.uv_stride
+                    + (block & 1 as i32) * 4 as i32;
+            (*x).block[(block + 4 as i32) as usize].offset = (*x).block[block as usize].offset;
             block += 1;
         }
     }

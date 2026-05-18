@@ -4,78 +4,35 @@ pub type uint64_t = u64;
 pub type vpx_prob = uint8_t;
 pub type vpx_tree_index = int8_t;
 #[inline]
-unsafe fn get_prob(
-    mut num: u32,
-    mut den: u32,
-) -> vpx_prob {
+unsafe fn get_prob(mut num: u32, mut den: u32) -> vpx_prob {
     let p: i32 = (num as uint64_t)
         .wrapping_mul(256 as uint64_t)
         .wrapping_add((den >> 1 as i32) as uint64_t)
         .wrapping_div(den as uint64_t) as i32;
-    let clipped_prob: i32 = p
-        | (255 as i32 - p) >> 23 as i32
-        | (p == 0 as i32) as i32;
+    let clipped_prob: i32 = p | (255 as i32 - p) >> 23 as i32 | (p == 0 as i32) as i32;
     clipped_prob as vpx_prob
 }
 #[inline]
-unsafe fn weighted_prob(
-    mut prob1: i32,
-    mut prob2: i32,
-    mut factor: i32,
-) -> vpx_prob {
-    ((prob1 * (256 as i32 - factor)
-        + prob2 * factor
-        + ((1 as i32) << (8 as i32 - 1 as i32)))
+unsafe fn weighted_prob(mut prob1: i32, mut prob2: i32, mut factor: i32) -> vpx_prob {
+    ((prob1 * (256 as i32 - factor) + prob2 * factor + ((1 as i32) << (8 as i32 - 1 as i32)))
         >> 8 as i32) as vpx_prob
 }
 static mut count_to_update_factor: [i32; 21] = [
-    0 as i32,
-    6 as i32,
-    12 as i32,
-    19 as i32,
-    25 as i32,
-    32 as i32,
-    38 as i32,
-    44 as i32,
-    51 as i32,
-    57 as i32,
-    64 as i32,
-    70 as i32,
-    76 as i32,
-    83 as i32,
-    89 as i32,
-    96 as i32,
-    102 as i32,
-    108 as i32,
-    115 as i32,
-    121 as i32,
-    128 as i32,
+    0 as i32, 6 as i32, 12 as i32, 19 as i32, 25 as i32, 32 as i32, 38 as i32, 44 as i32,
+    51 as i32, 57 as i32, 64 as i32, 70 as i32, 76 as i32, 83 as i32, 89 as i32, 96 as i32,
+    102 as i32, 108 as i32, 115 as i32, 121 as i32, 128 as i32,
 ];
 #[inline]
-unsafe fn mode_mv_merge_probs(
-    mut pre_prob: vpx_prob,
-    mut ct: *const u32,
-) -> vpx_prob {
+unsafe fn mode_mv_merge_probs(mut pre_prob: vpx_prob, mut ct: *const u32) -> vpx_prob {
     unsafe {
-        let den: u32 = (*ct.offset(0 as isize))
-            .wrapping_add(*ct.offset(1 as isize));
+        let den: u32 = (*ct.offset(0 as isize)).wrapping_add(*ct.offset(1 as isize));
         if den == 0 as u32 {
             pre_prob
         } else {
-            let count: u32 = if den < 20 as u32 {
-                den
-            } else {
-                20 as u32
-            };
-            let factor: u32 =
-                count_to_update_factor[count as usize] as u32;
-            let prob: vpx_prob =
-                get_prob(*ct.offset(0 as isize), den) as vpx_prob;
-            weighted_prob(
-                pre_prob as i32,
-                prob as i32,
-                factor as i32,
-            )
+            let count: u32 = if den < 20 as u32 { den } else { 20 as u32 };
+            let factor: u32 = count_to_update_factor[count as usize] as u32;
+            let prob: vpx_prob = get_prob(*ct.offset(0 as isize), den) as vpx_prob;
+            weighted_prob(pre_prob as i32, prob as i32, factor as i32)
         }
     }
 }
@@ -350,16 +307,13 @@ unsafe fn tree_merge_probs_impl(
         let left_count: u32 = if l <= 0 as i32 {
             *counts.offset(-l as isize)
         } else {
-            tree_merge_probs_impl(l as u32, tree, pre_probs, counts, probs)
-                as u32
+            tree_merge_probs_impl(l as u32, tree, pre_probs, counts, probs) as u32
         };
-        let r: i32 =
-            *tree.offset(i.wrapping_add(1 as u32) as isize) as i32;
+        let r: i32 = *tree.offset(i.wrapping_add(1 as u32) as isize) as i32;
         let right_count: u32 = if r <= 0 as i32 {
             *counts.offset(-r as isize)
         } else {
-            tree_merge_probs_impl(r as u32, tree, pre_probs, counts, probs)
-                as u32
+            tree_merge_probs_impl(r as u32, tree, pre_probs, counts, probs) as u32
         };
         let ct: [u32; 2] = [left_count, right_count];
         *probs.offset((i >> 1 as i32) as isize) = mode_mv_merge_probs(

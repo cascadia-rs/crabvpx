@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
     pub type __sFILEX;
 }
@@ -22,22 +23,11 @@ pub struct __sFILE {
     pub _file: i16,
     pub _bf: __sbuf,
     pub _lbfsize: i32,
-    pub _cookie: *mut core::ffi::c_void,
-    pub _close: Option<unsafe fn(*mut core::ffi::c_void) -> i32>,
-    pub _read: Option<unsafe fn(
-            *mut core::ffi::c_void,
-            *mut i8,
-            i32,
-        ) -> i32,
-    >,
-    pub _seek: Option<unsafe fn(*mut core::ffi::c_void, fpos_t, i32) -> fpos_t,
-    >,
-    pub _write: Option<unsafe fn(
-            *mut core::ffi::c_void,
-            *const i8,
-            i32,
-        ) -> i32,
-    >,
+    pub _cookie: *mut c_void,
+    pub _close: Option<unsafe fn(*mut c_void) -> i32>,
+    pub _read: Option<unsafe fn(*mut c_void, *mut i8, i32) -> i32>,
+    pub _seek: Option<unsafe fn(*mut c_void, fpos_t, i32) -> fpos_t>,
+    pub _write: Option<unsafe fn(*mut c_void, *const i8, i32) -> i32>,
     pub _ub: __sbuf,
     pub _extra: *mut __sFILEX,
     pub _ur: i32,

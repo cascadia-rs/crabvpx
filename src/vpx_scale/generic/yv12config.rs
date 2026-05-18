@@ -1,11 +1,8 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn vpx_memalign(align: size_t, size: size_t) -> *mut core::ffi::c_void;
-    fn vpx_free(memblk: *mut core::ffi::c_void);
-    fn memset(
-        __b: *mut core::ffi::c_void,
-        __c: i32,
-        __len: size_t,
-    ) -> *mut core::ffi::c_void;
+    fn vpx_memalign(align: size_t, size: size_t) -> *mut c_void;
+    fn vpx_free(memblk: *mut c_void);
+    fn memset(__b: *mut c_void, __c: i32, __len: size_t) -> *mut c_void;
 }
 pub type uint8_t = u8;
 pub type __darwin_size_t = usize;
@@ -59,19 +56,17 @@ pub struct yv12_buffer_config {
     pub flags: i32,
 }
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
-pub const __DARWIN_NULL: *mut core::ffi::c_void = ::core::ptr::null_mut::<core::ffi::c_void>();
-pub const NULL: *mut core::ffi::c_void = __DARWIN_NULL;
+pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
+pub const NULL: *mut c_void = __DARWIN_NULL;
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_yv12_de_alloc_frame_buffer(
-    mut ybf: *mut YV12_BUFFER_CONFIG,
-) -> i32 {
+pub unsafe fn vp8_yv12_de_alloc_frame_buffer(mut ybf: *mut YV12_BUFFER_CONFIG) -> i32 {
     unsafe {
         if !ybf.is_null() {
             if (*ybf).buffer_alloc_sz > 0 as size_t {
-                vpx_free((*ybf).buffer_alloc as *mut core::ffi::c_void);
+                vpx_free((*ybf).buffer_alloc as *mut c_void);
             }
             memset(
-                ybf as *mut core::ffi::c_void,
+                ybf as *mut c_void,
                 0 as i32,
                 ::core::mem::size_of::<YV12_BUFFER_CONFIG>() as size_t,
             );
@@ -90,21 +85,15 @@ pub unsafe fn vp8_yv12_realloc_frame_buffer(
 ) -> i32 {
     unsafe {
         if !ybf.is_null() {
-            let mut aligned_width: i32 =
-                (width + 15 as i32) & !(15 as i32);
-            let mut aligned_height: i32 =
-                (height + 15 as i32) & !(15 as i32);
-            let mut y_stride: i32 =
-                (aligned_width + 2 as i32 * border + 31 as i32)
-                    & !(31 as i32);
-            let mut yplane_size: i32 =
-                (aligned_height + 2 as i32 * border) * y_stride;
+            let mut aligned_width: i32 = (width + 15 as i32) & !(15 as i32);
+            let mut aligned_height: i32 = (height + 15 as i32) & !(15 as i32);
+            let mut y_stride: i32 = (aligned_width + 2 as i32 * border + 31 as i32) & !(31 as i32);
+            let mut yplane_size: i32 = (aligned_height + 2 as i32 * border) * y_stride;
             let mut uv_width: i32 = aligned_width >> 1 as i32;
             let mut uv_height: i32 = aligned_height >> 1 as i32;
             let mut uv_stride: i32 = y_stride >> 1 as i32;
             let mut uvplane_size: i32 = (uv_height + border) * uv_stride;
-            let frame_size: size_t =
-                (yplane_size + 2 as i32 * uvplane_size) as size_t;
+            let frame_size: size_t = (yplane_size + 2 as i32 * uvplane_size) as size_t;
             if (*ybf).buffer_alloc.is_null() {
                 (*ybf).buffer_alloc = vpx_memalign(32 as size_t, frame_size) as *mut uint8_t;
                 if (*ybf).buffer_alloc.is_null() {

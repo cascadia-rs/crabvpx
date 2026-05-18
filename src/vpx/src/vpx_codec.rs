@@ -1,11 +1,7 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
     pub type vpx_codec_alg_priv;
-    fn vsnprintf(
-        __str: *mut i8,
-        __size: size_t,
-        __format: *const i8,
-        _: *mut core::ffi::c_void,
-    ) -> i32;
+    fn vsnprintf(__str: *mut i8, __size: size_t, __format: *const i8, _: *mut c_void) -> i32;
     fn longjmp(_: *mut i32, _: i32) -> !;
 }
 pub type __builtin_va_list = *mut i8;
@@ -61,11 +57,11 @@ pub struct vpx_image {
     pub planes: [*mut u8; 4],
     pub stride: [i32; 4],
     pub bps: i32,
-    pub user_priv: *mut core::ffi::c_void,
+    pub user_priv: *mut c_void,
     pub img_data: *mut u8,
     pub img_data_owner: i32,
     pub self_allocd: i32,
-    pub fb_priv: *mut core::ffi::c_void,
+    pub fb_priv: *mut c_void,
 }
 pub type vpx_image_t = vpx_image;
 #[derive(Copy, Clone)]
@@ -115,13 +111,9 @@ pub struct vpx_codec_enc_iface {
     pub mr_get_mem_loc: vpx_codec_enc_mr_get_mem_loc_fn_t,
     pub mr_free_mem_loc: vpx_codec_enc_mr_free_mem_loc_fn_t,
 }
-pub type vpx_codec_enc_mr_free_mem_loc_fn_t =
-    Option<unsafe fn(*mut core::ffi::c_void) -> ()>;
-pub type vpx_codec_enc_mr_get_mem_loc_fn_t = Option<unsafe fn(
-        *const vpx_codec_enc_cfg_t,
-        *mut *mut core::ffi::c_void,
-    ) -> vpx_codec_err_t,
->;
+pub type vpx_codec_enc_mr_free_mem_loc_fn_t = Option<unsafe fn(*mut c_void) -> ()>;
+pub type vpx_codec_enc_mr_get_mem_loc_fn_t =
+    Option<unsafe fn(*const vpx_codec_enc_cfg_t, *mut *mut c_void) -> vpx_codec_err_t>;
 pub type vpx_codec_enc_cfg_t = vpx_codec_enc_cfg;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -203,7 +195,7 @@ pub type vpx_fixed_buf_t = vpx_fixed_buf;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vpx_fixed_buf {
-    pub buf: *mut core::ffi::c_void,
+    pub buf: *mut c_void,
     pub sz: size_t,
 }
 pub type vpx_rc_mode = u32;
@@ -226,14 +218,12 @@ pub type vpx_codec_get_preview_frame_fn_t =
 pub type vpx_codec_alg_priv_t = vpx_codec_alg_priv;
 pub type vpx_codec_get_global_headers_fn_t =
     Option<unsafe fn(*mut vpx_codec_alg_priv_t) -> *mut vpx_fixed_buf_t>;
-pub type vpx_codec_enc_config_set_fn_t = Option<unsafe fn(*mut vpx_codec_alg_priv_t, *const vpx_codec_enc_cfg_t) -> vpx_codec_err_t,
+pub type vpx_codec_enc_config_set_fn_t =
+    Option<unsafe fn(*mut vpx_codec_alg_priv_t, *const vpx_codec_enc_cfg_t) -> vpx_codec_err_t>;
+pub type vpx_codec_get_cx_data_fn_t = Option<
+    unsafe fn(*mut vpx_codec_alg_priv_t, *mut vpx_codec_iter_t) -> *const vpx_codec_cx_pkt_t,
 >;
-pub type vpx_codec_get_cx_data_fn_t = Option<unsafe fn(
-        *mut vpx_codec_alg_priv_t,
-        *mut vpx_codec_iter_t,
-    ) -> *const vpx_codec_cx_pkt_t,
->;
-pub type vpx_codec_iter_t = *const core::ffi::c_void;
+pub type vpx_codec_iter_t = *const c_void;
 pub type vpx_codec_cx_pkt_t = vpx_codec_cx_pkt;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -262,7 +252,7 @@ pub struct vpx_psnr_pkt {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct C2RustUnnamed_0 {
-    pub buf: *mut core::ffi::c_void,
+    pub buf: *mut c_void,
     pub sz: size_t,
     pub pts: vpx_codec_pts_t,
     pub duration: u64,
@@ -280,7 +270,8 @@ pub const VPX_CODEC_PSNR_PKT: vpx_codec_cx_pkt_kind = 3;
 pub const VPX_CODEC_FPMB_STATS_PKT: vpx_codec_cx_pkt_kind = 2;
 pub const VPX_CODEC_STATS_PKT: vpx_codec_cx_pkt_kind = 1;
 pub const VPX_CODEC_CX_FRAME_PKT: vpx_codec_cx_pkt_kind = 0;
-pub type vpx_codec_encode_fn_t = Option<unsafe fn(
+pub type vpx_codec_encode_fn_t = Option<
+    unsafe fn(
         *mut vpx_codec_alg_priv_t,
         *const vpx_image_t,
         vpx_codec_pts_t,
@@ -307,46 +298,33 @@ pub struct vpx_codec_dec_iface {
     pub get_frame: vpx_codec_get_frame_fn_t,
     pub set_fb_fn: vpx_codec_set_fb_fn_t,
 }
-pub type vpx_codec_set_fb_fn_t = Option<unsafe fn(
+pub type vpx_codec_set_fb_fn_t = Option<
+    unsafe fn(
         *mut vpx_codec_alg_priv_t,
         vpx_get_frame_buffer_cb_fn_t,
         vpx_release_frame_buffer_cb_fn_t,
-        *mut core::ffi::c_void,
+        *mut c_void,
     ) -> vpx_codec_err_t,
 >;
-pub type vpx_release_frame_buffer_cb_fn_t = Option<unsafe fn(
-        *mut core::ffi::c_void,
-        *mut vpx_codec_frame_buffer_t,
-    ) -> i32,
->;
+pub type vpx_release_frame_buffer_cb_fn_t =
+    Option<unsafe fn(*mut c_void, *mut vpx_codec_frame_buffer_t) -> i32>;
 pub type vpx_codec_frame_buffer_t = vpx_codec_frame_buffer;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vpx_codec_frame_buffer {
     pub data: *mut uint8_t,
     pub size: size_t,
-    pub priv_0: *mut core::ffi::c_void,
+    pub priv_0: *mut c_void,
 }
-pub type vpx_get_frame_buffer_cb_fn_t = Option<unsafe fn(
-        *mut core::ffi::c_void,
-        size_t,
-        *mut vpx_codec_frame_buffer_t,
-    ) -> i32,
+pub type vpx_get_frame_buffer_cb_fn_t =
+    Option<unsafe fn(*mut c_void, size_t, *mut vpx_codec_frame_buffer_t) -> i32>;
+pub type vpx_codec_get_frame_fn_t =
+    Option<unsafe fn(*mut vpx_codec_alg_priv_t, *mut vpx_codec_iter_t) -> *mut vpx_image_t>;
+pub type vpx_codec_decode_fn_t = Option<
+    unsafe fn(*mut vpx_codec_alg_priv_t, *const uint8_t, u32, *mut c_void) -> vpx_codec_err_t,
 >;
-pub type vpx_codec_get_frame_fn_t = Option<unsafe fn(*mut vpx_codec_alg_priv_t, *mut vpx_codec_iter_t) -> *mut vpx_image_t,
->;
-pub type vpx_codec_decode_fn_t = Option<unsafe fn(
-        *mut vpx_codec_alg_priv_t,
-        *const uint8_t,
-        u32,
-        *mut core::ffi::c_void,
-    ) -> vpx_codec_err_t,
->;
-pub type vpx_codec_get_si_fn_t = Option<unsafe fn(
-        *mut vpx_codec_alg_priv_t,
-        *mut vpx_codec_stream_info_t,
-    ) -> vpx_codec_err_t,
->;
+pub type vpx_codec_get_si_fn_t =
+    Option<unsafe fn(*mut vpx_codec_alg_priv_t, *mut vpx_codec_stream_info_t) -> vpx_codec_err_t>;
 pub type vpx_codec_stream_info_t = vpx_codec_stream_info;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -356,12 +334,8 @@ pub struct vpx_codec_stream_info {
     pub h: u32,
     pub is_kf: u32,
 }
-pub type vpx_codec_peek_si_fn_t = Option<unsafe fn(
-        *const uint8_t,
-        u32,
-        *mut vpx_codec_stream_info_t,
-    ) -> vpx_codec_err_t,
->;
+pub type vpx_codec_peek_si_fn_t =
+    Option<unsafe fn(*const uint8_t, u32, *mut vpx_codec_stream_info_t) -> vpx_codec_err_t>;
 pub type vpx_codec_ctrl_fn_map_t = vpx_codec_ctrl_fn_map;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -370,11 +344,10 @@ pub struct vpx_codec_ctrl_fn_map {
     pub fn_0: vpx_codec_control_fn_t,
 }
 pub type vpx_codec_control_fn_t =
-    Option<unsafe fn(*mut vpx_codec_alg_priv_t, *mut core::ffi::c_void) -> vpx_codec_err_t>;
-pub type vpx_codec_destroy_fn_t =
-    Option<unsafe fn(*mut vpx_codec_alg_priv_t) -> vpx_codec_err_t>;
-pub type vpx_codec_init_fn_t = Option<unsafe fn(*mut vpx_codec_ctx_t, *mut vpx_codec_priv_enc_mr_cfg_t) -> vpx_codec_err_t,
->;
+    Option<unsafe fn(*mut vpx_codec_alg_priv_t, *mut c_void) -> vpx_codec_err_t>;
+pub type vpx_codec_destroy_fn_t = Option<unsafe fn(*mut vpx_codec_alg_priv_t) -> vpx_codec_err_t>;
+pub type vpx_codec_init_fn_t =
+    Option<unsafe fn(*mut vpx_codec_ctx_t, *mut vpx_codec_priv_enc_mr_cfg_t) -> vpx_codec_err_t>;
 pub type vpx_codec_priv_enc_mr_cfg_t = vpx_codec_priv_enc_mr_cfg;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -382,7 +355,7 @@ pub struct vpx_codec_priv_enc_mr_cfg {
     pub mr_total_resolutions: u32,
     pub mr_encoder_id: u32,
     pub mr_down_sampling_factor: vpx_rational,
-    pub mr_low_res_mode_info: *mut core::ffi::c_void,
+    pub mr_low_res_mode_info: *mut c_void,
 }
 pub type vpx_codec_ctx_t = vpx_codec_ctx;
 #[derive(Copy, Clone)]
@@ -425,7 +398,7 @@ pub type vpx_codec_priv_cb_pair_t = vpx_codec_priv_cb_pair;
 #[repr(C)]
 pub struct vpx_codec_priv_cb_pair {
     pub u: C2RustUnnamed_3,
-    pub user_priv: *mut core::ffi::c_void,
+    pub user_priv: *mut c_void,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -433,21 +406,21 @@ pub union C2RustUnnamed_3 {
     pub put_frame: vpx_codec_put_frame_cb_fn_t,
     pub put_slice: vpx_codec_put_slice_cb_fn_t,
 }
-pub type vpx_codec_put_slice_cb_fn_t = Option<unsafe fn(
-        *mut core::ffi::c_void,
+pub type vpx_codec_put_slice_cb_fn_t = Option<
+    unsafe fn(
+        *mut c_void,
         *const vpx_image_t,
         *const vpx_image_rect_t,
         *const vpx_image_rect_t,
     ) -> (),
 >;
-pub type vpx_codec_put_frame_cb_fn_t =
-    Option<unsafe fn(*mut core::ffi::c_void, *const vpx_image_t) -> ()>;
+pub type vpx_codec_put_frame_cb_fn_t = Option<unsafe fn(*mut c_void, *const vpx_image_t) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union C2RustUnnamed_4 {
     pub dec: *const vpx_codec_dec_cfg,
     pub enc: *const vpx_codec_enc_cfg,
-    pub raw: *const core::ffi::c_void,
+    pub raw: *const c_void,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -467,19 +440,16 @@ pub struct vpx_internal_error_info {
     pub setjmp: i32,
     pub jmp: jmp_buf,
 }
-pub const __DARWIN_NULL: *mut core::ffi::c_void = ::core::ptr::null_mut::<core::ffi::c_void>();
-pub const NULL: *mut core::ffi::c_void = __DARWIN_NULL;
+pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
+pub const NULL: *mut c_void = __DARWIN_NULL;
 pub const VERSION_MAJOR: i32 = 1 as i32;
 pub const VERSION_MINOR: i32 = 16 as i32;
 pub const VERSION_PATCH: i32 = 0 as i32;
 pub const VERSION_EXTRA: [i8; 15] =
     unsafe { ::core::mem::transmute::<[u8; 15], [i8; 15]>(*b"122-ge9efe034e\0") };
-pub const VERSION_PACKED: i32 = VERSION_MAJOR << 16 as i32
-    | VERSION_MINOR << 8 as i32
-    | 0 as i32;
-pub const VERSION_STRING_NOSP: [i8; 23] = unsafe {
-    ::core::mem::transmute::<[u8; 23], [i8; 23]>(*b"v1.16.0-122-ge9efe034e\0")
-};
+pub const VERSION_PACKED: i32 = VERSION_MAJOR << 16 as i32 | VERSION_MINOR << 8 as i32 | 0 as i32;
+pub const VERSION_STRING_NOSP: [i8; 23] =
+    unsafe { ::core::mem::transmute::<[u8; 23], [i8; 23]>(*b"v1.16.0-122-ge9efe034e\0") };
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_codec_version() -> i32 {
     VERSION_PACKED
@@ -493,9 +463,7 @@ pub unsafe fn vpx_codec_version_extra_str() -> *const i8 {
     VERSION_EXTRA.as_ptr()
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_codec_iface_name(
-    mut iface: *const vpx_codec_iface_t,
-) -> *const i8 {
+pub unsafe fn vpx_codec_iface_name(mut iface: *const vpx_codec_iface_t) -> *const i8 {
     unsafe {
         if !iface.is_null() {
             (*iface).name
@@ -505,9 +473,7 @@ pub unsafe fn vpx_codec_iface_name(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_codec_err_to_string(
-    mut err: vpx_codec_err_t,
-) -> *const i8 {
+pub unsafe fn vpx_codec_err_to_string(mut err: vpx_codec_err_t) -> *const i8 {
     match err as u32 {
         0 => return b"Success\0" as *const u8 as *const i8,
         1 => {
@@ -518,12 +484,10 @@ pub unsafe fn vpx_codec_err_to_string(
         }
         3 => return b"ABI version mismatch\0" as *const u8 as *const i8,
         4 => {
-            return b"Codec does not implement requested capability\0" as *const u8
-                as *const i8;
+            return b"Codec does not implement requested capability\0" as *const u8 as *const i8;
         }
         5 => {
-            return b"Bitstream not supported by this decoder\0" as *const u8
-                as *const i8;
+            return b"Bitstream not supported by this decoder\0" as *const u8 as *const i8;
         }
         6 => {
             return b"Bitstream required feature not supported by this decoder\0" as *const u8
@@ -539,9 +503,7 @@ pub unsafe fn vpx_codec_err_to_string(
     b"Unrecognized error code\0" as *const u8 as *const i8
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_codec_error(
-    mut ctx: *const vpx_codec_ctx_t,
-) -> *const i8 {
+pub unsafe fn vpx_codec_error(mut ctx: *const vpx_codec_ctx_t) -> *const i8 {
     unsafe {
         if !ctx.is_null() {
             vpx_codec_err_to_string((*ctx).err)
@@ -551,9 +513,7 @@ pub unsafe fn vpx_codec_error(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_codec_error_detail(
-    mut ctx: *const vpx_codec_ctx_t,
-) -> *const i8 {
+pub unsafe fn vpx_codec_error_detail(mut ctx: *const vpx_codec_ctx_t) -> *const i8 {
     unsafe {
         if !ctx.is_null() && (*ctx).err as u32 != 0 {
             return if !(*ctx).priv_0.is_null() {
@@ -591,9 +551,7 @@ pub unsafe fn vpx_codec_destroy(mut ctx: *mut vpx_codec_ctx_t) -> vpx_codec_err_
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_codec_get_caps(
-    mut iface: *const vpx_codec_iface_t,
-) -> vpx_codec_caps_t {
+pub unsafe fn vpx_codec_get_caps(mut iface: *const vpx_codec_iface_t) -> vpx_codec_caps_t {
     unsafe {
         if !iface.is_null() {
             (*iface).caps
@@ -606,7 +564,7 @@ pub unsafe fn vpx_codec_get_caps(
 pub unsafe fn vpx_codec_control_(
     mut ctx: *mut vpx_codec_ctx_t,
     mut ctrl_id: i32,
-    mut data: *mut core::ffi::c_void,
+    mut data: *mut c_void,
 ) -> vpx_codec_err_t {
     unsafe {
         let mut res: vpx_codec_err_t = VPX_CODEC_OK;
@@ -668,10 +626,7 @@ pub unsafe fn vpx_internal_error(
             (*info).detail[i] = 0 as i8;
         }
         if (*info).setjmp != 0 {
-            longjmp(
-                &raw mut (*info).jmp as *mut i32,
-                (*info).error_code as i32,
-            );
+            longjmp(&raw mut (*info).jmp as *mut i32, (*info).error_code as i32);
         }
     }
 }

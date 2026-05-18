@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
     fn vp8_yv12_alloc_frame_buffer(
         ybf: *mut YV12_BUFFER_CONFIG,
@@ -6,13 +7,9 @@ unsafe extern "Rust" {
         border: i32,
     ) -> i32;
     fn vp8_yv12_de_alloc_frame_buffer(ybf: *mut YV12_BUFFER_CONFIG) -> i32;
-    fn vpx_calloc(num: size_t, size: size_t) -> *mut core::ffi::c_void;
-    fn vpx_free(memblk: *mut core::ffi::c_void);
-    fn memset(
-        __b: *mut core::ffi::c_void,
-        __c: i32,
-        __len: size_t,
-    ) -> *mut core::ffi::c_void;
+    fn vpx_calloc(num: size_t, size: size_t) -> *mut c_void;
+    fn vpx_free(memblk: *mut c_void);
+    fn memset(__b: *mut c_void, __c: i32, __len: size_t) -> *mut c_void;
     fn vp8_init_mbmode_probs(x: *mut VP8_COMMON);
     fn vp8_default_bmode_probs(dest: *mut vp8_prob);
     fn vp8_machine_specific_config(_: *mut VP8Common);
@@ -260,8 +257,8 @@ pub type CLAMP_TYPE = u32;
 pub const RECON_CLAMP_NOTREQUIRED: CLAMP_TYPE = 1;
 pub const RECON_CLAMP_REQUIRED: CLAMP_TYPE = 0;
 pub type VP8_COMMON = VP8Common;
-pub const __DARWIN_NULL: *mut core::ffi::c_void = ::core::ptr::null_mut::<core::ffi::c_void>();
-pub const NULL: *mut core::ffi::c_void = __DARWIN_NULL;
+pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
+pub const NULL: *mut c_void = __DARWIN_NULL;
 pub const VP8BORDERINPIXELS: i32 = 32 as i32;
 pub const NUM_YV12_BUFFERS: i32 = 4 as i32;
 #[unsafe(no_mangle)]
@@ -278,8 +275,8 @@ pub unsafe fn vp8_de_alloc_frame_buffers(mut oci: *mut VP8_COMMON) {
             i += 1;
         }
         vp8_yv12_de_alloc_frame_buffer(&raw mut (*oci).temp_scale_frame);
-        vpx_free((*oci).above_context as *mut core::ffi::c_void);
-        vpx_free((*oci).mip as *mut core::ffi::c_void);
+        vpx_free((*oci).above_context as *mut c_void);
+        vpx_free((*oci).mip as *mut c_void);
         (*oci).above_context = ::core::ptr::null_mut::<ENTROPY_CONTEXT_PLANES>();
         (*oci).mip = ::core::ptr::null_mut::<MODE_INFO>();
         (*oci).mi = ::core::ptr::null_mut::<MODE_INFO>();
@@ -343,8 +340,7 @@ pub unsafe fn vp8_alloc_frame_buffers(
                 (*oci).MBs = (*oci).mb_rows * (*oci).mb_cols;
                 (*oci).mode_info_stride = (*oci).mb_cols + 1 as i32;
                 (*oci).mip = vpx_calloc(
-                    (((*oci).mb_cols + 1 as i32)
-                        * ((*oci).mb_rows + 1 as i32)) as size_t,
+                    (((*oci).mb_cols + 1 as i32) * ((*oci).mb_rows + 1 as i32)) as size_t,
                     ::core::mem::size_of::<MODE_INFO>() as size_t,
                 ) as *mut MODE_INFO;
                 if !(*oci).mip.is_null() {
@@ -418,8 +414,7 @@ pub unsafe fn vp8_create_common(mut oci: *mut VP8_COMMON) {
         (*oci).multi_token_partition = ONE_PARTITION;
         (*oci).clamp_type = RECON_CLAMP_REQUIRED;
         memset(
-            &raw mut (*oci).ref_frame_sign_bias as *mut i32
-                as *mut core::ffi::c_void,
+            &raw mut (*oci).ref_frame_sign_bias as *mut i32 as *mut c_void,
             0 as i32,
             ::core::mem::size_of::<[i32; 4]>() as size_t,
         );

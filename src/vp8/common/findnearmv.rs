@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
     static vp8_mode_contexts: [[i32; 4]; 6];
 }
@@ -172,15 +173,7 @@ pub struct blockd {
     pub bmi: b_mode_info,
 }
 pub type BLOCKD = blockd;
-pub type vp8_subpix_fn_t = Option<unsafe fn(
-        *mut u8,
-        i32,
-        i32,
-        i32,
-        *mut u8,
-        i32,
-    ) -> (),
->;
+pub type vp8_subpix_fn_t = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct macroblockd {
@@ -226,7 +219,7 @@ pub struct macroblockd {
     pub subpixel_predict8x4: vp8_subpix_fn_t,
     pub subpixel_predict8x8: vp8_subpix_fn_t,
     pub subpixel_predict16x16: vp8_subpix_fn_t,
-    pub current_bc: *mut core::ffi::c_void,
+    pub current_bc: *mut c_void,
     pub corrupted: i32,
     pub error_info: vpx_internal_error_info,
 }
@@ -245,111 +238,45 @@ unsafe fn mv_bias(
 ) {
     unsafe {
         if refmb_ref_frame_sign_bias != *ref_frame_sign_bias.offset(refframe as isize) {
-            (*mvp).as_mv.row = ((*mvp).as_mv.row as i32 * -(1 as i32))
-                as i16;
-            (*mvp).as_mv.col = ((*mvp).as_mv.col as i32 * -(1 as i32))
-                as i16;
+            (*mvp).as_mv.row = ((*mvp).as_mv.row as i32 * -(1 as i32)) as i16;
+            (*mvp).as_mv.col = ((*mvp).as_mv.col as i32 * -(1 as i32)) as i16;
         }
     }
 }
-pub const LEFT_TOP_MARGIN: i32 =
-    (16 as i32) << 3 as i32;
-pub const RIGHT_BOTTOM_MARGIN: i32 =
-    (16 as i32) << 3 as i32;
+pub const LEFT_TOP_MARGIN: i32 = (16 as i32) << 3 as i32;
+pub const RIGHT_BOTTOM_MARGIN: i32 = (16 as i32) << 3 as i32;
 #[inline]
 unsafe fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) {
     unsafe {
         if ((*mv).as_mv.col as i32) < (*xd).mb_to_left_edge - LEFT_TOP_MARGIN {
             (*mv).as_mv.col = ((*xd).mb_to_left_edge - LEFT_TOP_MARGIN) as i16;
-        } else if (*mv).as_mv.col as i32
-            > (*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN
-        {
-            (*mv).as_mv.col =
-                ((*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN) as i16;
+        } else if (*mv).as_mv.col as i32 > (*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN {
+            (*mv).as_mv.col = ((*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN) as i16;
         }
         if ((*mv).as_mv.row as i32) < (*xd).mb_to_top_edge - LEFT_TOP_MARGIN {
             (*mv).as_mv.row = ((*xd).mb_to_top_edge - LEFT_TOP_MARGIN) as i16;
-        } else if (*mv).as_mv.row as i32
-            > (*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN
-        {
-            (*mv).as_mv.row =
-                ((*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as i16;
+        } else if (*mv).as_mv.row as i32 > (*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN {
+            (*mv).as_mv.row = ((*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as i16;
         }
     }
 }
 #[unsafe(no_mangle)]
 pub static mut vp8_mbsplit_offset: [[u8; 16]; 4] = [
     [
-        0 as u8,
-        8 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
+        0 as u8, 8 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
+        0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
     ],
     [
-        0 as u8,
-        2 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
+        0 as u8, 2 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
+        0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
     ],
     [
-        0 as u8,
-        2 as u8,
-        8 as u8,
-        10 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
-        0 as u8,
+        0 as u8, 2 as u8, 8 as u8, 10 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
+        0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
     ],
     [
-        0 as u8,
-        1 as u8,
-        2 as u8,
-        3 as u8,
-        4 as u8,
-        5 as u8,
-        6 as u8,
-        7 as u8,
-        8 as u8,
-        9 as u8,
-        10 as u8,
-        11 as u8,
-        12 as u8,
-        13 as u8,
-        14 as u8,
-        15 as u8,
+        0 as u8, 1 as u8, 2 as u8, 3 as u8, 4 as u8, 5 as u8, 6 as u8, 7 as u8, 8 as u8, 9 as u8,
+        10 as u8, 11 as u8, 12 as u8, 13 as u8, 14 as u8, 15 as u8,
     ],
 ];
 #[unsafe(no_mangle)]
@@ -413,8 +340,7 @@ pub unsafe fn vp8_find_near_mvs(
                 }
                 *cntx += 2 as i32;
             } else {
-                *near_mv_ref_cnts.offset(CNT_INTRA as isize) +=
-                    2 as i32;
+                *near_mv_ref_cnts.offset(CNT_INTRA as isize) += 2 as i32;
             }
         }
         if (*aboveleft).mbmi.ref_frame as i32 != INTRA_FRAME as i32 {
@@ -434,24 +360,19 @@ pub unsafe fn vp8_find_near_mvs(
                 }
                 *cntx += 1 as i32;
             } else {
-                *near_mv_ref_cnts.offset(CNT_INTRA as isize) +=
-                    1 as i32;
+                *near_mv_ref_cnts.offset(CNT_INTRA as isize) += 1 as i32;
             }
         }
         if *near_mv_ref_cnts.offset(CNT_SPLITMV as isize) != 0
             && (*mv).as_int == near_mvs[CNT_NEAREST as usize].as_int
         {
-            *near_mv_ref_cnts.offset(CNT_NEAREST as isize) +=
-                1 as i32;
+            *near_mv_ref_cnts.offset(CNT_NEAREST as isize) += 1 as i32;
         }
-        *near_mv_ref_cnts.offset(CNT_SPLITMV as isize) =
-            (((*above).mbmi.mode as i32 == SPLITMV as i32)
-                as i32
-                + ((*left).mbmi.mode as i32 == SPLITMV as i32)
-                    as i32)
-                * 2 as i32
-                + ((*aboveleft).mbmi.mode as i32 == SPLITMV as i32)
-                    as i32;
+        *near_mv_ref_cnts.offset(CNT_SPLITMV as isize) = (((*above).mbmi.mode as i32
+            == SPLITMV as i32) as i32
+            + ((*left).mbmi.mode as i32 == SPLITMV as i32) as i32)
+            * 2 as i32
+            + ((*aboveleft).mbmi.mode as i32 == SPLITMV as i32) as i32;
         if *near_mv_ref_cnts.offset(CNT_NEAR as isize)
             > *near_mv_ref_cnts.offset(CNT_NEAREST as isize)
         {
@@ -461,15 +382,13 @@ pub unsafe fn vp8_find_near_mvs(
                 *near_mv_ref_cnts.offset(CNT_NEAR as isize);
             *near_mv_ref_cnts.offset(CNT_NEAR as isize) = tmp;
             tmp = near_mvs[CNT_NEAREST as usize].as_int as i32;
-            near_mvs[CNT_NEAREST as usize].as_int =
-                near_mvs[CNT_NEAR as usize].as_int;
+            near_mvs[CNT_NEAREST as usize].as_int = near_mvs[CNT_NEAR as usize].as_int;
             near_mvs[CNT_NEAR as usize].as_int = tmp as uint32_t;
         }
         if *near_mv_ref_cnts.offset(CNT_NEAREST as isize)
             >= *near_mv_ref_cnts.offset(CNT_INTRA as isize)
         {
-            near_mvs[CNT_INTRA as usize] =
-                near_mvs[CNT_NEAREST as usize];
+            near_mvs[CNT_INTRA as usize] = near_mvs[CNT_NEAREST as usize];
         }
         (*best_mv).as_int = near_mvs[0 as usize].as_int;
         (*nearest).as_int = near_mvs[CNT_NEAREST as usize].as_int;
@@ -482,10 +401,8 @@ unsafe fn invert_and_clamp_mvs(
     mut xd: *mut MACROBLOCKD,
 ) {
     unsafe {
-        (*inv).as_mv.row = ((*src).as_mv.row as i32 * -(1 as i32))
-            as i16;
-        (*inv).as_mv.col = ((*src).as_mv.col as i32 * -(1 as i32))
-            as i16;
+        (*inv).as_mv.row = ((*src).as_mv.row as i32 * -(1 as i32)) as i16;
+        (*inv).as_mv.col = ((*src).as_mv.col as i32 * -(1 as i32)) as i16;
         vp8_clamp_mv2(inv, xd);
         vp8_clamp_mv2(src, xd);
     }
@@ -507,27 +424,25 @@ pub unsafe fn vp8_find_near_mvs_bias(
             here,
             (&raw mut *mode_mv_sb.offset(sign_bias as isize) as *mut int_mv)
                 .offset(NEARESTMV as isize) as *mut int_mv,
-            (&raw mut *mode_mv_sb.offset(sign_bias as isize) as *mut int_mv)
-                .offset(NEARMV as isize) as *mut int_mv,
+            (&raw mut *mode_mv_sb.offset(sign_bias as isize) as *mut int_mv).offset(NEARMV as isize)
+                as *mut int_mv,
             best_mv_sb.offset(sign_bias as isize) as *mut int_mv,
             cnt,
             refframe,
             ref_frame_sign_bias,
         );
         invert_and_clamp_mvs(
-            (&raw mut *mode_mv_sb.offset((sign_bias == 0) as isize)
-                as *mut int_mv)
+            (&raw mut *mode_mv_sb.offset((sign_bias == 0) as isize) as *mut int_mv)
                 .offset(NEARESTMV as isize) as *mut int_mv,
             (&raw mut *mode_mv_sb.offset(sign_bias as isize) as *mut int_mv)
                 .offset(NEARESTMV as isize) as *mut int_mv,
             xd,
         );
         invert_and_clamp_mvs(
-            (&raw mut *mode_mv_sb.offset((sign_bias == 0) as isize)
-                as *mut int_mv)
+            (&raw mut *mode_mv_sb.offset((sign_bias == 0) as isize) as *mut int_mv)
                 .offset(NEARMV as isize) as *mut int_mv,
-            (&raw mut *mode_mv_sb.offset(sign_bias as isize) as *mut int_mv)
-                .offset(NEARMV as isize) as *mut int_mv,
+            (&raw mut *mode_mv_sb.offset(sign_bias as isize) as *mut int_mv).offset(NEARMV as isize)
+                as *mut int_mv,
             xd,
         );
         invert_and_clamp_mvs(
@@ -545,17 +460,13 @@ pub unsafe fn vp8_mv_ref_probs(
 ) -> *mut vp8_prob {
     unsafe {
         *p.offset(0 as isize) =
-            vp8_mode_contexts[*near_mv_ref_ct.offset(0 as isize) as usize]
-                [0 as usize] as vp8_prob;
+            vp8_mode_contexts[*near_mv_ref_ct.offset(0 as isize) as usize][0 as usize] as vp8_prob;
         *p.offset(1 as isize) =
-            vp8_mode_contexts[*near_mv_ref_ct.offset(1 as isize) as usize]
-                [1 as usize] as vp8_prob;
+            vp8_mode_contexts[*near_mv_ref_ct.offset(1 as isize) as usize][1 as usize] as vp8_prob;
         *p.offset(2 as isize) =
-            vp8_mode_contexts[*near_mv_ref_ct.offset(2 as isize) as usize]
-                [2 as usize] as vp8_prob;
+            vp8_mode_contexts[*near_mv_ref_ct.offset(2 as isize) as usize][2 as usize] as vp8_prob;
         *p.offset(3 as isize) =
-            vp8_mode_contexts[*near_mv_ref_ct.offset(3 as isize) as usize]
-                [3 as usize] as vp8_prob;
+            vp8_mode_contexts[*near_mv_ref_ct.offset(3 as isize) as usize][3 as usize] as vp8_prob;
         p as *mut vp8_prob
     }
 }

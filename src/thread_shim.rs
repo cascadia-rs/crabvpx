@@ -2,8 +2,8 @@ use std::ffi::c_void;
 use std::sync::{Condvar, Mutex};
 use std::thread::{self, JoinHandle};
 
-pub type pthread_t = *mut core::ffi::c_void;
-pub type semaphore_t = *mut core::ffi::c_void;
+pub type pthread_t = *mut c_void;
+pub type semaphore_t = *mut c_void;
 
 // Opaque struct for semaphore
 struct Semaphore {
@@ -88,8 +88,7 @@ pub unsafe fn vp8_pthread_create(
             let arg_ptr = arg as usize;
             let handle = thread::spawn(move || {
                 eprintln!("Thread started!");
-                let r: unsafe fn(*mut c_void) -> *mut c_void =
-                    core::mem::transmute(routine_ptr);
+                let r: unsafe fn(*mut c_void) -> *mut c_void = core::mem::transmute(routine_ptr);
                 r(arg_ptr as *mut c_void) as usize
             });
 

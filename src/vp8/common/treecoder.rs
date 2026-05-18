@@ -37,18 +37,9 @@ unsafe fn tree2tok(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_tokens_from_tree(
-    mut p: *mut vp8_token_struct,
-    mut t: *const vp8_tree_index,
-) {
+pub unsafe fn vp8_tokens_from_tree(mut p: *mut vp8_token_struct, mut t: *const vp8_tree_index) {
     unsafe {
-        tree2tok(
-            p,
-            t,
-            0 as i32,
-            0 as i32,
-            0 as i32,
-        );
+        tree2tok(p, t, 0 as i32, 0 as i32, 0 as i32);
     }
 }
 #[unsafe(no_mangle)]
@@ -126,13 +117,10 @@ pub unsafe fn vp8_tree_probs_from_distribution(
         let mut t: i32 = 0 as i32;
         branch_counts(n, tok, tree, branch_ct, num_events);
         loop {
-            let c: *const u32 =
-                &raw mut *branch_ct.offset(t as isize) as *mut u32;
-            let tot: u32 = (*c.offset(0 as isize))
-                .wrapping_add(*c.offset(1 as isize));
+            let c: *const u32 = &raw mut *branch_ct.offset(t as isize) as *mut u32;
+            let tot: u32 = (*c.offset(0 as isize)).wrapping_add(*c.offset(1 as isize));
             if tot != 0 {
-                let p: u32 = ((*c.offset(0 as isize)
-                    as uint64_t)
+                let p: u32 = ((*c.offset(0 as isize) as uint64_t)
                     .wrapping_mul(Pfactor as uint64_t)
                     .wrapping_add(
                         (if Round != 0 {

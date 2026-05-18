@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
     fn vp8_dc_only_idct_add_c(
         input_dc: i16,
@@ -6,17 +7,8 @@ unsafe extern "Rust" {
         dst_ptr: *mut u8,
         dst_stride: i32,
     );
-    fn vp8_dequant_idct_add_c(
-        input: *mut i16,
-        dq: *mut i16,
-        dest: *mut u8,
-        stride: i32,
-    );
-    fn memset(
-        __b: *mut core::ffi::c_void,
-        __c: i32,
-        __len: size_t,
-    ) -> *mut core::ffi::c_void;
+    fn vp8_dequant_idct_add_c(input: *mut i16, dq: *mut i16, dest: *mut u8, stride: i32);
+    fn memset(__b: *mut c_void, __c: i32, __len: size_t) -> *mut c_void;
 }
 pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
@@ -41,27 +33,23 @@ pub unsafe fn vp8_dequant_idct_add_y_block_c(
                     vp8_dequant_idct_add_c(q, dq, dst, stride);
                 } else {
                     vp8_dc_only_idct_add_c(
-                        (*q.offset(0 as isize) as i32
-                            * *dq.offset(0 as isize) as i32)
-                            as i16,
+                        (*q.offset(0 as isize) as i32 * *dq.offset(0 as isize) as i32) as i16,
                         dst,
                         stride,
                         dst,
                         stride,
                     );
                     memset(
-                        q as *mut core::ffi::c_void,
+                        q as *mut c_void,
                         0 as i32,
-                        (2 as size_t)
-                            .wrapping_mul(::core::mem::size_of::<i16>() as size_t),
+                        (2 as size_t).wrapping_mul(::core::mem::size_of::<i16>() as size_t),
                     );
                 }
                 q = q.offset(16 as isize);
                 dst = dst.offset(4 as isize);
                 j += 1;
             }
-            dst =
-                dst.offset((4 as i32 * stride - 16 as i32) as isize);
+            dst = dst.offset((4 as i32 * stride - 16 as i32) as isize);
             i += 1;
         }
     }
@@ -88,27 +76,23 @@ pub unsafe fn vp8_dequant_idct_add_uv_block_c(
                     vp8_dequant_idct_add_c(q, dq, dst_u, stride);
                 } else {
                     vp8_dc_only_idct_add_c(
-                        (*q.offset(0 as isize) as i32
-                            * *dq.offset(0 as isize) as i32)
-                            as i16,
+                        (*q.offset(0 as isize) as i32 * *dq.offset(0 as isize) as i32) as i16,
                         dst_u,
                         stride,
                         dst_u,
                         stride,
                     );
                     memset(
-                        q as *mut core::ffi::c_void,
+                        q as *mut c_void,
                         0 as i32,
-                        (2 as size_t)
-                            .wrapping_mul(::core::mem::size_of::<i16>() as size_t),
+                        (2 as size_t).wrapping_mul(::core::mem::size_of::<i16>() as size_t),
                     );
                 }
                 q = q.offset(16 as isize);
                 dst_u = dst_u.offset(4 as isize);
                 j += 1;
             }
-            dst_u =
-                dst_u.offset((4 as i32 * stride - 8 as i32) as isize);
+            dst_u = dst_u.offset((4 as i32 * stride - 8 as i32) as isize);
             i += 1;
         }
         i = 0 as i32;
@@ -121,27 +105,23 @@ pub unsafe fn vp8_dequant_idct_add_uv_block_c(
                     vp8_dequant_idct_add_c(q, dq, dst_v, stride);
                 } else {
                     vp8_dc_only_idct_add_c(
-                        (*q.offset(0 as isize) as i32
-                            * *dq.offset(0 as isize) as i32)
-                            as i16,
+                        (*q.offset(0 as isize) as i32 * *dq.offset(0 as isize) as i32) as i16,
                         dst_v,
                         stride,
                         dst_v,
                         stride,
                     );
                     memset(
-                        q as *mut core::ffi::c_void,
+                        q as *mut c_void,
                         0 as i32,
-                        (2 as size_t)
-                            .wrapping_mul(::core::mem::size_of::<i16>() as size_t),
+                        (2 as size_t).wrapping_mul(::core::mem::size_of::<i16>() as size_t),
                     );
                 }
                 q = q.offset(16 as isize);
                 dst_v = dst_v.offset(4 as isize);
                 j += 1;
             }
-            dst_v =
-                dst_v.offset((4 as i32 * stride - 8 as i32) as isize);
+            dst_v = dst_v.offset((4 as i32 * stride - 8 as i32) as isize);
             i += 1;
         }
     }

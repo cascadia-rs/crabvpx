@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
     fn getenv(_: *const i8) -> *mut i8;
     fn strtol(
@@ -7,17 +8,17 @@ unsafe extern "Rust" {
     ) -> i64;
     fn sysctlbyname(
         _: *const i8,
-        _: *mut core::ffi::c_void,
+        _: *mut c_void,
         oldlenp: *mut size_t,
-        _: *mut core::ffi::c_void,
+        _: *mut c_void,
         newlen: size_t,
     ) -> i32;
 }
 pub type __darwin_size_t = usize;
 pub type int64_t = i64;
 pub type size_t = __darwin_size_t;
-pub const __DARWIN_NULL: *mut core::ffi::c_void = ::core::ptr::null_mut::<core::ffi::c_void>();
-pub const NULL: *mut core::ffi::c_void = __DARWIN_NULL;
+pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
+pub const NULL: *mut c_void = __DARWIN_NULL;
 pub const HAS_NEON: i32 = (1 as i32) << 0 as i32;
 pub const HAS_NEON_DOTPROD: i32 =
     (1 as i32) << 1 as i32;
@@ -58,7 +59,7 @@ unsafe fn have_feature(mut feature: *const i8) -> int64_t { unsafe {
     let mut size: size_t = ::core::mem::size_of::<int64_t>() as size_t;
     if sysctlbyname(
         feature,
-        &raw mut feature_present as *mut core::ffi::c_void,
+        &raw mut feature_present as *mut c_void,
         &raw mut size,
         NULL,
         0 as size_t,

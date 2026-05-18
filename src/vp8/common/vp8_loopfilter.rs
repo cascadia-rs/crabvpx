@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
     fn vp8_loop_filter_bh_c(
         y_ptr: *mut u8,
@@ -31,31 +32,11 @@ unsafe extern "Rust" {
         uv_stride: i32,
         lfi: *mut loop_filter_info,
     );
-    fn vp8_loop_filter_bhs_c(
-        y_ptr: *mut u8,
-        y_stride: i32,
-        blimit: *const u8,
-    );
-    fn vp8_loop_filter_bvs_c(
-        y_ptr: *mut u8,
-        y_stride: i32,
-        blimit: *const u8,
-    );
-    fn vp8_loop_filter_simple_horizontal_edge_c(
-        y_ptr: *mut u8,
-        y_stride: i32,
-        blimit: *const u8,
-    );
-    fn vp8_loop_filter_simple_vertical_edge_c(
-        y_ptr: *mut u8,
-        y_stride: i32,
-        blimit: *const u8,
-    );
-    fn memset(
-        __b: *mut core::ffi::c_void,
-        __c: i32,
-        __len: size_t,
-    ) -> *mut core::ffi::c_void;
+    fn vp8_loop_filter_bhs_c(y_ptr: *mut u8, y_stride: i32, blimit: *const u8);
+    fn vp8_loop_filter_bvs_c(y_ptr: *mut u8, y_stride: i32, blimit: *const u8);
+    fn vp8_loop_filter_simple_horizontal_edge_c(y_ptr: *mut u8, y_stride: i32, blimit: *const u8);
+    fn vp8_loop_filter_simple_vertical_edge_c(y_ptr: *mut u8, y_stride: i32, blimit: *const u8);
+    fn memset(__b: *mut c_void, __c: i32, __len: size_t) -> *mut c_void;
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -148,7 +129,7 @@ pub struct macroblockd {
     pub subpixel_predict8x4: vp8_subpix_fn_t,
     pub subpixel_predict8x8: vp8_subpix_fn_t,
     pub subpixel_predict16x16: vp8_subpix_fn_t,
-    pub current_bc: *mut core::ffi::c_void,
+    pub current_bc: *mut c_void,
     pub corrupted: i32,
     pub error_info: vpx_internal_error_info,
 }
@@ -173,15 +154,7 @@ pub const VPX_CODEC_ABI_MISMATCH: vpx_codec_err_t = 3;
 pub const VPX_CODEC_MEM_ERROR: vpx_codec_err_t = 2;
 pub const VPX_CODEC_ERROR: vpx_codec_err_t = 1;
 pub const VPX_CODEC_OK: vpx_codec_err_t = 0;
-pub type vp8_subpix_fn_t = Option<unsafe fn(
-        *mut u8,
-        i32,
-        i32,
-        i32,
-        *mut u8,
-        i32,
-    ) -> (),
->;
+pub type vp8_subpix_fn_t = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -> ()>;
 pub type vp8_prob = u8;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -412,25 +385,17 @@ unsafe fn lf_init_lut(mut lfi: *mut loop_filter_info_n) {
         filt_lvl = 0 as i32;
         while filt_lvl <= MAX_LOOP_FILTER {
             if filt_lvl >= 40 as i32 {
-                (*lfi).hev_thr_lut[KEY_FRAME as usize][filt_lvl as usize] =
-                    2 as u8;
-                (*lfi).hev_thr_lut[INTER_FRAME as usize][filt_lvl as usize] =
-                    3 as u8;
+                (*lfi).hev_thr_lut[KEY_FRAME as usize][filt_lvl as usize] = 2 as u8;
+                (*lfi).hev_thr_lut[INTER_FRAME as usize][filt_lvl as usize] = 3 as u8;
             } else if filt_lvl >= 20 as i32 {
-                (*lfi).hev_thr_lut[KEY_FRAME as usize][filt_lvl as usize] =
-                    1 as u8;
-                (*lfi).hev_thr_lut[INTER_FRAME as usize][filt_lvl as usize] =
-                    2 as u8;
+                (*lfi).hev_thr_lut[KEY_FRAME as usize][filt_lvl as usize] = 1 as u8;
+                (*lfi).hev_thr_lut[INTER_FRAME as usize][filt_lvl as usize] = 2 as u8;
             } else if filt_lvl >= 15 as i32 {
-                (*lfi).hev_thr_lut[KEY_FRAME as usize][filt_lvl as usize] =
-                    1 as u8;
-                (*lfi).hev_thr_lut[INTER_FRAME as usize][filt_lvl as usize] =
-                    1 as u8;
+                (*lfi).hev_thr_lut[KEY_FRAME as usize][filt_lvl as usize] = 1 as u8;
+                (*lfi).hev_thr_lut[INTER_FRAME as usize][filt_lvl as usize] = 1 as u8;
             } else {
-                (*lfi).hev_thr_lut[KEY_FRAME as usize][filt_lvl as usize] =
-                    0 as u8;
-                (*lfi).hev_thr_lut[INTER_FRAME as usize][filt_lvl as usize] =
-                    0 as u8;
+                (*lfi).hev_thr_lut[KEY_FRAME as usize][filt_lvl as usize] = 0 as u8;
+                (*lfi).hev_thr_lut[INTER_FRAME as usize][filt_lvl as usize] = 0 as u8;
             }
             filt_lvl += 1;
         }
@@ -457,35 +422,29 @@ pub unsafe fn vp8_loop_filter_update_sharpness(
         while i <= MAX_LOOP_FILTER {
             let mut filt_lvl: i32 = i;
             let mut block_inside_limit: i32 = 0 as i32;
-            block_inside_limit =
-                filt_lvl >> (sharpness_lvl > 0 as i32) as i32;
+            block_inside_limit = filt_lvl >> (sharpness_lvl > 0 as i32) as i32;
             block_inside_limit >>= (sharpness_lvl > 4 as i32) as i32;
-            if sharpness_lvl > 0 as i32
-                && block_inside_limit > 9 as i32 - sharpness_lvl
-            {
+            if sharpness_lvl > 0 as i32 && block_inside_limit > 9 as i32 - sharpness_lvl {
                 block_inside_limit = 9 as i32 - sharpness_lvl;
             }
             if block_inside_limit < 1 as i32 {
                 block_inside_limit = 1 as i32;
             }
             memset(
-                &raw mut *(&raw mut (*lfi).lim as *mut [u8; 16])
-                    .offset(i as isize) as *mut u8
-                    as *mut core::ffi::c_void,
+                &raw mut *(&raw mut (*lfi).lim as *mut [u8; 16]).offset(i as isize) as *mut u8
+                    as *mut c_void,
                 block_inside_limit,
                 SIMD_WIDTH as size_t,
             );
             memset(
-                &raw mut *(&raw mut (*lfi).blim as *mut [u8; 16])
-                    .offset(i as isize) as *mut u8
-                    as *mut core::ffi::c_void,
+                &raw mut *(&raw mut (*lfi).blim as *mut [u8; 16]).offset(i as isize) as *mut u8
+                    as *mut c_void,
                 2 as i32 * filt_lvl + block_inside_limit,
                 SIMD_WIDTH as size_t,
             );
             memset(
-                &raw mut *(&raw mut (*lfi).mblim as *mut [u8; 16])
-                    .offset(i as isize) as *mut u8
-                    as *mut core::ffi::c_void,
+                &raw mut *(&raw mut (*lfi).mblim as *mut [u8; 16]).offset(i as isize) as *mut u8
+                    as *mut c_void,
                 2 as i32 * (filt_lvl + 2 as i32) + block_inside_limit,
                 SIMD_WIDTH as size_t,
             );
@@ -504,9 +463,8 @@ pub unsafe fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) {
         i = 0 as i32;
         while i < 4 as i32 {
             memset(
-                &raw mut *(&raw mut (*lfi).hev_thr as *mut [u8; 16])
-                    .offset(i as isize) as *mut u8
-                    as *mut core::ffi::c_void,
+                &raw mut *(&raw mut (*lfi).hev_thr as *mut [u8; 16]).offset(i as isize) as *mut u8
+                    as *mut c_void,
                 i,
                 SIMD_WIDTH as size_t,
             );
@@ -536,13 +494,11 @@ pub unsafe fn vp8_loop_filter_frame_init(
             let mut lvl_mode: i32 = 0;
             if (*mbd).segmentation_enabled != 0 {
                 if (*mbd).mb_segment_abs_delta as i32 == SEGMENT_ABSDATA {
-                    lvl_seg = (*mbd).segment_feature_data
-                        [MB_LVL_ALT_LF as usize][seg as usize]
-                        as i32;
+                    lvl_seg =
+                        (*mbd).segment_feature_data[MB_LVL_ALT_LF as usize][seg as usize] as i32;
                 } else {
-                    lvl_seg += (*mbd).segment_feature_data
-                        [MB_LVL_ALT_LF as usize][seg as usize]
-                        as i32;
+                    lvl_seg +=
+                        (*mbd).segment_feature_data[MB_LVL_ALT_LF as usize][seg as usize] as i32;
                 }
                 lvl_seg = if lvl_seg > 0 as i32 {
                     if lvl_seg > 63 as i32 {
@@ -556,13 +512,9 @@ pub unsafe fn vp8_loop_filter_frame_init(
             }
             if (*mbd).mode_ref_lf_delta_enabled == 0 {
                 memset(
-                    &raw mut *(&raw mut *(&raw mut (*lfi).lvl
-                        as *mut [[u8; 4]; 4])
-                        .offset(seg as isize)
-                        as *mut [u8; 4])
-                        .offset(0 as isize)
-                        as *mut u8
-                        as *mut core::ffi::c_void,
+                    &raw mut *(&raw mut *(&raw mut (*lfi).lvl as *mut [[u8; 4]; 4])
+                        .offset(seg as isize) as *mut [u8; 4])
+                        .offset(0 as isize) as *mut u8 as *mut c_void,
                     lvl_seg,
                     (4 as i32 * 4 as i32) as size_t,
                 );
@@ -580,8 +532,7 @@ pub unsafe fn vp8_loop_filter_frame_init(
                 } else {
                     0 as i32
                 };
-                (*lfi).lvl[seg as usize][ref_0 as usize][mode as usize] =
-                    lvl_mode as u8;
+                (*lfi).lvl[seg as usize][ref_0 as usize][mode as usize] = lvl_mode as u8;
                 mode = 1 as i32;
                 lvl_mode = if lvl_ref > 0 as i32 {
                     if lvl_ref > 63 as i32 {
@@ -592,15 +543,13 @@ pub unsafe fn vp8_loop_filter_frame_init(
                 } else {
                     0 as i32
                 };
-                (*lfi).lvl[seg as usize][ref_0 as usize][mode as usize] =
-                    lvl_mode as u8;
+                (*lfi).lvl[seg as usize][ref_0 as usize][mode as usize] = lvl_mode as u8;
                 ref_0 = 1 as i32;
                 while ref_0 < MAX_REF_FRAMES as i32 {
                     lvl_ref = lvl_seg + (*mbd).ref_lf_deltas[ref_0 as usize] as i32;
                     mode = 1 as i32;
                     while mode < 4 as i32 {
-                        lvl_mode =
-                            lvl_ref + (*mbd).mode_lf_deltas[mode as usize] as i32;
+                        lvl_mode = lvl_ref + (*mbd).mode_lf_deltas[mode as usize] as i32;
                         lvl_mode = if lvl_mode > 0 as i32 {
                             if lvl_mode > 63 as i32 {
                                 63 as i32
@@ -610,8 +559,7 @@ pub unsafe fn vp8_loop_filter_frame_init(
                         } else {
                             0 as i32
                         };
-                        (*lfi).lvl[seg as usize][ref_0 as usize][mode as usize] =
-                            lvl_mode as u8;
+                        (*lfi).lvl[seg as usize][ref_0 as usize][mode as usize] = lvl_mode as u8;
                         mode += 1;
                     }
                     ref_0 += 1;
@@ -645,38 +593,27 @@ pub unsafe fn vp8_loop_filter_row_normal(
         let mut frame_type: FRAME_TYPE = (*cm).frame_type;
         mb_col = 0 as i32;
         while mb_col < (*cm).mb_cols {
-            let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode
-                as i32
-                != B_PRED as i32
-                && (*mode_info_context).mbmi.mode as i32
-                    != SPLITMV as i32
+            let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode as i32 != B_PRED as i32
+                && (*mode_info_context).mbmi.mode as i32 != SPLITMV as i32
                 && (*mode_info_context).mbmi.mb_skip_coeff as i32 != 0)
                 as i32;
             let mode_index: i32 =
                 (*lfi_n).mode_lf_lut[(*mode_info_context).mbmi.mode as usize] as i32;
-            let seg: i32 =
-                (*mode_info_context).mbmi.segment_id as i32;
-            let ref_frame: i32 =
-                (*mode_info_context).mbmi.ref_frame as i32;
-            filter_level = (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize]
-                as i32;
+            let seg: i32 = (*mode_info_context).mbmi.segment_id as i32;
+            let ref_frame: i32 = (*mode_info_context).mbmi.ref_frame as i32;
+            filter_level =
+                (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize] as i32;
             if filter_level != 0 {
-                let hev_index: i32 = (*lfi_n).hev_thr_lut[frame_type as usize]
-                    [filter_level as usize]
-                    as i32;
+                let hev_index: i32 =
+                    (*lfi_n).hev_thr_lut[frame_type as usize][filter_level as usize] as i32;
                 lfi.mblim = &raw mut *(&raw mut (*lfi_n).mblim as *mut [u8; 16])
-                    .offset(filter_level as isize)
-                    as *mut u8;
+                    .offset(filter_level as isize) as *mut u8;
                 lfi.blim = &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
-                    .offset(filter_level as isize)
-                    as *mut u8;
+                    .offset(filter_level as isize) as *mut u8;
                 lfi.lim = &raw mut *(&raw mut (*lfi_n).lim as *mut [u8; 16])
-                    .offset(filter_level as isize)
-                    as *mut u8;
-                lfi.hev_thr = &raw mut *(&raw mut (*lfi_n).hev_thr
-                    as *mut [u8; 16])
-                    .offset(hev_index as isize)
-                    as *mut u8;
+                    .offset(filter_level as isize) as *mut u8;
+                lfi.hev_thr = &raw mut *(&raw mut (*lfi_n).hev_thr as *mut [u8; 16])
+                    .offset(hev_index as isize) as *mut u8;
                 if mb_col > 0 as i32 {
                     vp8_loop_filter_mbv_c(
                         y_ptr,
@@ -740,29 +677,23 @@ pub unsafe fn vp8_loop_filter_row_simple(
         let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
         mb_col = 0 as i32;
         while mb_col < (*cm).mb_cols {
-            let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode
-                as i32
-                != B_PRED as i32
-                && (*mode_info_context).mbmi.mode as i32
-                    != SPLITMV as i32
+            let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode as i32 != B_PRED as i32
+                && (*mode_info_context).mbmi.mode as i32 != SPLITMV as i32
                 && (*mode_info_context).mbmi.mb_skip_coeff as i32 != 0)
                 as i32;
             let mode_index: i32 =
                 (*lfi_n).mode_lf_lut[(*mode_info_context).mbmi.mode as usize] as i32;
-            let seg: i32 =
-                (*mode_info_context).mbmi.segment_id as i32;
-            let ref_frame: i32 =
-                (*mode_info_context).mbmi.ref_frame as i32;
-            filter_level = (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize]
-                as i32;
+            let seg: i32 = (*mode_info_context).mbmi.segment_id as i32;
+            let ref_frame: i32 = (*mode_info_context).mbmi.ref_frame as i32;
+            filter_level =
+                (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize] as i32;
             if filter_level != 0 {
                 if mb_col > 0 as i32 {
                     vp8_loop_filter_simple_vertical_edge_c(
                         y_ptr,
                         post_ystride,
                         &raw mut *(&raw mut (*lfi_n).mblim as *mut [u8; 16])
-                            .offset(filter_level as isize)
-                            as *mut u8,
+                            .offset(filter_level as isize) as *mut u8,
                     );
                 }
                 if skip_lf == 0 {
@@ -770,8 +701,7 @@ pub unsafe fn vp8_loop_filter_row_simple(
                         y_ptr,
                         post_ystride,
                         &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
-                            .offset(filter_level as isize)
-                            as *mut u8,
+                            .offset(filter_level as isize) as *mut u8,
                     );
                 }
                 if mb_row > 0 as i32 {
@@ -779,8 +709,7 @@ pub unsafe fn vp8_loop_filter_row_simple(
                         y_ptr,
                         post_ystride,
                         &raw mut *(&raw mut (*lfi_n).mblim as *mut [u8; 16])
-                            .offset(filter_level as isize)
-                            as *mut u8,
+                            .offset(filter_level as isize) as *mut u8,
                     );
                 }
                 if skip_lf == 0 {
@@ -788,8 +717,7 @@ pub unsafe fn vp8_loop_filter_row_simple(
                         y_ptr,
                         post_ystride,
                         &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
-                            .offset(filter_level as isize)
-                            as *mut u8,
+                            .offset(filter_level as isize) as *mut u8,
                     );
                 }
             }
@@ -829,48 +757,34 @@ pub unsafe fn vp8_loop_filter_frame(
         y_ptr = (*post).y_buffer as *mut u8;
         u_ptr = (*post).u_buffer as *mut u8;
         v_ptr = (*post).v_buffer as *mut u8;
-        if (*cm).filter_type as u32
-            == NORMAL_LOOPFILTER as u32
-        {
+        if (*cm).filter_type as u32 == NORMAL_LOOPFILTER as u32 {
             mb_row = 0 as i32;
             while mb_row < mb_rows {
                 mb_col = 0 as i32;
                 while mb_col < mb_cols {
-                    let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode
-                        as i32
-                        != B_PRED as i32
-                        && (*mode_info_context).mbmi.mode as i32
-                            != SPLITMV as i32
+                    let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode as i32 != B_PRED as i32
+                        && (*mode_info_context).mbmi.mode as i32 != SPLITMV as i32
                         && (*mode_info_context).mbmi.mb_skip_coeff as i32 != 0)
                         as i32;
-                    let mode_index: i32 = (*lfi_n).mode_lf_lut
-                        [(*mode_info_context).mbmi.mode as usize]
-                        as i32;
-                    let seg: i32 =
-                        (*mode_info_context).mbmi.segment_id as i32;
-                    let ref_frame: i32 =
-                        (*mode_info_context).mbmi.ref_frame as i32;
-                    filter_level = (*lfi_n).lvl[seg as usize][ref_frame as usize]
-                        [mode_index as usize]
-                        as i32;
+                    let mode_index: i32 =
+                        (*lfi_n).mode_lf_lut[(*mode_info_context).mbmi.mode as usize] as i32;
+                    let seg: i32 = (*mode_info_context).mbmi.segment_id as i32;
+                    let ref_frame: i32 = (*mode_info_context).mbmi.ref_frame as i32;
+                    filter_level =
+                        (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize] as i32;
                     if filter_level != 0 {
-                        let hev_index: i32 = (*lfi_n).hev_thr_lut
-                            [frame_type as usize][filter_level as usize]
-                            as i32;
-                        lfi.mblim = &raw mut *(&raw mut (*lfi_n).mblim
-                            as *mut [u8; 16])
+                        let hev_index: i32 =
+                            (*lfi_n).hev_thr_lut[frame_type as usize][filter_level as usize] as i32;
+                        lfi.mblim = &raw mut *(&raw mut (*lfi_n).mblim as *mut [u8; 16])
                             .offset(filter_level as isize)
                             as *mut u8;
-                        lfi.blim = &raw mut *(&raw mut (*lfi_n).blim
-                            as *mut [u8; 16])
+                        lfi.blim = &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
                             .offset(filter_level as isize)
                             as *mut u8;
-                        lfi.lim = &raw mut *(&raw mut (*lfi_n).lim
-                            as *mut [u8; 16])
+                        lfi.lim = &raw mut *(&raw mut (*lfi_n).lim as *mut [u8; 16])
                             .offset(filter_level as isize)
                             as *mut u8;
-                        lfi.hev_thr = &raw mut *(&raw mut (*lfi_n).hev_thr
-                            as *mut [u8; 16])
+                        lfi.hev_thr = &raw mut *(&raw mut (*lfi_n).hev_thr as *mut [u8; 16])
                             .offset(hev_index as isize)
                             as *mut u8;
                         if mb_col > 0 as i32 {
@@ -920,12 +834,9 @@ pub unsafe fn vp8_loop_filter_frame(
                     mode_info_context = mode_info_context.offset(1);
                     mb_col += 1;
                 }
-                y_ptr = y_ptr
-                    .offset((post_y_stride * 16 as i32 - (*post).y_width) as isize);
-                u_ptr = u_ptr
-                    .offset((post_uv_stride * 8 as i32 - (*post).uv_width) as isize);
-                v_ptr = v_ptr
-                    .offset((post_uv_stride * 8 as i32 - (*post).uv_width) as isize);
+                y_ptr = y_ptr.offset((post_y_stride * 16 as i32 - (*post).y_width) as isize);
+                u_ptr = u_ptr.offset((post_uv_stride * 8 as i32 - (*post).uv_width) as isize);
+                v_ptr = v_ptr.offset((post_uv_stride * 8 as i32 - (*post).uv_width) as isize);
                 mode_info_context = mode_info_context.offset(1);
                 mb_row += 1;
             }
@@ -934,32 +845,26 @@ pub unsafe fn vp8_loop_filter_frame(
             while mb_row < mb_rows {
                 mb_col = 0 as i32;
                 while mb_col < mb_cols {
-                    let mut skip_lf_0: i32 = ((*mode_info_context).mbmi.mode
-                        as i32
+                    let mut skip_lf_0: i32 = ((*mode_info_context).mbmi.mode as i32
                         != B_PRED as i32
-                        && (*mode_info_context).mbmi.mode as i32
-                            != SPLITMV as i32
+                        && (*mode_info_context).mbmi.mode as i32 != SPLITMV as i32
                         && (*mode_info_context).mbmi.mb_skip_coeff as i32 != 0)
                         as i32;
-                    let mode_index_0: i32 = (*lfi_n).mode_lf_lut
-                        [(*mode_info_context).mbmi.mode as usize]
-                        as i32;
-                    let seg_0: i32 =
-                        (*mode_info_context).mbmi.segment_id as i32;
-                    let ref_frame_0: i32 =
-                        (*mode_info_context).mbmi.ref_frame as i32;
+                    let mode_index_0: i32 =
+                        (*lfi_n).mode_lf_lut[(*mode_info_context).mbmi.mode as usize] as i32;
+                    let seg_0: i32 = (*mode_info_context).mbmi.segment_id as i32;
+                    let ref_frame_0: i32 = (*mode_info_context).mbmi.ref_frame as i32;
                     filter_level = (*lfi_n).lvl[seg_0 as usize][ref_frame_0 as usize]
-                        [mode_index_0 as usize]
-                        as i32;
+                        [mode_index_0 as usize] as i32;
                     if filter_level != 0 {
-                        let mut mblim: *const u8 =
-                            &raw mut *(&raw mut (*lfi_n).mblim as *mut [u8; 16])
-                                .offset(filter_level as isize)
-                                as *mut u8;
-                        let mut blim: *const u8 =
-                            &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
-                                .offset(filter_level as isize)
-                                as *mut u8;
+                        let mut mblim: *const u8 = &raw mut *(&raw mut (*lfi_n).mblim
+                            as *mut [u8; 16])
+                            .offset(filter_level as isize)
+                            as *mut u8;
+                        let mut blim: *const u8 = &raw mut *(&raw mut (*lfi_n).blim
+                            as *mut [u8; 16])
+                            .offset(filter_level as isize)
+                            as *mut u8;
                         if mb_col > 0 as i32 {
                             vp8_loop_filter_simple_vertical_edge_c(y_ptr, post_y_stride, mblim);
                         }
@@ -979,12 +884,9 @@ pub unsafe fn vp8_loop_filter_frame(
                     mode_info_context = mode_info_context.offset(1);
                     mb_col += 1;
                 }
-                y_ptr = y_ptr
-                    .offset((post_y_stride * 16 as i32 - (*post).y_width) as isize);
-                u_ptr = u_ptr
-                    .offset((post_uv_stride * 8 as i32 - (*post).uv_width) as isize);
-                v_ptr = v_ptr
-                    .offset((post_uv_stride * 8 as i32 - (*post).uv_width) as isize);
+                y_ptr = y_ptr.offset((post_y_stride * 16 as i32 - (*post).y_width) as isize);
+                u_ptr = u_ptr.offset((post_uv_stride * 8 as i32 - (*post).uv_width) as isize);
+                v_ptr = v_ptr.offset((post_uv_stride * 8 as i32 - (*post).uv_width) as isize);
                 mode_info_context = mode_info_context.offset(1);
                 mb_row += 1;
             }
@@ -1018,43 +920,30 @@ pub unsafe fn vp8_loop_filter_frame_yonly(
         while mb_row < (*cm).mb_rows {
             mb_col = 0 as i32;
             while mb_col < (*cm).mb_cols {
-                let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode
-                    as i32
-                    != B_PRED as i32
-                    && (*mode_info_context).mbmi.mode as i32
-                        != SPLITMV as i32
+                let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode as i32 != B_PRED as i32
+                    && (*mode_info_context).mbmi.mode as i32 != SPLITMV as i32
                     && (*mode_info_context).mbmi.mb_skip_coeff as i32 != 0)
                     as i32;
-                let mode_index: i32 = (*lfi_n).mode_lf_lut
-                    [(*mode_info_context).mbmi.mode as usize]
-                    as i32;
-                let seg: i32 =
-                    (*mode_info_context).mbmi.segment_id as i32;
-                let ref_frame: i32 =
-                    (*mode_info_context).mbmi.ref_frame as i32;
-                filter_level = (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize]
-                    as i32;
+                let mode_index: i32 =
+                    (*lfi_n).mode_lf_lut[(*mode_info_context).mbmi.mode as usize] as i32;
+                let seg: i32 = (*mode_info_context).mbmi.segment_id as i32;
+                let ref_frame: i32 = (*mode_info_context).mbmi.ref_frame as i32;
+                filter_level =
+                    (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize] as i32;
                 if filter_level != 0 {
-                    if (*cm).filter_type as u32
-                        == NORMAL_LOOPFILTER as u32
-                    {
-                        let hev_index: i32 = (*lfi_n).hev_thr_lut
-                            [frame_type as usize][filter_level as usize]
-                            as i32;
-                        lfi.mblim = &raw mut *(&raw mut (*lfi_n).mblim
-                            as *mut [u8; 16])
+                    if (*cm).filter_type as u32 == NORMAL_LOOPFILTER as u32 {
+                        let hev_index: i32 =
+                            (*lfi_n).hev_thr_lut[frame_type as usize][filter_level as usize] as i32;
+                        lfi.mblim = &raw mut *(&raw mut (*lfi_n).mblim as *mut [u8; 16])
                             .offset(filter_level as isize)
                             as *mut u8;
-                        lfi.blim = &raw mut *(&raw mut (*lfi_n).blim
-                            as *mut [u8; 16])
+                        lfi.blim = &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
                             .offset(filter_level as isize)
                             as *mut u8;
-                        lfi.lim = &raw mut *(&raw mut (*lfi_n).lim
-                            as *mut [u8; 16])
+                        lfi.lim = &raw mut *(&raw mut (*lfi_n).lim as *mut [u8; 16])
                             .offset(filter_level as isize)
                             as *mut u8;
-                        lfi.hev_thr = &raw mut *(&raw mut (*lfi_n).hev_thr
-                            as *mut [u8; 16])
+                        lfi.hev_thr = &raw mut *(&raw mut (*lfi_n).hev_thr as *mut [u8; 16])
                             .offset(hev_index as isize)
                             as *mut u8;
                         if mb_col > 0 as i32 {
@@ -1102,8 +991,7 @@ pub unsafe fn vp8_loop_filter_frame_yonly(
                             vp8_loop_filter_simple_vertical_edge_c(
                                 y_ptr,
                                 (*post).y_stride,
-                                &raw mut *(&raw mut (*lfi_n).mblim
-                                    as *mut [u8; 16])
+                                &raw mut *(&raw mut (*lfi_n).mblim as *mut [u8; 16])
                                     .offset(filter_level as isize)
                                     as *mut u8,
                             );
@@ -1112,8 +1000,7 @@ pub unsafe fn vp8_loop_filter_frame_yonly(
                             vp8_loop_filter_bvs_c(
                                 y_ptr,
                                 (*post).y_stride,
-                                &raw mut *(&raw mut (*lfi_n).blim
-                                    as *mut [u8; 16])
+                                &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
                                     .offset(filter_level as isize)
                                     as *mut u8,
                             );
@@ -1122,8 +1009,7 @@ pub unsafe fn vp8_loop_filter_frame_yonly(
                             vp8_loop_filter_simple_horizontal_edge_c(
                                 y_ptr,
                                 (*post).y_stride,
-                                &raw mut *(&raw mut (*lfi_n).mblim
-                                    as *mut [u8; 16])
+                                &raw mut *(&raw mut (*lfi_n).mblim as *mut [u8; 16])
                                     .offset(filter_level as isize)
                                     as *mut u8,
                             );
@@ -1132,8 +1018,7 @@ pub unsafe fn vp8_loop_filter_frame_yonly(
                             vp8_loop_filter_bhs_c(
                                 y_ptr,
                                 (*post).y_stride,
-                                &raw mut *(&raw mut (*lfi_n).blim
-                                    as *mut [u8; 16])
+                                &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
                                     .offset(filter_level as isize)
                                     as *mut u8,
                             );
@@ -1144,8 +1029,7 @@ pub unsafe fn vp8_loop_filter_frame_yonly(
                 mode_info_context = mode_info_context.offset(1);
                 mb_col += 1;
             }
-            y_ptr = y_ptr
-                .offset(((*post).y_stride * 16 as i32 - (*post).y_width) as isize);
+            y_ptr = y_ptr.offset(((*post).y_stride * 16 as i32 - (*post).y_width) as isize);
             mode_info_context = mode_info_context.offset(1);
             mb_row += 1;
         }
@@ -1182,56 +1066,41 @@ pub unsafe fn vp8_loop_filter_partial_frame(
         } else {
             16 as i32
         };
-        y_ptr = (*post).y_buffer.offset(
-            (((*post).y_height >> 5 as i32)
-                * 16 as i32
-                * (*post).y_stride) as isize,
-        ) as *mut u8;
-        mode_info_context = (*cm).mi.offset(
-            (((*post).y_height >> 5 as i32) * (mb_cols + 1 as i32))
-                as isize,
-        );
+        y_ptr = (*post)
+            .y_buffer
+            .offset((((*post).y_height >> 5 as i32) * 16 as i32 * (*post).y_stride) as isize)
+            as *mut u8;
+        mode_info_context = (*cm)
+            .mi
+            .offset((((*post).y_height >> 5 as i32) * (mb_cols + 1 as i32)) as isize);
         mb_row = 0 as i32;
         while mb_row < linestocopy >> 4 as i32 {
             mb_col = 0 as i32;
             while mb_col < mb_cols {
-                let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode
-                    as i32
-                    != B_PRED as i32
-                    && (*mode_info_context).mbmi.mode as i32
-                        != SPLITMV as i32
+                let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode as i32 != B_PRED as i32
+                    && (*mode_info_context).mbmi.mode as i32 != SPLITMV as i32
                     && (*mode_info_context).mbmi.mb_skip_coeff as i32 != 0)
                     as i32;
-                let mode_index: i32 = (*lfi_n).mode_lf_lut
-                    [(*mode_info_context).mbmi.mode as usize]
-                    as i32;
-                let seg: i32 =
-                    (*mode_info_context).mbmi.segment_id as i32;
-                let ref_frame: i32 =
-                    (*mode_info_context).mbmi.ref_frame as i32;
-                filter_level = (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize]
-                    as i32;
+                let mode_index: i32 =
+                    (*lfi_n).mode_lf_lut[(*mode_info_context).mbmi.mode as usize] as i32;
+                let seg: i32 = (*mode_info_context).mbmi.segment_id as i32;
+                let ref_frame: i32 = (*mode_info_context).mbmi.ref_frame as i32;
+                filter_level =
+                    (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize] as i32;
                 if filter_level != 0 {
-                    if (*cm).filter_type as u32
-                        == NORMAL_LOOPFILTER as u32
-                    {
-                        let hev_index: i32 = (*lfi_n).hev_thr_lut
-                            [frame_type as usize][filter_level as usize]
-                            as i32;
-                        lfi.mblim = &raw mut *(&raw mut (*lfi_n).mblim
-                            as *mut [u8; 16])
+                    if (*cm).filter_type as u32 == NORMAL_LOOPFILTER as u32 {
+                        let hev_index: i32 =
+                            (*lfi_n).hev_thr_lut[frame_type as usize][filter_level as usize] as i32;
+                        lfi.mblim = &raw mut *(&raw mut (*lfi_n).mblim as *mut [u8; 16])
                             .offset(filter_level as isize)
                             as *mut u8;
-                        lfi.blim = &raw mut *(&raw mut (*lfi_n).blim
-                            as *mut [u8; 16])
+                        lfi.blim = &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
                             .offset(filter_level as isize)
                             as *mut u8;
-                        lfi.lim = &raw mut *(&raw mut (*lfi_n).lim
-                            as *mut [u8; 16])
+                        lfi.lim = &raw mut *(&raw mut (*lfi_n).lim as *mut [u8; 16])
                             .offset(filter_level as isize)
                             as *mut u8;
-                        lfi.hev_thr = &raw mut *(&raw mut (*lfi_n).hev_thr
-                            as *mut [u8; 16])
+                        lfi.hev_thr = &raw mut *(&raw mut (*lfi_n).hev_thr as *mut [u8; 16])
                             .offset(hev_index as isize)
                             as *mut u8;
                         if mb_col > 0 as i32 {
@@ -1277,8 +1146,7 @@ pub unsafe fn vp8_loop_filter_partial_frame(
                             vp8_loop_filter_simple_vertical_edge_c(
                                 y_ptr,
                                 (*post).y_stride,
-                                &raw mut *(&raw mut (*lfi_n).mblim
-                                    as *mut [u8; 16])
+                                &raw mut *(&raw mut (*lfi_n).mblim as *mut [u8; 16])
                                     .offset(filter_level as isize)
                                     as *mut u8,
                             );
@@ -1287,8 +1155,7 @@ pub unsafe fn vp8_loop_filter_partial_frame(
                             vp8_loop_filter_bvs_c(
                                 y_ptr,
                                 (*post).y_stride,
-                                &raw mut *(&raw mut (*lfi_n).blim
-                                    as *mut [u8; 16])
+                                &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
                                     .offset(filter_level as isize)
                                     as *mut u8,
                             );
@@ -1304,8 +1171,7 @@ pub unsafe fn vp8_loop_filter_partial_frame(
                             vp8_loop_filter_bhs_c(
                                 y_ptr,
                                 (*post).y_stride,
-                                &raw mut *(&raw mut (*lfi_n).blim
-                                    as *mut [u8; 16])
+                                &raw mut *(&raw mut (*lfi_n).blim as *mut [u8; 16])
                                     .offset(filter_level as isize)
                                     as *mut u8,
                             );
@@ -1316,8 +1182,7 @@ pub unsafe fn vp8_loop_filter_partial_frame(
                 mode_info_context = mode_info_context.offset(1 as isize);
                 mb_col += 1;
             }
-            y_ptr = y_ptr
-                .offset(((*post).y_stride * 16 as i32 - (*post).y_width) as isize);
+            y_ptr = y_ptr.offset(((*post).y_stride * 16 as i32 - (*post).y_width) as isize);
             mode_info_context = mode_info_context.offset(1 as isize);
             mb_row += 1;
         }

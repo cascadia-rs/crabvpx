@@ -1,22 +1,13 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
     static vpx_norm: [uint8_t; 256];
-    fn memcpy(
-        __dst: *mut core::ffi::c_void,
-        __src: *const core::ffi::c_void,
-        __n: size_t,
-    ) -> *mut core::ffi::c_void;
+    fn memcpy(__dst: *mut c_void, __src: *const c_void, __n: size_t) -> *mut c_void;
 }
 pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
 pub type uint8_t = u8;
 pub type uint64_t = u64;
-pub type vpx_decrypt_cb = Option<unsafe fn(
-        *mut core::ffi::c_void,
-        *const u8,
-        *mut u8,
-        i32,
-    ) -> (),
->;
+pub type vpx_decrypt_cb = Option<unsafe fn(*mut c_void, *const u8, *mut u8, i32) -> ()>;
 pub type BD_VALUE = size_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -27,18 +18,14 @@ pub struct vpx_reader {
     pub buffer_end: *const uint8_t,
     pub buffer: *const uint8_t,
     pub decrypt_cb: vpx_decrypt_cb,
-    pub decrypt_state: *mut core::ffi::c_void,
+    pub decrypt_state: *mut c_void,
     pub clear_buffer: [uint8_t; 9],
 }
 pub const CHAR_BIT: i32 = 8 as i32;
-pub const BD_VALUE_SIZE: i32 =
-    ::core::mem::size_of::<BD_VALUE>() as i32 * CHAR_BIT;
+pub const BD_VALUE_SIZE: i32 = ::core::mem::size_of::<BD_VALUE>() as i32 * CHAR_BIT;
 pub const LOTS_OF_BITS: i32 = 0x40000000 as i32;
 #[inline]
-unsafe fn vpx_read(
-    mut r: *mut vpx_reader,
-    mut prob: i32,
-) -> i32 {
+unsafe fn vpx_read(mut r: *mut vpx_reader, mut prob: i32) -> i32 {
     unsafe {
         let mut bit: u32 = 0 as u32;
         let mut value: BD_VALUE = 0;
@@ -86,7 +73,7 @@ pub unsafe fn vpx_reader_init(
     mut buffer: *const uint8_t,
     mut size: size_t,
     mut decrypt_cb: vpx_decrypt_cb,
-    mut decrypt_state: *mut core::ffi::c_void,
+    mut decrypt_state: *mut c_void,
 ) -> i32 {
     unsafe {
         if size != 0 && buffer.is_null() {
@@ -131,15 +118,12 @@ pub unsafe fn vpx_reader_fill(mut r: *mut vpx_reader) {
             buffer_start = &raw mut (*r).clear_buffer as *mut uint8_t;
         }
         if bits_left > BD_VALUE_SIZE as size_t {
-            let bits: i32 = (shift as u32
-                & 0xfffffff8 as u32)
-                .wrapping_add(CHAR_BIT as u32)
-                as i32;
+            let bits: i32 = (shift as u32 & 0xfffffff8 as u32).wrapping_add(CHAR_BIT as u32) as i32;
             let mut nv: BD_VALUE = 0;
             let mut big_endian_values: BD_VALUE = 0;
             memcpy(
-                &raw mut big_endian_values as *mut core::ffi::c_void,
-                buffer as *const core::ffi::c_void,
+                &raw mut big_endian_values as *mut c_void,
+                buffer as *const c_void,
                 ::core::mem::size_of::<BD_VALUE>() as size_t,
             );
             big_endian_values = BSwap64(big_endian_values as uint64_t) as BD_VALUE;

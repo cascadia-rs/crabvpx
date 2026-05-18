@@ -1,14 +1,7 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn memcpy(
-        __dst: *mut core::ffi::c_void,
-        __src: *const core::ffi::c_void,
-        __n: size_t,
-    ) -> *mut core::ffi::c_void;
-    fn memset(
-        __b: *mut core::ffi::c_void,
-        __c: i32,
-        __len: size_t,
-    ) -> *mut core::ffi::c_void;
+    fn memcpy(__dst: *mut c_void, __src: *const c_void, __n: size_t) -> *mut c_void;
+    fn memset(__b: *mut c_void, __c: i32, __len: size_t) -> *mut c_void;
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -76,20 +69,18 @@ unsafe fn extend_plane(
         let mut i: i32 = 0;
         let linesize: i32 = extend_left + extend_right + width;
         let mut src_ptr1: *mut uint8_t = src;
-        let mut src_ptr2: *mut uint8_t = src
-            .offset(width as isize)
-            .offset(-(1 as isize));
+        let mut src_ptr2: *mut uint8_t = src.offset(width as isize).offset(-(1 as isize));
         let mut dst_ptr1: *mut uint8_t = src.offset(-(extend_left as isize));
         let mut dst_ptr2: *mut uint8_t = src.offset(width as isize);
         i = 0 as i32;
         while i < height {
             memset(
-                dst_ptr1 as *mut core::ffi::c_void,
+                dst_ptr1 as *mut c_void,
                 *src_ptr1.offset(0 as isize) as i32,
                 extend_left as size_t,
             );
             memset(
-                dst_ptr2 as *mut core::ffi::c_void,
+                dst_ptr2 as *mut c_void,
                 *src_ptr2.offset(0 as isize) as i32,
                 extend_right as size_t,
             );
@@ -112,8 +103,8 @@ unsafe fn extend_plane(
         i = 0 as i32;
         while i < extend_top {
             memcpy(
-                dst_ptr1 as *mut core::ffi::c_void,
-                src_ptr1 as *const core::ffi::c_void,
+                dst_ptr1 as *mut c_void,
+                src_ptr1 as *const c_void,
                 linesize as size_t,
             );
             dst_ptr1 = dst_ptr1.offset(src_stride as isize);
@@ -122,8 +113,8 @@ unsafe fn extend_plane(
         i = 0 as i32;
         while i < extend_bottom {
             memcpy(
-                dst_ptr2 as *mut core::ffi::c_void,
-                src_ptr2 as *const core::ffi::c_void,
+                dst_ptr2 as *mut c_void,
+                src_ptr2 as *const c_void,
                 linesize as size_t,
             );
             dst_ptr2 = dst_ptr2.offset(src_stride as isize);
@@ -179,8 +170,8 @@ pub unsafe fn vp8_yv12_copy_frame_c(
         row = 0 as i32;
         while row < (*src_ybc).y_height {
             memcpy(
-                dst as *mut core::ffi::c_void,
-                src as *const core::ffi::c_void,
+                dst as *mut c_void,
+                src as *const c_void,
                 (*src_ybc).y_width as size_t,
             );
             src = src.offset((*src_ybc).y_stride as isize);
@@ -192,8 +183,8 @@ pub unsafe fn vp8_yv12_copy_frame_c(
         row = 0 as i32;
         while row < (*src_ybc).uv_height {
             memcpy(
-                dst as *mut core::ffi::c_void,
-                src as *const core::ffi::c_void,
+                dst as *mut c_void,
+                src as *const c_void,
                 (*src_ybc).uv_width as size_t,
             );
             src = src.offset((*src_ybc).uv_stride as isize);
@@ -205,8 +196,8 @@ pub unsafe fn vp8_yv12_copy_frame_c(
         row = 0 as i32;
         while row < (*src_ybc).uv_height {
             memcpy(
-                dst as *mut core::ffi::c_void,
-                src as *const core::ffi::c_void,
+                dst as *mut c_void,
+                src as *const c_void,
                 (*src_ybc).uv_width as size_t,
             );
             src = src.offset((*src_ybc).uv_stride as isize);
@@ -228,8 +219,8 @@ pub unsafe fn vpx_yv12_copy_y_c(
         row = 0 as i32;
         while row < (*src_ybc).y_height {
             memcpy(
-                dst as *mut core::ffi::c_void,
-                src as *const core::ffi::c_void,
+                dst as *mut c_void,
+                src as *const c_void,
                 (*src_ybc).y_width as size_t,
             );
             src = src.offset((*src_ybc).y_stride as isize);

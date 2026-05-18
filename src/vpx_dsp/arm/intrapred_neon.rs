@@ -1,10 +1,11 @@
+use std::ffi::c_void;
 use std::arch::aarch64::*;
 unsafe extern "Rust" {
     fn memcpy(
-        __dst: *mut core::ffi::c_void,
-        __src: *const core::ffi::c_void,
+        __dst: *mut c_void,
+        __src: *const c_void,
         __n: size_t,
-    ) -> *mut core::ffi::c_void;
+    ) -> *mut c_void;
 }
 pub type int8_t = i8;
 pub type int16_t = i16;
@@ -31,8 +32,8 @@ pub type size_t = __darwin_size_t;
 unsafe fn load_replicate_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t {
     let mut a: uint32_t = 0;
     memcpy(
-        &raw mut a as *mut core::ffi::c_void,
-        buf as *const core::ffi::c_void,
+        &raw mut a as *mut c_void,
+        buf as *const c_void,
         4 as size_t,
     );
     return vreinterpret_u8_u32(vdup_n_u32(a));
@@ -41,8 +42,8 @@ unsafe fn load_replicate_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t {
 unsafe fn load_unaligned_u8_4x1(mut buf: *const uint8_t) -> uint8x8_t {
     let mut a: uint32_t = 0;
     memcpy(
-        &raw mut a as *mut core::ffi::c_void,
-        buf as *const core::ffi::c_void,
+        &raw mut a as *mut c_void,
+        buf as *const c_void,
         4 as size_t,
     );
     let mut a_u32 = vdup_n_u32(0);

@@ -1,9 +1,6 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn memcpy(
-        __dst: *mut core::ffi::c_void,
-        __src: *const core::ffi::c_void,
-        __n: size_t,
-    ) -> *mut core::ffi::c_void;
+    fn memcpy(__dst: *mut c_void, __src: *const c_void, __n: size_t) -> *mut c_void;
 }
 pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
@@ -31,21 +28,21 @@ pub unsafe fn vp8_horizontal_line_5_4_scale_c(
             d = *src.offset(3 as isize) as u32;
             e = *src.offset(4 as isize) as u32;
             *des.offset(0 as isize) = a as u8;
-            *des.offset(1 as isize) =
-                (b.wrapping_mul(192 as u32)
-                    .wrapping_add(c.wrapping_mul(64 as u32))
-                    .wrapping_add(128 as u32)
-                    >> 8 as i32) as u8;
-            *des.offset(2 as isize) =
-                (c.wrapping_mul(128 as u32)
-                    .wrapping_add(d.wrapping_mul(128 as u32))
-                    .wrapping_add(128 as u32)
-                    >> 8 as i32) as u8;
-            *des.offset(3 as isize) =
-                (d.wrapping_mul(64 as u32)
-                    .wrapping_add(e.wrapping_mul(192 as u32))
-                    .wrapping_add(128 as u32)
-                    >> 8 as i32) as u8;
+            *des.offset(1 as isize) = (b
+                .wrapping_mul(192 as u32)
+                .wrapping_add(c.wrapping_mul(64 as u32))
+                .wrapping_add(128 as u32)
+                >> 8 as i32) as u8;
+            *des.offset(2 as isize) = (c
+                .wrapping_mul(128 as u32)
+                .wrapping_add(d.wrapping_mul(128 as u32))
+                .wrapping_add(128 as u32)
+                >> 8 as i32) as u8;
+            *des.offset(3 as isize) = (d
+                .wrapping_mul(64 as u32)
+                .wrapping_add(e.wrapping_mul(192 as u32))
+                .wrapping_add(128 as u32)
+                >> 8 as i32) as u8;
             src = src.offset(5 as isize);
             des = des.offset(4 as isize);
             i = i.wrapping_add(5 as u32);
@@ -71,18 +68,12 @@ pub unsafe fn vp8_vertical_band_5_4_scale_c(
         let mut src: *mut u8 = source;
         i = 0 as u32;
         while i < dest_width {
-            a = *src.offset((0 as u32).wrapping_mul(src_pitch) as isize)
-                as u32;
-            b = *src.offset((1 as u32).wrapping_mul(src_pitch) as isize)
-                as u32;
-            c = *src.offset((2 as u32).wrapping_mul(src_pitch) as isize)
-                as u32;
-            d = *src.offset((3 as u32).wrapping_mul(src_pitch) as isize)
-                as u32;
-            e = *src.offset((4 as u32).wrapping_mul(src_pitch) as isize)
-                as u32;
-            *des.offset((0 as u32).wrapping_mul(dest_pitch) as isize) =
-                a as u8;
+            a = *src.offset((0 as u32).wrapping_mul(src_pitch) as isize) as u32;
+            b = *src.offset((1 as u32).wrapping_mul(src_pitch) as isize) as u32;
+            c = *src.offset((2 as u32).wrapping_mul(src_pitch) as isize) as u32;
+            d = *src.offset((3 as u32).wrapping_mul(src_pitch) as isize) as u32;
+            e = *src.offset((4 as u32).wrapping_mul(src_pitch) as isize) as u32;
+            *des.offset((0 as u32).wrapping_mul(dest_pitch) as isize) = a as u8;
             *des.offset((1 as u32).wrapping_mul(dest_pitch) as isize) =
                 (b.wrapping_mul(192 as u32)
                     .wrapping_add(c.wrapping_mul(64 as u32))
@@ -128,16 +119,16 @@ pub unsafe fn vp8_horizontal_line_5_3_scale_c(
             d = *src.offset(3 as isize) as u32;
             e = *src.offset(4 as isize) as u32;
             *des.offset(0 as isize) = a as u8;
-            *des.offset(1 as isize) =
-                (b.wrapping_mul(85 as u32)
-                    .wrapping_add(c.wrapping_mul(171 as u32))
-                    .wrapping_add(128 as u32)
-                    >> 8 as i32) as u8;
-            *des.offset(2 as isize) =
-                (d.wrapping_mul(171 as u32)
-                    .wrapping_add(e.wrapping_mul(85 as u32))
-                    .wrapping_add(128 as u32)
-                    >> 8 as i32) as u8;
+            *des.offset(1 as isize) = (b
+                .wrapping_mul(85 as u32)
+                .wrapping_add(c.wrapping_mul(171 as u32))
+                .wrapping_add(128 as u32)
+                >> 8 as i32) as u8;
+            *des.offset(2 as isize) = (d
+                .wrapping_mul(171 as u32)
+                .wrapping_add(e.wrapping_mul(85 as u32))
+                .wrapping_add(128 as u32)
+                >> 8 as i32) as u8;
             src = src.offset(5 as isize);
             des = des.offset(3 as isize);
             i = i.wrapping_add(5 as u32);
@@ -163,18 +154,12 @@ pub unsafe fn vp8_vertical_band_5_3_scale_c(
         let mut src: *mut u8 = source;
         i = 0 as u32;
         while i < dest_width {
-            a = *src.offset((0 as u32).wrapping_mul(src_pitch) as isize)
-                as u32;
-            b = *src.offset((1 as u32).wrapping_mul(src_pitch) as isize)
-                as u32;
-            c = *src.offset((2 as u32).wrapping_mul(src_pitch) as isize)
-                as u32;
-            d = *src.offset((3 as u32).wrapping_mul(src_pitch) as isize)
-                as u32;
-            e = *src.offset((4 as u32).wrapping_mul(src_pitch) as isize)
-                as u32;
-            *des.offset((0 as u32).wrapping_mul(dest_pitch) as isize) =
-                a as u8;
+            a = *src.offset((0 as u32).wrapping_mul(src_pitch) as isize) as u32;
+            b = *src.offset((1 as u32).wrapping_mul(src_pitch) as isize) as u32;
+            c = *src.offset((2 as u32).wrapping_mul(src_pitch) as isize) as u32;
+            d = *src.offset((3 as u32).wrapping_mul(src_pitch) as isize) as u32;
+            e = *src.offset((4 as u32).wrapping_mul(src_pitch) as isize) as u32;
+            *des.offset((0 as u32).wrapping_mul(dest_pitch) as isize) = a as u8;
             *des.offset((1 as u32).wrapping_mul(dest_pitch) as isize) =
                 (b.wrapping_mul(85 as u32)
                     .wrapping_add(c.wrapping_mul(171 as u32))
@@ -223,8 +208,8 @@ pub unsafe fn vp8_vertical_band_2_1_scale_c(
 ) {
     unsafe {
         memcpy(
-            dest as *mut core::ffi::c_void,
-            source as *const core::ffi::c_void,
+            dest as *mut c_void,
+            source as *const c_void,
             dest_width as size_t,
         );
     }
@@ -244,13 +229,9 @@ pub unsafe fn vp8_vertical_band_2_1_scale_i_c(
         i = 0 as i32;
         while i < width {
             temp = 8 as i32;
-            temp += *source.offset((i - src_pitch as i32) as isize)
-                as i32
-                * 3 as i32;
+            temp += *source.offset((i - src_pitch as i32) as isize) as i32 * 3 as i32;
             temp += *source.offset(i as isize) as i32 * 10 as i32;
-            temp += *source.offset((i as u32).wrapping_add(src_pitch) as isize)
-                as i32
-                * 3 as i32;
+            temp += *source.offset((i as u32).wrapping_add(src_pitch) as isize) as i32 * 3 as i32;
             temp >>= 4 as i32;
             *dest.offset(i as isize) = temp as u8;
             i += 1;

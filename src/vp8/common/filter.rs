@@ -2,49 +2,18 @@ pub const VP8_FILTER_WEIGHT: i32 = 128 as i32;
 pub const VP8_FILTER_SHIFT: i32 = 7 as i32;
 #[unsafe(no_mangle)]
 pub static mut vp8_bilinear_filters: [[i16; 2]; 8] = [
-    [
-        128 as i16,
-        0 as i16,
-    ],
-    [
-        112 as i16,
-        16 as i16,
-    ],
-    [
-        96 as i16,
-        32 as i16,
-    ],
-    [
-        80 as i16,
-        48 as i16,
-    ],
-    [
-        64 as i16,
-        64 as i16,
-    ],
-    [
-        48 as i16,
-        80 as i16,
-    ],
-    [
-        32 as i16,
-        96 as i16,
-    ],
-    [
-        16 as i16,
-        112 as i16,
-    ],
+    [128 as i16, 0 as i16],
+    [112 as i16, 16 as i16],
+    [96 as i16, 32 as i16],
+    [80 as i16, 48 as i16],
+    [64 as i16, 64 as i16],
+    [48 as i16, 80 as i16],
+    [32 as i16, 96 as i16],
+    [16 as i16, 112 as i16],
 ];
 #[unsafe(no_mangle)]
 pub static mut vp8_sub_pel_filters: [[i16; 6]; 8] = [
-    [
-        0 as i16,
-        0 as i16,
-        128 as i16,
-        0 as i16,
-        0 as i16,
-        0 as i16,
-    ],
+    [0 as i16, 0 as i16, 128 as i16, 0 as i16, 0 as i16, 0 as i16],
     [
         0 as i16,
         -(6 as i32) as i16,
@@ -119,29 +88,17 @@ unsafe fn filter_block2d_first_pass(
         while i < output_height {
             j = 0 as u32;
             while j < output_width {
-                Temp = *src_ptr.offset(
-                    (-(2 as i32) * pixel_step as i32) as isize,
-                ) as i32
+                Temp = *src_ptr.offset((-(2 as i32) * pixel_step as i32) as isize) as i32
                     * *vp8_filter.offset(0 as isize) as i32
-                    + *src_ptr.offset(
-                        (-(1 as i32) * pixel_step as i32) as isize,
-                    ) as i32
-                        * *vp8_filter.offset(1 as isize)
-                            as i32
-                    + *src_ptr.offset(0 as isize) as i32
-                        * *vp8_filter.offset(2 as isize)
-                            as i32
+                    + *src_ptr.offset((-(1 as i32) * pixel_step as i32) as isize) as i32
+                        * *vp8_filter.offset(1 as isize) as i32
+                    + *src_ptr.offset(0 as isize) as i32 * *vp8_filter.offset(2 as isize) as i32
                     + *src_ptr.offset(pixel_step as isize) as i32
-                        * *vp8_filter.offset(3 as isize)
-                            as i32
-                    + *src_ptr.offset((2 as u32).wrapping_mul(pixel_step) as isize)
-                        as i32
-                        * *vp8_filter.offset(4 as isize)
-                            as i32
-                    + *src_ptr.offset((3 as u32).wrapping_mul(pixel_step) as isize)
-                        as i32
-                        * *vp8_filter.offset(5 as isize)
-                            as i32
+                        * *vp8_filter.offset(3 as isize) as i32
+                    + *src_ptr.offset((2 as u32).wrapping_mul(pixel_step) as isize) as i32
+                        * *vp8_filter.offset(4 as isize) as i32
+                    + *src_ptr.offset((3 as u32).wrapping_mul(pixel_step) as isize) as i32
+                        * *vp8_filter.offset(5 as isize) as i32
                     + (VP8_FILTER_WEIGHT >> 1 as i32);
                 Temp >>= VP8_FILTER_SHIFT;
                 if Temp < 0 as i32 {
@@ -177,26 +134,16 @@ unsafe fn filter_block2d_second_pass(
         while i < output_height {
             j = 0 as u32;
             while j < output_width {
-                Temp = *src_ptr.offset(
-                    (-(2 as i32) * pixel_step as i32) as isize,
-                ) * *vp8_filter.offset(0 as isize)
-                    as i32
-                    + *src_ptr.offset(
-                        (-(1 as i32) * pixel_step as i32) as isize,
-                    ) * *vp8_filter.offset(1 as isize)
-                        as i32
-                    + *src_ptr.offset(0 as isize)
-                        * *vp8_filter.offset(2 as isize)
-                            as i32
-                    + *src_ptr.offset(pixel_step as isize)
-                        * *vp8_filter.offset(3 as isize)
-                            as i32
+                Temp = *src_ptr.offset((-(2 as i32) * pixel_step as i32) as isize)
+                    * *vp8_filter.offset(0 as isize) as i32
+                    + *src_ptr.offset((-(1 as i32) * pixel_step as i32) as isize)
+                        * *vp8_filter.offset(1 as isize) as i32
+                    + *src_ptr.offset(0 as isize) * *vp8_filter.offset(2 as isize) as i32
+                    + *src_ptr.offset(pixel_step as isize) * *vp8_filter.offset(3 as isize) as i32
                     + *src_ptr.offset((2 as u32).wrapping_mul(pixel_step) as isize)
-                        * *vp8_filter.offset(4 as isize)
-                            as i32
+                        * *vp8_filter.offset(4 as isize) as i32
                     + *src_ptr.offset((3 as u32).wrapping_mul(pixel_step) as isize)
-                        * *vp8_filter.offset(5 as isize)
-                            as i32
+                        * *vp8_filter.offset(5 as isize) as i32
                     + (VP8_FILTER_WEIGHT >> 1 as i32);
                 Temp >>= VP8_FILTER_SHIFT;
                 if Temp < 0 as i32 {
@@ -225,8 +172,7 @@ unsafe fn filter_block2d(
     unsafe {
         let mut FData: [i32; 36] = [0; 36];
         filter_block2d_first_pass(
-            src_ptr
-                .offset(-((2 as u32).wrapping_mul(src_pixels_per_line) as isize)),
+            src_ptr.offset(-((2 as u32).wrapping_mul(src_pixels_per_line) as isize)),
             &raw mut FData as *mut i32,
             src_pixels_per_line,
             1 as u32,
@@ -401,15 +347,11 @@ unsafe fn filter_block2d_bil_first_pass(
         while i < height {
             j = 0 as u32;
             while j < width {
-                *dst_ptr.offset(j as isize) = ((*src_ptr.offset(0 as isize)
-                    as i32
+                *dst_ptr.offset(j as isize) = ((*src_ptr.offset(0 as isize) as i32
                     * *vp8_filter.offset(0 as isize) as i32
-                    + *src_ptr.offset(1 as isize) as i32
-                        * *vp8_filter.offset(1 as isize)
-                            as i32
+                    + *src_ptr.offset(1 as isize) as i32 * *vp8_filter.offset(1 as isize) as i32
                     + VP8_FILTER_WEIGHT / 2 as i32)
-                    >> VP8_FILTER_SHIFT)
-                    as u16;
+                    >> VP8_FILTER_SHIFT) as u16;
                 src_ptr = src_ptr.offset(1);
                 j = j.wrapping_add(1);
             }
@@ -435,14 +377,11 @@ unsafe fn filter_block2d_bil_second_pass(
         while i < height {
             j = 0 as u32;
             while j < width {
-                Temp = *src_ptr.offset(0 as isize) as i32
-                    * *vp8_filter.offset(0 as isize) as i32
+                Temp = *src_ptr.offset(0 as isize) as i32 * *vp8_filter.offset(0 as isize) as i32
                     + *src_ptr.offset(width as isize) as i32
-                        * *vp8_filter.offset(1 as isize)
-                            as i32
+                        * *vp8_filter.offset(1 as isize) as i32
                     + VP8_FILTER_WEIGHT / 2 as i32;
-                *dst_ptr.offset(j as isize) =
-                    (Temp >> VP8_FILTER_SHIFT) as u8;
+                *dst_ptr.offset(j as isize) = (Temp >> VP8_FILTER_SHIFT) as u8;
                 src_ptr = src_ptr.offset(1);
                 j = j.wrapping_add(1);
             }

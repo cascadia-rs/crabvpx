@@ -1,9 +1,6 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn memcpy(
-        __dst: *mut core::ffi::c_void,
-        __src: *const core::ffi::c_void,
-        __n: size_t,
-    ) -> *mut core::ffi::c_void;
+    fn memcpy(__dst: *mut c_void, __src: *const c_void, __n: size_t) -> *mut c_void;
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -493,17 +490,11 @@ pub static mut vp8_kf_ymode_prob: [vp8_prob; 4] = [
     128 as vp8_prob,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_uv_mode_prob: [vp8_prob; 3] = [
-    162 as vp8_prob,
-    101 as vp8_prob,
-    204 as vp8_prob,
-];
+pub static mut vp8_uv_mode_prob: [vp8_prob; 3] =
+    [162 as vp8_prob, 101 as vp8_prob, 204 as vp8_prob];
 #[unsafe(no_mangle)]
-pub static mut vp8_kf_uv_mode_prob: [vp8_prob; 3] = [
-    142 as vp8_prob,
-    114 as vp8_prob,
-    183 as vp8_prob,
-];
+pub static mut vp8_kf_uv_mode_prob: [vp8_prob; 3] =
+    [142 as vp8_prob, 114 as vp8_prob, 183 as vp8_prob];
 #[unsafe(no_mangle)]
 pub static mut vp8_bmode_prob: [vp8_prob; 9] = [
     120 as vp8_prob,
@@ -1640,10 +1631,7 @@ pub static mut vp8_kf_bmode_prob: [[[vp8_prob; 9]; 10]; 10] = [
     ],
 ];
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_mv_cont(
-    mut l: *const int_mv,
-    mut a: *const int_mv,
-) -> i32 {
+pub unsafe fn vp8_mv_cont(mut l: *const int_mv, mut a: *const int_mv) -> i32 {
     unsafe {
         let mut lez: i32 = ((*l).as_int == 0 as uint32_t) as i32;
         let mut aez: i32 = ((*a).as_int == 0 as uint32_t) as i32;
@@ -1663,127 +1651,39 @@ pub unsafe fn vp8_mv_cont(
         SUBMVREF_NORMAL as i32
     }
 }
-static mut sub_mv_ref_prob: [vp8_prob; 3] = [
-    180 as vp8_prob,
-    162 as vp8_prob,
-    25 as vp8_prob,
-];
+static mut sub_mv_ref_prob: [vp8_prob; 3] = [180 as vp8_prob, 162 as vp8_prob, 25 as vp8_prob];
 #[unsafe(no_mangle)]
 pub static mut vp8_sub_mv_ref_prob2: [[vp8_prob; 3]; 5] = [
-    [
-        147 as vp8_prob,
-        136 as vp8_prob,
-        18 as vp8_prob,
-    ],
-    [
-        106 as vp8_prob,
-        145 as vp8_prob,
-        1 as vp8_prob,
-    ],
-    [
-        179 as vp8_prob,
-        121 as vp8_prob,
-        1 as vp8_prob,
-    ],
-    [
-        223 as vp8_prob,
-        1 as vp8_prob,
-        34 as vp8_prob,
-    ],
-    [
-        208 as vp8_prob,
-        1 as vp8_prob,
-        1 as vp8_prob,
-    ],
+    [147 as vp8_prob, 136 as vp8_prob, 18 as vp8_prob],
+    [106 as vp8_prob, 145 as vp8_prob, 1 as vp8_prob],
+    [179 as vp8_prob, 121 as vp8_prob, 1 as vp8_prob],
+    [223 as vp8_prob, 1 as vp8_prob, 34 as vp8_prob],
+    [208 as vp8_prob, 1 as vp8_prob, 1 as vp8_prob],
 ];
 #[unsafe(no_mangle)]
 pub static mut vp8_mbsplits: [vp8_mbsplit; 4] = [
     [
-        0 as i32,
-        0 as i32,
-        0 as i32,
-        0 as i32,
-        0 as i32,
-        0 as i32,
-        0 as i32,
-        0 as i32,
-        1 as i32,
-        1 as i32,
-        1 as i32,
-        1 as i32,
-        1 as i32,
-        1 as i32,
-        1 as i32,
-        1 as i32,
+        0 as i32, 0 as i32, 0 as i32, 0 as i32, 0 as i32, 0 as i32, 0 as i32, 0 as i32, 1 as i32,
+        1 as i32, 1 as i32, 1 as i32, 1 as i32, 1 as i32, 1 as i32, 1 as i32,
     ],
     [
-        0 as i32,
-        0 as i32,
-        1 as i32,
-        1 as i32,
-        0 as i32,
-        0 as i32,
-        1 as i32,
-        1 as i32,
-        0 as i32,
-        0 as i32,
-        1 as i32,
-        1 as i32,
-        0 as i32,
-        0 as i32,
-        1 as i32,
-        1 as i32,
+        0 as i32, 0 as i32, 1 as i32, 1 as i32, 0 as i32, 0 as i32, 1 as i32, 1 as i32, 0 as i32,
+        0 as i32, 1 as i32, 1 as i32, 0 as i32, 0 as i32, 1 as i32, 1 as i32,
     ],
     [
-        0 as i32,
-        0 as i32,
-        1 as i32,
-        1 as i32,
-        0 as i32,
-        0 as i32,
-        1 as i32,
-        1 as i32,
-        2 as i32,
-        2 as i32,
-        3 as i32,
-        3 as i32,
-        2 as i32,
-        2 as i32,
-        3 as i32,
-        3 as i32,
+        0 as i32, 0 as i32, 1 as i32, 1 as i32, 0 as i32, 0 as i32, 1 as i32, 1 as i32, 2 as i32,
+        2 as i32, 3 as i32, 3 as i32, 2 as i32, 2 as i32, 3 as i32, 3 as i32,
     ],
     [
-        0 as i32,
-        1 as i32,
-        2 as i32,
-        3 as i32,
-        4 as i32,
-        5 as i32,
-        6 as i32,
-        7 as i32,
-        8 as i32,
-        9 as i32,
-        10 as i32,
-        11 as i32,
-        12 as i32,
-        13 as i32,
-        14 as i32,
-        15 as i32,
+        0 as i32, 1 as i32, 2 as i32, 3 as i32, 4 as i32, 5 as i32, 6 as i32, 7 as i32, 8 as i32,
+        9 as i32, 10 as i32, 11 as i32, 12 as i32, 13 as i32, 14 as i32, 15 as i32,
     ],
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_mbsplit_count: [i32; 4] = [
-    2 as i32,
-    2 as i32,
-    4 as i32,
-    16 as i32,
-];
+pub static mut vp8_mbsplit_count: [i32; 4] = [2 as i32, 2 as i32, 4 as i32, 16 as i32];
 #[unsafe(no_mangle)]
-pub static mut vp8_mbsplit_probs: [vp8_prob; 3] = [
-    110 as vp8_prob,
-    111 as vp8_prob,
-    150 as vp8_prob,
-];
+pub static mut vp8_mbsplit_probs: [vp8_prob; 3] =
+    [110 as vp8_prob, 111 as vp8_prob, 150 as vp8_prob];
 #[unsafe(no_mangle)]
 pub static mut vp8_bmode_tree: [vp8_tree_index; 18] = [
     -(B_DC_PRED as i32) as vp8_tree_index,
@@ -1886,18 +1786,18 @@ pub static mut vp8_small_mvtree: [vp8_tree_index; 14] = [
 pub unsafe fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) {
     unsafe {
         memcpy(
-            &raw mut (*x).fc.ymode_prob as *mut vp8_prob as *mut core::ffi::c_void,
-            &raw const vp8_ymode_prob as *const vp8_prob as *const core::ffi::c_void,
+            &raw mut (*x).fc.ymode_prob as *mut vp8_prob as *mut c_void,
+            &raw const vp8_ymode_prob as *const vp8_prob as *const c_void,
             ::core::mem::size_of::<[vp8_prob; 4]>() as size_t,
         );
         memcpy(
-            &raw mut (*x).fc.uv_mode_prob as *mut vp8_prob as *mut core::ffi::c_void,
-            &raw const vp8_uv_mode_prob as *const vp8_prob as *const core::ffi::c_void,
+            &raw mut (*x).fc.uv_mode_prob as *mut vp8_prob as *mut c_void,
+            &raw const vp8_uv_mode_prob as *const vp8_prob as *const c_void,
             ::core::mem::size_of::<[vp8_prob; 3]>() as size_t,
         );
         memcpy(
-            &raw mut (*x).fc.sub_mv_ref_prob as *mut vp8_prob as *mut core::ffi::c_void,
-            &raw const sub_mv_ref_prob as *const vp8_prob as *const core::ffi::c_void,
+            &raw mut (*x).fc.sub_mv_ref_prob as *mut vp8_prob as *mut c_void,
+            &raw const sub_mv_ref_prob as *const vp8_prob as *const c_void,
             ::core::mem::size_of::<[vp8_prob; 3]>() as size_t,
         );
     }
@@ -1906,8 +1806,8 @@ pub unsafe fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) {
 pub unsafe fn vp8_default_bmode_probs(mut dest: *mut vp8_prob) {
     unsafe {
         memcpy(
-            dest as *mut core::ffi::c_void,
-            &raw const vp8_bmode_prob as *const vp8_prob as *const core::ffi::c_void,
+            dest as *mut c_void,
+            &raw const vp8_bmode_prob as *const vp8_prob as *const c_void,
             ::core::mem::size_of::<[vp8_prob; 9]>() as size_t,
         );
     }

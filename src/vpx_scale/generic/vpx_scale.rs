@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
     fn vp8_horizontal_line_2_1_scale_c(
         source: *const u8,
@@ -45,16 +46,8 @@ unsafe extern "Rust" {
         dest_pitch: u32,
         dest_width: u32,
     );
-    fn memcpy(
-        __dst: *mut core::ffi::c_void,
-        __src: *const core::ffi::c_void,
-        __n: size_t,
-    ) -> *mut core::ffi::c_void;
-    fn memset(
-        __b: *mut core::ffi::c_void,
-        __c: i32,
-        __len: size_t,
-    ) -> *mut core::ffi::c_void;
+    fn memcpy(__dst: *mut c_void, __src: *const c_void, __n: size_t) -> *mut c_void;
+    fn memset(__b: *mut c_void, __c: i32, __len: size_t) -> *mut c_void;
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -108,19 +101,9 @@ pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
 pub type uint8_t = u8;
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
-pub type Scale1D = Option<unsafe fn(
-        *const u8,
-        i32,
-        u32,
-        u32,
-        *mut u8,
-        i32,
-        u32,
-        u32,
-    ) -> (),
->;
-pub const __DARWIN_NULL: *mut core::ffi::c_void = ::core::ptr::null_mut::<core::ffi::c_void>();
-pub const NULL: *mut core::ffi::c_void = __DARWIN_NULL;
+pub type Scale1D = Option<unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> ()>;
+pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
+pub const NULL: *mut c_void = __DARWIN_NULL;
 unsafe fn scale1d_2t1_i(
     mut source: *const u8,
     mut source_step: i32,
@@ -137,25 +120,19 @@ unsafe fn scale1d_2t1_i(
         let mut temp: u32 = 0;
         let mut source_pitch: i32 = source_step;
         source_step *= 2 as i32;
-        *dest.offset(0 as isize) =
-            *source.offset(0 as isize);
+        *dest.offset(0 as isize) = *source.offset(0 as isize);
         i = dest_step as u32;
         j = source_step as u32;
         while i < dest_length.wrapping_mul(dest_step as u32) {
             temp = 8 as u32;
             temp = temp.wrapping_add(
-                (3 as i32
-                    * *source.offset(j.wrapping_sub(source_pitch as u32) as isize)
-                        as i32) as u32,
-            );
-            temp = temp.wrapping_add(
-                (10 as i32 * *source.offset(j as isize) as i32)
+                (3 as i32 * *source.offset(j.wrapping_sub(source_pitch as u32) as isize) as i32)
                     as u32,
             );
+            temp = temp.wrapping_add((10 as i32 * *source.offset(j as isize) as i32) as u32);
             temp = temp.wrapping_add(
-                (3 as i32
-                    * *source.offset(j.wrapping_add(source_pitch as u32) as isize)
-                        as i32) as u32,
+                (3 as i32 * *source.offset(j.wrapping_add(source_pitch as u32) as isize) as i32)
+                    as u32,
             );
             temp >>= 4 as i32;
             *dest.offset(i as isize) = temp as u8;
@@ -199,8 +176,7 @@ unsafe fn scale1d_c(
 ) {
     unsafe {
         let mut i: u32 = 0;
-        let mut round_value: u32 =
-            dest_scale.wrapping_div(2 as u32);
+        let mut round_value: u32 = dest_scale.wrapping_div(2 as u32);
         let mut left_modifier: u32 = dest_scale;
         let mut right_modifier: u32 = 0 as u32;
         let mut left_pixel: u8 = *source;
@@ -248,53 +224,16 @@ unsafe fn Scale2D(
         let mut bands: i32 = 0;
         let mut dest_band_height: i32 = 0;
         let mut source_band_height: i32 = 0;
-        let mut Scale1Dv: Scale1D = Some(
-            scale1d_c
-                as unsafe fn(
-                    *const u8,
-                    i32,
-                    u32,
-                    u32,
-                    *mut u8,
-                    i32,
-                    u32,
-                    u32,
-                ) -> (),
-        );
-        let mut Scale1Dh: Scale1D = Some(
-            scale1d_c
-                as unsafe fn(
-                    *const u8,
-                    i32,
-                    u32,
-                    u32,
-                    *mut u8,
-                    i32,
-                    u32,
-                    u32,
-                ) -> (),
-        );
-        let mut horiz_line_scale: Option<unsafe fn(
-                *const u8,
-                u32,
-                *mut u8,
-                u32,
-            ) -> (),
-        > = None;
-        let mut vert_band_scale: Option<unsafe fn(
-                *mut u8,
-                u32,
-                *mut u8,
-                u32,
-                u32,
-            ) -> (),
-        > = None;
+        let mut Scale1Dv: Scale1D =
+            Some(scale1d_c as unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> ());
+        let mut Scale1Dh: Scale1D =
+            Some(scale1d_c as unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> ());
+        let mut horiz_line_scale: Option<unsafe fn(*const u8, u32, *mut u8, u32) -> ()> = None;
+        let mut vert_band_scale: Option<unsafe fn(*mut u8, u32, *mut u8, u32, u32) -> ()> = None;
         let mut ratio_scalable: i32 = 1 as i32;
         let mut interpolation: i32 = 0 as i32;
-        let mut source_base: *mut u8 =
-            ::core::ptr::null_mut::<u8>();
-        let mut line_src: *mut u8 =
-            ::core::ptr::null_mut::<u8>();
+        let mut source_base: *mut u8 = ::core::ptr::null_mut::<u8>();
+        let mut line_src: *mut u8 = ::core::ptr::null_mut::<u8>();
         source_base = source;
         if source_pitch < 0 as i32 {
             let mut offset: i32 = 0;
@@ -302,113 +241,48 @@ unsafe fn Scale2D(
             offset *= source_pitch;
             source_base = source_base.offset(offset as isize);
         }
-        match hratio
-            .wrapping_mul(10 as u32)
-            .wrapping_div(hscale)
-        {
+        match hratio.wrapping_mul(10 as u32).wrapping_div(hscale) {
             8 => {
                 horiz_line_scale = Some(
                     vp8_horizontal_line_5_4_scale_c
-                        as unsafe fn(
-                            *const u8,
-                            u32,
-                            *mut u8,
-                            u32,
-                        ) -> (),
+                        as unsafe fn(*const u8, u32, *mut u8, u32) -> (),
                 )
-                    as Option<unsafe fn(
-                            *const u8,
-                            u32,
-                            *mut u8,
-                            u32,
-                        ) -> (),
-                    >;
+                    as Option<unsafe fn(*const u8, u32, *mut u8, u32) -> ()>;
             }
             6 => {
                 horiz_line_scale = Some(
                     vp8_horizontal_line_5_3_scale_c
-                        as unsafe fn(
-                            *const u8,
-                            u32,
-                            *mut u8,
-                            u32,
-                        ) -> (),
+                        as unsafe fn(*const u8, u32, *mut u8, u32) -> (),
                 )
-                    as Option<unsafe fn(
-                            *const u8,
-                            u32,
-                            *mut u8,
-                            u32,
-                        ) -> (),
-                    >;
+                    as Option<unsafe fn(*const u8, u32, *mut u8, u32) -> ()>;
             }
             5 => {
                 horiz_line_scale = Some(
                     vp8_horizontal_line_2_1_scale_c
-                        as unsafe fn(
-                            *const u8,
-                            u32,
-                            *mut u8,
-                            u32,
-                        ) -> (),
+                        as unsafe fn(*const u8, u32, *mut u8, u32) -> (),
                 )
-                    as Option<unsafe fn(
-                            *const u8,
-                            u32,
-                            *mut u8,
-                            u32,
-                        ) -> (),
-                    >;
+                    as Option<unsafe fn(*const u8, u32, *mut u8, u32) -> ()>;
             }
             _ => {
                 ratio_scalable = 0 as i32;
             }
         }
-        match vratio
-            .wrapping_mul(10 as u32)
-            .wrapping_div(vscale)
-        {
+        match vratio.wrapping_mul(10 as u32).wrapping_div(vscale) {
             8 => {
                 vert_band_scale = Some(
                     vp8_vertical_band_5_4_scale_c
-                        as unsafe fn(
-                            *mut u8,
-                            u32,
-                            *mut u8,
-                            u32,
-                            u32,
-                        ) -> (),
+                        as unsafe fn(*mut u8, u32, *mut u8, u32, u32) -> (),
                 )
-                    as Option<unsafe fn(
-                            *mut u8,
-                            u32,
-                            *mut u8,
-                            u32,
-                            u32,
-                        ) -> (),
-                    >;
+                    as Option<unsafe fn(*mut u8, u32, *mut u8, u32, u32) -> ()>;
                 source_band_height = 5 as i32;
                 dest_band_height = 4 as i32;
             }
             6 => {
                 vert_band_scale = Some(
                     vp8_vertical_band_5_3_scale_c
-                        as unsafe fn(
-                            *mut u8,
-                            u32,
-                            *mut u8,
-                            u32,
-                            u32,
-                        ) -> (),
+                        as unsafe fn(*mut u8, u32, *mut u8, u32, u32) -> (),
                 )
-                    as Option<unsafe fn(
-                            *mut u8,
-                            u32,
-                            *mut u8,
-                            u32,
-                            u32,
-                        ) -> (),
-                    >;
+                    as Option<unsafe fn(*mut u8, u32, *mut u8, u32, u32) -> ()>;
                 source_band_height = 5 as i32;
                 dest_band_height = 3 as i32;
             }
@@ -416,42 +290,16 @@ unsafe fn Scale2D(
                 if interlaced != 0 {
                     vert_band_scale = Some(
                         vp8_vertical_band_2_1_scale_c
-                            as unsafe fn(
-                                *mut u8,
-                                u32,
-                                *mut u8,
-                                u32,
-                                u32,
-                            ) -> (),
+                            as unsafe fn(*mut u8, u32, *mut u8, u32, u32) -> (),
                     )
-                        as Option<unsafe fn(
-                                *mut u8,
-                                u32,
-                                *mut u8,
-                                u32,
-                                u32,
-                            ) -> (),
-                        >;
+                        as Option<unsafe fn(*mut u8, u32, *mut u8, u32, u32) -> ()>;
                 } else {
                     interpolation = 1 as i32;
                     vert_band_scale = Some(
                         vp8_vertical_band_2_1_scale_i_c
-                            as unsafe fn(
-                                *mut u8,
-                                u32,
-                                *mut u8,
-                                u32,
-                                u32,
-                            ) -> (),
+                            as unsafe fn(*mut u8, u32, *mut u8, u32, u32) -> (),
                     )
-                        as Option<unsafe fn(
-                                *mut u8,
-                                u32,
-                                *mut u8,
-                                u32,
-                                u32,
-                            ) -> (),
-                        >;
+                        as Option<unsafe fn(*mut u8, u32, *mut u8, u32, u32) -> ()>;
                 }
                 source_band_height = 2 as i32;
                 dest_band_height = 1 as i32;
@@ -516,69 +364,35 @@ unsafe fn Scale2D(
                 );
                 if interpolation != 0 {
                     memcpy(
-                        temp_area as *mut core::ffi::c_void,
+                        temp_area as *mut c_void,
                         temp_area.offset((source_band_height * dest_pitch) as isize)
-                            as *const core::ffi::c_void,
+                            as *const c_void,
                         dest_width as size_t,
                     );
                 }
-                source = source.offset(
-                    (source_band_height as u64)
-                        .wrapping_mul(source_pitch as u64)
-                        as isize,
-                );
-                dest = dest.offset(
-                    (dest_band_height as u64)
-                        .wrapping_mul(dest_pitch as u64)
-                        as isize,
-                );
+                source = source
+                    .offset((source_band_height as u64).wrapping_mul(source_pitch as u64) as isize);
+                dest =
+                    dest.offset((dest_band_height as u64).wrapping_mul(dest_pitch as u64) as isize);
                 k += 1;
             }
             return;
         }
         if hscale == 2 as u32 && hratio == 1 as u32 {
             Scale1Dh = Some(
-                scale1d_2t1_ps
-                    as unsafe fn(
-                        *const u8,
-                        i32,
-                        u32,
-                        u32,
-                        *mut u8,
-                        i32,
-                        u32,
-                        u32,
-                    ) -> (),
+                scale1d_2t1_ps as unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> (),
             ) as Scale1D;
         }
         if vscale == 2 as u32 && vratio == 1 as u32 {
             if interlaced != 0 {
                 Scale1Dv = Some(
                     scale1d_2t1_ps
-                        as unsafe fn(
-                            *const u8,
-                            i32,
-                            u32,
-                            u32,
-                            *mut u8,
-                            i32,
-                            u32,
-                            u32,
-                        ) -> (),
+                        as unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> (),
                 ) as Scale1D;
             } else {
                 Scale1Dv = Some(
                     scale1d_2t1_i
-                        as unsafe fn(
-                            *const u8,
-                            i32,
-                            u32,
-                            u32,
-                            *mut u8,
-                            i32,
-                            u32,
-                            u32,
-                        ) -> (),
+                        as unsafe fn(*const u8, i32, u32, u32, *mut u8, i32, u32, u32) -> (),
                 ) as Scale1D;
             }
         }
@@ -625,8 +439,7 @@ unsafe fn Scale2D(
         bands = dest_height
             .wrapping_add(dest_band_height as u32)
             .wrapping_sub(1 as u32)
-            .wrapping_div(dest_band_height as u32)
-            as i32;
+            .wrapping_div(dest_band_height as u32) as i32;
         k = 0 as i32;
         while k < bands {
             i = 1 as i32;
@@ -644,9 +457,8 @@ unsafe fn Scale2D(
                     );
                 } else {
                     memcpy(
-                        temp_area.offset((i * dest_pitch) as isize) as *mut core::ffi::c_void,
-                        temp_area.offset(((i - 1 as i32) * dest_pitch) as isize)
-                            as *const core::ffi::c_void,
+                        temp_area.offset((i * dest_pitch) as isize) as *mut c_void,
+                        temp_area.offset(((i - 1 as i32) * dest_pitch) as isize) as *const c_void,
                         dest_pitch as size_t,
                     );
                 }
@@ -667,9 +479,8 @@ unsafe fn Scale2D(
                 j += 1;
             }
             memcpy(
-                temp_area as *mut core::ffi::c_void,
-                temp_area.offset((source_band_height * dest_pitch) as isize)
-                    as *const core::ffi::c_void,
+                temp_area as *mut c_void,
+                temp_area.offset((source_band_height * dest_pitch) as isize) as *const c_void,
                 dest_pitch as size_t,
             );
             source = source.offset((source_band_height * source_pitch) as isize);
@@ -725,8 +536,7 @@ pub unsafe fn vpx_scale_frame(
                         .y_buffer
                         .offset((i * (*dst).y_stride) as isize)
                         .offset(dw as isize)
-                        .offset(-(1 as isize))
-                        as *mut core::ffi::c_void,
+                        .offset(-(1 as isize)) as *mut c_void,
                     *(*dst)
                         .y_buffer
                         .offset((i * (*dst).y_stride + dw - 2 as i32) as isize)
@@ -740,12 +550,11 @@ pub unsafe fn vpx_scale_frame(
             i = dh - 1 as i32;
             while i < (*dst).y_height {
                 memcpy(
-                    (*dst).y_buffer.offset((i * (*dst).y_stride) as isize)
-                        as *mut core::ffi::c_void,
+                    (*dst).y_buffer.offset((i * (*dst).y_stride) as isize) as *mut c_void,
                     (*dst)
                         .y_buffer
                         .offset(((dh - 2 as i32) * (*dst).y_stride) as isize)
-                        as *const core::ffi::c_void,
+                        as *const c_void,
                     ((*dst).y_width + 1 as i32) as size_t,
                 );
                 i += 1;
@@ -776,14 +585,12 @@ pub unsafe fn vpx_scale_frame(
                         .u_buffer
                         .offset((i * (*dst).uv_stride) as isize)
                         .offset((dw / 2 as i32) as isize)
-                        .offset(-(1 as isize))
-                        as *mut core::ffi::c_void,
-                    *(*dst).u_buffer.offset(
-                        (i * (*dst).uv_stride + dw / 2 as i32
-                            - 2 as i32) as isize,
-                    ) as i32,
-                    ((*dst).uv_width - dw / 2 as i32 + 1 as i32)
-                        as size_t,
+                        .offset(-(1 as isize)) as *mut c_void,
+                    *(*dst)
+                        .u_buffer
+                        .offset((i * (*dst).uv_stride + dw / 2 as i32 - 2 as i32) as isize)
+                        as i32,
+                    ((*dst).uv_width - dw / 2 as i32 + 1 as i32) as size_t,
                 );
                 i += 1;
             }
@@ -792,12 +599,11 @@ pub unsafe fn vpx_scale_frame(
             i = dh / 2 as i32 - 1 as i32;
             while i < (*dst).y_height / 2 as i32 {
                 memcpy(
-                    (*dst).u_buffer.offset((i * (*dst).uv_stride) as isize)
-                        as *mut core::ffi::c_void,
-                    (*dst).u_buffer.offset(
-                        ((dh / 2 as i32 - 2 as i32)
-                            * (*dst).uv_stride) as isize,
-                    ) as *const core::ffi::c_void,
+                    (*dst).u_buffer.offset((i * (*dst).uv_stride) as isize) as *mut c_void,
+                    (*dst)
+                        .u_buffer
+                        .offset(((dh / 2 as i32 - 2 as i32) * (*dst).uv_stride) as isize)
+                        as *const c_void,
                     (*dst).uv_width as size_t,
                 );
                 i += 1;
@@ -828,14 +634,12 @@ pub unsafe fn vpx_scale_frame(
                         .v_buffer
                         .offset((i * (*dst).uv_stride) as isize)
                         .offset((dw / 2 as i32) as isize)
-                        .offset(-(1 as isize))
-                        as *mut core::ffi::c_void,
-                    *(*dst).v_buffer.offset(
-                        (i * (*dst).uv_stride + dw / 2 as i32
-                            - 2 as i32) as isize,
-                    ) as i32,
-                    ((*dst).uv_width - dw / 2 as i32 + 1 as i32)
-                        as size_t,
+                        .offset(-(1 as isize)) as *mut c_void,
+                    *(*dst)
+                        .v_buffer
+                        .offset((i * (*dst).uv_stride + dw / 2 as i32 - 2 as i32) as isize)
+                        as i32,
+                    ((*dst).uv_width - dw / 2 as i32 + 1 as i32) as size_t,
                 );
                 i += 1;
             }
@@ -844,12 +648,11 @@ pub unsafe fn vpx_scale_frame(
             i = dh / 2 as i32 - 1 as i32;
             while i < (*dst).y_height / 2 as i32 {
                 memcpy(
-                    (*dst).v_buffer.offset((i * (*dst).uv_stride) as isize)
-                        as *mut core::ffi::c_void,
-                    (*dst).v_buffer.offset(
-                        ((dh / 2 as i32 - 2 as i32)
-                            * (*dst).uv_stride) as isize,
-                    ) as *const core::ffi::c_void,
+                    (*dst).v_buffer.offset((i * (*dst).uv_stride) as isize) as *mut c_void,
+                    (*dst)
+                        .v_buffer
+                        .offset(((dh / 2 as i32 - 2 as i32) * (*dst).uv_stride) as isize)
+                        as *const c_void,
                     (*dst).uv_width as size_t,
                 );
                 i += 1;

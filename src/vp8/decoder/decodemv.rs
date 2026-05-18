@@ -1,3 +1,4 @@
+use std::ffi::c_void;
 unsafe extern "Rust" {
     static vp8_norm: [u8; 256];
     fn vp8dx_bool_decoder_fill(br: *mut BOOL_DECODER);
@@ -20,8 +21,8 @@ pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct __darwin_pthread_handler_rec {
-    pub __routine: Option<unsafe fn(*mut core::ffi::c_void) -> ()>,
-    pub __arg: *mut core::ffi::c_void,
+    pub __routine: Option<unsafe fn(*mut c_void) -> ()>,
+    pub __arg: *mut c_void,
     pub __next: *mut __darwin_pthread_handler_rec,
 }
 #[derive(Copy, Clone)]
@@ -33,7 +34,7 @@ pub struct _opaque_pthread_t {
 }
 pub type __darwin_pthread_t = *mut _opaque_pthread_t;
 pub type size_t = __darwin_size_t;
-pub type pthread_t = *mut core::ffi::c_void;
+pub type pthread_t = *mut c_void;
 pub type mach_port_t = __darwin_mach_port_t;
 pub type vpx_color_space = u32;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
@@ -136,24 +137,18 @@ pub struct VP8D_COMP {
     pub independent_partitions: i32,
     pub frame_corrupt_residual: i32,
     pub decrypt_cb: vpx_decrypt_cb,
-    pub decrypt_state: *mut core::ffi::c_void,
+    pub decrypt_state: *mut c_void,
     pub restart_threads: i32,
 }
-pub type vpx_decrypt_cb = Option<unsafe fn(
-        *mut core::ffi::c_void,
-        *const u8,
-        *mut u8,
-        i32,
-    ) -> (),
->;
+pub type vpx_decrypt_cb = Option<unsafe fn(*mut c_void, *const u8, *mut u8, i32) -> ()>;
 pub type vp8_prob = u8;
-pub type semaphore_t = *mut core::ffi::c_void;
+pub type semaphore_t = *mut c_void;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct DECODETHREAD_DATA {
     pub ithread: i32,
-    pub ptr1: *mut core::ffi::c_void,
-    pub ptr2: *mut core::ffi::c_void,
+    pub ptr1: *mut c_void,
+    pub ptr2: *mut c_void,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -206,7 +201,7 @@ pub struct macroblockd {
     pub subpixel_predict8x4: vp8_subpix_fn_t,
     pub subpixel_predict8x8: vp8_subpix_fn_t,
     pub subpixel_predict16x16: vp8_subpix_fn_t,
-    pub current_bc: *mut core::ffi::c_void,
+    pub current_bc: *mut c_void,
     pub corrupted: i32,
     pub error_info: vpx_internal_error_info,
 }
@@ -220,15 +215,7 @@ pub struct vpx_internal_error_info {
     pub jmp: jmp_buf,
 }
 pub type jmp_buf = [i32; 48];
-pub type vp8_subpix_fn_t = Option<unsafe fn(
-        *mut u8,
-        i32,
-        i32,
-        i32,
-        *mut u8,
-        i32,
-    ) -> (),
->;
+pub type vp8_subpix_fn_t = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct ENTROPY_CONTEXT_PLANES {
@@ -340,7 +327,7 @@ pub struct vp8_reader {
     pub count: i32,
     pub range: u32,
     pub decrypt_cb: vpx_decrypt_cb,
-    pub decrypt_state: *mut core::ffi::c_void,
+    pub decrypt_state: *mut c_void,
 }
 pub type VP8_BD_VALUE = size_t;
 pub type VP8_COMMON = VP8Common;
@@ -483,12 +470,8 @@ pub const CNT_INTRA: C2RustUnnamed_0 = 0;
 pub type C2RustUnnamed_0 = u32;
 pub const CHAR_BIT: i32 = 8 as i32;
 pub const vp8_prob_half: vp8_prob = 128 as vp8_prob;
-pub const VP8_BD_VALUE_SIZE: i32 =
-    ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
-unsafe fn vp8dx_decode_bool(
-    mut br: *mut BOOL_DECODER,
-    mut probability: i32,
-) -> i32 {
+pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
+unsafe fn vp8dx_decode_bool(mut br: *mut BOOL_DECODER, mut probability: i32) -> i32 {
     unsafe {
         let mut bit: u32 = 0 as u32;
         let mut value: VP8_BD_VALUE = 0;
@@ -526,10 +509,7 @@ unsafe fn vp8dx_decode_bool(
     }
 }
 #[inline]
-unsafe fn vp8_decode_value(
-    mut br: *mut BOOL_DECODER,
-    mut bits: i32,
-) -> i32 {
+unsafe fn vp8_decode_value(mut br: *mut BOOL_DECODER, mut bits: i32) -> i32 {
     unsafe {
         let mut z: i32 = 0 as i32;
         let mut bit: i32 = 0;
@@ -554,8 +534,7 @@ unsafe fn vp8_treed_read(
                 (i as i32
                     + vp8dx_decode_bool(
                         r as *mut BOOL_DECODER,
-                        *p.offset((i as i32 >> 1 as i32) as isize)
-                            as i32,
+                        *p.offset((i as i32 >> 1 as i32) as isize) as i32,
                     )) as isize,
             );
             if !(i as i32 > 0 as i32) {
@@ -574,35 +553,25 @@ unsafe fn mv_bias(
 ) {
     unsafe {
         if refmb_ref_frame_sign_bias != *ref_frame_sign_bias.offset(refframe as isize) {
-            (*mvp).as_mv.row = ((*mvp).as_mv.row as i32 * -(1 as i32))
-                as i16;
-            (*mvp).as_mv.col = ((*mvp).as_mv.col as i32 * -(1 as i32))
-                as i16;
+            (*mvp).as_mv.row = ((*mvp).as_mv.row as i32 * -(1 as i32)) as i16;
+            (*mvp).as_mv.col = ((*mvp).as_mv.col as i32 * -(1 as i32)) as i16;
         }
     }
 }
-pub const LEFT_TOP_MARGIN: i32 =
-    (16 as i32) << 3 as i32;
-pub const RIGHT_BOTTOM_MARGIN: i32 =
-    (16 as i32) << 3 as i32;
+pub const LEFT_TOP_MARGIN: i32 = (16 as i32) << 3 as i32;
+pub const RIGHT_BOTTOM_MARGIN: i32 = (16 as i32) << 3 as i32;
 #[inline]
 unsafe fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) {
     unsafe {
         if ((*mv).as_mv.col as i32) < (*xd).mb_to_left_edge - LEFT_TOP_MARGIN {
             (*mv).as_mv.col = ((*xd).mb_to_left_edge - LEFT_TOP_MARGIN) as i16;
-        } else if (*mv).as_mv.col as i32
-            > (*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN
-        {
-            (*mv).as_mv.col =
-                ((*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN) as i16;
+        } else if (*mv).as_mv.col as i32 > (*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN {
+            (*mv).as_mv.col = ((*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN) as i16;
         }
         if ((*mv).as_mv.row as i32) < (*xd).mb_to_top_edge - LEFT_TOP_MARGIN {
             (*mv).as_mv.row = ((*xd).mb_to_top_edge - LEFT_TOP_MARGIN) as i16;
-        } else if (*mv).as_mv.row as i32
-            > (*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN
-        {
-            (*mv).as_mv.row =
-                ((*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as i16;
+        } else if (*mv).as_mv.row as i32 > (*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN {
+            (*mv).as_mv.row = ((*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as i16;
         }
     }
 }
@@ -616,22 +585,15 @@ unsafe fn vp8_check_mv_bounds(
 ) -> u32 {
     unsafe {
         let mut need_to_clamp: u32 = 0;
-        need_to_clamp = (((*mv).as_mv.col as i32) < mb_to_left_edge)
-            as u32;
-        need_to_clamp |= ((*mv).as_mv.col as i32 > mb_to_right_edge)
-            as u32;
-        need_to_clamp |= (((*mv).as_mv.row as i32) < mb_to_top_edge)
-            as u32;
-        need_to_clamp |= ((*mv).as_mv.row as i32 > mb_to_bottom_edge)
-            as u32;
+        need_to_clamp = (((*mv).as_mv.col as i32) < mb_to_left_edge) as u32;
+        need_to_clamp |= ((*mv).as_mv.col as i32 > mb_to_right_edge) as u32;
+        need_to_clamp |= (((*mv).as_mv.row as i32) < mb_to_top_edge) as u32;
+        need_to_clamp |= ((*mv).as_mv.row as i32 > mb_to_bottom_edge) as u32;
         need_to_clamp
     }
 }
 #[inline]
-unsafe fn left_block_mode(
-    mut cur_mb: *const MODE_INFO,
-    mut b: i32,
-) -> B_PREDICTION_MODE {
+unsafe fn left_block_mode(mut cur_mb: *const MODE_INFO, mut b: i32) -> B_PREDICTION_MODE {
     unsafe {
         if b & 3 as i32 == 0 {
             cur_mb = cur_mb.offset(-1);
@@ -684,55 +646,38 @@ unsafe fn above_block_mode(
         .as_mode
     }
 }
-unsafe fn read_bmode(
-    mut bc: *mut vp8_reader,
-    mut p: *const vp8_prob,
-) -> B_PREDICTION_MODE {
+unsafe fn read_bmode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> B_PREDICTION_MODE {
     unsafe {
         let i: i32 =
-            vp8_treed_read(bc, &raw const vp8_bmode_tree as *const vp8_tree_index, p)
-                as i32;
+            vp8_treed_read(bc, &raw const vp8_bmode_tree as *const vp8_tree_index, p) as i32;
         i as B_PREDICTION_MODE
     }
 }
-unsafe fn read_ymode(
-    mut bc: *mut vp8_reader,
-    mut p: *const vp8_prob,
-) -> MB_PREDICTION_MODE {
+unsafe fn read_ymode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> MB_PREDICTION_MODE {
     unsafe {
         let i: i32 =
-            vp8_treed_read(bc, &raw const vp8_ymode_tree as *const vp8_tree_index, p)
-                as i32;
+            vp8_treed_read(bc, &raw const vp8_ymode_tree as *const vp8_tree_index, p) as i32;
         i as MB_PREDICTION_MODE
     }
 }
-unsafe fn read_kf_ymode(
-    mut bc: *mut vp8_reader,
-    mut p: *const vp8_prob,
-) -> MB_PREDICTION_MODE {
+unsafe fn read_kf_ymode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> MB_PREDICTION_MODE {
     unsafe {
         let i: i32 =
-            vp8_treed_read(bc, &raw const vp8_kf_ymode_tree as *const vp8_tree_index, p)
-                as i32;
+            vp8_treed_read(bc, &raw const vp8_kf_ymode_tree as *const vp8_tree_index, p) as i32;
         i as MB_PREDICTION_MODE
     }
 }
-unsafe fn read_uv_mode(
-    mut bc: *mut vp8_reader,
-    mut p: *const vp8_prob,
-) -> MB_PREDICTION_MODE {
+unsafe fn read_uv_mode(mut bc: *mut vp8_reader, mut p: *const vp8_prob) -> MB_PREDICTION_MODE {
     unsafe {
         let i: i32 =
-            vp8_treed_read(bc, &raw const vp8_uv_mode_tree as *const vp8_tree_index, p)
-                as i32;
+            vp8_treed_read(bc, &raw const vp8_uv_mode_tree as *const vp8_tree_index, p) as i32;
         i as MB_PREDICTION_MODE
     }
 }
 unsafe fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
     unsafe {
-        let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-            .offset(8 as isize)
-            as *mut vp8_reader;
+        let bc: *mut vp8_reader =
+            (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut vp8_reader;
         let mis: i32 = (*pbi).common.mode_info_stride;
         (*mi).mbmi.ref_frame = INTRA_FRAME as uint8_t;
         (*mi).mbmi.mode =
@@ -761,10 +706,7 @@ unsafe fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
             read_uv_mode(bc, &raw const vp8_kf_uv_mode_prob as *const vp8_prob) as uint8_t;
     }
 }
-unsafe fn read_mvcomponent(
-    mut r: *mut vp8_reader,
-    mut mvc: *const MV_CONTEXT,
-) -> i32 {
+unsafe fn read_mvcomponent(mut r: *mut vp8_reader, mut mvc: *const MV_CONTEXT) -> i32 {
     unsafe {
         let p: *const vp8_prob = mvc as *const vp8_prob;
         let mut x: i32 = 0 as i32;
@@ -798,8 +740,7 @@ unsafe fn read_mvcomponent(
             if x & 0xfff0 as i32 == 0
                 || vp8dx_decode_bool(
                     r as *mut BOOL_DECODER,
-                    *p.offset((MVPbits as i32 + 3 as i32) as isize)
-                        as i32,
+                    *p.offset((MVPbits as i32 + 3 as i32) as isize) as i32,
                 ) != 0
             {
                 x += 8 as i32;
@@ -812,10 +753,7 @@ unsafe fn read_mvcomponent(
             );
         }
         if x != 0
-            && vp8dx_decode_bool(
-                r as *mut BOOL_DECODER,
-                *p.offset(MVPsign as isize) as i32,
-            ) != 0
+            && vp8dx_decode_bool(r as *mut BOOL_DECODER, *p.offset(MVPsign as isize) as i32) != 0
         {
             x = -x;
         }
@@ -844,8 +782,7 @@ unsafe fn read_mvcontexts(mut bc: *mut vp8_reader, mut mvc: *mut MV_CONTEXT) {
                 up = up.offset(1);
                 if vp8dx_decode_bool(bc as *mut BOOL_DECODER, *fresh2 as i32) != 0 {
                     let x: vp8_prob =
-                        vp8_decode_value(bc as *mut BOOL_DECODER, 7 as i32)
-                            as vp8_prob;
+                        vp8_decode_value(bc as *mut BOOL_DECODER, 7 as i32) as vp8_prob;
                     *p = (if x as i32 != 0 {
                         (x as i32) << 1 as i32
                     } else {
@@ -864,91 +801,29 @@ unsafe fn read_mvcontexts(mut bc: *mut vp8_reader, mut mvc: *mut MV_CONTEXT) {
         }
     }
 }
-static mut mbsplit_fill_count: [u8; 4] = [
-    8 as u8,
-    8 as u8,
-    4 as u8,
-    1 as u8,
-];
+static mut mbsplit_fill_count: [u8; 4] = [8 as u8, 8 as u8, 4 as u8, 1 as u8];
 static mut mbsplit_fill_offset: [[u8; 16]; 4] = [
     [
-        0 as u8,
-        1 as u8,
-        2 as u8,
-        3 as u8,
-        4 as u8,
-        5 as u8,
-        6 as u8,
-        7 as u8,
-        8 as u8,
-        9 as u8,
-        10 as u8,
-        11 as u8,
-        12 as u8,
-        13 as u8,
-        14 as u8,
-        15 as u8,
+        0 as u8, 1 as u8, 2 as u8, 3 as u8, 4 as u8, 5 as u8, 6 as u8, 7 as u8, 8 as u8, 9 as u8,
+        10 as u8, 11 as u8, 12 as u8, 13 as u8, 14 as u8, 15 as u8,
     ],
     [
-        0 as u8,
-        1 as u8,
-        4 as u8,
-        5 as u8,
-        8 as u8,
-        9 as u8,
-        12 as u8,
-        13 as u8,
-        2 as u8,
-        3 as u8,
-        6 as u8,
-        7 as u8,
-        10 as u8,
-        11 as u8,
-        14 as u8,
-        15 as u8,
+        0 as u8, 1 as u8, 4 as u8, 5 as u8, 8 as u8, 9 as u8, 12 as u8, 13 as u8, 2 as u8, 3 as u8,
+        6 as u8, 7 as u8, 10 as u8, 11 as u8, 14 as u8, 15 as u8,
     ],
     [
-        0 as u8,
-        1 as u8,
-        4 as u8,
-        5 as u8,
-        2 as u8,
-        3 as u8,
-        6 as u8,
-        7 as u8,
-        8 as u8,
-        9 as u8,
-        12 as u8,
-        13 as u8,
-        10 as u8,
-        11 as u8,
-        14 as u8,
-        15 as u8,
+        0 as u8, 1 as u8, 4 as u8, 5 as u8, 2 as u8, 3 as u8, 6 as u8, 7 as u8, 8 as u8, 9 as u8,
+        12 as u8, 13 as u8, 10 as u8, 11 as u8, 14 as u8, 15 as u8,
     ],
     [
-        0 as u8,
-        1 as u8,
-        2 as u8,
-        3 as u8,
-        4 as u8,
-        5 as u8,
-        6 as u8,
-        7 as u8,
-        8 as u8,
-        9 as u8,
-        10 as u8,
-        11 as u8,
-        12 as u8,
-        13 as u8,
-        14 as u8,
-        15 as u8,
+        0 as u8, 1 as u8, 2 as u8, 3 as u8, 4 as u8, 5 as u8, 6 as u8, 7 as u8, 8 as u8, 9 as u8,
+        10 as u8, 11 as u8, 12 as u8, 13 as u8, 14 as u8, 15 as u8,
     ],
 ];
 unsafe fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) {
     unsafe {
-        let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-            .offset(8 as isize)
-            as *mut vp8_reader;
+        let bc: *mut vp8_reader =
+            (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut vp8_reader;
         let mvc: *mut MV_CONTEXT = &raw mut (*pbi).common.fc.mvc as *mut MV_CONTEXT;
         (*pbi).common.mb_no_coeff_skip =
             vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as i32);
@@ -957,35 +832,26 @@ unsafe fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) {
             (*pbi).prob_skip_false =
                 vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32) as vp8_prob;
         }
-        if (*pbi).common.frame_type as u32
-            != KEY_FRAME as u32
-        {
-            (*pbi).prob_intra =
-                vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32) as vp8_prob;
-            (*pbi).prob_last =
-                vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32) as vp8_prob;
-            (*pbi).prob_gf =
-                vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32) as vp8_prob;
-            if vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as i32) != 0
-            {
+        if (*pbi).common.frame_type as u32 != KEY_FRAME as u32 {
+            (*pbi).prob_intra = vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32) as vp8_prob;
+            (*pbi).prob_last = vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32) as vp8_prob;
+            (*pbi).prob_gf = vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32) as vp8_prob;
+            if vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as i32) != 0 {
                 let mut i: i32 = 0 as i32;
                 loop {
                     (*pbi).common.fc.ymode_prob[i as usize] =
-                        vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32)
-                            as vp8_prob;
+                        vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32) as vp8_prob;
                     i += 1;
                     if !(i < 4 as i32) {
                         break;
                     }
                 }
             }
-            if vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as i32) != 0
-            {
+            if vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as i32) != 0 {
                 let mut i_0: i32 = 0 as i32;
                 loop {
                     (*pbi).common.fc.uv_mode_prob[i_0 as usize] =
-                        vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32)
-                            as vp8_prob;
+                        vp8_decode_value(bc as *mut BOOL_DECODER, 8 as i32) as vp8_prob;
                     i_0 += 1;
                     if !(i_0 < 3 as i32) {
                         break;
@@ -998,46 +864,14 @@ unsafe fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) {
 }
 #[unsafe(no_mangle)]
 pub static mut vp8_sub_mv_ref_prob3: [[vp8_prob; 3]; 8] = [
-    [
-        147 as vp8_prob,
-        136 as vp8_prob,
-        18 as vp8_prob,
-    ],
-    [
-        223 as vp8_prob,
-        1 as vp8_prob,
-        34 as vp8_prob,
-    ],
-    [
-        106 as vp8_prob,
-        145 as vp8_prob,
-        1 as vp8_prob,
-    ],
-    [
-        208 as vp8_prob,
-        1 as vp8_prob,
-        1 as vp8_prob,
-    ],
-    [
-        179 as vp8_prob,
-        121 as vp8_prob,
-        1 as vp8_prob,
-    ],
-    [
-        223 as vp8_prob,
-        1 as vp8_prob,
-        34 as vp8_prob,
-    ],
-    [
-        179 as vp8_prob,
-        121 as vp8_prob,
-        1 as vp8_prob,
-    ],
-    [
-        208 as vp8_prob,
-        1 as vp8_prob,
-        1 as vp8_prob,
-    ],
+    [147 as vp8_prob, 136 as vp8_prob, 18 as vp8_prob],
+    [223 as vp8_prob, 1 as vp8_prob, 34 as vp8_prob],
+    [106 as vp8_prob, 145 as vp8_prob, 1 as vp8_prob],
+    [208 as vp8_prob, 1 as vp8_prob, 1 as vp8_prob],
+    [179 as vp8_prob, 121 as vp8_prob, 1 as vp8_prob],
+    [223 as vp8_prob, 1 as vp8_prob, 34 as vp8_prob],
+    [179 as vp8_prob, 121 as vp8_prob, 1 as vp8_prob],
+    [208 as vp8_prob, 1 as vp8_prob, 1 as vp8_prob],
 ];
 unsafe fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> *const vp8_prob {
     unsafe {
@@ -1045,9 +879,9 @@ unsafe fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> *const vp8_pro
         let mut aez: i32 = (above == 0 as uint32_t) as i32;
         let mut lea: i32 = (left == above) as i32;
         let mut prob: *const vp8_prob = ::core::ptr::null::<vp8_prob>();
-        prob = &raw const *(&raw const vp8_sub_mv_ref_prob3 as *const [vp8_prob; 3]).offset(
-            (aez << 2 as i32 | lez << 1 as i32 | lea) as isize,
-        ) as *const vp8_prob;
+        prob = &raw const *(&raw const vp8_sub_mv_ref_prob3 as *const [vp8_prob; 3])
+            .offset((aez << 2 as i32 | lez << 1 as i32 | lea) as isize)
+            as *const vp8_prob;
         prob
     }
 }
@@ -1122,38 +956,23 @@ unsafe fn decode_split_mv(
                 .as_int;
             }
             prob = get_sub_mv_ref_prob(leftmv.as_int, abovemv.as_int);
-            if vp8dx_decode_bool(
-                bc as *mut BOOL_DECODER,
-                *prob.offset(0 as isize) as i32,
-            ) != 0
-            {
-                if vp8dx_decode_bool(
-                    bc as *mut BOOL_DECODER,
-                    *prob.offset(1 as isize) as i32,
-                ) != 0
+            if vp8dx_decode_bool(bc as *mut BOOL_DECODER, *prob.offset(0 as isize) as i32) != 0 {
+                if vp8dx_decode_bool(bc as *mut BOOL_DECODER, *prob.offset(1 as isize) as i32) != 0
                 {
                     blockmv.as_int = 0 as uint32_t;
-                    if vp8dx_decode_bool(
-                        bc as *mut BOOL_DECODER,
-                        *prob.offset(2 as isize) as i32,
-                    ) != 0
+                    if vp8dx_decode_bool(bc as *mut BOOL_DECODER, *prob.offset(2 as isize) as i32)
+                        != 0
                     {
-                        blockmv.as_mv.row = (read_mvcomponent(
-                            bc,
-                            mvc.offset(0 as isize) as *mut MV_CONTEXT,
-                        ) * 2 as i32)
-                            as i16;
-                        blockmv.as_mv.row = (blockmv.as_mv.row as i32
-                            + best_mv.as_mv.row as i32)
-                            as i16;
-                        blockmv.as_mv.col = (read_mvcomponent(
-                            bc,
-                            mvc.offset(1 as isize) as *mut MV_CONTEXT,
-                        ) * 2 as i32)
-                            as i16;
-                        blockmv.as_mv.col = (blockmv.as_mv.col as i32
-                            + best_mv.as_mv.col as i32)
-                            as i16;
+                        blockmv.as_mv.row =
+                            (read_mvcomponent(bc, mvc.offset(0 as isize) as *mut MV_CONTEXT)
+                                * 2 as i32) as i16;
+                        blockmv.as_mv.row =
+                            (blockmv.as_mv.row as i32 + best_mv.as_mv.row as i32) as i16;
+                        blockmv.as_mv.col =
+                            (read_mvcomponent(bc, mvc.offset(1 as isize) as *mut MV_CONTEXT)
+                                * 2 as i32) as i16;
+                        blockmv.as_mv.col =
+                            (blockmv.as_mv.col as i32 + best_mv.as_mv.col as i32) as i16;
                     }
                 } else {
                     blockmv.as_int = abovemv.as_int;
@@ -1169,17 +988,14 @@ unsafe fn decode_split_mv(
                     mb_to_top_edge,
                     mb_to_bottom_edge,
                 )) as uint8_t;
-            let mut fill_offset: *const u8 =
-                ::core::ptr::null::<u8>();
-            let mut fill_count: u32 =
-                mbsplit_fill_count[s as usize] as u32;
-            fill_offset = (&raw const *(&raw const mbsplit_fill_offset
-                as *const [u8; 16])
+            let mut fill_offset: *const u8 = ::core::ptr::null::<u8>();
+            let mut fill_count: u32 = mbsplit_fill_count[s as usize] as u32;
+            fill_offset = (&raw const *(&raw const mbsplit_fill_offset as *const [u8; 16])
                 .offset(s as isize) as *const u8)
                 .offset(
                     (j as i32
-                        * *(&raw const mbsplit_fill_count as *const u8)
-                            .offset(s as isize) as i32) as isize,
+                        * *(&raw const mbsplit_fill_count as *const u8).offset(s as isize) as i32)
+                        as isize,
                 ) as *const u8;
             loop {
                 (*mi).bmi[*fill_offset as usize].mv.as_int = blockmv.as_int;
@@ -1203,13 +1019,10 @@ unsafe fn read_mb_modes_mv(
     mut mbmi: *mut MB_MODE_INFO,
 ) {
     unsafe {
-        let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-            .offset(8 as isize)
-            as *mut vp8_reader;
-        (*mbmi).ref_frame = vp8dx_decode_bool(
-            bc as *mut BOOL_DECODER,
-            (*pbi).prob_intra as i32,
-        ) as uint8_t;
+        let bc: *mut vp8_reader =
+            (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut vp8_reader;
+        (*mbmi).ref_frame =
+            vp8dx_decode_bool(bc as *mut BOOL_DECODER, (*pbi).prob_intra as i32) as uint8_t;
         if (*mbmi).ref_frame != 0 {
             let mut cnt: [i32; 4] = [0; 4];
             let mut cntx: *mut i32 = &raw mut cnt as *mut i32;
@@ -1222,16 +1035,10 @@ unsafe fn read_mb_modes_mv(
             let mut ref_frame_sign_bias: *mut i32 =
                 &raw mut (*pbi).common.ref_frame_sign_bias as *mut i32;
             (*mbmi).need_to_clamp_mvs = 0 as uint8_t;
-            if vp8dx_decode_bool(
-                bc as *mut BOOL_DECODER,
-                (*pbi).prob_last as i32,
-            ) != 0
-            {
+            if vp8dx_decode_bool(bc as *mut BOOL_DECODER, (*pbi).prob_last as i32) != 0 {
                 (*mbmi).ref_frame = (2 as i32
-                    + vp8dx_decode_bool(
-                        bc as *mut BOOL_DECODER,
-                        (*pbi).prob_gf as i32,
-                    )) as uint8_t;
+                    + vp8dx_decode_bool(bc as *mut BOOL_DECODER, (*pbi).prob_gf as i32))
+                    as uint8_t;
             }
             let fresh0 = &mut (*nmv.offset(2 as isize)).as_int;
             *fresh0 = 0 as uint32_t;
@@ -1276,9 +1083,7 @@ unsafe fn read_mb_modes_mv(
                     cnt[CNT_INTRA as usize] += 2 as i32;
                 }
             }
-            if (*aboveleft).mbmi.ref_frame as i32
-                != INTRA_FRAME as i32
-            {
+            if (*aboveleft).mbmi.ref_frame as i32 != INTRA_FRAME as i32 {
                 if (*aboveleft).mbmi.mv.as_int != 0 {
                     let mut this_mv_0: int_mv = int_mv { as_int: 0 };
                     this_mv_0.as_int = (*aboveleft).mbmi.mv.as_int;
@@ -1300,40 +1105,28 @@ unsafe fn read_mb_modes_mv(
             }
             if vp8dx_decode_bool(
                 bc as *mut BOOL_DECODER,
-                vp8_mode_contexts[cnt[CNT_INTRA as usize] as usize]
-                    [0 as usize],
+                vp8_mode_contexts[cnt[CNT_INTRA as usize] as usize][0 as usize],
             ) != 0
             {
-                cnt[CNT_NEAREST as usize] += (cnt
-                    [CNT_SPLITMV as usize]
-                    > 0 as i32)
-                    as i32
-                    & ((*nmv).as_int == near_mvs[CNT_NEAREST as usize].as_int)
-                        as i32;
-                if cnt[CNT_NEAR as usize]
-                    > cnt[CNT_NEAREST as usize]
-                {
+                cnt[CNT_NEAREST as usize] += (cnt[CNT_SPLITMV as usize] > 0 as i32) as i32
+                    & ((*nmv).as_int == near_mvs[CNT_NEAREST as usize].as_int) as i32;
+                if cnt[CNT_NEAR as usize] > cnt[CNT_NEAREST as usize] {
                     let mut tmp: i32 = 0;
                     tmp = cnt[CNT_NEAREST as usize];
-                    cnt[CNT_NEAREST as usize] =
-                        cnt[CNT_NEAR as usize];
+                    cnt[CNT_NEAREST as usize] = cnt[CNT_NEAR as usize];
                     cnt[CNT_NEAR as usize] = tmp;
-                    tmp = near_mvs[CNT_NEAREST as usize].as_int
-                        as i32;
-                    near_mvs[CNT_NEAREST as usize].as_int =
-                        near_mvs[CNT_NEAR as usize].as_int;
+                    tmp = near_mvs[CNT_NEAREST as usize].as_int as i32;
+                    near_mvs[CNT_NEAREST as usize].as_int = near_mvs[CNT_NEAR as usize].as_int;
                     near_mvs[CNT_NEAR as usize].as_int = tmp as uint32_t;
                 }
                 if vp8dx_decode_bool(
                     bc as *mut BOOL_DECODER,
-                    vp8_mode_contexts[cnt[CNT_NEAREST as usize] as usize]
-                        [1 as usize],
+                    vp8_mode_contexts[cnt[CNT_NEAREST as usize] as usize][1 as usize],
                 ) != 0
                 {
                     if vp8dx_decode_bool(
                         bc as *mut BOOL_DECODER,
-                        vp8_mode_contexts[cnt[CNT_NEAR as usize] as usize]
-                            [2 as usize],
+                        vp8_mode_contexts[cnt[CNT_NEAR as usize] as usize][2 as usize],
                     ) != 0
                     {
                         let mut mb_to_top_edge: i32 = 0;
@@ -1351,30 +1144,20 @@ unsafe fn read_mb_modes_mv(
                         mb_to_left_edge = (*pbi).mb.mb_to_left_edge;
                         mb_to_left_edge -= LEFT_TOP_MARGIN;
                         near_index = CNT_INTRA as i32
-                            + (cnt[CNT_NEAREST as usize]
-                                >= cnt[CNT_INTRA as usize])
-                                as i32;
+                            + (cnt[CNT_NEAREST as usize] >= cnt[CNT_INTRA as usize]) as i32;
                         vp8_clamp_mv2(
                             (&raw mut near_mvs as *mut int_mv).offset(near_index as isize)
                                 as *mut int_mv,
                             &raw mut (*pbi).mb,
                         );
-                        cnt[CNT_SPLITMV as usize] = (((*above).mbmi.mode
+                        cnt[CNT_SPLITMV as usize] = (((*above).mbmi.mode as i32 == SPLITMV as i32)
                             as i32
-                            == SPLITMV as i32)
-                            as i32
-                            + ((*left).mbmi.mode as i32
-                                == SPLITMV as i32)
-                                as i32)
+                            + ((*left).mbmi.mode as i32 == SPLITMV as i32) as i32)
                             * 2 as i32
-                            + ((*aboveleft).mbmi.mode as i32
-                                == SPLITMV as i32)
-                                as i32;
+                            + ((*aboveleft).mbmi.mode as i32 == SPLITMV as i32) as i32;
                         if vp8dx_decode_bool(
                             bc as *mut BOOL_DECODER,
-                            vp8_mode_contexts
-                                [cnt[CNT_SPLITMV as usize] as usize]
-                                [3 as usize],
+                            vp8_mode_contexts[cnt[CNT_SPLITMV as usize] as usize][3 as usize],
                         ) != 0
                         {
                             decode_split_mv(
@@ -1390,8 +1173,7 @@ unsafe fn read_mb_modes_mv(
                                 mb_to_top_edge,
                                 mb_to_bottom_edge,
                             );
-                            (*mbmi).mv.as_int =
-                                (*mi).bmi[15 as usize].mv.as_int;
+                            (*mbmi).mv.as_int = (*mi).bmi[15 as usize].mv.as_int;
                             (*mbmi).mode = SPLITMV as uint8_t;
                             (*mbmi).is_4x4 = 1 as uint8_t;
                         } else {
@@ -1414,8 +1196,7 @@ unsafe fn read_mb_modes_mv(
                         }
                     } else {
                         (*mbmi).mode = NEARMV as uint8_t;
-                        (*mbmi).mv.as_int =
-                            near_mvs[CNT_NEAR as usize].as_int;
+                        (*mbmi).mv.as_int = near_mvs[CNT_NEAR as usize].as_int;
                         vp8_clamp_mv2(&raw mut (*mbmi).mv, &raw mut (*pbi).mb);
                     }
                 } else {
@@ -1455,9 +1236,7 @@ unsafe fn read_mb_features(
     mut x: *mut MACROBLOCKD,
 ) {
     unsafe {
-        if (*x).segmentation_enabled as i32 != 0
-            && (*x).update_mb_segmentation_map as i32 != 0
-        {
+        if (*x).segmentation_enabled as i32 != 0 && (*x).update_mb_segmentation_map as i32 != 0 {
             if vp8dx_decode_bool(
                 r as *mut BOOL_DECODER,
                 (*x).mb_segment_tree_probs[0 as usize] as i32,
@@ -1466,14 +1245,12 @@ unsafe fn read_mb_features(
                 (*mi).segment_id = (2 as i32
                     + vp8dx_decode_bool(
                         r as *mut BOOL_DECODER,
-                        (*x).mb_segment_tree_probs[2 as usize]
-                            as i32,
+                        (*x).mb_segment_tree_probs[2 as usize] as i32,
                     )) as uint8_t;
             } else {
                 (*mi).segment_id = vp8dx_decode_bool(
                     r as *mut BOOL_DECODER,
-                    (*x).mb_segment_tree_probs[1 as usize]
-                        as i32,
+                    (*x).mb_segment_tree_probs[1 as usize] as i32,
                 ) as uint8_t;
             }
         }
@@ -1483,29 +1260,23 @@ unsafe fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
     unsafe {
         if (*pbi).mb.update_mb_segmentation_map != 0 {
             read_mb_features(
-                (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize)
-                    as *mut vp8_reader,
+                (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut vp8_reader,
                 &raw mut (*mi).mbmi,
                 &raw mut (*pbi).mb,
             );
-        } else if (*pbi).common.frame_type as u32
-            == KEY_FRAME as u32
-        {
+        } else if (*pbi).common.frame_type as u32 == KEY_FRAME as u32 {
             (*mi).mbmi.segment_id = 0 as uint8_t;
         }
         if (*pbi).common.mb_no_coeff_skip != 0 {
             (*mi).mbmi.mb_skip_coeff = vp8dx_decode_bool(
-                (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize)
-                    as *mut BOOL_DECODER,
+                (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut BOOL_DECODER,
                 (*pbi).prob_skip_false as i32,
             ) as uint8_t;
         } else {
             (*mi).mbmi.mb_skip_coeff = 0 as uint8_t;
         }
         (*mi).mbmi.is_4x4 = 0 as uint8_t;
-        if (*pbi).common.frame_type as u32
-            == KEY_FRAME as u32
-        {
+        if (*pbi).common.frame_type as u32 == KEY_FRAME as u32 {
             read_kf_modes(pbi, mi);
         } else {
             read_mb_modes_mv(pbi, mi, &raw mut (*mi).mbmi);
@@ -1520,12 +1291,8 @@ pub unsafe fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) {
         let mut mb_to_right_edge_start: i32 = 0;
         mb_mode_mv_init(pbi);
         (*pbi).mb.mb_to_top_edge = 0 as i32;
-        (*pbi).mb.mb_to_bottom_edge = (((*pbi).common.mb_rows - 1 as i32)
-            * 16 as i32)
-            << 3 as i32;
-        mb_to_right_edge_start = (((*pbi).common.mb_cols - 1 as i32)
-            * 16 as i32)
-            << 3 as i32;
+        (*pbi).mb.mb_to_bottom_edge = (((*pbi).common.mb_rows - 1 as i32) * 16 as i32) << 3 as i32;
+        mb_to_right_edge_start = (((*pbi).common.mb_cols - 1 as i32) * 16 as i32) << 3 as i32;
         loop {
             mb_row += 1;
             if !(mb_row < (*pbi).common.mb_rows) {
