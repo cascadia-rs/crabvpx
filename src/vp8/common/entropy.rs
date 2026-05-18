@@ -81,7 +81,7 @@ pub const DCT_VAL_CATEGORY5: ::core::ffi::c_int = 9 as ::core::ffi::c_int;
 pub const DCT_VAL_CATEGORY6: ::core::ffi::c_int = 10 as ::core::ffi::c_int;
 pub const DCT_EOB_TOKEN: ::core::ffi::c_int = 11 as ::core::ffi::c_int;
 #[unsafe(no_mangle)]
-pub static mut vp8_coef_update_probs: [[[[vp8_prob; 11]; 3]; 8]; 4] = [
+pub static vp8_coef_update_probs: [[[[vp8_prob; 11]; 3]; 8]; 4] = [
     [
         [
             [
@@ -1754,7 +1754,7 @@ pub static mut vp8_default_zig_zag_mask: [::core::ffi::c_short; 16] = [
     -(32768 as ::core::ffi::c_int) as ::core::ffi::c_short,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_mb_feature_data_bits: [::core::ffi::c_int; 2] =
+pub static vp8_mb_feature_data_bits: [::core::ffi::c_int; 2] =
     [7 as ::core::ffi::c_int, 6 as ::core::ffi::c_int];
 #[unsafe(no_mangle)]
 pub static mut vp8_coef_tree: [vp8_tree_index; 22] = [

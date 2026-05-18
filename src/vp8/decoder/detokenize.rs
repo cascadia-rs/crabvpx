@@ -1,12 +1,4 @@
-unsafe extern "C" {
-    static vp8_norm: [::core::ffi::c_uchar; 256];
-    fn vp8dx_bool_decoder_fill(br: *mut BOOL_DECODER);
-    fn memset(
-        __b: *mut ::core::ffi::c_void,
-        __c: ::core::ffi::c_int,
-        __len: size_t,
-    ) -> *mut ::core::ffi::c_void;
-}
+
 pub type vpx_color_space = ::core::ffi::c_uint;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
 pub const VPX_CS_RESERVED: vpx_color_space = 6;

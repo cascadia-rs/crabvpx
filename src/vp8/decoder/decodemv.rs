@@ -2,9 +2,7 @@ use crate::vp8::common::entropymv::vp8_mv_update_probs;
 use crate::vp8::decoder::dboolhuff::SafeBoolDecoder;
 use crate::vp8::common::entropymode::{vp8_bmode_tree, vp8_ymode_tree, vp8_kf_ymode_tree, vp8_uv_mode_tree, vp8_small_mvtree, vp8_kf_bmode_prob, vp8_kf_uv_mode_prob, vp8_kf_ymode_prob};
 
-unsafe extern "C" {
-    static vp8_norm: [::core::ffi::c_uchar; 256];
-}
+
 use crate::vp8::common::modecont::vp8_mode_contexts;
 use crate::vp8::common::findnearmv::{vp8_mbsplit_offset, vp8_clamp_mv2, LEFT_TOP_MARGIN, RIGHT_BOTTOM_MARGIN};
 pub type __darwin_natural_t = ::core::ffi::c_uint;

@@ -1,4 +1,5 @@
 use crate::vp8::decoder::dboolhuff::SafeBoolDecoder;
+use crate::vp8::common::entropy::{vp8_coef_update_probs, vp8_mb_feature_data_bits};
 use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_context};
 use crate::vp8::decoder::decodemv::vp8_decode_mode_mvs;
 use crate::vp8::common::vp8_loopfilter::{vp8_loop_filter_frame_init, vp8_loop_filter_row_normal_safe, vp8_loop_filter_row_simple_safe};
@@ -87,7 +88,6 @@ unsafe extern "C" {
         dst_ptr: *mut ::core::ffi::c_uchar,
         dst_pitch: ::core::ffi::c_int,
     );
-    static vp8_norm: [::core::ffi::c_uchar; 256];
 
     fn vpx_internal_error(
         info: *mut vpx_internal_error_info,
@@ -97,8 +97,7 @@ unsafe extern "C" {
     );
 
 
-    static vp8_coef_update_probs: [[[[vp8_prob; 11]; 3]; 8]; 4];
-    static vp8_mb_feature_data_bits: [::core::ffi::c_int; 2];
+
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -1197,8 +1196,7 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
     let mut j: ::core::ffi::c_int = 0;
     let mut k: ::core::ffi::c_int = 0;
     let mut l: ::core::ffi::c_int = 0;
-    let mb_feature_data_bits: *const ::core::ffi::c_int =
-        &raw const vp8_mb_feature_data_bits as *const ::core::ffi::c_int;
+
     let mut corrupt_tokens: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     let mut prev_independent_partitions: ::core::ffi::c_int = (*pbi).independent_partitions;
     let mut yv12_fb_new: *mut YV12_BUFFER_CONFIG =
@@ -1388,7 +1386,7 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
                 j = 0 as ::core::ffi::c_int;
                 while j < MAX_MB_SEGMENTS {
                     if safe_decoder.read_bool(vp8_prob_half as i32) != 0 {
-                        (*xd).segment_feature_data[i as usize][j as usize] = safe_decoder.read_literal(*mb_feature_data_bits.offset(i as isize)) as ::core::ffi::c_schar;
+                        (*xd).segment_feature_data[i as usize][j as usize] = safe_decoder.read_literal(vp8_mb_feature_data_bits[i as usize]) as ::core::ffi::c_schar;
                         if safe_decoder.read_bool(vp8_prob_half as i32) != 0 {
                             (*xd).segment_feature_data[i as usize][j as usize] = -((*xd)
                                 .segment_feature_data[i as usize][j as usize]
