@@ -151,33 +151,19 @@ fn GetCoeffs(
     }
 }
 pub fn vp8_decode_mb_tokens(
-    pbi_mut: &mut VP8D_COMP,
-    x_ref: &mut MACROBLOCKD,
-) -> ::core::ffi::c_int { unsafe {
-    let bc = &mut pbi_mut.mbc[x_ref.current_bc_idx];
-    let len = bc.user_buffer_end.offset_from(bc.user_buffer) as usize;
-    let slice = if len == 0 {
-        &[]
-    } else {
-        core::slice::from_raw_parts(bc.user_buffer, len)
-    };
-    let mut safe_decoder = crate::vp8::decoder::dboolhuff::SafeBoolDecoder {
-        buffer: slice,
-        offset: 0,
-        value: bc.value,
-        count: bc.count,
-        range: bc.range,
-        decrypt_cb: bc.decrypt_cb,
-        decrypt_state: bc.decrypt_state,
-    };
-    let fc_ref = &pbi_mut.common.fc;
-    let a_ctx = &mut *x_ref.above_context;
-    let l_ctx = &mut *x_ref.left_context;
-    let mode_info = &*x_ref.mode_info_context;
+    bc: &mut BOOL_DECODER,
+    fc_ref: &FRAME_CONTEXT,
+    qcoeff: &mut [i16; 400],
+    eobs: &mut [::core::ffi::c_char; 25],
+    a_ctx: &mut ENTROPY_CONTEXT_PLANES,
+    l_ctx: &mut ENTROPY_CONTEXT_PLANES,
+    is_4x4: bool,
+) -> ::core::ffi::c_int {
+    let mut safe_decoder = crate::vp8::decoder::dboolhuff::SafeBoolDecoder::from_bool_decoder(bc);
     let mut eobtotal: ::core::ffi::c_int = 0;
 
     let mut skip_dc: ::core::ffi::c_int = 0;
-    if mode_info.mbmi.is_4x4 == 0 {
+    if !is_4x4 {
         let coef_probs = &fc_ref.coef_probs[1];
         let ctx = a_ctx.y2 as ::core::ffi::c_int + l_ctx.y2 as ::core::ffi::c_int;
         let nonzeros = GetCoeffs(
@@ -185,19 +171,19 @@ pub fn vp8_decode_mb_tokens(
             coef_probs,
             ctx,
             0,
-            &mut x_ref.qcoeff[24 * 16 .. 25 * 16],
+            &mut qcoeff[24 * 16 .. 25 * 16],
         );
         let nonzero_bool = (nonzeros > 0) as ::core::ffi::c_int as ENTROPY_CONTEXT;
         l_ctx.y2 = nonzero_bool;
         a_ctx.y2 = nonzero_bool;
-        x_ref.eobs[24] = nonzeros as ::core::ffi::c_char;
+        eobs[24] = nonzeros as ::core::ffi::c_char;
         eobtotal += nonzeros - 16;
         skip_dc = 1;
     } else {
         skip_dc = 0;
     }
 
-    let coef_probs_y1 = if mode_info.mbmi.is_4x4 == 0 {
+    let coef_probs_y1 = if !is_4x4 {
         &fc_ref.coef_probs[0]
     } else {
         &fc_ref.coef_probs[3]
@@ -212,13 +198,13 @@ pub fn vp8_decode_mb_tokens(
             coef_probs_y1,
             ctx,
             skip_dc,
-            &mut x_ref.qcoeff[(i * 16) as usize .. ((i + 1) * 16) as usize],
+            &mut qcoeff[(i * 16) as usize .. ((i + 1) * 16) as usize],
         );
         let nonzero_bool = (nonzeros > 0) as ::core::ffi::c_int as ENTROPY_CONTEXT;
         l_ctx.y1[row] = nonzero_bool;
         a_ctx.y1[col] = nonzero_bool;
         let eob_val = nonzeros + skip_dc;
-        x_ref.eobs[i as usize] = eob_val as ::core::ffi::c_char;
+        eobs[i as usize] = eob_val as ::core::ffi::c_char;
         eobtotal += eob_val;
     }
 
@@ -233,12 +219,12 @@ pub fn vp8_decode_mb_tokens(
             coef_probs_uv,
             ctx,
             0,
-            &mut x_ref.qcoeff[(i * 16) as usize .. ((i + 1) * 16) as usize],
+            &mut qcoeff[(i * 16) as usize .. ((i + 1) * 16) as usize],
         );
         let nonzero_bool = (nonzeros > 0) as ::core::ffi::c_int as ENTROPY_CONTEXT;
         l_ctx.u[row] = nonzero_bool;
         a_ctx.u[col] = nonzero_bool;
-        x_ref.eobs[i as usize] = nonzeros as ::core::ffi::c_char;
+        eobs[i as usize] = nonzeros as ::core::ffi::c_char;
         eobtotal += nonzeros;
     }
 
@@ -251,18 +237,15 @@ pub fn vp8_decode_mb_tokens(
             coef_probs_uv,
             ctx,
             0,
-            &mut x_ref.qcoeff[(i * 16) as usize .. ((i + 1) * 16) as usize],
+            &mut qcoeff[(i * 16) as usize .. ((i + 1) * 16) as usize],
         );
         let nonzero_bool = (nonzeros > 0) as ::core::ffi::c_int as ENTROPY_CONTEXT;
         l_ctx.v[row] = nonzero_bool;
         a_ctx.v[col] = nonzero_bool;
-        x_ref.eobs[i as usize] = nonzeros as ::core::ffi::c_char;
+        eobs[i as usize] = nonzeros as ::core::ffi::c_char;
         eobtotal += nonzeros;
     }
 
-    bc.user_buffer = bc.user_buffer.add(safe_decoder.offset);
-    bc.value = safe_decoder.value;
-    bc.count = safe_decoder.count;
-    bc.range = safe_decoder.range;
+    safe_decoder.update_bool_decoder(bc);
     return eobtotal;
-}}
+}

@@ -99,6 +99,34 @@ impl<'a> SafeBoolDecoder<'a> {
         decoder
     }
 
+    pub fn from_bool_decoder(bc: &BOOL_DECODER) -> Self {
+        let slice = unsafe {
+            let len = bc.user_buffer_end.offset_from(bc.user_buffer) as usize;
+            if len == 0 {
+                &[]
+            } else {
+                core::slice::from_raw_parts(bc.user_buffer, len)
+            }
+        };
+        Self {
+            buffer: slice,
+            offset: 0,
+            value: bc.value,
+            count: bc.count,
+            range: bc.range,
+            decrypt_cb: bc.decrypt_cb,
+            decrypt_state: bc.decrypt_state,
+        }
+    }
+
+    pub fn update_bool_decoder(&self, bc: &mut BOOL_DECODER) {
+        bc.user_buffer = unsafe { bc.user_buffer.add(self.offset) };
+        bc.value = self.value;
+        bc.count = self.count;
+        bc.range = self.range;
+    }
+
+
     pub fn fill(&mut self) {
         let mut shift = VP8_BD_VALUE_SIZE - CHAR_BIT - (self.count + CHAR_BIT);
         let bytes_left = self.buffer.len() - self.offset;
