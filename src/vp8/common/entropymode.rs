@@ -283,7 +283,7 @@ pub static mut vp8_small_mvencodings: [vp8_token_struct; 8] = [
     },
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_ymode_prob: [vp8_prob; 4] = [
+pub static vp8_ymode_prob: [vp8_prob; 4] = [
     112 as ::core::ffi::c_int as vp8_prob,
     86 as ::core::ffi::c_int as vp8_prob,
     140 as ::core::ffi::c_int as vp8_prob,
@@ -297,7 +297,7 @@ pub static vp8_kf_ymode_prob: [vp8_prob; 4] = [
     128 as ::core::ffi::c_int as vp8_prob,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_uv_mode_prob: [vp8_prob; 3] = [
+pub static vp8_uv_mode_prob: [vp8_prob; 3] = [
     162 as ::core::ffi::c_int as vp8_prob,
     101 as ::core::ffi::c_int as vp8_prob,
     204 as ::core::ffi::c_int as vp8_prob,
@@ -1465,7 +1465,7 @@ pub unsafe extern "C" fn vp8_mv_cont(
     }
     return SUBMVREF_NORMAL as ::core::ffi::c_int;
 }}
-static mut sub_mv_ref_prob: [vp8_prob; 3] = [
+static sub_mv_ref_prob: [vp8_prob; 3] = [
     180 as ::core::ffi::c_int as vp8_prob,
     162 as ::core::ffi::c_int as vp8_prob,
     25 as ::core::ffi::c_int as vp8_prob,
@@ -1684,24 +1684,11 @@ pub static vp8_small_mvtree: [vp8_tree_index; 14] = [
     -(6 as ::core::ffi::c_int) as vp8_tree_index,
     -(7 as ::core::ffi::c_int) as vp8_tree_index,
 ];
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) { unsafe {
-    memcpy(
-        &raw mut (*x).fc.ymode_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
-        &raw const vp8_ymode_prob as *const vp8_prob as *const ::core::ffi::c_void,
-        ::core::mem::size_of::<[vp8_prob; 4]>() as size_t,
-    );
-    memcpy(
-        &raw mut (*x).fc.uv_mode_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
-        &raw const vp8_uv_mode_prob as *const vp8_prob as *const ::core::ffi::c_void,
-        ::core::mem::size_of::<[vp8_prob; 3]>() as size_t,
-    );
-    memcpy(
-        &raw mut (*x).fc.sub_mv_ref_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
-        &raw const sub_mv_ref_prob as *const vp8_prob as *const ::core::ffi::c_void,
-        ::core::mem::size_of::<[vp8_prob; 3]>() as size_t,
-    );
-}}
+pub fn vp8_init_mbmode_probs(x: &mut VP8_COMMON) {
+    x.fc.ymode_prob.copy_from_slice(&vp8_ymode_prob);
+    x.fc.uv_mode_prob.copy_from_slice(&vp8_uv_mode_prob);
+    x.fc.sub_mv_ref_prob.copy_from_slice(&sub_mv_ref_prob);
+}
 pub fn vp8_default_bmode_probs(dest: &mut [vp8_prob; 9]) {
     dest.copy_from_slice(&vp8_bmode_prob);
 }

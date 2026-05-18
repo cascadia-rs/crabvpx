@@ -1,6 +1,7 @@
 # VP8 Decoder Safety Hints
 
 ## Current Progress (May 2026)
+- **Safe Macroblock Mode Probability Initialization (Complete)**: Refactored `vp8_init_mbmode_probs` in `src/vp8/common/entropymode.rs` to take safe reference `&mut VP8_COMMON` instead of raw pointer. Converted `vp8_ymode_prob`, `vp8_uv_mode_prob`, and `sub_mv_ref_prob` from `static mut` to immutable `static`. Eliminated raw pointer parameters, `extern "C"` linkage, `#[unsafe(no_mangle)]`, and internal `unsafe` block. Updated call sites in `alloccommon.rs` and `decodeframe.rs`. Reduced unsafe count by 3.
 - **Safe Loop Filter Lookup Table Initialization (Complete)**: Refactored `lf_init_lut` in `src/vp8/common/vp8_loopfilter.rs` to take safe reference `&mut loop_filter_info_n` instead of raw pointer. Eliminated internal `unsafe` block and `unsafe extern "C"` linkage. Updated call site in `vp8_loop_filter_init`. Reduced unsafe count by 2.
 - **Immutable Default Motion Vector Context (Complete)**: Converted `vp8_default_mv_context` in `src/vp8/common/entropymv.rs` from `pub static mut` to `pub static` (immutable), paving the way for safe frame initialization.
 - **Safe Macroblock Token Context Reset API (Complete)**: Refactored `vp8_reset_mb_tokens_context` in `src/vp8/decoder/detokenize.rs` to take explicit safe references `&mut ENTROPY_CONTEXT_PLANES` and a `bool` flag instead of `&mut MACROBLOCKD`. This eliminated the internal `unsafe` block needed to dereference raw pointers stored in `MACROBLOCKD`. Updated call sites in `decodeframe.rs` and `threading.rs`. Reduced unsafe count by 1.

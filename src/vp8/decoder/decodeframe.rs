@@ -163,7 +163,6 @@ unsafe extern "C" {
         top_left: ::core::ffi::c_uchar,
     );
     fn vp8_setup_version(cm: *mut VP8_COMMON);
-    fn vp8_init_mbmode_probs(x: *mut VP8_COMMON);
     fn vp8_setup_intra_recon_top_line(ybf: *mut YV12_BUFFER_CONFIG);
     fn vp8_decode_mode_mvs(_: *mut VP8D_COMP);
     fn vp8_extend_mb_row(
@@ -175,6 +174,7 @@ unsafe extern "C" {
     fn vp8mt_decode_mb_rows(pbi: *mut VP8D_COMP, xd: *mut MACROBLOCKD) -> ::core::ffi::c_int;
     fn vp8_decoder_remove_threads(pbi: *mut VP8D_COMP);
 }
+use crate::vp8::common::entropymode::vp8_init_mbmode_probs;
 pub use crate::vp8::common::types::*;
 pub type uint32_t = u32;
 
@@ -1242,7 +1242,7 @@ unsafe extern "C" fn init_frame(mut pbi: *mut VP8D_COMP) { unsafe {
             &raw const vp8_default_mv_context as *const MV_CONTEXT as *const ::core::ffi::c_void,
             ::core::mem::size_of::<[MV_CONTEXT; 2]>() as size_t,
         );
-        vp8_init_mbmode_probs(pc);
+        vp8_init_mbmode_probs(&mut *pc);
         crate::vp8::common::entropy::vp8_default_coef_probs(&mut (*pc).fc.coef_probs);
         memset(
             &raw mut (*xd).segment_feature_data as *mut [::core::ffi::c_schar; 4]

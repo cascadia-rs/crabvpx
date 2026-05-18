@@ -13,10 +13,9 @@ unsafe extern "C" {
         __c: ::core::ffi::c_int,
         __len: size_t,
     ) -> *mut ::core::ffi::c_void;
-    fn vp8_init_mbmode_probs(x: *mut VP8_COMMON);
     fn vp8_machine_specific_config(_: *mut VP8Common);
 }
-use crate::vp8::common::entropymode::vp8_default_bmode_probs;
+use crate::vp8::common::entropymode::{vp8_default_bmode_probs, vp8_init_mbmode_probs};
 
 pub use crate::vp8::common::types::*;
 pub type uint32_t = u32;
@@ -209,7 +208,7 @@ pub unsafe extern "C" fn vp8_setup_version(mut cm: *mut VP8_COMMON) { unsafe {
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_create_common(mut oci: *mut VP8_COMMON) { unsafe {
     vp8_machine_specific_config(oci as *mut VP8Common);
-    vp8_init_mbmode_probs(oci);
+    vp8_init_mbmode_probs(&mut *oci);
     vp8_default_bmode_probs(&mut (*oci).fc.bmode_prob);
     (*oci).mb_no_coeff_skip = 1 as ::core::ffi::c_int;
     (*oci).no_lpf = 0 as ::core::ffi::c_int;
