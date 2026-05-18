@@ -11,7 +11,8 @@ libvpx_config_flags := "--target=generic-gnu --enable-vp8 --disable-vp8-encoder 
 configure:
     git submodule update --init --recursive
     cd libvpx && ./configure {{libvpx_config_flags}}
-    cd libvpx && make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu) vpx
+    cd libvpx && make clean
+    cd libvpx && make -j$(nproc 2>/dev/null || sysctl -n hw.ncpu)
 
 # Run differential testing (Oracle vs Rust)
 compare *args:
