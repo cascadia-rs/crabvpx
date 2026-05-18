@@ -128,70 +128,68 @@ pub fn vp8_yv12_extend_frame_borders_c(ybf: &YV12_BUFFER_CONFIG) { unsafe {
         uv_border + ybf.uv_width - ybf.uv_crop_width,
     );
 }}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_yv12_copy_frame_c(
-    mut src_ybc: *const YV12_BUFFER_CONFIG,
-    mut dst_ybc: *mut YV12_BUFFER_CONFIG,
+pub fn vp8_yv12_copy_frame_c(
+    src_ybc: &YV12_BUFFER_CONFIG,
+    dst_ybc: &mut YV12_BUFFER_CONFIG,
 ) { unsafe {
     let mut row: ::core::ffi::c_int = 0;
-    let mut src: *const uint8_t = (*src_ybc).y_buffer;
-    let mut dst: *mut uint8_t = (*dst_ybc).y_buffer;
+    let mut src: *const uint8_t = src_ybc.y_buffer;
+    let mut dst: *mut uint8_t = dst_ybc.y_buffer;
     row = 0 as ::core::ffi::c_int;
-    while row < (*src_ybc).y_height {
+    while row < src_ybc.y_height {
         memcpy(
             dst as *mut ::core::ffi::c_void,
             src as *const ::core::ffi::c_void,
-            (*src_ybc).y_width as size_t,
+            src_ybc.y_width as size_t,
         );
-        src = src.offset((*src_ybc).y_stride as isize);
-        dst = dst.offset((*dst_ybc).y_stride as isize);
+        src = src.offset(src_ybc.y_stride as isize);
+        dst = dst.offset(dst_ybc.y_stride as isize);
         row += 1;
     }
-    src = (*src_ybc).u_buffer;
-    dst = (*dst_ybc).u_buffer;
+    src = src_ybc.u_buffer;
+    dst = dst_ybc.u_buffer;
     row = 0 as ::core::ffi::c_int;
-    while row < (*src_ybc).uv_height {
+    while row < src_ybc.uv_height {
         memcpy(
             dst as *mut ::core::ffi::c_void,
             src as *const ::core::ffi::c_void,
-            (*src_ybc).uv_width as size_t,
+            src_ybc.uv_width as size_t,
         );
-        src = src.offset((*src_ybc).uv_stride as isize);
-        dst = dst.offset((*dst_ybc).uv_stride as isize);
+        src = src.offset(src_ybc.uv_stride as isize);
+        dst = dst.offset(dst_ybc.uv_stride as isize);
         row += 1;
     }
-    src = (*src_ybc).v_buffer;
-    dst = (*dst_ybc).v_buffer;
+    src = src_ybc.v_buffer;
+    dst = dst_ybc.v_buffer;
     row = 0 as ::core::ffi::c_int;
-    while row < (*src_ybc).uv_height {
+    while row < src_ybc.uv_height {
         memcpy(
             dst as *mut ::core::ffi::c_void,
             src as *const ::core::ffi::c_void,
-            (*src_ybc).uv_width as size_t,
+            src_ybc.uv_width as size_t,
         );
-        src = src.offset((*src_ybc).uv_stride as isize);
-        dst = dst.offset((*dst_ybc).uv_stride as isize);
+        src = src.offset(src_ybc.uv_stride as isize);
+        dst = dst.offset(dst_ybc.uv_stride as isize);
         row += 1;
     }
-    vp8_yv12_extend_frame_borders_c(&*dst_ybc);
+    vp8_yv12_extend_frame_borders_c(dst_ybc);
 }}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_yv12_copy_y_c(
-    mut src_ybc: *const YV12_BUFFER_CONFIG,
-    mut dst_ybc: *mut YV12_BUFFER_CONFIG,
+pub fn vpx_yv12_copy_y_c(
+    src_ybc: &YV12_BUFFER_CONFIG,
+    dst_ybc: &mut YV12_BUFFER_CONFIG,
 ) { unsafe {
     let mut row: ::core::ffi::c_int = 0;
-    let mut src: *const uint8_t = (*src_ybc).y_buffer;
-    let mut dst: *mut uint8_t = (*dst_ybc).y_buffer;
+    let mut src: *const uint8_t = src_ybc.y_buffer;
+    let mut dst: *mut uint8_t = dst_ybc.y_buffer;
     row = 0 as ::core::ffi::c_int;
-    while row < (*src_ybc).y_height {
+    while row < src_ybc.y_height {
         memcpy(
             dst as *mut ::core::ffi::c_void,
             src as *const ::core::ffi::c_void,
-            (*src_ybc).y_width as size_t,
+            src_ybc.y_width as size_t,
         );
-        src = src.offset((*src_ybc).y_stride as isize);
-        dst = dst.offset((*dst_ybc).y_stride as isize);
+        src = src.offset(src_ybc.y_stride as isize);
+        dst = dst.offset(dst_ybc.y_stride as isize);
         row += 1;
     }
 }}

@@ -31,10 +31,10 @@ unsafe extern "C" {
     fn vp8_decoder_create_threads(pbi: *mut VP8D_COMP);
     fn vp8_init_intra_predictors();
     fn vpx_dsp_rtcd();
-    fn vp8_yv12_copy_frame_c(src_ybc: *const yv12_buffer_config, dst_ybc: *mut yv12_buffer_config);
 }
 pub use crate::vp8::common::alloccommon::{vp8_create_common, vp8_remove_common};
 pub use crate::vp8::common::types::*;
+pub use crate::vpx_scale::generic::yv12extend::vp8_yv12_copy_frame_c;
 pub type uint32_t = u32;
 
 pub type uint8_t = u8;
@@ -202,9 +202,8 @@ pub unsafe extern "C" fn vp8dx_get_reference(
         );
     } else {
         vp8_yv12_copy_frame_c(
-            (&raw mut (*cm).yv12_fb as *mut YV12_BUFFER_CONFIG).offset(ref_fb_idx as isize)
-                as *mut YV12_BUFFER_CONFIG,
-            sd as *mut yv12_buffer_config,
+            &(*cm).yv12_fb[ref_fb_idx as usize],
+            &mut *sd,
         );
     }
     return (*pbi).common.error.error_code;
@@ -257,9 +256,8 @@ pub unsafe extern "C" fn vp8dx_set_reference(
             free_fb,
         );
         vp8_yv12_copy_frame_c(
-            sd,
-            (&raw mut (*cm).yv12_fb as *mut YV12_BUFFER_CONFIG).offset(*ref_fb_ptr as isize)
-                as *mut yv12_buffer_config,
+            &*sd,
+            &mut (*cm).yv12_fb[*ref_fb_ptr as usize],
         );
     }
     return (*pbi).common.error.error_code;
@@ -362,12 +360,9 @@ unsafe extern "C" fn check_fragments_for_errors(mut pbi: *mut VP8D_COMP) -> ::co
             let prev_idx: ::core::ffi::c_int = (*cm).lst_fb_idx;
             (*cm).fb_idx_ref_cnt[prev_idx as usize] -= 1;
             (*cm).lst_fb_idx = get_free_fb(&mut *cm);
-            vp8_yv12_copy_frame_c(
-                (&raw mut (*cm).yv12_fb as *mut YV12_BUFFER_CONFIG).offset(prev_idx as isize)
-                    as *mut YV12_BUFFER_CONFIG,
-                (&raw mut (*cm).yv12_fb as *mut YV12_BUFFER_CONFIG)
-                    .offset((*cm).lst_fb_idx as isize) as *mut yv12_buffer_config,
-            );
+            let src_ptr = &raw const (*cm).yv12_fb[prev_idx as usize];
+            let dst_ptr = &raw mut (*cm).yv12_fb[(*cm).lst_fb_idx as usize];
+            vp8_yv12_copy_frame_c(&*src_ptr, &mut *dst_ptr);
         }
         (*cm).yv12_fb[(*cm).lst_fb_idx as usize].corrupted = 1 as ::core::ffi::c_int;
         (*cm).show_frame = 0 as ::core::ffi::c_int;
