@@ -15,4 +15,4 @@ crabvpx = { path = "../", optional = true }
 md5 = "0.7"
 
 [build-dependencies]
-bindgen = "0.69"
+bindgen = "0.71"

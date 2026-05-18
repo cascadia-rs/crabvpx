@@ -38,7 +38,7 @@ impl LibVpxOracleDecoder {
         }
     }
 
-    unsafe fn calculate_frame_info(img: *const ffi::vpx_image_t) -> DecodedFrame {
+    unsafe fn calculate_frame_info(img: *const ffi::vpx_image_t) -> DecodedFrame { unsafe {
         let mut context = md5::Context::new();
         let img = &*img;
 
@@ -61,7 +61,7 @@ impl LibVpxOracleDecoder {
             height: img.d_h,
             bit_depth: img.bit_depth,
         }
-    }
+    }}
 }
 
 #[cfg(not(feature = "rust"))]
