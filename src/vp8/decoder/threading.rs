@@ -108,7 +108,7 @@ unsafe extern "C" {
         default_filt_lvl: ::core::ffi::c_int,
     );
     fn vp8_setup_block_dptrs(x: *mut MACROBLOCKD);
-    static mut mach_task_self_: mach_port_t;
+    // static mut mach_task_self_: mach_port_t;
     fn semaphore_signal(semaphore: semaphore_t) -> kern_return_t;
     fn semaphore_wait(semaphore: semaphore_t) -> kern_return_t;
     fn memcpy(
@@ -1680,7 +1680,7 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
                 );
             }
             if crate::thread_shim::vp8_semaphore_create(
-                mach_task_self_ as task_t,
+                0 as task_t,
                 &raw mut (*pbi).h_event_end_decoding,
                 SYNC_POLICY_FIFO,
                 0 as ::core::ffi::c_int,
@@ -1695,7 +1695,7 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
             ithread = 0 as ::core::ffi::c_uint;
             while ithread < (*pbi).decoding_thread_count {
                 if crate::thread_shim::vp8_semaphore_create(
-                    mach_task_self_ as task_t,
+                    0 as task_t,
                     (*pbi).h_event_start_decoding.offset(ithread as isize) as *mut semaphore_t,
                     SYNC_POLICY_FIFO,
                     0 as ::core::ffi::c_int,
@@ -1726,7 +1726,7 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
                 ) != 0
                 {
                     crate::thread_shim::vp8_semaphore_destroy(
-                        mach_task_self_ as task_t,
+                        0 as task_t,
                         *(*pbi).h_event_start_decoding.offset(ithread as isize),
                     );
                     break;
@@ -1740,7 +1740,7 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) {
             {
                 if (*pbi).allocated_decoding_thread_count == 0 as ::core::ffi::c_int {
                     crate::thread_shim::vp8_semaphore_destroy(
-                        mach_task_self_ as task_t,
+                        0 as task_t,
                         (*pbi).h_event_end_decoding,
                     );
                 }
@@ -2097,14 +2097,14 @@ pub unsafe extern "C" fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) {
             i = 0 as ::core::ffi::c_int;
             while i < (*pbi).allocated_decoding_thread_count {
                 crate::thread_shim::vp8_semaphore_destroy(
-                    mach_task_self_ as task_t,
+                    0 as task_t,
                     *(*pbi).h_event_start_decoding.offset(i as isize),
                 );
                 i += 1;
             }
             if (*pbi).allocated_decoding_thread_count != 0 {
                 crate::thread_shim::vp8_semaphore_destroy(
-                    mach_task_self_ as task_t,
+                    0 as task_t,
                     (*pbi).h_event_end_decoding,
                 );
             }
