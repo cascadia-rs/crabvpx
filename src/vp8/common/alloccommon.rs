@@ -170,41 +170,40 @@ pub unsafe extern "C" fn vp8_alloc_frame_buffers(
     vp8_de_alloc_frame_buffers(oci);
     return 1 as ::core::ffi::c_int;
 }}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_setup_version(mut cm: *mut VP8_COMMON) { unsafe {
-    match (*cm).version {
+pub fn vp8_setup_version(cm: &mut VP8_COMMON) {
+    match cm.version {
         0 => {
-            (*cm).no_lpf = 0 as ::core::ffi::c_int;
-            (*cm).filter_type = NORMAL_LOOPFILTER;
-            (*cm).use_bilinear_mc_filter = 0 as ::core::ffi::c_int;
-            (*cm).full_pixel = 0 as ::core::ffi::c_int;
+            cm.no_lpf = 0 as ::core::ffi::c_int;
+            cm.filter_type = NORMAL_LOOPFILTER;
+            cm.use_bilinear_mc_filter = 0 as ::core::ffi::c_int;
+            cm.full_pixel = 0 as ::core::ffi::c_int;
         }
         1 => {
-            (*cm).no_lpf = 0 as ::core::ffi::c_int;
-            (*cm).filter_type = SIMPLE_LOOPFILTER;
-            (*cm).use_bilinear_mc_filter = 1 as ::core::ffi::c_int;
-            (*cm).full_pixel = 0 as ::core::ffi::c_int;
+            cm.no_lpf = 0 as ::core::ffi::c_int;
+            cm.filter_type = SIMPLE_LOOPFILTER;
+            cm.use_bilinear_mc_filter = 1 as ::core::ffi::c_int;
+            cm.full_pixel = 0 as ::core::ffi::c_int;
         }
         2 => {
-            (*cm).no_lpf = 1 as ::core::ffi::c_int;
-            (*cm).filter_type = NORMAL_LOOPFILTER;
-            (*cm).use_bilinear_mc_filter = 1 as ::core::ffi::c_int;
-            (*cm).full_pixel = 0 as ::core::ffi::c_int;
+            cm.no_lpf = 1 as ::core::ffi::c_int;
+            cm.filter_type = NORMAL_LOOPFILTER;
+            cm.use_bilinear_mc_filter = 1 as ::core::ffi::c_int;
+            cm.full_pixel = 0 as ::core::ffi::c_int;
         }
         3 => {
-            (*cm).no_lpf = 1 as ::core::ffi::c_int;
-            (*cm).filter_type = SIMPLE_LOOPFILTER;
-            (*cm).use_bilinear_mc_filter = 1 as ::core::ffi::c_int;
-            (*cm).full_pixel = 1 as ::core::ffi::c_int;
+            cm.no_lpf = 1 as ::core::ffi::c_int;
+            cm.filter_type = SIMPLE_LOOPFILTER;
+            cm.use_bilinear_mc_filter = 1 as ::core::ffi::c_int;
+            cm.full_pixel = 1 as ::core::ffi::c_int;
         }
         _ => {
-            (*cm).no_lpf = 0 as ::core::ffi::c_int;
-            (*cm).filter_type = NORMAL_LOOPFILTER;
-            (*cm).use_bilinear_mc_filter = 0 as ::core::ffi::c_int;
-            (*cm).full_pixel = 0 as ::core::ffi::c_int;
+            cm.no_lpf = 0 as ::core::ffi::c_int;
+            cm.filter_type = NORMAL_LOOPFILTER;
+            cm.use_bilinear_mc_filter = 0 as ::core::ffi::c_int;
+            cm.full_pixel = 0 as ::core::ffi::c_int;
         }
     };
-}}
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_create_common(mut oci: *mut VP8_COMMON) { unsafe {
     vp8_machine_specific_config(oci as *mut VP8Common);

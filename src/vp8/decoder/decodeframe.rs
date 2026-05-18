@@ -163,7 +163,6 @@ unsafe extern "C" {
         dst_stride: ::core::ffi::c_int,
         top_left: ::core::ffi::c_uchar,
     );
-    fn vp8_setup_version(cm: *mut VP8_COMMON);
     fn vp8_setup_intra_recon_top_line(ybf: *mut YV12_BUFFER_CONFIG);
     fn vp8_extend_mb_row(
         ybf: *mut YV12_BUFFER_CONFIG,
@@ -174,6 +173,7 @@ unsafe extern "C" {
     fn vp8mt_decode_mb_rows(pbi: *mut VP8D_COMP, xd: *mut MACROBLOCKD) -> ::core::ffi::c_int;
     fn vp8_decoder_remove_threads(pbi: *mut VP8D_COMP);
 }
+use crate::vp8::common::alloccommon::vp8_setup_version;
 use crate::vp8::common::entropymode::vp8_init_mbmode_probs;
 pub use crate::vp8::common::types::*;
 pub type uint32_t = u32;
@@ -1365,7 +1365,7 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
         }
         data = data.offset(3 as ::core::ffi::c_int as isize);
         clear = clear.offset(3 as ::core::ffi::c_int as isize);
-        vp8_setup_version(pc);
+        vp8_setup_version(&mut *pc);
         if (*pc).frame_type as ::core::ffi::c_uint
             == KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
         {
