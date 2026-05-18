@@ -392,88 +392,88 @@ unsafe extern "C" fn setup_decoding_thread_data(
         i += 1;
     }
 }}
-unsafe extern "C" fn mt_decode_macroblock(
-    mut pbi: *mut VP8D_COMP,
-    mut xd: *mut MACROBLOCKD,
-    mut mb_idx: ::core::ffi::c_uint,
+fn mt_decode_macroblock(
+    pbi: &mut VP8D_COMP,
+    xd: &mut MACROBLOCKD,
+    mb_idx: ::core::ffi::c_uint,
 ) { unsafe {
     let mut mode: MB_PREDICTION_MODE = DC_PRED;
     let mut i: ::core::ffi::c_int = 0;
-    if (*(*xd).mode_info_context).mbmi.mb_skip_coeff != 0 {
-        vp8_reset_mb_tokens_context(&mut *xd);
-    } else if vp8dx_bool_error(&(*pbi).mbc[(*xd).current_bc_idx]) == 0 {
+    if (*xd.mode_info_context).mbmi.mb_skip_coeff != 0 {
+        vp8_reset_mb_tokens_context(xd);
+    } else if vp8dx_bool_error(&pbi.mbc[xd.current_bc_idx]) == 0 {
         let mut eobtotal: ::core::ffi::c_int = 0;
-        eobtotal = vp8_decode_mb_tokens(&mut *pbi, &mut *xd);
-        (*(*xd).mode_info_context).mbmi.mb_skip_coeff =
+        eobtotal = vp8_decode_mb_tokens(pbi, xd);
+        (*xd.mode_info_context).mbmi.mb_skip_coeff =
             (eobtotal == 0 as ::core::ffi::c_int) as ::core::ffi::c_int as uint8_t;
     }
-    mode = (*(*xd).mode_info_context).mbmi.mode as MB_PREDICTION_MODE;
-    if (*xd).segmentation_enabled != 0 {
-        vp8_mb_init_dequantizer(&mut *pbi, &mut *xd);
+    mode = (*xd.mode_info_context).mbmi.mode as MB_PREDICTION_MODE;
+    if xd.segmentation_enabled != 0 {
+        vp8_mb_init_dequantizer(pbi, xd);
     }
-    if (*(*xd).mode_info_context).mbmi.ref_frame as ::core::ffi::c_int
+    if (*xd.mode_info_context).mbmi.ref_frame as ::core::ffi::c_int
         == INTRA_FRAME as ::core::ffi::c_int
     {
         vp8_build_intra_predictors_mbuv_s(
-            xd,
-            (*xd).recon_above[1 as ::core::ffi::c_int as usize],
-            (*xd).recon_above[2 as ::core::ffi::c_int as usize],
-            (*xd).recon_left[1 as ::core::ffi::c_int as usize],
-            (*xd).recon_left[2 as ::core::ffi::c_int as usize],
-            (*xd).recon_left_stride[1 as ::core::ffi::c_int as usize],
-            (*xd).dst.u_buffer as *mut ::core::ffi::c_uchar,
-            (*xd).dst.v_buffer as *mut ::core::ffi::c_uchar,
-            (*xd).dst.uv_stride,
+            xd as *mut _,
+            xd.recon_above[1 as ::core::ffi::c_int as usize],
+            xd.recon_above[2 as ::core::ffi::c_int as usize],
+            xd.recon_left[1 as ::core::ffi::c_int as usize],
+            xd.recon_left[2 as ::core::ffi::c_int as usize],
+            xd.recon_left_stride[1 as ::core::ffi::c_int as usize],
+            xd.dst.u_buffer as *mut ::core::ffi::c_uchar,
+            xd.dst.v_buffer as *mut ::core::ffi::c_uchar,
+            xd.dst.uv_stride,
         );
         if mode as ::core::ffi::c_uint != B_PRED as ::core::ffi::c_int as ::core::ffi::c_uint {
             vp8_build_intra_predictors_mby_s(
-                xd,
-                (*xd).recon_above[0 as ::core::ffi::c_int as usize],
-                (*xd).recon_left[0 as ::core::ffi::c_int as usize],
-                (*xd).recon_left_stride[0 as ::core::ffi::c_int as usize],
-                (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
-                (*xd).dst.y_stride,
+                xd as *mut _,
+                xd.recon_above[0 as ::core::ffi::c_int as usize],
+                xd.recon_left[0 as ::core::ffi::c_int as usize],
+                xd.recon_left_stride[0 as ::core::ffi::c_int as usize],
+                xd.dst.y_buffer as *mut ::core::ffi::c_uchar,
+                xd.dst.y_stride,
             );
         } else {
             let mut DQC: *mut ::core::ffi::c_short =
-                &raw mut (*xd).dequant_y1 as *mut ::core::ffi::c_short;
-            let mut dst_stride: ::core::ffi::c_int = (*xd).dst.y_stride;
-            if (*(*xd).mode_info_context).mbmi.mb_skip_coeff != 0 {
+                &raw mut xd.dequant_y1 as *mut ::core::ffi::c_short;
+            let mut dst_stride: ::core::ffi::c_int = xd.dst.y_stride;
+            if (*xd.mode_info_context).mbmi.mb_skip_coeff != 0 {
                 memset(
-                    &raw mut (*xd).eobs as *mut ::core::ffi::c_char as *mut ::core::ffi::c_void,
+                    &raw mut xd.eobs as *mut ::core::ffi::c_char as *mut ::core::ffi::c_void,
                     0 as ::core::ffi::c_int,
                     25 as size_t,
                 );
             }
             intra_prediction_down_copy(
-                xd,
-                (*xd).recon_above[0 as ::core::ffi::c_int as usize]
+                xd as *mut _,
+                xd.recon_above[0 as ::core::ffi::c_int as usize]
                     .offset(16 as ::core::ffi::c_int as isize),
             );
             i = 0 as ::core::ffi::c_int;
             while i < 16 as ::core::ffi::c_int {
                 let mut b: *mut BLOCKD =
-                    (&raw mut (*xd).block as *mut BLOCKD).offset(i as isize) as *mut BLOCKD;
+                    (&raw mut xd.block as *mut BLOCKD).offset(i as isize) as *mut BLOCKD;
                 let mut dst: *mut ::core::ffi::c_uchar =
-                    (*xd).dst.y_buffer.offset((*b).offset as isize);
+                    xd.dst.y_buffer.offset((*b).offset as isize);
                 let mut b_mode: B_PREDICTION_MODE =
-                    (*(*xd).mode_info_context).bmi[i as usize].as_mode;
+                    (*xd.mode_info_context).bmi[i as usize].as_mode;
                 let mut Above: *mut ::core::ffi::c_uchar =
                     ::core::ptr::null_mut::<::core::ffi::c_uchar>();
                 let mut yleft: *mut ::core::ffi::c_uchar =
                     ::core::ptr::null_mut::<::core::ffi::c_uchar>();
                 let mut left_stride: ::core::ffi::c_int = 0;
                 let mut top_left: ::core::ffi::c_uchar = 0;
-                if i < 4 as ::core::ffi::c_int && (*pbi).common.filter_level != 0 {
-                    Above = (*xd).recon_above[0 as ::core::ffi::c_int as usize]
+                if i < 4 as ::core::ffi::c_int && pbi.common.filter_level != 0 {
+                    Above = xd.recon_above[0 as ::core::ffi::c_int as usize]
                         .offset((*b).offset as isize);
                 } else {
                     Above = dst.offset(-(dst_stride as isize));
                 }
                 if i % 4 as ::core::ffi::c_int == 0 as ::core::ffi::c_int
-                    && (*pbi).common.filter_level != 0
+                    && pbi.common.filter_level != 0
                 {
-                    yleft = (*xd).recon_left[0 as ::core::ffi::c_int as usize].offset(i as isize);
+                    yleft = xd.recon_left[0 as ::core::ffi::c_int as usize].offset(i as isize);
                     left_stride = 1 as ::core::ffi::c_int;
                 } else {
                     yleft = dst.offset(-(1 as ::core::ffi::c_int as isize));
@@ -482,17 +482,17 @@ unsafe extern "C" fn mt_decode_macroblock(
                 if (i == 4 as ::core::ffi::c_int
                     || i == 8 as ::core::ffi::c_int
                     || i == 12 as ::core::ffi::c_int)
-                    && (*pbi).common.filter_level != 0
+                    && pbi.common.filter_level != 0
                 {
-                    top_left = *(*xd).recon_left[0 as ::core::ffi::c_int as usize]
+                    top_left = *xd.recon_left[0 as ::core::ffi::c_int as usize]
                         .offset(i as isize)
                         .offset(-(1 as ::core::ffi::c_int as isize));
                 } else {
                     top_left = *Above.offset(-(1 as ::core::ffi::c_int) as isize);
                 }
                 vp8_intra4x4_predict(Above, yleft, left_stride, b_mode, dst, dst_stride, top_left);
-                if (*xd).eobs[i as usize] != 0 {
-                    if (*xd).eobs[i as usize] as ::core::ffi::c_int > 1 as ::core::ffi::c_int {
+                if xd.eobs[i as usize] != 0 {
+                    if xd.eobs[i as usize] as ::core::ffi::c_int > 1 as ::core::ffi::c_int {
                         vp8_dequant_idct_add_neon((*b).qcoeff, DQC, dst, dst_stride);
                     } else {
                         vp8_dc_only_idct_add_neon(
@@ -519,27 +519,27 @@ unsafe extern "C" fn mt_decode_macroblock(
             }
         }
     } else {
-        vp8_build_inter_predictors_mb(xd);
+        vp8_build_inter_predictors_mb(xd as *mut _);
     }
-    if (*(*xd).mode_info_context).mbmi.mb_skip_coeff == 0 {
+    if (*xd.mode_info_context).mbmi.mb_skip_coeff == 0 {
         if mode as ::core::ffi::c_uint != B_PRED as ::core::ffi::c_int as ::core::ffi::c_uint {
             let mut DQC_0: *mut ::core::ffi::c_short =
-                &raw mut (*xd).dequant_y1 as *mut ::core::ffi::c_short;
+                &raw mut xd.dequant_y1 as *mut ::core::ffi::c_short;
             if mode as ::core::ffi::c_uint != SPLITMV as ::core::ffi::c_int as ::core::ffi::c_uint {
-                let mut b_0: *mut BLOCKD = (&raw mut (*xd).block as *mut BLOCKD)
+                let mut b_0: *mut BLOCKD = (&raw mut xd.block as *mut BLOCKD)
                     .offset(24 as ::core::ffi::c_int as isize)
                     as *mut BLOCKD;
-                if (*xd).eobs[24 as ::core::ffi::c_int as usize] as ::core::ffi::c_int
+                if xd.eobs[24 as ::core::ffi::c_int as usize] as ::core::ffi::c_int
                     > 1 as ::core::ffi::c_int
                 {
                     vp8_dequantize_b_neon(
                         b_0 as *mut blockd,
-                        &raw mut (*xd).dequant_y2 as *mut ::core::ffi::c_short,
+                        &raw mut xd.dequant_y2 as *mut ::core::ffi::c_short,
                     );
                     vp8_short_inv_walsh4x4_neon(
                         (*b_0).dqcoeff.offset(0 as ::core::ffi::c_int as isize)
                             as *mut ::core::ffi::c_short,
-                        &raw mut (*xd).qcoeff as *mut ::core::ffi::c_short,
+                        &raw mut xd.qcoeff as *mut ::core::ffi::c_short,
                     );
                     memset(
                         (*b_0).qcoeff as *mut ::core::ffi::c_void,
@@ -552,12 +552,12 @@ unsafe extern "C" fn mt_decode_macroblock(
                         .qcoeff
                         .offset(0 as ::core::ffi::c_int as isize)
                         as ::core::ffi::c_int
-                        * (*xd).dequant_y2[0 as ::core::ffi::c_int as usize] as ::core::ffi::c_int)
+                        * xd.dequant_y2[0 as ::core::ffi::c_int as usize] as ::core::ffi::c_int)
                         as ::core::ffi::c_short;
                     vp8_short_inv_walsh4x4_1_c(
                         (*b_0).dqcoeff.offset(0 as ::core::ffi::c_int as isize)
                             as *mut ::core::ffi::c_short,
-                        &raw mut (*xd).qcoeff as *mut ::core::ffi::c_short,
+                        &raw mut xd.qcoeff as *mut ::core::ffi::c_short,
                     );
                     memset(
                         (*b_0).qcoeff as *mut ::core::ffi::c_void,
@@ -566,24 +566,24 @@ unsafe extern "C" fn mt_decode_macroblock(
                             .wrapping_mul(::core::mem::size_of::<::core::ffi::c_short>() as size_t),
                     );
                 }
-                DQC_0 = &raw mut (*xd).dequant_y1_dc as *mut ::core::ffi::c_short;
+                DQC_0 = &raw mut xd.dequant_y1_dc as *mut ::core::ffi::c_short;
             }
             vp8_dequant_idct_add_y_block_neon(
-                &raw mut (*xd).qcoeff as *mut ::core::ffi::c_short,
+                &raw mut xd.qcoeff as *mut ::core::ffi::c_short,
                 DQC_0,
-                (*xd).dst.y_buffer as *mut ::core::ffi::c_uchar,
-                (*xd).dst.y_stride,
-                &raw mut (*xd).eobs as *mut ::core::ffi::c_char,
+                xd.dst.y_buffer as *mut ::core::ffi::c_uchar,
+                xd.dst.y_stride,
+                &raw mut xd.eobs as *mut ::core::ffi::c_char,
             );
         }
         vp8_dequant_idct_add_uv_block_neon(
-            (&raw mut (*xd).qcoeff as *mut ::core::ffi::c_short)
+            (&raw mut xd.qcoeff as *mut ::core::ffi::c_short)
                 .offset((16 as ::core::ffi::c_int * 16 as ::core::ffi::c_int) as isize),
-            &raw mut (*xd).dequant_uv as *mut ::core::ffi::c_short,
-            (*xd).dst.u_buffer as *mut ::core::ffi::c_uchar,
-            (*xd).dst.v_buffer as *mut ::core::ffi::c_uchar,
-            (*xd).dst.uv_stride,
-            (&raw mut (*xd).eobs as *mut ::core::ffi::c_char)
+            &raw mut xd.dequant_uv as *mut ::core::ffi::c_short,
+            xd.dst.u_buffer as *mut ::core::ffi::c_uchar,
+            xd.dst.v_buffer as *mut ::core::ffi::c_uchar,
+            xd.dst.uv_stride,
+            (&raw mut xd.eobs as *mut ::core::ffi::c_char)
                 .offset(16 as ::core::ffi::c_int as isize),
         );
     }
@@ -783,7 +783,7 @@ unsafe extern "C" fn mt_decode_mb_rows(
                 (*xd).pre.u_buffer = ::core::ptr::null_mut::<uint8_t>();
                 (*xd).pre.v_buffer = ::core::ptr::null_mut::<uint8_t>();
             }
-            mt_decode_macroblock(pbi, xd, 0 as ::core::ffi::c_uint);
+            mt_decode_macroblock(&mut *pbi, &mut *xd, 0 as ::core::ffi::c_uint);
             (*xd).left_available = 1 as ::core::ffi::c_int;
             (*xd).corrupted |= vp8dx_bool_error(&(*pbi).mbc[(*xd).current_bc_idx]);
             (*xd).recon_above[0 as ::core::ffi::c_int as usize] = (*xd).recon_above
