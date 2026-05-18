@@ -21,6 +21,8 @@ unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_dsp_rtcd() { unsafe {
-    once(Some(setup_rtcd_internal as unsafe extern "C" fn() -> ()));
-}}
+pub unsafe extern "C" fn vpx_dsp_rtcd() {
+    unsafe {
+        once(Some(setup_rtcd_internal as unsafe extern "C" fn() -> ()));
+    }
+}

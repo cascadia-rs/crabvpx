@@ -449,61 +449,65 @@ pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
 unsafe extern "C" fn vp8dx_decode_bool(
     mut br: *mut BOOL_DECODER,
     mut probability: ::core::ffi::c_int,
-) -> ::core::ffi::c_int { unsafe {
-    let mut bit: ::core::ffi::c_uint = 0 as ::core::ffi::c_uint;
-    let mut value: VP8_BD_VALUE = 0;
-    let mut split: ::core::ffi::c_uint = 0;
-    let mut bigsplit: VP8_BD_VALUE = 0;
-    let mut count: ::core::ffi::c_int = 0;
-    let mut range: ::core::ffi::c_uint = 0;
-    split = (1 as ::core::ffi::c_uint).wrapping_add(
-        (*br)
-            .range
-            .wrapping_sub(1 as ::core::ffi::c_uint)
-            .wrapping_mul(probability as ::core::ffi::c_uint)
-            >> 8 as ::core::ffi::c_int,
-    );
-    if (*br).count < 0 as ::core::ffi::c_int {
-        vp8dx_bool_decoder_fill(br);
+) -> ::core::ffi::c_int {
+    unsafe {
+        let mut bit: ::core::ffi::c_uint = 0 as ::core::ffi::c_uint;
+        let mut value: VP8_BD_VALUE = 0;
+        let mut split: ::core::ffi::c_uint = 0;
+        let mut bigsplit: VP8_BD_VALUE = 0;
+        let mut count: ::core::ffi::c_int = 0;
+        let mut range: ::core::ffi::c_uint = 0;
+        split = (1 as ::core::ffi::c_uint).wrapping_add(
+            (*br)
+                .range
+                .wrapping_sub(1 as ::core::ffi::c_uint)
+                .wrapping_mul(probability as ::core::ffi::c_uint)
+                >> 8 as ::core::ffi::c_int,
+        );
+        if (*br).count < 0 as ::core::ffi::c_int {
+            vp8dx_bool_decoder_fill(br);
+        }
+        value = (*br).value;
+        count = (*br).count;
+        bigsplit = (split as VP8_BD_VALUE) << VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int;
+        range = split;
+        if value >= bigsplit {
+            range = (*br).range.wrapping_sub(split);
+            value = value.wrapping_sub(bigsplit);
+            bit = 1 as ::core::ffi::c_uint;
+        }
+        let shift: ::core::ffi::c_uchar = vp8_norm[range as ::core::ffi::c_uchar as usize];
+        range <<= shift as ::core::ffi::c_int;
+        value <<= shift as ::core::ffi::c_int;
+        count -= shift as ::core::ffi::c_int;
+        (*br).value = value;
+        (*br).count = count;
+        (*br).range = range;
+        return bit as ::core::ffi::c_int;
     }
-    value = (*br).value;
-    count = (*br).count;
-    bigsplit = (split as VP8_BD_VALUE) << VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int;
-    range = split;
-    if value >= bigsplit {
-        range = (*br).range.wrapping_sub(split);
-        value = value.wrapping_sub(bigsplit);
-        bit = 1 as ::core::ffi::c_uint;
-    }
-    let shift: ::core::ffi::c_uchar = vp8_norm[range as ::core::ffi::c_uchar as usize];
-    range <<= shift as ::core::ffi::c_int;
-    value <<= shift as ::core::ffi::c_int;
-    count -= shift as ::core::ffi::c_int;
-    (*br).value = value;
-    (*br).count = count;
-    (*br).range = range;
-    return bit as ::core::ffi::c_int;
-}}
+}
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) { unsafe {
-    let mut a_ctx: *mut ENTROPY_CONTEXT = (*x).above_context as *mut ENTROPY_CONTEXT;
-    let mut l_ctx: *mut ENTROPY_CONTEXT = (*x).left_context as *mut ENTROPY_CONTEXT;
-    memset(
-        a_ctx as *mut ::core::ffi::c_void,
-        0 as ::core::ffi::c_int,
-        (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t).wrapping_sub(1 as size_t),
-    );
-    memset(
-        l_ctx as *mut ::core::ffi::c_void,
-        0 as ::core::ffi::c_int,
-        (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t).wrapping_sub(1 as size_t),
-    );
-    if (*(*x).mode_info_context).mbmi.is_4x4 == 0 {
-        let ref mut fresh0 = *l_ctx.offset(8 as ::core::ffi::c_int as isize);
-        *fresh0 = 0 as ENTROPY_CONTEXT;
-        *a_ctx.offset(8 as ::core::ffi::c_int as isize) = *fresh0;
+pub unsafe extern "C" fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
+    unsafe {
+        let mut a_ctx: *mut ENTROPY_CONTEXT = (*x).above_context as *mut ENTROPY_CONTEXT;
+        let mut l_ctx: *mut ENTROPY_CONTEXT = (*x).left_context as *mut ENTROPY_CONTEXT;
+        memset(
+            a_ctx as *mut ::core::ffi::c_void,
+            0 as ::core::ffi::c_int,
+            (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t).wrapping_sub(1 as size_t),
+        );
+        memset(
+            l_ctx as *mut ::core::ffi::c_void,
+            0 as ::core::ffi::c_int,
+            (::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t).wrapping_sub(1 as size_t),
+        );
+        if (*(*x).mode_info_context).mbmi.is_4x4 == 0 {
+            let ref mut fresh0 = *l_ctx.offset(8 as ::core::ffi::c_int as isize);
+            *fresh0 = 0 as ENTROPY_CONTEXT;
+            *a_ctx.offset(8 as ::core::ffi::c_int as isize) = *fresh0;
+        }
     }
-}}
+}
 static mut kBands: [uint8_t; 17] = [
     0 as ::core::ffi::c_int as uint8_t,
     1 as ::core::ffi::c_int as uint8_t,
@@ -587,247 +591,265 @@ static mut kZigzag: [uint8_t; 16] = [
 unsafe extern "C" fn GetSigned(
     mut br: *mut BOOL_DECODER,
     mut value_to_sign: ::core::ffi::c_int,
-) -> ::core::ffi::c_int { unsafe {
-    let mut split: ::core::ffi::c_int = ((*br).range.wrapping_add(1 as ::core::ffi::c_uint)
-        >> 1 as ::core::ffi::c_int) as ::core::ffi::c_int;
-    let mut bigsplit: VP8_BD_VALUE =
-        (split as VP8_BD_VALUE) << VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int;
-    let mut v: ::core::ffi::c_int = 0;
-    if (*br).count < 0 as ::core::ffi::c_int {
-        vp8dx_bool_decoder_fill(br);
+) -> ::core::ffi::c_int {
+    unsafe {
+        let mut split: ::core::ffi::c_int = ((*br).range.wrapping_add(1 as ::core::ffi::c_uint)
+            >> 1 as ::core::ffi::c_int)
+            as ::core::ffi::c_int;
+        let mut bigsplit: VP8_BD_VALUE =
+            (split as VP8_BD_VALUE) << VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int;
+        let mut v: ::core::ffi::c_int = 0;
+        if (*br).count < 0 as ::core::ffi::c_int {
+            vp8dx_bool_decoder_fill(br);
+        }
+        if (*br).value < bigsplit {
+            (*br).range = split as ::core::ffi::c_uint;
+            v = value_to_sign;
+        } else {
+            (*br).range = (*br).range.wrapping_sub(split as ::core::ffi::c_uint);
+            (*br).value = (*br).value.wrapping_sub(bigsplit);
+            v = -value_to_sign;
+        }
+        (*br).range = (*br).range.wrapping_add((*br).range);
+        (*br).value = (*br).value.wrapping_add((*br).value);
+        (*br).count -= 1;
+        return v;
     }
-    if (*br).value < bigsplit {
-        (*br).range = split as ::core::ffi::c_uint;
-        v = value_to_sign;
-    } else {
-        (*br).range = (*br).range.wrapping_sub(split as ::core::ffi::c_uint);
-        (*br).value = (*br).value.wrapping_sub(bigsplit);
-        v = -value_to_sign;
-    }
-    (*br).range = (*br).range.wrapping_add((*br).range);
-    (*br).value = (*br).value.wrapping_add((*br).value);
-    (*br).count -= 1;
-    return v;
-}}
+}
 unsafe extern "C" fn GetCoeffs(
     mut br: *mut BOOL_DECODER,
     mut prob: ProbaArray,
     mut ctx: ::core::ffi::c_int,
     mut n: ::core::ffi::c_int,
     mut out: *mut int16_t,
-) -> ::core::ffi::c_int { unsafe {
-    let mut p: *const uint8_t = &raw const *(&raw const *prob.offset(n as isize)
-        as *const [uint8_t; 11])
-        .offset(ctx as isize) as *const uint8_t;
-    if vp8dx_decode_bool(
-        br,
-        *p.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-    ) == 0
-    {
-        return 0 as ::core::ffi::c_int;
-    }
-    loop {
-        n += 1;
+) -> ::core::ffi::c_int {
+    unsafe {
+        let mut p: *const uint8_t = &raw const *(&raw const *prob.offset(n as isize)
+            as *const [uint8_t; 11])
+            .offset(ctx as isize) as *const uint8_t;
         if vp8dx_decode_bool(
             br,
-            *p.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+            *p.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
         ) == 0
         {
-            p = &raw const *(&raw const *prob
-                .offset(*(&raw const kBands as *const uint8_t).offset(n as isize) as isize)
-                as *const [uint8_t; 11])
-                .offset(0 as ::core::ffi::c_int as isize) as *const uint8_t;
-        } else {
-            let mut v: ::core::ffi::c_int = 0;
-            let mut j: ::core::ffi::c_int = 0;
+            return 0 as ::core::ffi::c_int;
+        }
+        loop {
+            n += 1;
             if vp8dx_decode_bool(
                 br,
-                *p.offset(2 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                *p.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
             ) == 0
             {
                 p = &raw const *(&raw const *prob
                     .offset(*(&raw const kBands as *const uint8_t).offset(n as isize) as isize)
                     as *const [uint8_t; 11])
-                    .offset(1 as ::core::ffi::c_int as isize) as *const uint8_t;
-                v = 1 as ::core::ffi::c_int;
+                    .offset(0 as ::core::ffi::c_int as isize) as *const uint8_t;
             } else {
+                let mut v: ::core::ffi::c_int = 0;
+                let mut j: ::core::ffi::c_int = 0;
                 if vp8dx_decode_bool(
                     br,
-                    *p.offset(3 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                    *p.offset(2 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
                 ) == 0
                 {
-                    if vp8dx_decode_bool(
-                        br,
-                        *p.offset(4 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-                    ) == 0
-                    {
-                        v = 2 as ::core::ffi::c_int;
-                    } else {
-                        v = 3 as ::core::ffi::c_int
-                            + vp8dx_decode_bool(
-                                br,
-                                *p.offset(5 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-                            );
-                    }
-                } else if vp8dx_decode_bool(
-                    br,
-                    *p.offset(6 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-                ) == 0
-                {
-                    if vp8dx_decode_bool(
-                        br,
-                        *p.offset(7 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-                    ) == 0
-                    {
-                        v = 5 as ::core::ffi::c_int
-                            + vp8dx_decode_bool(br, 159 as ::core::ffi::c_int);
-                    } else {
-                        v = 7 as ::core::ffi::c_int
-                            + 2 as ::core::ffi::c_int
-                                * vp8dx_decode_bool(br, 165 as ::core::ffi::c_int);
-                        v += vp8dx_decode_bool(br, 145 as ::core::ffi::c_int);
-                    }
+                    p = &raw const *(&raw const *prob
+                        .offset(*(&raw const kBands as *const uint8_t).offset(n as isize) as isize)
+                        as *const [uint8_t; 11])
+                        .offset(1 as ::core::ffi::c_int as isize)
+                        as *const uint8_t;
+                    v = 1 as ::core::ffi::c_int;
                 } else {
-                    let mut tab: *const uint8_t = ::core::ptr::null::<uint8_t>();
-                    let bit1: ::core::ffi::c_int = vp8dx_decode_bool(
+                    if vp8dx_decode_bool(
                         br,
-                        *p.offset(8 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-                    ) as ::core::ffi::c_int;
-                    let bit0: ::core::ffi::c_int = vp8dx_decode_bool(
+                        *p.offset(3 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                    ) == 0
+                    {
+                        if vp8dx_decode_bool(
+                            br,
+                            *p.offset(4 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                        ) == 0
+                        {
+                            v = 2 as ::core::ffi::c_int;
+                        } else {
+                            v = 3 as ::core::ffi::c_int
+                                + vp8dx_decode_bool(
+                                    br,
+                                    *p.offset(5 as ::core::ffi::c_int as isize)
+                                        as ::core::ffi::c_int,
+                                );
+                        }
+                    } else if vp8dx_decode_bool(
                         br,
-                        *p.offset((9 as ::core::ffi::c_int + bit1) as isize) as ::core::ffi::c_int,
-                    ) as ::core::ffi::c_int;
-                    let cat: ::core::ffi::c_int = 2 as ::core::ffi::c_int * bit1 + bit0;
-                    v = 0 as ::core::ffi::c_int;
-                    tab = kCat3456[cat as usize];
-                    while *tab != 0 {
-                        v += v + vp8dx_decode_bool(br, *tab as ::core::ffi::c_int);
-                        tab = tab.offset(1);
+                        *p.offset(6 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                    ) == 0
+                    {
+                        if vp8dx_decode_bool(
+                            br,
+                            *p.offset(7 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                        ) == 0
+                        {
+                            v = 5 as ::core::ffi::c_int
+                                + vp8dx_decode_bool(br, 159 as ::core::ffi::c_int);
+                        } else {
+                            v = 7 as ::core::ffi::c_int
+                                + 2 as ::core::ffi::c_int
+                                    * vp8dx_decode_bool(br, 165 as ::core::ffi::c_int);
+                            v += vp8dx_decode_bool(br, 145 as ::core::ffi::c_int);
+                        }
+                    } else {
+                        let mut tab: *const uint8_t = ::core::ptr::null::<uint8_t>();
+                        let bit1: ::core::ffi::c_int = vp8dx_decode_bool(
+                            br,
+                            *p.offset(8 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                        )
+                            as ::core::ffi::c_int;
+                        let bit0: ::core::ffi::c_int = vp8dx_decode_bool(
+                            br,
+                            *p.offset((9 as ::core::ffi::c_int + bit1) as isize)
+                                as ::core::ffi::c_int,
+                        )
+                            as ::core::ffi::c_int;
+                        let cat: ::core::ffi::c_int = 2 as ::core::ffi::c_int * bit1 + bit0;
+                        v = 0 as ::core::ffi::c_int;
+                        tab = kCat3456[cat as usize];
+                        while *tab != 0 {
+                            v += v + vp8dx_decode_bool(br, *tab as ::core::ffi::c_int);
+                            tab = tab.offset(1);
+                        }
+                        v += 3 as ::core::ffi::c_int + ((8 as ::core::ffi::c_int) << cat);
                     }
-                    v += 3 as ::core::ffi::c_int + ((8 as ::core::ffi::c_int) << cat);
+                    p = &raw const *(&raw const *prob
+                        .offset(*(&raw const kBands as *const uint8_t).offset(n as isize) as isize)
+                        as *const [uint8_t; 11])
+                        .offset(2 as ::core::ffi::c_int as isize)
+                        as *const uint8_t;
                 }
-                p = &raw const *(&raw const *prob
-                    .offset(*(&raw const kBands as *const uint8_t).offset(n as isize) as isize)
-                    as *const [uint8_t; 11])
-                    .offset(2 as ::core::ffi::c_int as isize) as *const uint8_t;
+                j = kZigzag[(n - 1 as ::core::ffi::c_int) as usize] as ::core::ffi::c_int;
+                *out.offset(j as isize) = GetSigned(br, v) as int16_t;
+                if n == 16 as ::core::ffi::c_int
+                    || vp8dx_decode_bool(
+                        br,
+                        *p.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                    ) == 0
+                {
+                    return n;
+                }
             }
-            j = kZigzag[(n - 1 as ::core::ffi::c_int) as usize] as ::core::ffi::c_int;
-            *out.offset(j as isize) = GetSigned(br, v) as int16_t;
-            if n == 16 as ::core::ffi::c_int
-                || vp8dx_decode_bool(
-                    br,
-                    *p.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-                ) == 0
-            {
-                return n;
+            if n == 16 as ::core::ffi::c_int {
+                return 16 as ::core::ffi::c_int;
             }
-        }
-        if n == 16 as ::core::ffi::c_int {
-            return 16 as ::core::ffi::c_int;
         }
     }
-}}
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_decode_mb_tokens(
     mut dx: *mut VP8D_COMP,
     mut x: *mut MACROBLOCKD,
-) -> ::core::ffi::c_int { unsafe {
-    let mut bc: *mut BOOL_DECODER = (*x).current_bc as *mut BOOL_DECODER;
-    let fc: *const FRAME_CONTEXT = &raw mut (*dx).common.fc;
-    let mut eobs: *mut ::core::ffi::c_char = &raw mut (*x).eobs as *mut ::core::ffi::c_char;
-    let mut i: ::core::ffi::c_int = 0;
-    let mut nonzeros: ::core::ffi::c_int = 0;
-    let mut eobtotal: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    let mut qcoeff_ptr: *mut ::core::ffi::c_short = ::core::ptr::null_mut::<::core::ffi::c_short>();
-    let mut coef_probs: ProbaArray = ::core::ptr::null::<[[uint8_t; 11]; 3]>();
-    let mut a_ctx: *mut ENTROPY_CONTEXT = (*x).above_context as *mut ENTROPY_CONTEXT;
-    let mut l_ctx: *mut ENTROPY_CONTEXT = (*x).left_context as *mut ENTROPY_CONTEXT;
-    let mut a: *mut ENTROPY_CONTEXT = ::core::ptr::null_mut::<ENTROPY_CONTEXT>();
-    let mut l: *mut ENTROPY_CONTEXT = ::core::ptr::null_mut::<ENTROPY_CONTEXT>();
-    let mut skip_dc: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    qcoeff_ptr = (&raw mut (*x).qcoeff as *mut ::core::ffi::c_short)
-        .offset(0 as ::core::ffi::c_int as isize) as *mut ::core::ffi::c_short;
-    if (*(*x).mode_info_context).mbmi.is_4x4 == 0 {
-        a = a_ctx.offset(8 as ::core::ffi::c_int as isize);
-        l = l_ctx.offset(8 as ::core::ffi::c_int as isize);
-        coef_probs = &raw const *(&raw const (*fc).coef_probs as *const [[[vp8_prob; 11]; 3]; 8])
-            .offset(1 as ::core::ffi::c_int as isize)
-            as *const [[vp8_prob; 11]; 3] as ProbaArray;
-        nonzeros = GetCoeffs(
-            bc,
-            coef_probs,
-            *a as ::core::ffi::c_int + *l as ::core::ffi::c_int,
-            0 as ::core::ffi::c_int,
-            qcoeff_ptr.offset((24 as ::core::ffi::c_int * 16 as ::core::ffi::c_int) as isize),
-        );
-        *l = (nonzeros > 0 as ::core::ffi::c_int) as ::core::ffi::c_int as ENTROPY_CONTEXT;
-        *a = *l;
-        *eobs.offset(24 as ::core::ffi::c_int as isize) = nonzeros as ::core::ffi::c_char;
-        eobtotal += nonzeros - 16 as ::core::ffi::c_int;
-        coef_probs = &raw const *(&raw const (*fc).coef_probs as *const [[[vp8_prob; 11]; 3]; 8])
+) -> ::core::ffi::c_int {
+    unsafe {
+        let mut bc: *mut BOOL_DECODER = (*x).current_bc as *mut BOOL_DECODER;
+        let fc: *const FRAME_CONTEXT = &raw mut (*dx).common.fc;
+        let mut eobs: *mut ::core::ffi::c_char = &raw mut (*x).eobs as *mut ::core::ffi::c_char;
+        let mut i: ::core::ffi::c_int = 0;
+        let mut nonzeros: ::core::ffi::c_int = 0;
+        let mut eobtotal: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+        let mut qcoeff_ptr: *mut ::core::ffi::c_short =
+            ::core::ptr::null_mut::<::core::ffi::c_short>();
+        let mut coef_probs: ProbaArray = ::core::ptr::null::<[[uint8_t; 11]; 3]>();
+        let mut a_ctx: *mut ENTROPY_CONTEXT = (*x).above_context as *mut ENTROPY_CONTEXT;
+        let mut l_ctx: *mut ENTROPY_CONTEXT = (*x).left_context as *mut ENTROPY_CONTEXT;
+        let mut a: *mut ENTROPY_CONTEXT = ::core::ptr::null_mut::<ENTROPY_CONTEXT>();
+        let mut l: *mut ENTROPY_CONTEXT = ::core::ptr::null_mut::<ENTROPY_CONTEXT>();
+        let mut skip_dc: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+        qcoeff_ptr = (&raw mut (*x).qcoeff as *mut ::core::ffi::c_short)
             .offset(0 as ::core::ffi::c_int as isize)
-            as *const [[vp8_prob; 11]; 3] as ProbaArray;
-        skip_dc = 1 as ::core::ffi::c_int;
-    } else {
-        coef_probs = &raw const *(&raw const (*fc).coef_probs as *const [[[vp8_prob; 11]; 3]; 8])
-            .offset(3 as ::core::ffi::c_int as isize)
-            as *const [[vp8_prob; 11]; 3] as ProbaArray;
-        skip_dc = 0 as ::core::ffi::c_int;
-    }
-    i = 0 as ::core::ffi::c_int;
-    while i < 16 as ::core::ffi::c_int {
-        a = a_ctx.offset((i & 3 as ::core::ffi::c_int) as isize);
-        l = l_ctx.offset(((i & 0xc as ::core::ffi::c_int) >> 2 as ::core::ffi::c_int) as isize);
-        nonzeros = GetCoeffs(
-            bc,
-            coef_probs,
-            *a as ::core::ffi::c_int + *l as ::core::ffi::c_int,
-            skip_dc,
-            qcoeff_ptr as *mut int16_t,
-        );
-        *l = (nonzeros > 0 as ::core::ffi::c_int) as ::core::ffi::c_int as ENTROPY_CONTEXT;
-        *a = *l;
-        nonzeros += skip_dc;
-        *eobs.offset(i as isize) = nonzeros as ::core::ffi::c_char;
-        eobtotal += nonzeros;
-        qcoeff_ptr = qcoeff_ptr.offset(16 as ::core::ffi::c_int as isize);
-        i += 1;
-    }
-    coef_probs = &raw const *(&raw const (*fc).coef_probs as *const [[[vp8_prob; 11]; 3]; 8])
-        .offset(2 as ::core::ffi::c_int as isize) as *const [[vp8_prob; 11]; 3]
-        as ProbaArray;
-    a_ctx = a_ctx.offset(4 as ::core::ffi::c_int as isize);
-    l_ctx = l_ctx.offset(4 as ::core::ffi::c_int as isize);
-    i = 16 as ::core::ffi::c_int;
-    while i < 24 as ::core::ffi::c_int {
-        a = a_ctx
-            .offset(
-                (((i > 19 as ::core::ffi::c_int) as ::core::ffi::c_int) << 1 as ::core::ffi::c_int)
-                    as isize,
-            )
-            .offset((i & 1 as ::core::ffi::c_int) as isize);
-        l = l_ctx
-            .offset(
-                (((i > 19 as ::core::ffi::c_int) as ::core::ffi::c_int) << 1 as ::core::ffi::c_int)
-                    as isize,
-            )
-            .offset(
-                (i & 3 as ::core::ffi::c_int > 1 as ::core::ffi::c_int) as ::core::ffi::c_int
-                    as isize,
+            as *mut ::core::ffi::c_short;
+        if (*(*x).mode_info_context).mbmi.is_4x4 == 0 {
+            a = a_ctx.offset(8 as ::core::ffi::c_int as isize);
+            l = l_ctx.offset(8 as ::core::ffi::c_int as isize);
+            coef_probs = &raw const *(&raw const (*fc).coef_probs
+                as *const [[[vp8_prob; 11]; 3]; 8])
+                .offset(1 as ::core::ffi::c_int as isize)
+                as *const [[vp8_prob; 11]; 3] as ProbaArray;
+            nonzeros = GetCoeffs(
+                bc,
+                coef_probs,
+                *a as ::core::ffi::c_int + *l as ::core::ffi::c_int,
+                0 as ::core::ffi::c_int,
+                qcoeff_ptr.offset((24 as ::core::ffi::c_int * 16 as ::core::ffi::c_int) as isize),
             );
-        nonzeros = GetCoeffs(
-            bc,
-            coef_probs,
-            *a as ::core::ffi::c_int + *l as ::core::ffi::c_int,
-            0 as ::core::ffi::c_int,
-            qcoeff_ptr as *mut int16_t,
-        );
-        *l = (nonzeros > 0 as ::core::ffi::c_int) as ::core::ffi::c_int as ENTROPY_CONTEXT;
-        *a = *l;
-        *eobs.offset(i as isize) = nonzeros as ::core::ffi::c_char;
-        eobtotal += nonzeros;
-        qcoeff_ptr = qcoeff_ptr.offset(16 as ::core::ffi::c_int as isize);
-        i += 1;
+            *l = (nonzeros > 0 as ::core::ffi::c_int) as ::core::ffi::c_int as ENTROPY_CONTEXT;
+            *a = *l;
+            *eobs.offset(24 as ::core::ffi::c_int as isize) = nonzeros as ::core::ffi::c_char;
+            eobtotal += nonzeros - 16 as ::core::ffi::c_int;
+            coef_probs = &raw const *(&raw const (*fc).coef_probs
+                as *const [[[vp8_prob; 11]; 3]; 8])
+                .offset(0 as ::core::ffi::c_int as isize)
+                as *const [[vp8_prob; 11]; 3] as ProbaArray;
+            skip_dc = 1 as ::core::ffi::c_int;
+        } else {
+            coef_probs = &raw const *(&raw const (*fc).coef_probs
+                as *const [[[vp8_prob; 11]; 3]; 8])
+                .offset(3 as ::core::ffi::c_int as isize)
+                as *const [[vp8_prob; 11]; 3] as ProbaArray;
+            skip_dc = 0 as ::core::ffi::c_int;
+        }
+        i = 0 as ::core::ffi::c_int;
+        while i < 16 as ::core::ffi::c_int {
+            a = a_ctx.offset((i & 3 as ::core::ffi::c_int) as isize);
+            l = l_ctx.offset(((i & 0xc as ::core::ffi::c_int) >> 2 as ::core::ffi::c_int) as isize);
+            nonzeros = GetCoeffs(
+                bc,
+                coef_probs,
+                *a as ::core::ffi::c_int + *l as ::core::ffi::c_int,
+                skip_dc,
+                qcoeff_ptr as *mut int16_t,
+            );
+            *l = (nonzeros > 0 as ::core::ffi::c_int) as ::core::ffi::c_int as ENTROPY_CONTEXT;
+            *a = *l;
+            nonzeros += skip_dc;
+            *eobs.offset(i as isize) = nonzeros as ::core::ffi::c_char;
+            eobtotal += nonzeros;
+            qcoeff_ptr = qcoeff_ptr.offset(16 as ::core::ffi::c_int as isize);
+            i += 1;
+        }
+        coef_probs = &raw const *(&raw const (*fc).coef_probs as *const [[[vp8_prob; 11]; 3]; 8])
+            .offset(2 as ::core::ffi::c_int as isize)
+            as *const [[vp8_prob; 11]; 3] as ProbaArray;
+        a_ctx = a_ctx.offset(4 as ::core::ffi::c_int as isize);
+        l_ctx = l_ctx.offset(4 as ::core::ffi::c_int as isize);
+        i = 16 as ::core::ffi::c_int;
+        while i < 24 as ::core::ffi::c_int {
+            a = a_ctx
+                .offset(
+                    (((i > 19 as ::core::ffi::c_int) as ::core::ffi::c_int)
+                        << 1 as ::core::ffi::c_int) as isize,
+                )
+                .offset((i & 1 as ::core::ffi::c_int) as isize);
+            l = l_ctx
+                .offset(
+                    (((i > 19 as ::core::ffi::c_int) as ::core::ffi::c_int)
+                        << 1 as ::core::ffi::c_int) as isize,
+                )
+                .offset(
+                    (i & 3 as ::core::ffi::c_int > 1 as ::core::ffi::c_int) as ::core::ffi::c_int
+                        as isize,
+                );
+            nonzeros = GetCoeffs(
+                bc,
+                coef_probs,
+                *a as ::core::ffi::c_int + *l as ::core::ffi::c_int,
+                0 as ::core::ffi::c_int,
+                qcoeff_ptr as *mut int16_t,
+            );
+            *l = (nonzeros > 0 as ::core::ffi::c_int) as ::core::ffi::c_int as ENTROPY_CONTEXT;
+            *a = *l;
+            *eobs.offset(i as isize) = nonzeros as ::core::ffi::c_char;
+            eobtotal += nonzeros;
+            qcoeff_ptr = qcoeff_ptr.offset(16 as ::core::ffi::c_int as isize);
+            i += 1;
+        }
+        return eobtotal;
     }
-    return eobtotal;
-}}
+}

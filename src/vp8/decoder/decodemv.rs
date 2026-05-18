@@ -490,109 +490,124 @@ pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
 unsafe extern "C" fn vp8dx_decode_bool(
     mut br: *mut BOOL_DECODER,
     mut probability: ::core::ffi::c_int,
-) -> ::core::ffi::c_int { unsafe {
-    let mut bit: ::core::ffi::c_uint = 0 as ::core::ffi::c_uint;
-    let mut value: VP8_BD_VALUE = 0;
-    let mut split: ::core::ffi::c_uint = 0;
-    let mut bigsplit: VP8_BD_VALUE = 0;
-    let mut count: ::core::ffi::c_int = 0;
-    let mut range: ::core::ffi::c_uint = 0;
-    split = (1 as ::core::ffi::c_uint).wrapping_add(
-        (*br)
-            .range
-            .wrapping_sub(1 as ::core::ffi::c_uint)
-            .wrapping_mul(probability as ::core::ffi::c_uint)
-            >> 8 as ::core::ffi::c_int,
-    );
-    if (*br).count < 0 as ::core::ffi::c_int {
-        vp8dx_bool_decoder_fill(br);
+) -> ::core::ffi::c_int {
+    unsafe {
+        let mut bit: ::core::ffi::c_uint = 0 as ::core::ffi::c_uint;
+        let mut value: VP8_BD_VALUE = 0;
+        let mut split: ::core::ffi::c_uint = 0;
+        let mut bigsplit: VP8_BD_VALUE = 0;
+        let mut count: ::core::ffi::c_int = 0;
+        let mut range: ::core::ffi::c_uint = 0;
+        split = (1 as ::core::ffi::c_uint).wrapping_add(
+            (*br)
+                .range
+                .wrapping_sub(1 as ::core::ffi::c_uint)
+                .wrapping_mul(probability as ::core::ffi::c_uint)
+                >> 8 as ::core::ffi::c_int,
+        );
+        if (*br).count < 0 as ::core::ffi::c_int {
+            vp8dx_bool_decoder_fill(br);
+        }
+        value = (*br).value;
+        count = (*br).count;
+        bigsplit = (split as VP8_BD_VALUE) << VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int;
+        range = split;
+        if value >= bigsplit {
+            range = (*br).range.wrapping_sub(split);
+            value = value.wrapping_sub(bigsplit);
+            bit = 1 as ::core::ffi::c_uint;
+        }
+        let shift: ::core::ffi::c_uchar = vp8_norm[range as ::core::ffi::c_uchar as usize];
+        range <<= shift as ::core::ffi::c_int;
+        value <<= shift as ::core::ffi::c_int;
+        count -= shift as ::core::ffi::c_int;
+        (*br).value = value;
+        (*br).count = count;
+        (*br).range = range;
+        return bit as ::core::ffi::c_int;
     }
-    value = (*br).value;
-    count = (*br).count;
-    bigsplit = (split as VP8_BD_VALUE) << VP8_BD_VALUE_SIZE - 8 as ::core::ffi::c_int;
-    range = split;
-    if value >= bigsplit {
-        range = (*br).range.wrapping_sub(split);
-        value = value.wrapping_sub(bigsplit);
-        bit = 1 as ::core::ffi::c_uint;
-    }
-    let shift: ::core::ffi::c_uchar = vp8_norm[range as ::core::ffi::c_uchar as usize];
-    range <<= shift as ::core::ffi::c_int;
-    value <<= shift as ::core::ffi::c_int;
-    count -= shift as ::core::ffi::c_int;
-    (*br).value = value;
-    (*br).count = count;
-    (*br).range = range;
-    return bit as ::core::ffi::c_int;
-}}
+}
 #[inline]
 unsafe extern "C" fn vp8_decode_value(
     mut br: *mut BOOL_DECODER,
     mut bits: ::core::ffi::c_int,
-) -> ::core::ffi::c_int { unsafe {
-    let mut z: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    let mut bit: ::core::ffi::c_int = 0;
-    bit = bits - 1 as ::core::ffi::c_int;
-    while bit >= 0 as ::core::ffi::c_int {
-        z |= vp8dx_decode_bool(br, 0x80 as ::core::ffi::c_int) << bit;
-        bit -= 1;
+) -> ::core::ffi::c_int {
+    unsafe {
+        let mut z: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+        let mut bit: ::core::ffi::c_int = 0;
+        bit = bits - 1 as ::core::ffi::c_int;
+        while bit >= 0 as ::core::ffi::c_int {
+            z |= vp8dx_decode_bool(br, 0x80 as ::core::ffi::c_int) << bit;
+            bit -= 1;
+        }
+        return z;
     }
-    return z;
-}}
+}
 #[inline]
 unsafe extern "C" fn vp8_treed_read(
     r: *mut vp8_reader,
     mut t: *const vp8_tree_index,
     p: *const vp8_prob,
-) -> ::core::ffi::c_int { unsafe {
-    let mut i: vp8_tree_index = 0 as vp8_tree_index;
-    loop {
-        i = *t.offset(
-            (i as ::core::ffi::c_int
-                + vp8dx_decode_bool(
-                    r as *mut BOOL_DECODER,
-                    *p.offset((i as ::core::ffi::c_int >> 1 as ::core::ffi::c_int) as isize)
-                        as ::core::ffi::c_int,
-                )) as isize,
-        );
-        if !(i as ::core::ffi::c_int > 0 as ::core::ffi::c_int) {
-            break;
+) -> ::core::ffi::c_int {
+    unsafe {
+        let mut i: vp8_tree_index = 0 as vp8_tree_index;
+        loop {
+            i = *t.offset(
+                (i as ::core::ffi::c_int
+                    + vp8dx_decode_bool(
+                        r as *mut BOOL_DECODER,
+                        *p.offset((i as ::core::ffi::c_int >> 1 as ::core::ffi::c_int) as isize)
+                            as ::core::ffi::c_int,
+                    )) as isize,
+            );
+            if !(i as ::core::ffi::c_int > 0 as ::core::ffi::c_int) {
+                break;
+            }
         }
+        return -(i as ::core::ffi::c_int);
     }
-    return -(i as ::core::ffi::c_int);
-}}
+}
 #[inline]
 unsafe extern "C" fn mv_bias(
     mut refmb_ref_frame_sign_bias: ::core::ffi::c_int,
     mut refframe: ::core::ffi::c_int,
     mut mvp: *mut int_mv,
     mut ref_frame_sign_bias: *const ::core::ffi::c_int,
-) { unsafe {
-    if refmb_ref_frame_sign_bias != *ref_frame_sign_bias.offset(refframe as isize) {
-        (*mvp).as_mv.row = ((*mvp).as_mv.row as ::core::ffi::c_int * -(1 as ::core::ffi::c_int))
-            as ::core::ffi::c_short;
-        (*mvp).as_mv.col = ((*mvp).as_mv.col as ::core::ffi::c_int * -(1 as ::core::ffi::c_int))
-            as ::core::ffi::c_short;
+) {
+    unsafe {
+        if refmb_ref_frame_sign_bias != *ref_frame_sign_bias.offset(refframe as isize) {
+            (*mvp).as_mv.row = ((*mvp).as_mv.row as ::core::ffi::c_int * -(1 as ::core::ffi::c_int))
+                as ::core::ffi::c_short;
+            (*mvp).as_mv.col = ((*mvp).as_mv.col as ::core::ffi::c_int * -(1 as ::core::ffi::c_int))
+                as ::core::ffi::c_short;
+        }
     }
-}}
+}
 pub const LEFT_TOP_MARGIN: ::core::ffi::c_int =
     (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
 pub const RIGHT_BOTTOM_MARGIN: ::core::ffi::c_int =
     (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) { unsafe {
-    if ((*mv).as_mv.col as ::core::ffi::c_int) < (*xd).mb_to_left_edge - LEFT_TOP_MARGIN {
-        (*mv).as_mv.col = ((*xd).mb_to_left_edge - LEFT_TOP_MARGIN) as ::core::ffi::c_short;
-    } else if (*mv).as_mv.col as ::core::ffi::c_int > (*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN {
-        (*mv).as_mv.col = ((*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN) as ::core::ffi::c_short;
+unsafe extern "C" fn vp8_clamp_mv2(mut mv: *mut int_mv, mut xd: *const MACROBLOCKD) {
+    unsafe {
+        if ((*mv).as_mv.col as ::core::ffi::c_int) < (*xd).mb_to_left_edge - LEFT_TOP_MARGIN {
+            (*mv).as_mv.col = ((*xd).mb_to_left_edge - LEFT_TOP_MARGIN) as ::core::ffi::c_short;
+        } else if (*mv).as_mv.col as ::core::ffi::c_int
+            > (*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN
+        {
+            (*mv).as_mv.col =
+                ((*xd).mb_to_right_edge + RIGHT_BOTTOM_MARGIN) as ::core::ffi::c_short;
+        }
+        if ((*mv).as_mv.row as ::core::ffi::c_int) < (*xd).mb_to_top_edge - LEFT_TOP_MARGIN {
+            (*mv).as_mv.row = ((*xd).mb_to_top_edge - LEFT_TOP_MARGIN) as ::core::ffi::c_short;
+        } else if (*mv).as_mv.row as ::core::ffi::c_int
+            > (*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN
+        {
+            (*mv).as_mv.row =
+                ((*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as ::core::ffi::c_short;
+        }
     }
-    if ((*mv).as_mv.row as ::core::ffi::c_int) < (*xd).mb_to_top_edge - LEFT_TOP_MARGIN {
-        (*mv).as_mv.row = ((*xd).mb_to_top_edge - LEFT_TOP_MARGIN) as ::core::ffi::c_short;
-    } else if (*mv).as_mv.row as ::core::ffi::c_int > (*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN
-    {
-        (*mv).as_mv.row = ((*xd).mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as ::core::ffi::c_short;
-    }
-}}
+}
 #[inline]
 unsafe extern "C" fn vp8_check_mv_bounds(
     mut mv: *mut int_mv,
@@ -600,230 +615,257 @@ unsafe extern "C" fn vp8_check_mv_bounds(
     mut mb_to_right_edge: ::core::ffi::c_int,
     mut mb_to_top_edge: ::core::ffi::c_int,
     mut mb_to_bottom_edge: ::core::ffi::c_int,
-) -> ::core::ffi::c_uint { unsafe {
-    let mut need_to_clamp: ::core::ffi::c_uint = 0;
-    need_to_clamp = (((*mv).as_mv.col as ::core::ffi::c_int) < mb_to_left_edge)
-        as ::core::ffi::c_int as ::core::ffi::c_uint;
-    need_to_clamp |= ((*mv).as_mv.col as ::core::ffi::c_int > mb_to_right_edge)
-        as ::core::ffi::c_int as ::core::ffi::c_uint;
-    need_to_clamp |= (((*mv).as_mv.row as ::core::ffi::c_int) < mb_to_top_edge)
-        as ::core::ffi::c_int as ::core::ffi::c_uint;
-    need_to_clamp |= ((*mv).as_mv.row as ::core::ffi::c_int > mb_to_bottom_edge)
-        as ::core::ffi::c_int as ::core::ffi::c_uint;
-    return need_to_clamp;
-}}
+) -> ::core::ffi::c_uint {
+    unsafe {
+        let mut need_to_clamp: ::core::ffi::c_uint = 0;
+        need_to_clamp = (((*mv).as_mv.col as ::core::ffi::c_int) < mb_to_left_edge)
+            as ::core::ffi::c_int as ::core::ffi::c_uint;
+        need_to_clamp |= ((*mv).as_mv.col as ::core::ffi::c_int > mb_to_right_edge)
+            as ::core::ffi::c_int as ::core::ffi::c_uint;
+        need_to_clamp |= (((*mv).as_mv.row as ::core::ffi::c_int) < mb_to_top_edge)
+            as ::core::ffi::c_int as ::core::ffi::c_uint;
+        need_to_clamp |= ((*mv).as_mv.row as ::core::ffi::c_int > mb_to_bottom_edge)
+            as ::core::ffi::c_int as ::core::ffi::c_uint;
+        return need_to_clamp;
+    }
+}
 #[inline]
 unsafe extern "C" fn left_block_mode(
     mut cur_mb: *const MODE_INFO,
     mut b: ::core::ffi::c_int,
-) -> B_PREDICTION_MODE { unsafe {
-    if b & 3 as ::core::ffi::c_int == 0 {
-        cur_mb = cur_mb.offset(-1);
-        match (*cur_mb).mbmi.mode as ::core::ffi::c_int {
-            4 => {
-                return (*(&raw const (*cur_mb).bmi as *const b_mode_info)
-                    .offset(b as isize)
-                    .offset(3 as ::core::ffi::c_int as isize))
-                .as_mode;
+) -> B_PREDICTION_MODE {
+    unsafe {
+        if b & 3 as ::core::ffi::c_int == 0 {
+            cur_mb = cur_mb.offset(-1);
+            match (*cur_mb).mbmi.mode as ::core::ffi::c_int {
+                4 => {
+                    return (*(&raw const (*cur_mb).bmi as *const b_mode_info)
+                        .offset(b as isize)
+                        .offset(3 as ::core::ffi::c_int as isize))
+                    .as_mode;
+                }
+                0 => return B_DC_PRED,
+                1 => return B_VE_PRED,
+                2 => return B_HE_PRED,
+                3 => return B_TM_PRED,
+                _ => return B_DC_PRED,
             }
-            0 => return B_DC_PRED,
-            1 => return B_VE_PRED,
-            2 => return B_HE_PRED,
-            3 => return B_TM_PRED,
-            _ => return B_DC_PRED,
         }
+        return (*(&raw const (*cur_mb).bmi as *const b_mode_info)
+            .offset(b as isize)
+            .offset(-(1 as ::core::ffi::c_int as isize)))
+        .as_mode;
     }
-    return (*(&raw const (*cur_mb).bmi as *const b_mode_info)
-        .offset(b as isize)
-        .offset(-(1 as ::core::ffi::c_int as isize)))
-    .as_mode;
-}}
+}
 #[inline]
 unsafe extern "C" fn above_block_mode(
     mut cur_mb: *const MODE_INFO,
     mut b: ::core::ffi::c_int,
     mut mi_stride: ::core::ffi::c_int,
-) -> B_PREDICTION_MODE { unsafe {
-    if b >> 2 as ::core::ffi::c_int == 0 {
-        cur_mb = cur_mb.offset(-(mi_stride as isize));
-        match (*cur_mb).mbmi.mode as ::core::ffi::c_int {
-            4 => {
-                return (*(&raw const (*cur_mb).bmi as *const b_mode_info)
-                    .offset(b as isize)
-                    .offset(12 as ::core::ffi::c_int as isize))
-                .as_mode;
+) -> B_PREDICTION_MODE {
+    unsafe {
+        if b >> 2 as ::core::ffi::c_int == 0 {
+            cur_mb = cur_mb.offset(-(mi_stride as isize));
+            match (*cur_mb).mbmi.mode as ::core::ffi::c_int {
+                4 => {
+                    return (*(&raw const (*cur_mb).bmi as *const b_mode_info)
+                        .offset(b as isize)
+                        .offset(12 as ::core::ffi::c_int as isize))
+                    .as_mode;
+                }
+                0 => return B_DC_PRED,
+                1 => return B_VE_PRED,
+                2 => return B_HE_PRED,
+                3 => return B_TM_PRED,
+                _ => return B_DC_PRED,
             }
-            0 => return B_DC_PRED,
-            1 => return B_VE_PRED,
-            2 => return B_HE_PRED,
-            3 => return B_TM_PRED,
-            _ => return B_DC_PRED,
         }
+        return (*(&raw const (*cur_mb).bmi as *const b_mode_info)
+            .offset(b as isize)
+            .offset(-(4 as ::core::ffi::c_int as isize)))
+        .as_mode;
     }
-    return (*(&raw const (*cur_mb).bmi as *const b_mode_info)
-        .offset(b as isize)
-        .offset(-(4 as ::core::ffi::c_int as isize)))
-    .as_mode;
-}}
+}
 unsafe extern "C" fn read_bmode(
     mut bc: *mut vp8_reader,
     mut p: *const vp8_prob,
-) -> B_PREDICTION_MODE { unsafe {
-    let i: ::core::ffi::c_int =
-        vp8_treed_read(bc, &raw const vp8_bmode_tree as *const vp8_tree_index, p)
-            as ::core::ffi::c_int;
-    return i as B_PREDICTION_MODE;
-}}
+) -> B_PREDICTION_MODE {
+    unsafe {
+        let i: ::core::ffi::c_int =
+            vp8_treed_read(bc, &raw const vp8_bmode_tree as *const vp8_tree_index, p)
+                as ::core::ffi::c_int;
+        return i as B_PREDICTION_MODE;
+    }
+}
 unsafe extern "C" fn read_ymode(
     mut bc: *mut vp8_reader,
     mut p: *const vp8_prob,
-) -> MB_PREDICTION_MODE { unsafe {
-    let i: ::core::ffi::c_int =
-        vp8_treed_read(bc, &raw const vp8_ymode_tree as *const vp8_tree_index, p)
-            as ::core::ffi::c_int;
-    return i as MB_PREDICTION_MODE;
-}}
+) -> MB_PREDICTION_MODE {
+    unsafe {
+        let i: ::core::ffi::c_int =
+            vp8_treed_read(bc, &raw const vp8_ymode_tree as *const vp8_tree_index, p)
+                as ::core::ffi::c_int;
+        return i as MB_PREDICTION_MODE;
+    }
+}
 unsafe extern "C" fn read_kf_ymode(
     mut bc: *mut vp8_reader,
     mut p: *const vp8_prob,
-) -> MB_PREDICTION_MODE { unsafe {
-    let i: ::core::ffi::c_int =
-        vp8_treed_read(bc, &raw const vp8_kf_ymode_tree as *const vp8_tree_index, p)
-            as ::core::ffi::c_int;
-    return i as MB_PREDICTION_MODE;
-}}
+) -> MB_PREDICTION_MODE {
+    unsafe {
+        let i: ::core::ffi::c_int =
+            vp8_treed_read(bc, &raw const vp8_kf_ymode_tree as *const vp8_tree_index, p)
+                as ::core::ffi::c_int;
+        return i as MB_PREDICTION_MODE;
+    }
+}
 unsafe extern "C" fn read_uv_mode(
     mut bc: *mut vp8_reader,
     mut p: *const vp8_prob,
-) -> MB_PREDICTION_MODE { unsafe {
-    let i: ::core::ffi::c_int =
-        vp8_treed_read(bc, &raw const vp8_uv_mode_tree as *const vp8_tree_index, p)
-            as ::core::ffi::c_int;
-    return i as MB_PREDICTION_MODE;
-}}
-unsafe extern "C" fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) { unsafe {
-    let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-        .offset(8 as ::core::ffi::c_int as isize) as *mut vp8_reader;
-    let mis: ::core::ffi::c_int = (*pbi).common.mode_info_stride;
-    (*mi).mbmi.ref_frame = INTRA_FRAME as ::core::ffi::c_int as uint8_t;
-    (*mi).mbmi.mode = read_kf_ymode(bc, &raw const vp8_kf_ymode_prob as *const vp8_prob) as uint8_t;
-    if (*mi).mbmi.mode as ::core::ffi::c_int == B_PRED as ::core::ffi::c_int {
-        let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-        (*mi).mbmi.is_4x4 = 1 as uint8_t;
-        loop {
-            let A: B_PREDICTION_MODE = above_block_mode(mi, i, mis) as B_PREDICTION_MODE;
-            let L: B_PREDICTION_MODE = left_block_mode(mi, i) as B_PREDICTION_MODE;
-            (*mi).bmi[i as usize].as_mode = read_bmode(
-                bc,
-                &raw const *(&raw const *(&raw const vp8_kf_bmode_prob
-                    as *const [[vp8_prob; 9]; 10])
-                    .offset(A as isize) as *const [vp8_prob; 9])
-                    .offset(L as isize) as *const vp8_prob,
-            );
-            i += 1;
-            if !(i < 16 as ::core::ffi::c_int) {
-                break;
+) -> MB_PREDICTION_MODE {
+    unsafe {
+        let i: ::core::ffi::c_int =
+            vp8_treed_read(bc, &raw const vp8_uv_mode_tree as *const vp8_tree_index, p)
+                as ::core::ffi::c_int;
+        return i as MB_PREDICTION_MODE;
+    }
+}
+unsafe extern "C" fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
+    unsafe {
+        let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
+            .offset(8 as ::core::ffi::c_int as isize)
+            as *mut vp8_reader;
+        let mis: ::core::ffi::c_int = (*pbi).common.mode_info_stride;
+        (*mi).mbmi.ref_frame = INTRA_FRAME as ::core::ffi::c_int as uint8_t;
+        (*mi).mbmi.mode =
+            read_kf_ymode(bc, &raw const vp8_kf_ymode_prob as *const vp8_prob) as uint8_t;
+        if (*mi).mbmi.mode as ::core::ffi::c_int == B_PRED as ::core::ffi::c_int {
+            let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+            (*mi).mbmi.is_4x4 = 1 as uint8_t;
+            loop {
+                let A: B_PREDICTION_MODE = above_block_mode(mi, i, mis) as B_PREDICTION_MODE;
+                let L: B_PREDICTION_MODE = left_block_mode(mi, i) as B_PREDICTION_MODE;
+                (*mi).bmi[i as usize].as_mode = read_bmode(
+                    bc,
+                    &raw const *(&raw const *(&raw const vp8_kf_bmode_prob
+                        as *const [[vp8_prob; 9]; 10])
+                        .offset(A as isize)
+                        as *const [vp8_prob; 9])
+                        .offset(L as isize) as *const vp8_prob,
+                );
+                i += 1;
+                if !(i < 16 as ::core::ffi::c_int) {
+                    break;
+                }
             }
         }
+        (*mi).mbmi.uv_mode =
+            read_uv_mode(bc, &raw const vp8_kf_uv_mode_prob as *const vp8_prob) as uint8_t;
     }
-    (*mi).mbmi.uv_mode =
-        read_uv_mode(bc, &raw const vp8_kf_uv_mode_prob as *const vp8_prob) as uint8_t;
-}}
+}
 unsafe extern "C" fn read_mvcomponent(
     mut r: *mut vp8_reader,
     mut mvc: *const MV_CONTEXT,
-) -> ::core::ffi::c_int { unsafe {
-    let p: *const vp8_prob = mvc as *const vp8_prob;
-    let mut x: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    if vp8dx_decode_bool(
-        r as *mut BOOL_DECODER,
-        *p.offset(mvpis_short as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-    ) != 0
-    {
-        let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-        loop {
-            x += vp8dx_decode_bool(
-                r as *mut BOOL_DECODER,
-                *p.offset((MVPbits as ::core::ffi::c_int + i) as isize) as ::core::ffi::c_int,
-            ) << i;
-            i += 1;
-            if !(i < 3 as ::core::ffi::c_int) {
-                break;
+) -> ::core::ffi::c_int {
+    unsafe {
+        let p: *const vp8_prob = mvc as *const vp8_prob;
+        let mut x: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+        if vp8dx_decode_bool(
+            r as *mut BOOL_DECODER,
+            *p.offset(mvpis_short as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+        ) != 0
+        {
+            let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+            loop {
+                x += vp8dx_decode_bool(
+                    r as *mut BOOL_DECODER,
+                    *p.offset((MVPbits as ::core::ffi::c_int + i) as isize) as ::core::ffi::c_int,
+                ) << i;
+                i += 1;
+                if !(i < 3 as ::core::ffi::c_int) {
+                    break;
+                }
             }
-        }
-        i = mvlong_width as ::core::ffi::c_int - 1 as ::core::ffi::c_int;
-        loop {
-            x += vp8dx_decode_bool(
-                r as *mut BOOL_DECODER,
-                *p.offset((MVPbits as ::core::ffi::c_int + i) as isize) as ::core::ffi::c_int,
-            ) << i;
-            i -= 1;
-            if !(i > 3 as ::core::ffi::c_int) {
-                break;
+            i = mvlong_width as ::core::ffi::c_int - 1 as ::core::ffi::c_int;
+            loop {
+                x += vp8dx_decode_bool(
+                    r as *mut BOOL_DECODER,
+                    *p.offset((MVPbits as ::core::ffi::c_int + i) as isize) as ::core::ffi::c_int,
+                ) << i;
+                i -= 1;
+                if !(i > 3 as ::core::ffi::c_int) {
+                    break;
+                }
             }
+            if x & 0xfff0 as ::core::ffi::c_int == 0
+                || vp8dx_decode_bool(
+                    r as *mut BOOL_DECODER,
+                    *p.offset((MVPbits as ::core::ffi::c_int + 3 as ::core::ffi::c_int) as isize)
+                        as ::core::ffi::c_int,
+                ) != 0
+            {
+                x += 8 as ::core::ffi::c_int;
+            }
+        } else {
+            x = vp8_treed_read(
+                r,
+                &raw const vp8_small_mvtree as *const vp8_tree_index,
+                p.offset(MVPshort as ::core::ffi::c_int as isize),
+            );
         }
-        if x & 0xfff0 as ::core::ffi::c_int == 0
-            || vp8dx_decode_bool(
+        if x != 0
+            && vp8dx_decode_bool(
                 r as *mut BOOL_DECODER,
-                *p.offset((MVPbits as ::core::ffi::c_int + 3 as ::core::ffi::c_int) as isize)
-                    as ::core::ffi::c_int,
+                *p.offset(MVPsign as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
             ) != 0
         {
-            x += 8 as ::core::ffi::c_int;
+            x = -x;
         }
-    } else {
-        x = vp8_treed_read(
-            r,
-            &raw const vp8_small_mvtree as *const vp8_tree_index,
-            p.offset(MVPshort as ::core::ffi::c_int as isize),
-        );
+        return x;
     }
-    if x != 0
-        && vp8dx_decode_bool(
-            r as *mut BOOL_DECODER,
-            *p.offset(MVPsign as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-        ) != 0
-    {
-        x = -x;
+}
+unsafe extern "C" fn read_mv(mut r: *mut vp8_reader, mut mv: *mut MV, mut mvc: *const MV_CONTEXT) {
+    unsafe {
+        (*mv).row = (read_mvcomponent(r, mvc) * 2 as ::core::ffi::c_int) as ::core::ffi::c_short;
+        mvc = mvc.offset(1);
+        (*mv).col = (read_mvcomponent(r, mvc) * 2 as ::core::ffi::c_int) as ::core::ffi::c_short;
     }
-    return x;
-}}
-unsafe extern "C" fn read_mv(mut r: *mut vp8_reader, mut mv: *mut MV, mut mvc: *const MV_CONTEXT) { unsafe {
-    (*mv).row = (read_mvcomponent(r, mvc) * 2 as ::core::ffi::c_int) as ::core::ffi::c_short;
-    mvc = mvc.offset(1);
-    (*mv).col = (read_mvcomponent(r, mvc) * 2 as ::core::ffi::c_int) as ::core::ffi::c_short;
-}}
-unsafe extern "C" fn read_mvcontexts(mut bc: *mut vp8_reader, mut mvc: *mut MV_CONTEXT) { unsafe {
-    let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    loop {
-        let mut up: *const vp8_prob =
-            &raw const (*(&raw const vp8_mv_update_probs as *const MV_CONTEXT).offset(i as isize))
-                .prob as *const vp8_prob;
-        let mut p: *mut vp8_prob = mvc.offset(i as isize) as *mut vp8_prob;
-        let pstop: *mut vp8_prob = p.offset(MVPcount as ::core::ffi::c_int as isize);
+}
+unsafe extern "C" fn read_mvcontexts(mut bc: *mut vp8_reader, mut mvc: *mut MV_CONTEXT) {
+    unsafe {
+        let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
         loop {
-            let fresh2 = up;
-            up = up.offset(1);
-            if vp8dx_decode_bool(bc as *mut BOOL_DECODER, *fresh2 as ::core::ffi::c_int) != 0 {
-                let x: vp8_prob =
-                    vp8_decode_value(bc as *mut BOOL_DECODER, 7 as ::core::ffi::c_int) as vp8_prob;
-                *p = (if x as ::core::ffi::c_int != 0 {
-                    (x as ::core::ffi::c_int) << 1 as ::core::ffi::c_int
-                } else {
-                    1 as ::core::ffi::c_int
-                }) as vp8_prob;
+            let mut up: *const vp8_prob = &raw const (*(&raw const vp8_mv_update_probs
+                as *const MV_CONTEXT)
+                .offset(i as isize))
+            .prob as *const vp8_prob;
+            let mut p: *mut vp8_prob = mvc.offset(i as isize) as *mut vp8_prob;
+            let pstop: *mut vp8_prob = p.offset(MVPcount as ::core::ffi::c_int as isize);
+            loop {
+                let fresh2 = up;
+                up = up.offset(1);
+                if vp8dx_decode_bool(bc as *mut BOOL_DECODER, *fresh2 as ::core::ffi::c_int) != 0 {
+                    let x: vp8_prob =
+                        vp8_decode_value(bc as *mut BOOL_DECODER, 7 as ::core::ffi::c_int)
+                            as vp8_prob;
+                    *p = (if x as ::core::ffi::c_int != 0 {
+                        (x as ::core::ffi::c_int) << 1 as ::core::ffi::c_int
+                    } else {
+                        1 as ::core::ffi::c_int
+                    }) as vp8_prob;
+                }
+                p = p.offset(1);
+                if !(p < pstop) {
+                    break;
+                }
             }
-            p = p.offset(1);
-            if !(p < pstop) {
+            i += 1;
+            if !(i < 2 as ::core::ffi::c_int) {
                 break;
             }
         }
-        i += 1;
-        if !(i < 2 as ::core::ffi::c_int) {
-            break;
-        }
     }
-}}
+}
 static mut mbsplit_fill_count: [::core::ffi::c_uchar; 4] = [
     8 as ::core::ffi::c_int as ::core::ffi::c_uchar,
     8 as ::core::ffi::c_int as ::core::ffi::c_uchar,
@@ -904,51 +946,58 @@ static mut mbsplit_fill_offset: [[::core::ffi::c_uchar; 16]; 4] = [
         15 as ::core::ffi::c_int as ::core::ffi::c_uchar,
     ],
 ];
-unsafe extern "C" fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) { unsafe {
-    let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-        .offset(8 as ::core::ffi::c_int as isize) as *mut vp8_reader;
-    let mvc: *mut MV_CONTEXT = &raw mut (*pbi).common.fc.mvc as *mut MV_CONTEXT;
-    (*pbi).common.mb_no_coeff_skip =
-        vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as ::core::ffi::c_int);
-    (*pbi).prob_skip_false = 0 as vp8_prob;
-    if (*pbi).common.mb_no_coeff_skip != 0 {
-        (*pbi).prob_skip_false =
-            vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int) as vp8_prob;
-    }
-    if (*pbi).common.frame_type as ::core::ffi::c_uint
-        != KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
-        (*pbi).prob_intra =
-            vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int) as vp8_prob;
-        (*pbi).prob_last =
-            vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int) as vp8_prob;
-        (*pbi).prob_gf =
-            vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int) as vp8_prob;
-        if vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as ::core::ffi::c_int) != 0 {
-            let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-            loop {
-                (*pbi).common.fc.ymode_prob[i as usize] =
-                    vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int) as vp8_prob;
-                i += 1;
-                if !(i < 4 as ::core::ffi::c_int) {
-                    break;
+unsafe extern "C" fn mb_mode_mv_init(mut pbi: *mut VP8D_COMP) {
+    unsafe {
+        let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
+            .offset(8 as ::core::ffi::c_int as isize)
+            as *mut vp8_reader;
+        let mvc: *mut MV_CONTEXT = &raw mut (*pbi).common.fc.mvc as *mut MV_CONTEXT;
+        (*pbi).common.mb_no_coeff_skip =
+            vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as ::core::ffi::c_int);
+        (*pbi).prob_skip_false = 0 as vp8_prob;
+        if (*pbi).common.mb_no_coeff_skip != 0 {
+            (*pbi).prob_skip_false =
+                vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int) as vp8_prob;
+        }
+        if (*pbi).common.frame_type as ::core::ffi::c_uint
+            != KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
+        {
+            (*pbi).prob_intra =
+                vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int) as vp8_prob;
+            (*pbi).prob_last =
+                vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int) as vp8_prob;
+            (*pbi).prob_gf =
+                vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int) as vp8_prob;
+            if vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as ::core::ffi::c_int) != 0
+            {
+                let mut i: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+                loop {
+                    (*pbi).common.fc.ymode_prob[i as usize] =
+                        vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int)
+                            as vp8_prob;
+                    i += 1;
+                    if !(i < 4 as ::core::ffi::c_int) {
+                        break;
+                    }
                 }
             }
-        }
-        if vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as ::core::ffi::c_int) != 0 {
-            let mut i_0: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-            loop {
-                (*pbi).common.fc.uv_mode_prob[i_0 as usize] =
-                    vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int) as vp8_prob;
-                i_0 += 1;
-                if !(i_0 < 3 as ::core::ffi::c_int) {
-                    break;
+            if vp8dx_decode_bool(bc as *mut BOOL_DECODER, vp8_prob_half as ::core::ffi::c_int) != 0
+            {
+                let mut i_0: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+                loop {
+                    (*pbi).common.fc.uv_mode_prob[i_0 as usize] =
+                        vp8_decode_value(bc as *mut BOOL_DECODER, 8 as ::core::ffi::c_int)
+                            as vp8_prob;
+                    i_0 += 1;
+                    if !(i_0 < 3 as ::core::ffi::c_int) {
+                        break;
+                    }
                 }
             }
+            read_mvcontexts(bc, mvc);
         }
-        read_mvcontexts(bc, mvc);
     }
-}}
+}
 #[unsafe(no_mangle)]
 pub static mut vp8_sub_mv_ref_prob3: [[vp8_prob; 3]; 8] = [
     [
@@ -992,16 +1041,18 @@ pub static mut vp8_sub_mv_ref_prob3: [[vp8_prob; 3]; 8] = [
         1 as ::core::ffi::c_int as vp8_prob,
     ],
 ];
-unsafe extern "C" fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> *const vp8_prob { unsafe {
-    let mut lez: ::core::ffi::c_int = (left == 0 as uint32_t) as ::core::ffi::c_int;
-    let mut aez: ::core::ffi::c_int = (above == 0 as uint32_t) as ::core::ffi::c_int;
-    let mut lea: ::core::ffi::c_int = (left == above) as ::core::ffi::c_int;
-    let mut prob: *const vp8_prob = ::core::ptr::null::<vp8_prob>();
-    prob = &raw const *(&raw const vp8_sub_mv_ref_prob3 as *const [vp8_prob; 3])
-        .offset((aez << 2 as ::core::ffi::c_int | lez << 1 as ::core::ffi::c_int | lea) as isize)
-        as *const vp8_prob;
-    return prob;
-}}
+unsafe extern "C" fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> *const vp8_prob {
+    unsafe {
+        let mut lez: ::core::ffi::c_int = (left == 0 as uint32_t) as ::core::ffi::c_int;
+        let mut aez: ::core::ffi::c_int = (above == 0 as uint32_t) as ::core::ffi::c_int;
+        let mut lea: ::core::ffi::c_int = (left == above) as ::core::ffi::c_int;
+        let mut prob: *const vp8_prob = ::core::ptr::null::<vp8_prob>();
+        prob = &raw const *(&raw const vp8_sub_mv_ref_prob3 as *const [vp8_prob; 3]).offset(
+            (aez << 2 as ::core::ffi::c_int | lez << 1 as ::core::ffi::c_int | lea) as isize,
+        ) as *const vp8_prob;
+        return prob;
+    }
+}
 unsafe extern "C" fn decode_split_mv(
     bc: *mut vp8_reader,
     mut mi: *mut MODE_INFO,
@@ -1014,470 +1065,490 @@ unsafe extern "C" fn decode_split_mv(
     mut mb_to_right_edge: ::core::ffi::c_int,
     mut mb_to_top_edge: ::core::ffi::c_int,
     mut mb_to_bottom_edge: ::core::ffi::c_int,
-) { unsafe {
-    let mut s: ::core::ffi::c_int = 0;
-    let mut num_p: ::core::ffi::c_int = 0;
-    let mut j: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    s = 3 as ::core::ffi::c_int;
-    num_p = 16 as ::core::ffi::c_int;
-    if vp8dx_decode_bool(bc as *mut BOOL_DECODER, 110 as ::core::ffi::c_int) != 0 {
-        s = 2 as ::core::ffi::c_int;
-        num_p = 4 as ::core::ffi::c_int;
-        if vp8dx_decode_bool(bc as *mut BOOL_DECODER, 111 as ::core::ffi::c_int) != 0 {
-            s = vp8dx_decode_bool(bc as *mut BOOL_DECODER, 150 as ::core::ffi::c_int);
-            num_p = 2 as ::core::ffi::c_int;
+) {
+    unsafe {
+        let mut s: ::core::ffi::c_int = 0;
+        let mut num_p: ::core::ffi::c_int = 0;
+        let mut j: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+        s = 3 as ::core::ffi::c_int;
+        num_p = 16 as ::core::ffi::c_int;
+        if vp8dx_decode_bool(bc as *mut BOOL_DECODER, 110 as ::core::ffi::c_int) != 0 {
+            s = 2 as ::core::ffi::c_int;
+            num_p = 4 as ::core::ffi::c_int;
+            if vp8dx_decode_bool(bc as *mut BOOL_DECODER, 111 as ::core::ffi::c_int) != 0 {
+                s = vp8dx_decode_bool(bc as *mut BOOL_DECODER, 150 as ::core::ffi::c_int);
+                num_p = 2 as ::core::ffi::c_int;
+            }
         }
-    }
-    loop {
-        let mut leftmv: int_mv = int_mv { as_int: 0 };
-        let mut abovemv: int_mv = int_mv { as_int: 0 };
-        let mut blockmv: int_mv = int_mv { as_int: 0 };
-        let mut k: ::core::ffi::c_int = 0;
-        let mut prob: *const vp8_prob = ::core::ptr::null::<vp8_prob>();
-        k = vp8_mbsplit_offset[s as usize][j as usize] as ::core::ffi::c_int;
-        if k & 3 as ::core::ffi::c_int == 0 {
-            if (*left_mb).mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int {
-                leftmv.as_int = (*left_mb).mbmi.mv.as_int;
+        loop {
+            let mut leftmv: int_mv = int_mv { as_int: 0 };
+            let mut abovemv: int_mv = int_mv { as_int: 0 };
+            let mut blockmv: int_mv = int_mv { as_int: 0 };
+            let mut k: ::core::ffi::c_int = 0;
+            let mut prob: *const vp8_prob = ::core::ptr::null::<vp8_prob>();
+            k = vp8_mbsplit_offset[s as usize][j as usize] as ::core::ffi::c_int;
+            if k & 3 as ::core::ffi::c_int == 0 {
+                if (*left_mb).mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int {
+                    leftmv.as_int = (*left_mb).mbmi.mv.as_int;
+                } else {
+                    leftmv.as_int = (*(&raw const (*left_mb).bmi as *const b_mode_info)
+                        .offset(k as isize)
+                        .offset(4 as ::core::ffi::c_int as isize)
+                        .offset(-(1 as ::core::ffi::c_int as isize)))
+                    .mv
+                    .as_int;
+                }
             } else {
-                leftmv.as_int = (*(&raw const (*left_mb).bmi as *const b_mode_info)
+                leftmv.as_int = (*(&raw mut (*mi).bmi as *mut b_mode_info)
                     .offset(k as isize)
-                    .offset(4 as ::core::ffi::c_int as isize)
                     .offset(-(1 as ::core::ffi::c_int as isize)))
                 .mv
                 .as_int;
             }
-        } else {
-            leftmv.as_int = (*(&raw mut (*mi).bmi as *mut b_mode_info)
-                .offset(k as isize)
-                .offset(-(1 as ::core::ffi::c_int as isize)))
-            .mv
-            .as_int;
-        }
-        if k >> 2 as ::core::ffi::c_int == 0 {
-            if (*above_mb).mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int {
-                abovemv.as_int = (*above_mb).mbmi.mv.as_int;
+            if k >> 2 as ::core::ffi::c_int == 0 {
+                if (*above_mb).mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int {
+                    abovemv.as_int = (*above_mb).mbmi.mv.as_int;
+                } else {
+                    abovemv.as_int = (*(&raw const (*above_mb).bmi as *const b_mode_info)
+                        .offset(k as isize)
+                        .offset(16 as ::core::ffi::c_int as isize)
+                        .offset(-(4 as ::core::ffi::c_int as isize)))
+                    .mv
+                    .as_int;
+                }
             } else {
-                abovemv.as_int = (*(&raw const (*above_mb).bmi as *const b_mode_info)
+                abovemv.as_int = (*(&raw mut (*mi).bmi as *mut b_mode_info)
                     .offset(k as isize)
-                    .offset(16 as ::core::ffi::c_int as isize)
                     .offset(-(4 as ::core::ffi::c_int as isize)))
                 .mv
                 .as_int;
             }
-        } else {
-            abovemv.as_int = (*(&raw mut (*mi).bmi as *mut b_mode_info)
-                .offset(k as isize)
-                .offset(-(4 as ::core::ffi::c_int as isize)))
-            .mv
-            .as_int;
-        }
-        prob = get_sub_mv_ref_prob(leftmv.as_int, abovemv.as_int);
-        if vp8dx_decode_bool(
-            bc as *mut BOOL_DECODER,
-            *prob.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
-        ) != 0
-        {
+            prob = get_sub_mv_ref_prob(leftmv.as_int, abovemv.as_int);
             if vp8dx_decode_bool(
                 bc as *mut BOOL_DECODER,
-                *prob.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                *prob.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
             ) != 0
             {
-                blockmv.as_int = 0 as uint32_t;
                 if vp8dx_decode_bool(
                     bc as *mut BOOL_DECODER,
-                    *prob.offset(2 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                    *prob.offset(1 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
                 ) != 0
                 {
-                    blockmv.as_mv.row = (read_mvcomponent(
-                        bc,
-                        mvc.offset(0 as ::core::ffi::c_int as isize) as *mut MV_CONTEXT,
-                    ) * 2 as ::core::ffi::c_int)
-                        as ::core::ffi::c_short;
-                    blockmv.as_mv.row = (blockmv.as_mv.row as ::core::ffi::c_int
-                        + best_mv.as_mv.row as ::core::ffi::c_int)
-                        as ::core::ffi::c_short;
-                    blockmv.as_mv.col = (read_mvcomponent(
-                        bc,
-                        mvc.offset(1 as ::core::ffi::c_int as isize) as *mut MV_CONTEXT,
-                    ) * 2 as ::core::ffi::c_int)
-                        as ::core::ffi::c_short;
-                    blockmv.as_mv.col = (blockmv.as_mv.col as ::core::ffi::c_int
-                        + best_mv.as_mv.col as ::core::ffi::c_int)
-                        as ::core::ffi::c_short;
+                    blockmv.as_int = 0 as uint32_t;
+                    if vp8dx_decode_bool(
+                        bc as *mut BOOL_DECODER,
+                        *prob.offset(2 as ::core::ffi::c_int as isize) as ::core::ffi::c_int,
+                    ) != 0
+                    {
+                        blockmv.as_mv.row = (read_mvcomponent(
+                            bc,
+                            mvc.offset(0 as ::core::ffi::c_int as isize) as *mut MV_CONTEXT,
+                        ) * 2 as ::core::ffi::c_int)
+                            as ::core::ffi::c_short;
+                        blockmv.as_mv.row = (blockmv.as_mv.row as ::core::ffi::c_int
+                            + best_mv.as_mv.row as ::core::ffi::c_int)
+                            as ::core::ffi::c_short;
+                        blockmv.as_mv.col = (read_mvcomponent(
+                            bc,
+                            mvc.offset(1 as ::core::ffi::c_int as isize) as *mut MV_CONTEXT,
+                        ) * 2 as ::core::ffi::c_int)
+                            as ::core::ffi::c_short;
+                        blockmv.as_mv.col = (blockmv.as_mv.col as ::core::ffi::c_int
+                            + best_mv.as_mv.col as ::core::ffi::c_int)
+                            as ::core::ffi::c_short;
+                    }
+                } else {
+                    blockmv.as_int = abovemv.as_int;
                 }
             } else {
-                blockmv.as_int = abovemv.as_int;
+                blockmv.as_int = leftmv.as_int;
             }
-        } else {
-            blockmv.as_int = leftmv.as_int;
-        }
-        (*mbmi).need_to_clamp_mvs = ((*mbmi).need_to_clamp_mvs as ::core::ffi::c_uint
-            | vp8_check_mv_bounds(
-                &raw mut blockmv,
-                mb_to_left_edge,
-                mb_to_right_edge,
-                mb_to_top_edge,
-                mb_to_bottom_edge,
-            )) as uint8_t;
-        let mut fill_offset: *const ::core::ffi::c_uchar =
-            ::core::ptr::null::<::core::ffi::c_uchar>();
-        let mut fill_count: ::core::ffi::c_uint =
-            mbsplit_fill_count[s as usize] as ::core::ffi::c_uint;
-        fill_offset = (&raw const *(&raw const mbsplit_fill_offset
-            as *const [::core::ffi::c_uchar; 16])
-            .offset(s as isize) as *const ::core::ffi::c_uchar)
-            .offset(
-                (j as ::core::ffi::c_uchar as ::core::ffi::c_int
-                    * *(&raw const mbsplit_fill_count as *const ::core::ffi::c_uchar)
-                        .offset(s as isize) as ::core::ffi::c_int) as isize,
-            ) as *const ::core::ffi::c_uchar;
-        loop {
-            (*mi).bmi[*fill_offset as usize].mv.as_int = blockmv.as_int;
-            fill_offset = fill_offset.offset(1);
-            fill_count = fill_count.wrapping_sub(1);
-            if !(fill_count != 0) {
+            (*mbmi).need_to_clamp_mvs = ((*mbmi).need_to_clamp_mvs as ::core::ffi::c_uint
+                | vp8_check_mv_bounds(
+                    &raw mut blockmv,
+                    mb_to_left_edge,
+                    mb_to_right_edge,
+                    mb_to_top_edge,
+                    mb_to_bottom_edge,
+                )) as uint8_t;
+            let mut fill_offset: *const ::core::ffi::c_uchar =
+                ::core::ptr::null::<::core::ffi::c_uchar>();
+            let mut fill_count: ::core::ffi::c_uint =
+                mbsplit_fill_count[s as usize] as ::core::ffi::c_uint;
+            fill_offset = (&raw const *(&raw const mbsplit_fill_offset
+                as *const [::core::ffi::c_uchar; 16])
+                .offset(s as isize) as *const ::core::ffi::c_uchar)
+                .offset(
+                    (j as ::core::ffi::c_uchar as ::core::ffi::c_int
+                        * *(&raw const mbsplit_fill_count as *const ::core::ffi::c_uchar)
+                            .offset(s as isize) as ::core::ffi::c_int) as isize,
+                ) as *const ::core::ffi::c_uchar;
+            loop {
+                (*mi).bmi[*fill_offset as usize].mv.as_int = blockmv.as_int;
+                fill_offset = fill_offset.offset(1);
+                fill_count = fill_count.wrapping_sub(1);
+                if !(fill_count != 0) {
+                    break;
+                }
+            }
+            j += 1;
+            if !(j < num_p) {
                 break;
             }
         }
-        j += 1;
-        if !(j < num_p) {
-            break;
-        }
+        (*mbmi).partitioning = s as uint8_t;
     }
-    (*mbmi).partitioning = s as uint8_t;
-}}
+}
 unsafe extern "C" fn read_mb_modes_mv(
     mut pbi: *mut VP8D_COMP,
     mut mi: *mut MODE_INFO,
     mut mbmi: *mut MB_MODE_INFO,
-) { unsafe {
-    let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
-        .offset(8 as ::core::ffi::c_int as isize) as *mut vp8_reader;
-    (*mbmi).ref_frame = vp8dx_decode_bool(
-        bc as *mut BOOL_DECODER,
-        (*pbi).prob_intra as ::core::ffi::c_int,
-    ) as MV_REFERENCE_FRAME as uint8_t;
-    if (*mbmi).ref_frame != 0 {
-        let mut cnt: [::core::ffi::c_int; 4] = [0; 4];
-        let mut cntx: *mut ::core::ffi::c_int = &raw mut cnt as *mut ::core::ffi::c_int;
-        let mut near_mvs: [int_mv; 4] = [int_mv { as_int: 0 }; 4];
-        let mut nmv: *mut int_mv = &raw mut near_mvs as *mut int_mv;
-        let mis: ::core::ffi::c_int = (*pbi).mb.mode_info_stride;
-        let mut above: *const MODE_INFO = mi.offset(-(mis as isize));
-        let mut left: *const MODE_INFO = mi.offset(-(1 as ::core::ffi::c_int as isize));
-        let mut aboveleft: *const MODE_INFO = above.offset(-(1 as ::core::ffi::c_int as isize));
-        let mut ref_frame_sign_bias: *mut ::core::ffi::c_int =
-            &raw mut (*pbi).common.ref_frame_sign_bias as *mut ::core::ffi::c_int;
-        (*mbmi).need_to_clamp_mvs = 0 as uint8_t;
-        if vp8dx_decode_bool(
+) {
+    unsafe {
+        let bc: *mut vp8_reader = (&raw mut (*pbi).mbc as *mut vp8_reader)
+            .offset(8 as ::core::ffi::c_int as isize)
+            as *mut vp8_reader;
+        (*mbmi).ref_frame = vp8dx_decode_bool(
             bc as *mut BOOL_DECODER,
-            (*pbi).prob_last as ::core::ffi::c_int,
-        ) != 0
-        {
-            (*mbmi).ref_frame = (2 as ::core::ffi::c_int
-                + vp8dx_decode_bool(
-                    bc as *mut BOOL_DECODER,
-                    (*pbi).prob_gf as ::core::ffi::c_int,
-                )) as MV_REFERENCE_FRAME as uint8_t;
-        }
-        let ref mut fresh0 = (*nmv.offset(2 as ::core::ffi::c_int as isize)).as_int;
-        *fresh0 = 0 as uint32_t;
-        let ref mut fresh1 = (*nmv.offset(1 as ::core::ffi::c_int as isize)).as_int;
-        *fresh1 = *fresh0;
-        (*nmv.offset(0 as ::core::ffi::c_int as isize)).as_int = *fresh1;
-        cnt[3 as ::core::ffi::c_int as usize] = 0 as ::core::ffi::c_int;
-        cnt[2 as ::core::ffi::c_int as usize] = cnt[3 as ::core::ffi::c_int as usize];
-        cnt[1 as ::core::ffi::c_int as usize] = cnt[2 as ::core::ffi::c_int as usize];
-        cnt[0 as ::core::ffi::c_int as usize] = cnt[1 as ::core::ffi::c_int as usize];
-        if (*above).mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
-            if (*above).mbmi.mv.as_int != 0 {
-                nmv = nmv.offset(1);
-                (*nmv).as_int = (*above).mbmi.mv.as_int;
-                mv_bias(
-                    *ref_frame_sign_bias.offset((*above).mbmi.ref_frame as isize),
-                    (*mbmi).ref_frame as ::core::ffi::c_int,
-                    nmv,
-                    ref_frame_sign_bias,
-                );
-                cntx = cntx.offset(1);
+            (*pbi).prob_intra as ::core::ffi::c_int,
+        ) as MV_REFERENCE_FRAME as uint8_t;
+        if (*mbmi).ref_frame != 0 {
+            let mut cnt: [::core::ffi::c_int; 4] = [0; 4];
+            let mut cntx: *mut ::core::ffi::c_int = &raw mut cnt as *mut ::core::ffi::c_int;
+            let mut near_mvs: [int_mv; 4] = [int_mv { as_int: 0 }; 4];
+            let mut nmv: *mut int_mv = &raw mut near_mvs as *mut int_mv;
+            let mis: ::core::ffi::c_int = (*pbi).mb.mode_info_stride;
+            let mut above: *const MODE_INFO = mi.offset(-(mis as isize));
+            let mut left: *const MODE_INFO = mi.offset(-(1 as ::core::ffi::c_int as isize));
+            let mut aboveleft: *const MODE_INFO = above.offset(-(1 as ::core::ffi::c_int as isize));
+            let mut ref_frame_sign_bias: *mut ::core::ffi::c_int =
+                &raw mut (*pbi).common.ref_frame_sign_bias as *mut ::core::ffi::c_int;
+            (*mbmi).need_to_clamp_mvs = 0 as uint8_t;
+            if vp8dx_decode_bool(
+                bc as *mut BOOL_DECODER,
+                (*pbi).prob_last as ::core::ffi::c_int,
+            ) != 0
+            {
+                (*mbmi).ref_frame = (2 as ::core::ffi::c_int
+                    + vp8dx_decode_bool(
+                        bc as *mut BOOL_DECODER,
+                        (*pbi).prob_gf as ::core::ffi::c_int,
+                    )) as MV_REFERENCE_FRAME as uint8_t;
             }
-            *cntx += 2 as ::core::ffi::c_int;
-        }
-        if (*left).mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
-            if (*left).mbmi.mv.as_int != 0 {
-                let mut this_mv: int_mv = int_mv { as_int: 0 };
-                this_mv.as_int = (*left).mbmi.mv.as_int;
-                mv_bias(
-                    *ref_frame_sign_bias.offset((*left).mbmi.ref_frame as isize),
-                    (*mbmi).ref_frame as ::core::ffi::c_int,
-                    &raw mut this_mv,
-                    ref_frame_sign_bias,
-                );
-                if this_mv.as_int != (*nmv).as_int {
+            let ref mut fresh0 = (*nmv.offset(2 as ::core::ffi::c_int as isize)).as_int;
+            *fresh0 = 0 as uint32_t;
+            let ref mut fresh1 = (*nmv.offset(1 as ::core::ffi::c_int as isize)).as_int;
+            *fresh1 = *fresh0;
+            (*nmv.offset(0 as ::core::ffi::c_int as isize)).as_int = *fresh1;
+            cnt[3 as ::core::ffi::c_int as usize] = 0 as ::core::ffi::c_int;
+            cnt[2 as ::core::ffi::c_int as usize] = cnt[3 as ::core::ffi::c_int as usize];
+            cnt[1 as ::core::ffi::c_int as usize] = cnt[2 as ::core::ffi::c_int as usize];
+            cnt[0 as ::core::ffi::c_int as usize] = cnt[1 as ::core::ffi::c_int as usize];
+            if (*above).mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
+                if (*above).mbmi.mv.as_int != 0 {
                     nmv = nmv.offset(1);
-                    (*nmv).as_int = this_mv.as_int;
+                    (*nmv).as_int = (*above).mbmi.mv.as_int;
+                    mv_bias(
+                        *ref_frame_sign_bias.offset((*above).mbmi.ref_frame as isize),
+                        (*mbmi).ref_frame as ::core::ffi::c_int,
+                        nmv,
+                        ref_frame_sign_bias,
+                    );
                     cntx = cntx.offset(1);
                 }
                 *cntx += 2 as ::core::ffi::c_int;
-            } else {
-                cnt[CNT_INTRA as ::core::ffi::c_int as usize] += 2 as ::core::ffi::c_int;
             }
-        }
-        if (*aboveleft).mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
-            if (*aboveleft).mbmi.mv.as_int != 0 {
-                let mut this_mv_0: int_mv = int_mv { as_int: 0 };
-                this_mv_0.as_int = (*aboveleft).mbmi.mv.as_int;
-                mv_bias(
-                    *ref_frame_sign_bias.offset((*aboveleft).mbmi.ref_frame as isize),
-                    (*mbmi).ref_frame as ::core::ffi::c_int,
-                    &raw mut this_mv_0,
-                    ref_frame_sign_bias,
-                );
-                if this_mv_0.as_int != (*nmv).as_int {
-                    nmv = nmv.offset(1);
-                    (*nmv).as_int = this_mv_0.as_int;
-                    cntx = cntx.offset(1);
+            if (*left).mbmi.ref_frame as ::core::ffi::c_int != INTRA_FRAME as ::core::ffi::c_int {
+                if (*left).mbmi.mv.as_int != 0 {
+                    let mut this_mv: int_mv = int_mv { as_int: 0 };
+                    this_mv.as_int = (*left).mbmi.mv.as_int;
+                    mv_bias(
+                        *ref_frame_sign_bias.offset((*left).mbmi.ref_frame as isize),
+                        (*mbmi).ref_frame as ::core::ffi::c_int,
+                        &raw mut this_mv,
+                        ref_frame_sign_bias,
+                    );
+                    if this_mv.as_int != (*nmv).as_int {
+                        nmv = nmv.offset(1);
+                        (*nmv).as_int = this_mv.as_int;
+                        cntx = cntx.offset(1);
+                    }
+                    *cntx += 2 as ::core::ffi::c_int;
+                } else {
+                    cnt[CNT_INTRA as ::core::ffi::c_int as usize] += 2 as ::core::ffi::c_int;
                 }
-                *cntx += 1 as ::core::ffi::c_int;
-            } else {
-                cnt[CNT_INTRA as ::core::ffi::c_int as usize] += 1 as ::core::ffi::c_int;
             }
-        }
-        if vp8dx_decode_bool(
-            bc as *mut BOOL_DECODER,
-            vp8_mode_contexts[cnt[CNT_INTRA as ::core::ffi::c_int as usize] as usize]
-                [0 as ::core::ffi::c_int as usize],
-        ) != 0
-        {
-            cnt[CNT_NEAREST as ::core::ffi::c_int as usize] +=
-                (cnt[CNT_SPLITMV as ::core::ffi::c_int as usize] > 0 as ::core::ffi::c_int)
-                    as ::core::ffi::c_int
-                    & ((*nmv).as_int == near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int)
-                        as ::core::ffi::c_int;
-            if cnt[CNT_NEAR as ::core::ffi::c_int as usize]
-                > cnt[CNT_NEAREST as ::core::ffi::c_int as usize]
+            if (*aboveleft).mbmi.ref_frame as ::core::ffi::c_int
+                != INTRA_FRAME as ::core::ffi::c_int
             {
-                let mut tmp: ::core::ffi::c_int = 0;
-                tmp = cnt[CNT_NEAREST as ::core::ffi::c_int as usize];
-                cnt[CNT_NEAREST as ::core::ffi::c_int as usize] =
-                    cnt[CNT_NEAR as ::core::ffi::c_int as usize];
-                cnt[CNT_NEAR as ::core::ffi::c_int as usize] = tmp;
-                tmp = near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int
-                    as ::core::ffi::c_int;
-                near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int =
-                    near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int;
-                near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int = tmp as uint32_t;
+                if (*aboveleft).mbmi.mv.as_int != 0 {
+                    let mut this_mv_0: int_mv = int_mv { as_int: 0 };
+                    this_mv_0.as_int = (*aboveleft).mbmi.mv.as_int;
+                    mv_bias(
+                        *ref_frame_sign_bias.offset((*aboveleft).mbmi.ref_frame as isize),
+                        (*mbmi).ref_frame as ::core::ffi::c_int,
+                        &raw mut this_mv_0,
+                        ref_frame_sign_bias,
+                    );
+                    if this_mv_0.as_int != (*nmv).as_int {
+                        nmv = nmv.offset(1);
+                        (*nmv).as_int = this_mv_0.as_int;
+                        cntx = cntx.offset(1);
+                    }
+                    *cntx += 1 as ::core::ffi::c_int;
+                } else {
+                    cnt[CNT_INTRA as ::core::ffi::c_int as usize] += 1 as ::core::ffi::c_int;
+                }
             }
             if vp8dx_decode_bool(
                 bc as *mut BOOL_DECODER,
-                vp8_mode_contexts[cnt[CNT_NEAREST as ::core::ffi::c_int as usize] as usize]
-                    [1 as ::core::ffi::c_int as usize],
+                vp8_mode_contexts[cnt[CNT_INTRA as ::core::ffi::c_int as usize] as usize]
+                    [0 as ::core::ffi::c_int as usize],
             ) != 0
             {
+                cnt[CNT_NEAREST as ::core::ffi::c_int as usize] += (cnt
+                    [CNT_SPLITMV as ::core::ffi::c_int as usize]
+                    > 0 as ::core::ffi::c_int)
+                    as ::core::ffi::c_int
+                    & ((*nmv).as_int == near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int)
+                        as ::core::ffi::c_int;
+                if cnt[CNT_NEAR as ::core::ffi::c_int as usize]
+                    > cnt[CNT_NEAREST as ::core::ffi::c_int as usize]
+                {
+                    let mut tmp: ::core::ffi::c_int = 0;
+                    tmp = cnt[CNT_NEAREST as ::core::ffi::c_int as usize];
+                    cnt[CNT_NEAREST as ::core::ffi::c_int as usize] =
+                        cnt[CNT_NEAR as ::core::ffi::c_int as usize];
+                    cnt[CNT_NEAR as ::core::ffi::c_int as usize] = tmp;
+                    tmp = near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int
+                        as ::core::ffi::c_int;
+                    near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int =
+                        near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int;
+                    near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int = tmp as uint32_t;
+                }
                 if vp8dx_decode_bool(
                     bc as *mut BOOL_DECODER,
-                    vp8_mode_contexts[cnt[CNT_NEAR as ::core::ffi::c_int as usize] as usize]
-                        [2 as ::core::ffi::c_int as usize],
+                    vp8_mode_contexts[cnt[CNT_NEAREST as ::core::ffi::c_int as usize] as usize]
+                        [1 as ::core::ffi::c_int as usize],
                 ) != 0
                 {
-                    let mut mb_to_top_edge: ::core::ffi::c_int = 0;
-                    let mut mb_to_bottom_edge: ::core::ffi::c_int = 0;
-                    let mut mb_to_left_edge: ::core::ffi::c_int = 0;
-                    let mut mb_to_right_edge: ::core::ffi::c_int = 0;
-                    let mvc: *mut MV_CONTEXT = &raw mut (*pbi).common.fc.mvc as *mut MV_CONTEXT;
-                    let mut near_index: ::core::ffi::c_int = 0;
-                    mb_to_top_edge = (*pbi).mb.mb_to_top_edge;
-                    mb_to_bottom_edge = (*pbi).mb.mb_to_bottom_edge;
-                    mb_to_top_edge -= LEFT_TOP_MARGIN;
-                    mb_to_bottom_edge += RIGHT_BOTTOM_MARGIN;
-                    mb_to_right_edge = (*pbi).mb.mb_to_right_edge;
-                    mb_to_right_edge += RIGHT_BOTTOM_MARGIN;
-                    mb_to_left_edge = (*pbi).mb.mb_to_left_edge;
-                    mb_to_left_edge -= LEFT_TOP_MARGIN;
-                    near_index = CNT_INTRA as ::core::ffi::c_int
-                        + (cnt[CNT_NEAREST as ::core::ffi::c_int as usize]
-                            >= cnt[CNT_INTRA as ::core::ffi::c_int as usize])
-                            as ::core::ffi::c_int;
-                    vp8_clamp_mv2(
-                        (&raw mut near_mvs as *mut int_mv).offset(near_index as isize)
-                            as *mut int_mv,
-                        &raw mut (*pbi).mb,
-                    );
-                    cnt[CNT_SPLITMV as ::core::ffi::c_int as usize] = (((*above).mbmi.mode
-                        as ::core::ffi::c_int
-                        == SPLITMV as ::core::ffi::c_int)
-                        as ::core::ffi::c_int
-                        + ((*left).mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int)
-                            as ::core::ffi::c_int)
-                        * 2 as ::core::ffi::c_int
-                        + ((*aboveleft).mbmi.mode as ::core::ffi::c_int
-                            == SPLITMV as ::core::ffi::c_int)
-                            as ::core::ffi::c_int;
                     if vp8dx_decode_bool(
                         bc as *mut BOOL_DECODER,
-                        vp8_mode_contexts[cnt[CNT_SPLITMV as ::core::ffi::c_int as usize] as usize]
-                            [3 as ::core::ffi::c_int as usize],
+                        vp8_mode_contexts[cnt[CNT_NEAR as ::core::ffi::c_int as usize] as usize]
+                            [2 as ::core::ffi::c_int as usize],
                     ) != 0
                     {
-                        decode_split_mv(
-                            bc,
-                            mi,
-                            left,
-                            above,
-                            mbmi,
-                            near_mvs[near_index as usize],
-                            mvc,
-                            mb_to_left_edge,
-                            mb_to_right_edge,
-                            mb_to_top_edge,
-                            mb_to_bottom_edge,
+                        let mut mb_to_top_edge: ::core::ffi::c_int = 0;
+                        let mut mb_to_bottom_edge: ::core::ffi::c_int = 0;
+                        let mut mb_to_left_edge: ::core::ffi::c_int = 0;
+                        let mut mb_to_right_edge: ::core::ffi::c_int = 0;
+                        let mvc: *mut MV_CONTEXT = &raw mut (*pbi).common.fc.mvc as *mut MV_CONTEXT;
+                        let mut near_index: ::core::ffi::c_int = 0;
+                        mb_to_top_edge = (*pbi).mb.mb_to_top_edge;
+                        mb_to_bottom_edge = (*pbi).mb.mb_to_bottom_edge;
+                        mb_to_top_edge -= LEFT_TOP_MARGIN;
+                        mb_to_bottom_edge += RIGHT_BOTTOM_MARGIN;
+                        mb_to_right_edge = (*pbi).mb.mb_to_right_edge;
+                        mb_to_right_edge += RIGHT_BOTTOM_MARGIN;
+                        mb_to_left_edge = (*pbi).mb.mb_to_left_edge;
+                        mb_to_left_edge -= LEFT_TOP_MARGIN;
+                        near_index = CNT_INTRA as ::core::ffi::c_int
+                            + (cnt[CNT_NEAREST as ::core::ffi::c_int as usize]
+                                >= cnt[CNT_INTRA as ::core::ffi::c_int as usize])
+                                as ::core::ffi::c_int;
+                        vp8_clamp_mv2(
+                            (&raw mut near_mvs as *mut int_mv).offset(near_index as isize)
+                                as *mut int_mv,
+                            &raw mut (*pbi).mb,
                         );
-                        (*mbmi).mv.as_int = (*mi).bmi[15 as ::core::ffi::c_int as usize].mv.as_int;
-                        (*mbmi).mode = SPLITMV as ::core::ffi::c_int as uint8_t;
-                        (*mbmi).is_4x4 = 1 as uint8_t;
+                        cnt[CNT_SPLITMV as ::core::ffi::c_int as usize] = (((*above).mbmi.mode
+                            as ::core::ffi::c_int
+                            == SPLITMV as ::core::ffi::c_int)
+                            as ::core::ffi::c_int
+                            + ((*left).mbmi.mode as ::core::ffi::c_int
+                                == SPLITMV as ::core::ffi::c_int)
+                                as ::core::ffi::c_int)
+                            * 2 as ::core::ffi::c_int
+                            + ((*aboveleft).mbmi.mode as ::core::ffi::c_int
+                                == SPLITMV as ::core::ffi::c_int)
+                                as ::core::ffi::c_int;
+                        if vp8dx_decode_bool(
+                            bc as *mut BOOL_DECODER,
+                            vp8_mode_contexts
+                                [cnt[CNT_SPLITMV as ::core::ffi::c_int as usize] as usize]
+                                [3 as ::core::ffi::c_int as usize],
+                        ) != 0
+                        {
+                            decode_split_mv(
+                                bc,
+                                mi,
+                                left,
+                                above,
+                                mbmi,
+                                near_mvs[near_index as usize],
+                                mvc,
+                                mb_to_left_edge,
+                                mb_to_right_edge,
+                                mb_to_top_edge,
+                                mb_to_bottom_edge,
+                            );
+                            (*mbmi).mv.as_int =
+                                (*mi).bmi[15 as ::core::ffi::c_int as usize].mv.as_int;
+                            (*mbmi).mode = SPLITMV as ::core::ffi::c_int as uint8_t;
+                            (*mbmi).is_4x4 = 1 as uint8_t;
+                        } else {
+                            let mbmi_mv: *mut int_mv = &raw mut (*mbmi).mv;
+                            read_mv(bc, &raw mut (*mbmi_mv).as_mv, mvc as *const MV_CONTEXT);
+                            (*mbmi_mv).as_mv.row = ((*mbmi_mv).as_mv.row as ::core::ffi::c_int
+                                + near_mvs[near_index as usize].as_mv.row as ::core::ffi::c_int)
+                                as ::core::ffi::c_short;
+                            (*mbmi_mv).as_mv.col = ((*mbmi_mv).as_mv.col as ::core::ffi::c_int
+                                + near_mvs[near_index as usize].as_mv.col as ::core::ffi::c_int)
+                                as ::core::ffi::c_short;
+                            (*mbmi).need_to_clamp_mvs = vp8_check_mv_bounds(
+                                mbmi_mv,
+                                mb_to_left_edge,
+                                mb_to_right_edge,
+                                mb_to_top_edge,
+                                mb_to_bottom_edge,
+                            ) as uint8_t;
+                            (*mbmi).mode = NEWMV as ::core::ffi::c_int as uint8_t;
+                        }
                     } else {
-                        let mbmi_mv: *mut int_mv = &raw mut (*mbmi).mv;
-                        read_mv(bc, &raw mut (*mbmi_mv).as_mv, mvc as *const MV_CONTEXT);
-                        (*mbmi_mv).as_mv.row = ((*mbmi_mv).as_mv.row as ::core::ffi::c_int
-                            + near_mvs[near_index as usize].as_mv.row as ::core::ffi::c_int)
-                            as ::core::ffi::c_short;
-                        (*mbmi_mv).as_mv.col = ((*mbmi_mv).as_mv.col as ::core::ffi::c_int
-                            + near_mvs[near_index as usize].as_mv.col as ::core::ffi::c_int)
-                            as ::core::ffi::c_short;
-                        (*mbmi).need_to_clamp_mvs = vp8_check_mv_bounds(
-                            mbmi_mv,
-                            mb_to_left_edge,
-                            mb_to_right_edge,
-                            mb_to_top_edge,
-                            mb_to_bottom_edge,
-                        ) as uint8_t;
-                        (*mbmi).mode = NEWMV as ::core::ffi::c_int as uint8_t;
+                        (*mbmi).mode = NEARMV as ::core::ffi::c_int as uint8_t;
+                        (*mbmi).mv.as_int =
+                            near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int;
+                        vp8_clamp_mv2(&raw mut (*mbmi).mv, &raw mut (*pbi).mb);
                     }
                 } else {
-                    (*mbmi).mode = NEARMV as ::core::ffi::c_int as uint8_t;
-                    (*mbmi).mv.as_int = near_mvs[CNT_NEAR as ::core::ffi::c_int as usize].as_int;
+                    (*mbmi).mode = NEARESTMV as ::core::ffi::c_int as uint8_t;
+                    (*mbmi).mv.as_int = near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int;
                     vp8_clamp_mv2(&raw mut (*mbmi).mv, &raw mut (*pbi).mb);
                 }
             } else {
-                (*mbmi).mode = NEARESTMV as ::core::ffi::c_int as uint8_t;
-                (*mbmi).mv.as_int = near_mvs[CNT_NEAREST as ::core::ffi::c_int as usize].as_int;
-                vp8_clamp_mv2(&raw mut (*mbmi).mv, &raw mut (*pbi).mb);
+                (*mbmi).mode = ZEROMV as ::core::ffi::c_int as uint8_t;
+                (*mbmi).mv.as_int = 0 as uint32_t;
             }
         } else {
-            (*mbmi).mode = ZEROMV as ::core::ffi::c_int as uint8_t;
             (*mbmi).mv.as_int = 0 as uint32_t;
-        }
-    } else {
-        (*mbmi).mv.as_int = 0 as uint32_t;
-        (*mbmi).mode =
-            read_ymode(bc, &raw mut (*pbi).common.fc.ymode_prob as *mut vp8_prob) as uint8_t;
-        if (*mbmi).mode as ::core::ffi::c_int == B_PRED as ::core::ffi::c_int {
-            let mut j: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-            (*mbmi).is_4x4 = 1 as uint8_t;
-            loop {
-                (*mi).bmi[j as usize].as_mode =
-                    read_bmode(bc, &raw mut (*pbi).common.fc.bmode_prob as *mut vp8_prob);
-                j += 1;
-                if !(j < 16 as ::core::ffi::c_int) {
-                    break;
+            (*mbmi).mode =
+                read_ymode(bc, &raw mut (*pbi).common.fc.ymode_prob as *mut vp8_prob) as uint8_t;
+            if (*mbmi).mode as ::core::ffi::c_int == B_PRED as ::core::ffi::c_int {
+                let mut j: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+                (*mbmi).is_4x4 = 1 as uint8_t;
+                loop {
+                    (*mi).bmi[j as usize].as_mode =
+                        read_bmode(bc, &raw mut (*pbi).common.fc.bmode_prob as *mut vp8_prob);
+                    j += 1;
+                    if !(j < 16 as ::core::ffi::c_int) {
+                        break;
+                    }
                 }
             }
-        }
-        (*mbmi).uv_mode =
-            read_uv_mode(bc, &raw mut (*pbi).common.fc.uv_mode_prob as *mut vp8_prob) as uint8_t;
-    };
-}}
+            (*mbmi).uv_mode =
+                read_uv_mode(bc, &raw mut (*pbi).common.fc.uv_mode_prob as *mut vp8_prob)
+                    as uint8_t;
+        };
+    }
+}
 unsafe extern "C" fn read_mb_features(
     mut r: *mut vp8_reader,
     mut mi: *mut MB_MODE_INFO,
     mut x: *mut MACROBLOCKD,
-) { unsafe {
-    if (*x).segmentation_enabled as ::core::ffi::c_int != 0
-        && (*x).update_mb_segmentation_map as ::core::ffi::c_int != 0
-    {
-        if vp8dx_decode_bool(
-            r as *mut BOOL_DECODER,
-            (*x).mb_segment_tree_probs[0 as ::core::ffi::c_int as usize] as ::core::ffi::c_int,
-        ) != 0
+) {
+    unsafe {
+        if (*x).segmentation_enabled as ::core::ffi::c_int != 0
+            && (*x).update_mb_segmentation_map as ::core::ffi::c_int != 0
         {
-            (*mi).segment_id = (2 as ::core::ffi::c_int
-                + vp8dx_decode_bool(
-                    r as *mut BOOL_DECODER,
-                    (*x).mb_segment_tree_probs[2 as ::core::ffi::c_int as usize]
-                        as ::core::ffi::c_int,
-                )) as ::core::ffi::c_uchar as uint8_t;
-        } else {
-            (*mi).segment_id = vp8dx_decode_bool(
+            if vp8dx_decode_bool(
                 r as *mut BOOL_DECODER,
-                (*x).mb_segment_tree_probs[1 as ::core::ffi::c_int as usize] as ::core::ffi::c_int,
-            ) as ::core::ffi::c_uchar as uint8_t;
+                (*x).mb_segment_tree_probs[0 as ::core::ffi::c_int as usize] as ::core::ffi::c_int,
+            ) != 0
+            {
+                (*mi).segment_id = (2 as ::core::ffi::c_int
+                    + vp8dx_decode_bool(
+                        r as *mut BOOL_DECODER,
+                        (*x).mb_segment_tree_probs[2 as ::core::ffi::c_int as usize]
+                            as ::core::ffi::c_int,
+                    )) as ::core::ffi::c_uchar as uint8_t;
+            } else {
+                (*mi).segment_id = vp8dx_decode_bool(
+                    r as *mut BOOL_DECODER,
+                    (*x).mb_segment_tree_probs[1 as ::core::ffi::c_int as usize]
+                        as ::core::ffi::c_int,
+                ) as ::core::ffi::c_uchar as uint8_t;
+            }
         }
     }
-}}
-unsafe extern "C" fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) { unsafe {
-    if (*pbi).mb.update_mb_segmentation_map != 0 {
-        read_mb_features(
-            (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as ::core::ffi::c_int as isize)
-                as *mut vp8_reader,
-            &raw mut (*mi).mbmi,
-            &raw mut (*pbi).mb,
-        );
-    } else if (*pbi).common.frame_type as ::core::ffi::c_uint
-        == KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
-        (*mi).mbmi.segment_id = 0 as uint8_t;
+}
+unsafe extern "C" fn decode_mb_mode_mvs(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
+    unsafe {
+        if (*pbi).mb.update_mb_segmentation_map != 0 {
+            read_mb_features(
+                (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as ::core::ffi::c_int as isize)
+                    as *mut vp8_reader,
+                &raw mut (*mi).mbmi,
+                &raw mut (*pbi).mb,
+            );
+        } else if (*pbi).common.frame_type as ::core::ffi::c_uint
+            == KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
+        {
+            (*mi).mbmi.segment_id = 0 as uint8_t;
+        }
+        if (*pbi).common.mb_no_coeff_skip != 0 {
+            (*mi).mbmi.mb_skip_coeff = vp8dx_decode_bool(
+                (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as ::core::ffi::c_int as isize)
+                    as *mut BOOL_DECODER,
+                (*pbi).prob_skip_false as ::core::ffi::c_int,
+            ) as uint8_t;
+        } else {
+            (*mi).mbmi.mb_skip_coeff = 0 as uint8_t;
+        }
+        (*mi).mbmi.is_4x4 = 0 as uint8_t;
+        if (*pbi).common.frame_type as ::core::ffi::c_uint
+            == KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
+        {
+            read_kf_modes(pbi, mi);
+        } else {
+            read_mb_modes_mv(pbi, mi, &raw mut (*mi).mbmi);
+        };
     }
-    if (*pbi).common.mb_no_coeff_skip != 0 {
-        (*mi).mbmi.mb_skip_coeff = vp8dx_decode_bool(
-            (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as ::core::ffi::c_int as isize)
-                as *mut BOOL_DECODER,
-            (*pbi).prob_skip_false as ::core::ffi::c_int,
-        ) as uint8_t;
-    } else {
-        (*mi).mbmi.mb_skip_coeff = 0 as uint8_t;
-    }
-    (*mi).mbmi.is_4x4 = 0 as uint8_t;
-    if (*pbi).common.frame_type as ::core::ffi::c_uint
-        == KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
-        read_kf_modes(pbi, mi);
-    } else {
-        read_mb_modes_mv(pbi, mi, &raw mut (*mi).mbmi);
-    };
-}}
+}
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) { unsafe {
-    let mut mi: *mut MODE_INFO = (*pbi).common.mi;
-    let mut mb_row: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
-    let mut mb_to_right_edge_start: ::core::ffi::c_int = 0;
-    mb_mode_mv_init(pbi);
-    (*pbi).mb.mb_to_top_edge = 0 as ::core::ffi::c_int;
-    (*pbi).mb.mb_to_bottom_edge = (((*pbi).common.mb_rows - 1 as ::core::ffi::c_int)
-        * 16 as ::core::ffi::c_int)
-        << 3 as ::core::ffi::c_int;
-    mb_to_right_edge_start = (((*pbi).common.mb_cols - 1 as ::core::ffi::c_int)
-        * 16 as ::core::ffi::c_int)
-        << 3 as ::core::ffi::c_int;
-    loop {
-        mb_row += 1;
-        if !(mb_row < (*pbi).common.mb_rows) {
-            break;
-        }
-        let mut mb_col: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
-        (*pbi).mb.mb_to_left_edge = 0 as ::core::ffi::c_int;
-        (*pbi).mb.mb_to_right_edge = mb_to_right_edge_start;
+pub unsafe extern "C" fn vp8_decode_mode_mvs(mut pbi: *mut VP8D_COMP) {
+    unsafe {
+        let mut mi: *mut MODE_INFO = (*pbi).common.mi;
+        let mut mb_row: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
+        let mut mb_to_right_edge_start: ::core::ffi::c_int = 0;
+        mb_mode_mv_init(pbi);
+        (*pbi).mb.mb_to_top_edge = 0 as ::core::ffi::c_int;
+        (*pbi).mb.mb_to_bottom_edge = (((*pbi).common.mb_rows - 1 as ::core::ffi::c_int)
+            * 16 as ::core::ffi::c_int)
+            << 3 as ::core::ffi::c_int;
+        mb_to_right_edge_start = (((*pbi).common.mb_cols - 1 as ::core::ffi::c_int)
+            * 16 as ::core::ffi::c_int)
+            << 3 as ::core::ffi::c_int;
         loop {
-            mb_col += 1;
-            if !(mb_col < (*pbi).common.mb_cols) {
+            mb_row += 1;
+            if !(mb_row < (*pbi).common.mb_rows) {
                 break;
             }
-            decode_mb_mode_mvs(pbi, mi);
-            (*pbi).mb.mb_to_left_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
-            (*pbi).mb.mb_to_right_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
+            let mut mb_col: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
+            (*pbi).mb.mb_to_left_edge = 0 as ::core::ffi::c_int;
+            (*pbi).mb.mb_to_right_edge = mb_to_right_edge_start;
+            loop {
+                mb_col += 1;
+                if !(mb_col < (*pbi).common.mb_cols) {
+                    break;
+                }
+                decode_mb_mode_mvs(pbi, mi);
+                (*pbi).mb.mb_to_left_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
+                (*pbi).mb.mb_to_right_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
+                mi = mi.offset(1);
+            }
+            (*pbi).mb.mb_to_top_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
+            (*pbi).mb.mb_to_bottom_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
             mi = mi.offset(1);
         }
-        (*pbi).mb.mb_to_top_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
-        (*pbi).mb.mb_to_bottom_edge -= (16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int;
-        mi = mi.offset(1);
     }
-}}
+}

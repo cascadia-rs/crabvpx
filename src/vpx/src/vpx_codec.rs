@@ -508,13 +508,15 @@ pub unsafe extern "C" fn vpx_codec_version_extra_str() -> *const ::core::ffi::c_
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_iface_name(
     mut iface: *const vpx_codec_iface_t,
-) -> *const ::core::ffi::c_char { unsafe {
-    return if !iface.is_null() {
-        (*iface).name
-    } else {
-        b"<invalid interface>\0" as *const u8 as *const ::core::ffi::c_char
-    };
-}}
+) -> *const ::core::ffi::c_char {
+    unsafe {
+        return if !iface.is_null() {
+            (*iface).name
+        } else {
+            b"<invalid interface>\0" as *const u8 as *const ::core::ffi::c_char
+        };
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_err_to_string(
     mut err: vpx_codec_err_t,
@@ -552,125 +554,138 @@ pub unsafe extern "C" fn vpx_codec_err_to_string(
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_error(
     mut ctx: *const vpx_codec_ctx_t,
-) -> *const ::core::ffi::c_char { unsafe {
-    return if !ctx.is_null() {
-        vpx_codec_err_to_string((*ctx).err)
-    } else {
-        vpx_codec_err_to_string(VPX_CODEC_INVALID_PARAM)
-    };
-}}
+) -> *const ::core::ffi::c_char {
+    unsafe {
+        return if !ctx.is_null() {
+            vpx_codec_err_to_string((*ctx).err)
+        } else {
+            vpx_codec_err_to_string(VPX_CODEC_INVALID_PARAM)
+        };
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_error_detail(
     mut ctx: *const vpx_codec_ctx_t,
-) -> *const ::core::ffi::c_char { unsafe {
-    if !ctx.is_null() && (*ctx).err as ::core::ffi::c_uint != 0 {
-        return if !(*ctx).priv_0.is_null() {
-            (*(*ctx).priv_0).err_detail
-        } else {
-            (*ctx).err_detail
-        };
+) -> *const ::core::ffi::c_char {
+    unsafe {
+        if !ctx.is_null() && (*ctx).err as ::core::ffi::c_uint != 0 {
+            return if !(*ctx).priv_0.is_null() {
+                (*(*ctx).priv_0).err_detail
+            } else {
+                (*ctx).err_detail
+            };
+        }
+        return ::core::ptr::null::<::core::ffi::c_char>();
     }
-    return ::core::ptr::null::<::core::ffi::c_char>();
-}}
+}
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_codec_destroy(mut ctx: *mut vpx_codec_ctx_t) -> vpx_codec_err_t { unsafe {
-    let mut res: vpx_codec_err_t = VPX_CODEC_OK;
-    if ctx.is_null() {
-        res = VPX_CODEC_INVALID_PARAM;
-    } else if (*ctx).iface.is_null() || (*ctx).priv_0.is_null() {
-        res = VPX_CODEC_ERROR;
-    } else {
-        (*(*ctx).iface).destroy.expect("non-null function pointer")(
-            (*ctx).priv_0 as *mut vpx_codec_alg_priv_t,
-        );
-        (*ctx).iface = ::core::ptr::null::<vpx_codec_iface_t>();
-        (*ctx).name = ::core::ptr::null::<::core::ffi::c_char>();
-        (*ctx).priv_0 = ::core::ptr::null_mut::<vpx_codec_priv_t>();
-        res = VPX_CODEC_OK;
+pub unsafe extern "C" fn vpx_codec_destroy(mut ctx: *mut vpx_codec_ctx_t) -> vpx_codec_err_t {
+    unsafe {
+        let mut res: vpx_codec_err_t = VPX_CODEC_OK;
+        if ctx.is_null() {
+            res = VPX_CODEC_INVALID_PARAM;
+        } else if (*ctx).iface.is_null() || (*ctx).priv_0.is_null() {
+            res = VPX_CODEC_ERROR;
+        } else {
+            (*(*ctx).iface).destroy.expect("non-null function pointer")(
+                (*ctx).priv_0 as *mut vpx_codec_alg_priv_t,
+            );
+            (*ctx).iface = ::core::ptr::null::<vpx_codec_iface_t>();
+            (*ctx).name = ::core::ptr::null::<::core::ffi::c_char>();
+            (*ctx).priv_0 = ::core::ptr::null_mut::<vpx_codec_priv_t>();
+            res = VPX_CODEC_OK;
+        }
+        return (if !ctx.is_null() {
+            (*ctx).err = res;
+            (*ctx).err as ::core::ffi::c_uint
+        } else {
+            res as ::core::ffi::c_uint
+        }) as vpx_codec_err_t;
     }
-    return (if !ctx.is_null() {
-        (*ctx).err = res;
-        (*ctx).err as ::core::ffi::c_uint
-    } else {
-        res as ::core::ffi::c_uint
-    }) as vpx_codec_err_t;
-}}
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_get_caps(
     mut iface: *const vpx_codec_iface_t,
-) -> vpx_codec_caps_t { unsafe {
-    return if !iface.is_null() {
-        (*iface).caps
-    } else {
-        0 as vpx_codec_caps_t
-    };
-}}
+) -> vpx_codec_caps_t {
+    unsafe {
+        return if !iface.is_null() {
+            (*iface).caps
+        } else {
+            0 as vpx_codec_caps_t
+        };
+    }
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_codec_control_(
     mut ctx: *mut vpx_codec_ctx_t,
     mut ctrl_id: ::core::ffi::c_int,
     mut args: ...
-) -> vpx_codec_err_t { unsafe {
-    let mut res: vpx_codec_err_t = VPX_CODEC_OK;
-    if ctx.is_null() || ctrl_id == 0 {
-        res = VPX_CODEC_INVALID_PARAM;
-    } else if (*ctx).iface.is_null()
-        || (*ctx).priv_0.is_null()
-        || (*(*ctx).iface).ctrl_maps.is_null()
-    {
-        res = VPX_CODEC_ERROR;
-    } else {
-        let mut entry: *const vpx_codec_ctrl_fn_map_t =
-            ::core::ptr::null::<vpx_codec_ctrl_fn_map_t>();
-        res = VPX_CODEC_INCAPABLE;
-        entry = (*(*ctx).iface).ctrl_maps;
-        while (*entry).fn_0.is_some() {
-            if (*entry).ctrl_id == 0 || (*entry).ctrl_id == ctrl_id {
-                let mut ap: ::core::ffi::VaList;
-                ap = args.clone();
-                res = (*entry).fn_0.expect("non-null function pointer")(
-                    (*ctx).priv_0 as *mut vpx_codec_alg_priv_t,
-                    ap,
-                );
-                break;
-            } else {
-                entry = entry.offset(1);
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut res: vpx_codec_err_t = VPX_CODEC_OK;
+        if ctx.is_null() || ctrl_id == 0 {
+            res = VPX_CODEC_INVALID_PARAM;
+        } else if (*ctx).iface.is_null()
+            || (*ctx).priv_0.is_null()
+            || (*(*ctx).iface).ctrl_maps.is_null()
+        {
+            res = VPX_CODEC_ERROR;
+        } else {
+            let mut entry: *const vpx_codec_ctrl_fn_map_t =
+                ::core::ptr::null::<vpx_codec_ctrl_fn_map_t>();
+            res = VPX_CODEC_INCAPABLE;
+            entry = (*(*ctx).iface).ctrl_maps;
+            while (*entry).fn_0.is_some() {
+                if (*entry).ctrl_id == 0 || (*entry).ctrl_id == ctrl_id {
+                    let mut ap: ::core::ffi::VaList;
+                    ap = args.clone();
+                    res = (*entry).fn_0.expect("non-null function pointer")(
+                        (*ctx).priv_0 as *mut vpx_codec_alg_priv_t,
+                        ap,
+                    );
+                    break;
+                } else {
+                    entry = entry.offset(1);
+                }
             }
         }
+        return (if !ctx.is_null() {
+            (*ctx).err = res;
+            (*ctx).err as ::core::ffi::c_uint
+        } else {
+            res as ::core::ffi::c_uint
+        }) as vpx_codec_err_t;
     }
-    return (if !ctx.is_null() {
-        (*ctx).err = res;
-        (*ctx).err as ::core::ffi::c_uint
-    } else {
-        res as ::core::ffi::c_uint
-    }) as vpx_codec_err_t;
-}}
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_internal_error(
     mut info: *mut vpx_internal_error_info,
     mut error: vpx_codec_err_t,
     mut fmt: *const ::core::ffi::c_char,
     mut args: ...
-) { unsafe {
-    let mut ap: ::core::ffi::VaList;
-    (*info).error_code = error;
-    (*info).has_detail = 0 as ::core::ffi::c_int;
-    if !fmt.is_null() {
-        let mut sz: size_t = ::core::mem::size_of::<[::core::ffi::c_char; 80]>() as size_t;
-        (*info).has_detail = 1 as ::core::ffi::c_int;
-        ap = args.clone();
-        vsnprintf(
-            &raw mut (*info).detail as *mut ::core::ffi::c_char,
-            sz.wrapping_sub(1 as size_t),
-            fmt,
-            ap,
-        );
-        (*info).detail[sz.wrapping_sub(1 as size_t) as usize] = '\0' as i32 as ::core::ffi::c_char;
+) {
+    unsafe {
+        let mut ap: ::core::ffi::VaList;
+        (*info).error_code = error;
+        (*info).has_detail = 0 as ::core::ffi::c_int;
+        if !fmt.is_null() {
+            let mut sz: size_t = ::core::mem::size_of::<[::core::ffi::c_char; 80]>() as size_t;
+            (*info).has_detail = 1 as ::core::ffi::c_int;
+            ap = args.clone();
+            vsnprintf(
+                &raw mut (*info).detail as *mut ::core::ffi::c_char,
+                sz.wrapping_sub(1 as size_t),
+                fmt,
+                ap,
+            );
+            (*info).detail[sz.wrapping_sub(1 as size_t) as usize] =
+                '\0' as i32 as ::core::ffi::c_char;
+        }
+        if (*info).setjmp != 0 {
+            longjmp(
+                &raw mut (*info).jmp as *mut ::core::ffi::c_int,
+                (*info).error_code as ::core::ffi::c_int,
+            );
+        }
     }
-    if (*info).setjmp != 0 {
-        longjmp(
-            &raw mut (*info).jmp as *mut ::core::ffi::c_int,
-            (*info).error_code as ::core::ffi::c_int,
-        );
-    }
-}}
+}

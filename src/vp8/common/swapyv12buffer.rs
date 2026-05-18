@@ -54,18 +54,20 @@ pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 pub unsafe extern "C" fn vp8_swap_yv12_buffer(
     mut new_frame: *mut YV12_BUFFER_CONFIG,
     mut last_frame: *mut YV12_BUFFER_CONFIG,
-) { unsafe {
-    let mut temp: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
-    temp = (*last_frame).buffer_alloc as *mut ::core::ffi::c_uchar;
-    (*last_frame).buffer_alloc = (*new_frame).buffer_alloc;
-    (*new_frame).buffer_alloc = temp as *mut uint8_t;
-    temp = (*last_frame).y_buffer as *mut ::core::ffi::c_uchar;
-    (*last_frame).y_buffer = (*new_frame).y_buffer;
-    (*new_frame).y_buffer = temp as *mut uint8_t;
-    temp = (*last_frame).u_buffer as *mut ::core::ffi::c_uchar;
-    (*last_frame).u_buffer = (*new_frame).u_buffer;
-    (*new_frame).u_buffer = temp as *mut uint8_t;
-    temp = (*last_frame).v_buffer as *mut ::core::ffi::c_uchar;
-    (*last_frame).v_buffer = (*new_frame).v_buffer;
-    (*new_frame).v_buffer = temp as *mut uint8_t;
-}}
+) {
+    unsafe {
+        let mut temp: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
+        temp = (*last_frame).buffer_alloc as *mut ::core::ffi::c_uchar;
+        (*last_frame).buffer_alloc = (*new_frame).buffer_alloc;
+        (*new_frame).buffer_alloc = temp as *mut uint8_t;
+        temp = (*last_frame).y_buffer as *mut ::core::ffi::c_uchar;
+        (*last_frame).y_buffer = (*new_frame).y_buffer;
+        (*new_frame).y_buffer = temp as *mut uint8_t;
+        temp = (*last_frame).u_buffer as *mut ::core::ffi::c_uchar;
+        (*last_frame).u_buffer = (*new_frame).u_buffer;
+        (*new_frame).u_buffer = temp as *mut uint8_t;
+        temp = (*last_frame).v_buffer as *mut ::core::ffi::c_uchar;
+        (*last_frame).v_buffer = (*new_frame).v_buffer;
+        (*new_frame).v_buffer = temp as *mut uint8_t;
+    }
+}

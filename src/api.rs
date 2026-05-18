@@ -128,8 +128,16 @@ impl Decoder for Vp8Decoder {
             for plane in 0..3 {
                 let data = img.planes[plane];
                 let stride = img.stride[plane] as usize;
-                let w = if plane == 0 { img.d_w } else { (img.d_w + 1) >> 1 };
-                let h = if plane == 0 { img.d_h } else { (img.d_h + 1) >> 1 };
+                let w = if plane == 0 {
+                    img.d_w
+                } else {
+                    (img.d_w + 1) >> 1
+                };
+                let h = if plane == 0 {
+                    img.d_h
+                } else {
+                    (img.d_h + 1) >> 1
+                };
 
                 for row in 0..h {
                     let row_ptr = unsafe { data.add(row as usize * stride) };

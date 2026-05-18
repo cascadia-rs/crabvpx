@@ -212,77 +212,81 @@ pub struct macroblockd {
 }
 pub type MACROBLOCKD = macroblockd;
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) { unsafe {
-    let mut r: ::core::ffi::c_int = 0;
-    let mut c: ::core::ffi::c_int = 0;
-    r = 0 as ::core::ffi::c_int;
-    while r < 4 as ::core::ffi::c_int {
-        c = 0 as ::core::ffi::c_int;
-        while c < 4 as ::core::ffi::c_int {
-            (*x).block[(r * 4 as ::core::ffi::c_int + c) as usize].predictor =
-                (&raw mut (*x).predictor as *mut ::core::ffi::c_uchar)
-                    .offset((r * 4 as ::core::ffi::c_int * 16 as ::core::ffi::c_int) as isize)
+pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) {
+    unsafe {
+        let mut r: ::core::ffi::c_int = 0;
+        let mut c: ::core::ffi::c_int = 0;
+        r = 0 as ::core::ffi::c_int;
+        while r < 4 as ::core::ffi::c_int {
+            c = 0 as ::core::ffi::c_int;
+            while c < 4 as ::core::ffi::c_int {
+                (*x).block[(r * 4 as ::core::ffi::c_int + c) as usize].predictor =
+                    (&raw mut (*x).predictor as *mut ::core::ffi::c_uchar)
+                        .offset((r * 4 as ::core::ffi::c_int * 16 as ::core::ffi::c_int) as isize)
+                        .offset((c * 4 as ::core::ffi::c_int) as isize);
+                c += 1;
+            }
+            r += 1;
+        }
+        r = 0 as ::core::ffi::c_int;
+        while r < 2 as ::core::ffi::c_int {
+            c = 0 as ::core::ffi::c_int;
+            while c < 2 as ::core::ffi::c_int {
+                (*x).block[(16 as ::core::ffi::c_int + r * 2 as ::core::ffi::c_int + c) as usize]
+                    .predictor = (&raw mut (*x).predictor as *mut ::core::ffi::c_uchar)
+                    .offset(256 as ::core::ffi::c_int as isize)
+                    .offset((r * 4 as ::core::ffi::c_int * 8 as ::core::ffi::c_int) as isize)
                     .offset((c * 4 as ::core::ffi::c_int) as isize);
-            c += 1;
+                c += 1;
+            }
+            r += 1;
         }
-        r += 1;
-    }
-    r = 0 as ::core::ffi::c_int;
-    while r < 2 as ::core::ffi::c_int {
-        c = 0 as ::core::ffi::c_int;
-        while c < 2 as ::core::ffi::c_int {
-            (*x).block[(16 as ::core::ffi::c_int + r * 2 as ::core::ffi::c_int + c) as usize]
-                .predictor = (&raw mut (*x).predictor as *mut ::core::ffi::c_uchar)
-                .offset(256 as ::core::ffi::c_int as isize)
-                .offset((r * 4 as ::core::ffi::c_int * 8 as ::core::ffi::c_int) as isize)
-                .offset((c * 4 as ::core::ffi::c_int) as isize);
-            c += 1;
+        r = 0 as ::core::ffi::c_int;
+        while r < 2 as ::core::ffi::c_int {
+            c = 0 as ::core::ffi::c_int;
+            while c < 2 as ::core::ffi::c_int {
+                (*x).block[(20 as ::core::ffi::c_int + r * 2 as ::core::ffi::c_int + c) as usize]
+                    .predictor = (&raw mut (*x).predictor as *mut ::core::ffi::c_uchar)
+                    .offset(320 as ::core::ffi::c_int as isize)
+                    .offset((r * 4 as ::core::ffi::c_int * 8 as ::core::ffi::c_int) as isize)
+                    .offset((c * 4 as ::core::ffi::c_int) as isize);
+                c += 1;
+            }
+            r += 1;
         }
-        r += 1;
-    }
-    r = 0 as ::core::ffi::c_int;
-    while r < 2 as ::core::ffi::c_int {
-        c = 0 as ::core::ffi::c_int;
-        while c < 2 as ::core::ffi::c_int {
-            (*x).block[(20 as ::core::ffi::c_int + r * 2 as ::core::ffi::c_int + c) as usize]
-                .predictor = (&raw mut (*x).predictor as *mut ::core::ffi::c_uchar)
-                .offset(320 as ::core::ffi::c_int as isize)
-                .offset((r * 4 as ::core::ffi::c_int * 8 as ::core::ffi::c_int) as isize)
-                .offset((c * 4 as ::core::ffi::c_int) as isize);
-            c += 1;
+        r = 0 as ::core::ffi::c_int;
+        while r < 25 as ::core::ffi::c_int {
+            (*x).block[r as usize].qcoeff = (&raw mut (*x).qcoeff as *mut ::core::ffi::c_short)
+                .offset((r * 16 as ::core::ffi::c_int) as isize);
+            (*x).block[r as usize].dqcoeff = (&raw mut (*x).dqcoeff as *mut ::core::ffi::c_short)
+                .offset((r * 16 as ::core::ffi::c_int) as isize);
+            (*x).block[r as usize].eob =
+                (&raw mut (*x).eobs as *mut ::core::ffi::c_char).offset(r as isize);
+            r += 1;
         }
-        r += 1;
     }
-    r = 0 as ::core::ffi::c_int;
-    while r < 25 as ::core::ffi::c_int {
-        (*x).block[r as usize].qcoeff = (&raw mut (*x).qcoeff as *mut ::core::ffi::c_short)
-            .offset((r * 16 as ::core::ffi::c_int) as isize);
-        (*x).block[r as usize].dqcoeff = (&raw mut (*x).dqcoeff as *mut ::core::ffi::c_short)
-            .offset((r * 16 as ::core::ffi::c_int) as isize);
-        (*x).block[r as usize].eob =
-            (&raw mut (*x).eobs as *mut ::core::ffi::c_char).offset(r as isize);
-        r += 1;
-    }
-}}
+}
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_build_block_doffsets(mut x: *mut MACROBLOCKD) { unsafe {
-    let mut block: ::core::ffi::c_int = 0;
-    block = 0 as ::core::ffi::c_int;
-    while block < 16 as ::core::ffi::c_int {
-        (*x).block[block as usize].offset =
-            (block >> 2 as ::core::ffi::c_int) * 4 as ::core::ffi::c_int * (*x).dst.y_stride
-                + (block & 3 as ::core::ffi::c_int) * 4 as ::core::ffi::c_int;
-        block += 1;
+pub unsafe extern "C" fn vp8_build_block_doffsets(mut x: *mut MACROBLOCKD) {
+    unsafe {
+        let mut block: ::core::ffi::c_int = 0;
+        block = 0 as ::core::ffi::c_int;
+        while block < 16 as ::core::ffi::c_int {
+            (*x).block[block as usize].offset =
+                (block >> 2 as ::core::ffi::c_int) * 4 as ::core::ffi::c_int * (*x).dst.y_stride
+                    + (block & 3 as ::core::ffi::c_int) * 4 as ::core::ffi::c_int;
+            block += 1;
+        }
+        block = 16 as ::core::ffi::c_int;
+        while block < 20 as ::core::ffi::c_int {
+            (*x).block[block as usize].offset = (block - 16 as ::core::ffi::c_int
+                >> 1 as ::core::ffi::c_int)
+                * 4 as ::core::ffi::c_int
+                * (*x).dst.uv_stride
+                + (block & 1 as ::core::ffi::c_int) * 4 as ::core::ffi::c_int;
+            (*x).block[(block + 4 as ::core::ffi::c_int) as usize].offset =
+                (*x).block[block as usize].offset;
+            block += 1;
+        }
     }
-    block = 16 as ::core::ffi::c_int;
-    while block < 20 as ::core::ffi::c_int {
-        (*x).block[block as usize].offset = (block - 16 as ::core::ffi::c_int
-            >> 1 as ::core::ffi::c_int)
-            * 4 as ::core::ffi::c_int
-            * (*x).dst.uv_stride
-            + (block & 1 as ::core::ffi::c_int) * 4 as ::core::ffi::c_int;
-        (*x).block[(block + 4 as ::core::ffi::c_int) as usize].offset =
-            (*x).block[block as usize].offset;
-        block += 1;
-    }
-}}
+}

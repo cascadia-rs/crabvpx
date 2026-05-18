@@ -1047,682 +1047,729 @@ pub const MAX_PARTITIONS: ::core::ffi::c_int = 9 as ::core::ffi::c_int;
 #[inline]
 unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
-) -> ::core::ffi::c_int { unsafe {
-return (*((&raw const (*atomic).value) as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
-}}
-unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi::c_int { unsafe {
-    let mut priv_0: *mut vpx_codec_alg_priv_t = vpx_calloc(
-        1 as size_t,
-        ::core::mem::size_of::<vpx_codec_alg_priv_t>() as size_t,
-    ) as *mut vpx_codec_alg_priv_t;
-    if priv_0.is_null() {
-        return 1 as ::core::ffi::c_int;
+) -> ::core::ffi::c_int {
+    unsafe {
+        return (*((&raw const (*atomic).value) as *const core::sync::atomic::AtomicI32))
+            .load(core::sync::atomic::Ordering::Acquire);
     }
-    (*ctx).priv_0 = priv_0 as *mut vpx_codec_priv_t;
-    (*(*ctx).priv_0).init_flags = (*ctx).init_flags;
-    (*priv_0).si.sz = ::core::mem::size_of::<vp8_stream_info_t>() as ::core::ffi::c_uint;
-    (*priv_0).decrypt_cb = None;
-    (*priv_0).decrypt_state = NULL;
-    if !(*ctx).config.dec.is_null() {
-        (*priv_0).cfg = *(*ctx).config.dec as vpx_codec_dec_cfg_t;
-        (*ctx).config.dec = &raw mut (*priv_0).cfg;
+}
+unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi::c_int {
+    unsafe {
+        let mut priv_0: *mut vpx_codec_alg_priv_t = vpx_calloc(
+            1 as size_t,
+            ::core::mem::size_of::<vpx_codec_alg_priv_t>() as size_t,
+        ) as *mut vpx_codec_alg_priv_t;
+        if priv_0.is_null() {
+            return 1 as ::core::ffi::c_int;
+        }
+        (*ctx).priv_0 = priv_0 as *mut vpx_codec_priv_t;
+        (*(*ctx).priv_0).init_flags = (*ctx).init_flags;
+        (*priv_0).si.sz = ::core::mem::size_of::<vp8_stream_info_t>() as ::core::ffi::c_uint;
+        (*priv_0).decrypt_cb = None;
+        (*priv_0).decrypt_state = NULL;
+        if !(*ctx).config.dec.is_null() {
+            (*priv_0).cfg = *(*ctx).config.dec as vpx_codec_dec_cfg_t;
+            (*ctx).config.dec = &raw mut (*priv_0).cfg;
+        }
+        return 0 as ::core::ffi::c_int;
     }
-    return 0 as ::core::ffi::c_int;
-}}
+}
 unsafe extern "C" fn vp8_init(
     mut ctx: *mut vpx_codec_ctx_t,
     mut data: *mut vpx_codec_priv_enc_mr_cfg_t,
-) -> vpx_codec_err_t { unsafe {
-    let mut res: vpx_codec_err_t = VPX_CODEC_OK;
-    vp8_rtcd();
-    vpx_dsp_rtcd();
-    vpx_scale_rtcd();
-    if (*ctx).priv_0.is_null() {
-        let mut priv_0: *mut vpx_codec_alg_priv_t = ::core::ptr::null_mut::<vpx_codec_alg_priv_t>();
-        if vp8_init_ctx(ctx) != 0 {
-            return VPX_CODEC_MEM_ERROR;
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut res: vpx_codec_err_t = VPX_CODEC_OK;
+        vp8_rtcd();
+        vpx_dsp_rtcd();
+        vpx_scale_rtcd();
+        if (*ctx).priv_0.is_null() {
+            let mut priv_0: *mut vpx_codec_alg_priv_t =
+                ::core::ptr::null_mut::<vpx_codec_alg_priv_t>();
+            if vp8_init_ctx(ctx) != 0 {
+                return VPX_CODEC_MEM_ERROR;
+            }
+            priv_0 = (*ctx).priv_0 as *mut vpx_codec_alg_priv_t;
+            (*priv_0).fragments.count = 0 as ::core::ffi::c_uint;
+            (*priv_0).fragments.enabled = ((*priv_0).base.init_flags
+                & VPX_CODEC_USE_INPUT_FRAGMENTS as vpx_codec_flags_t)
+                as ::core::ffi::c_int;
         }
-        priv_0 = (*ctx).priv_0 as *mut vpx_codec_alg_priv_t;
-        (*priv_0).fragments.count = 0 as ::core::ffi::c_uint;
-        (*priv_0).fragments.enabled = ((*priv_0).base.init_flags
-            & VPX_CODEC_USE_INPUT_FRAGMENTS as vpx_codec_flags_t)
-            as ::core::ffi::c_int;
+        return res;
     }
-    return res;
-}}
-unsafe extern "C" fn vp8_destroy(mut ctx: *mut vpx_codec_alg_priv_t) -> vpx_codec_err_t { unsafe {
-    vp8_remove_decoder_instances(&raw mut (*ctx).yv12_frame_buffers);
-    vpx_free(ctx as *mut ::core::ffi::c_void);
-    return VPX_CODEC_OK;
-}}
+}
+unsafe extern "C" fn vp8_destroy(mut ctx: *mut vpx_codec_alg_priv_t) -> vpx_codec_err_t {
+    unsafe {
+        vp8_remove_decoder_instances(&raw mut (*ctx).yv12_frame_buffers);
+        vpx_free(ctx as *mut ::core::ffi::c_void);
+        return VPX_CODEC_OK;
+    }
+}
 unsafe extern "C" fn vp8_peek_si_internal(
     mut data: *const uint8_t,
     mut data_sz: ::core::ffi::c_uint,
     mut si: *mut vpx_codec_stream_info_t,
     mut decrypt_cb: vpx_decrypt_cb,
     mut decrypt_state: *mut ::core::ffi::c_void,
-) -> vpx_codec_err_t { unsafe {
-    let mut res: vpx_codec_err_t = VPX_CODEC_OK;
-    if data.is_null() {
-        return VPX_CODEC_INVALID_PARAM;
-    }
-    if data.offset(data_sz as isize) <= data {
-        res = VPX_CODEC_INVALID_PARAM;
-    } else {
-        let mut clear_buffer: [uint8_t; 10] = [0; 10];
-        let mut clear: *const uint8_t = data;
-        if decrypt_cb.is_some() {
-            let mut n: ::core::ffi::c_int =
-                (if (::core::mem::size_of::<[uint8_t; 10]>() as usize) < data_sz as usize {
-                    ::core::mem::size_of::<[uint8_t; 10]>() as usize
-                } else {
-                    data_sz as usize
-                }) as ::core::ffi::c_int;
-            decrypt_cb.expect("non-null function pointer")(
-                decrypt_state,
-                data as *const ::core::ffi::c_uchar,
-                &raw mut clear_buffer as *mut ::core::ffi::c_uchar,
-                n,
-            );
-            clear = &raw mut clear_buffer as *mut uint8_t;
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut res: vpx_codec_err_t = VPX_CODEC_OK;
+        if data.is_null() {
+            return VPX_CODEC_INVALID_PARAM;
         }
-        (*si).is_kf = 0 as ::core::ffi::c_uint;
-        if data_sz >= 10 as ::core::ffi::c_uint
-            && *clear.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                & 0x1 as ::core::ffi::c_int
-                == 0
-        {
-            (*si).is_kf = 1 as ::core::ffi::c_uint;
-            if *clear.offset(3 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                != 0x9d as ::core::ffi::c_int
-                || *clear.offset(4 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                    != 0x1 as ::core::ffi::c_int
-                || *clear.offset(5 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                    != 0x2a as ::core::ffi::c_int
-            {
-                return VPX_CODEC_UNSUP_BITSTREAM;
-            }
-            (*si).w = ((*clear.offset(6 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                | (*clear.offset(7 as ::core::ffi::c_int as isize) as ::core::ffi::c_int)
-                    << 8 as ::core::ffi::c_int)
-                & 0x3fff as ::core::ffi::c_int) as ::core::ffi::c_uint;
-            (*si).h = ((*clear.offset(8 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
-                | (*clear.offset(9 as ::core::ffi::c_int as isize) as ::core::ffi::c_int)
-                    << 8 as ::core::ffi::c_int)
-                & 0x3fff as ::core::ffi::c_int) as ::core::ffi::c_uint;
-            if !((*si).h != 0 && (*si).w != 0) {
-                (*si).h = 0 as ::core::ffi::c_uint;
-                (*si).w = (*si).h;
-                res = VPX_CODEC_CORRUPT_FRAME;
-            }
+        if data.offset(data_sz as isize) <= data {
+            res = VPX_CODEC_INVALID_PARAM;
         } else {
-            res = VPX_CODEC_UNSUP_BITSTREAM;
+            let mut clear_buffer: [uint8_t; 10] = [0; 10];
+            let mut clear: *const uint8_t = data;
+            if decrypt_cb.is_some() {
+                let mut n: ::core::ffi::c_int =
+                    (if (::core::mem::size_of::<[uint8_t; 10]>() as usize) < data_sz as usize {
+                        ::core::mem::size_of::<[uint8_t; 10]>() as usize
+                    } else {
+                        data_sz as usize
+                    }) as ::core::ffi::c_int;
+                decrypt_cb.expect("non-null function pointer")(
+                    decrypt_state,
+                    data as *const ::core::ffi::c_uchar,
+                    &raw mut clear_buffer as *mut ::core::ffi::c_uchar,
+                    n,
+                );
+                clear = &raw mut clear_buffer as *mut uint8_t;
+            }
+            (*si).is_kf = 0 as ::core::ffi::c_uint;
+            if data_sz >= 10 as ::core::ffi::c_uint
+                && *clear.offset(0 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                    & 0x1 as ::core::ffi::c_int
+                    == 0
+            {
+                (*si).is_kf = 1 as ::core::ffi::c_uint;
+                if *clear.offset(3 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                    != 0x9d as ::core::ffi::c_int
+                    || *clear.offset(4 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                        != 0x1 as ::core::ffi::c_int
+                    || *clear.offset(5 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                        != 0x2a as ::core::ffi::c_int
+                {
+                    return VPX_CODEC_UNSUP_BITSTREAM;
+                }
+                (*si).w = ((*clear.offset(6 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                    | (*clear.offset(7 as ::core::ffi::c_int as isize) as ::core::ffi::c_int)
+                        << 8 as ::core::ffi::c_int)
+                    & 0x3fff as ::core::ffi::c_int)
+                    as ::core::ffi::c_uint;
+                (*si).h = ((*clear.offset(8 as ::core::ffi::c_int as isize) as ::core::ffi::c_int
+                    | (*clear.offset(9 as ::core::ffi::c_int as isize) as ::core::ffi::c_int)
+                        << 8 as ::core::ffi::c_int)
+                    & 0x3fff as ::core::ffi::c_int)
+                    as ::core::ffi::c_uint;
+                if !((*si).h != 0 && (*si).w != 0) {
+                    (*si).h = 0 as ::core::ffi::c_uint;
+                    (*si).w = (*si).h;
+                    res = VPX_CODEC_CORRUPT_FRAME;
+                }
+            } else {
+                res = VPX_CODEC_UNSUP_BITSTREAM;
+            }
         }
+        return res;
     }
-    return res;
-}}
+}
 unsafe extern "C" fn vp8_peek_si(
     mut data: *const uint8_t,
     mut data_sz: ::core::ffi::c_uint,
     mut si: *mut vpx_codec_stream_info_t,
-) -> vpx_codec_err_t { unsafe {
-    return vp8_peek_si_internal(data, data_sz, si, None, NULL);
-}}
+) -> vpx_codec_err_t {
+    unsafe {
+        return vp8_peek_si_internal(data, data_sz, si, None, NULL);
+    }
+}
 unsafe extern "C" fn vp8_get_si(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut si: *mut vpx_codec_stream_info_t,
-) -> vpx_codec_err_t { unsafe {
-    let mut sz: ::core::ffi::c_uint = 0;
-    if (*si).sz as usize >= ::core::mem::size_of::<vp8_stream_info_t>() as usize {
-        sz = ::core::mem::size_of::<vp8_stream_info_t>() as ::core::ffi::c_uint;
-    } else {
-        sz = ::core::mem::size_of::<vpx_codec_stream_info_t>() as ::core::ffi::c_uint;
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut sz: ::core::ffi::c_uint = 0;
+        if (*si).sz as usize >= ::core::mem::size_of::<vp8_stream_info_t>() as usize {
+            sz = ::core::mem::size_of::<vp8_stream_info_t>() as ::core::ffi::c_uint;
+        } else {
+            sz = ::core::mem::size_of::<vpx_codec_stream_info_t>() as ::core::ffi::c_uint;
+        }
+        memcpy(
+            si as *mut ::core::ffi::c_void,
+            &raw mut (*ctx).si as *const ::core::ffi::c_void,
+            sz as size_t,
+        );
+        (*si).sz = sz;
+        return VPX_CODEC_OK;
     }
-    memcpy(
-        si as *mut ::core::ffi::c_void,
-        &raw mut (*ctx).si as *const ::core::ffi::c_void,
-        sz as size_t,
-    );
-    (*si).sz = sz;
-    return VPX_CODEC_OK;
-}}
+}
 unsafe extern "C" fn update_error_state(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut error: *const vpx_internal_error_info,
-) -> vpx_codec_err_t { unsafe {
-    let mut res: vpx_codec_err_t = VPX_CODEC_OK;
-    res = (*error).error_code;
-    if res as u64 != 0 {
-        (*ctx).base.err_detail = if (*error).has_detail != 0 {
-            &raw const (*error).detail as *const ::core::ffi::c_char
-        } else {
-            ::core::ptr::null::<::core::ffi::c_char>()
-        };
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut res: vpx_codec_err_t = VPX_CODEC_OK;
+        res = (*error).error_code;
+        if res as u64 != 0 {
+            (*ctx).base.err_detail = if (*error).has_detail != 0 {
+                &raw const (*error).detail as *const ::core::ffi::c_char
+            } else {
+                ::core::ptr::null::<::core::ffi::c_char>()
+            };
+        }
+        return res;
     }
-    return res;
-}}
+}
 unsafe extern "C" fn yuvconfig2image(
     mut img: *mut vpx_image_t,
     mut yv12: *const YV12_BUFFER_CONFIG,
     mut user_priv: *mut ::core::ffi::c_void,
-) { unsafe {
-    (*img).fmt = VPX_IMG_FMT_I420;
-    (*img).w = (*yv12).y_stride as ::core::ffi::c_uint;
-    (*img).h =
-        ((*yv12).y_height + 2 as ::core::ffi::c_int * VP8BORDERINPIXELS + 15 as ::core::ffi::c_int
+) {
+    unsafe {
+        (*img).fmt = VPX_IMG_FMT_I420;
+        (*img).w = (*yv12).y_stride as ::core::ffi::c_uint;
+        (*img).h = ((*yv12).y_height
+            + 2 as ::core::ffi::c_int * VP8BORDERINPIXELS
+            + 15 as ::core::ffi::c_int
             & !(15 as ::core::ffi::c_int)) as ::core::ffi::c_uint;
-    (*img).r_w = (*yv12).y_width as ::core::ffi::c_uint;
-    (*img).d_w = (*img).r_w;
-    (*img).r_h = (*yv12).y_height as ::core::ffi::c_uint;
-    (*img).d_h = (*img).r_h;
-    (*img).x_chroma_shift = 1 as ::core::ffi::c_uint;
-    (*img).y_chroma_shift = 1 as ::core::ffi::c_uint;
-    (*img).planes[VPX_PLANE_Y as usize] = (*yv12).y_buffer as *mut ::core::ffi::c_uchar;
-    (*img).planes[VPX_PLANE_U as usize] = (*yv12).u_buffer as *mut ::core::ffi::c_uchar;
-    (*img).planes[VPX_PLANE_V as usize] = (*yv12).v_buffer as *mut ::core::ffi::c_uchar;
-    (*img).planes[VPX_PLANE_ALPHA as usize] = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
-    (*img).stride[VPX_PLANE_Y as usize] = (*yv12).y_stride;
-    (*img).stride[VPX_PLANE_U as usize] = (*yv12).uv_stride;
-    (*img).stride[VPX_PLANE_V as usize] = (*yv12).uv_stride;
-    (*img).stride[VPX_PLANE_ALPHA as usize] = (*yv12).y_stride;
-    (*img).bit_depth = 8 as ::core::ffi::c_uint;
-    (*img).bps = 12 as ::core::ffi::c_int;
-    (*img).user_priv = user_priv;
-    (*img).img_data = (*yv12).buffer_alloc as *mut ::core::ffi::c_uchar;
-    (*img).img_data_owner = 0 as ::core::ffi::c_int;
-    (*img).self_allocd = 0 as ::core::ffi::c_int;
-}}
+        (*img).r_w = (*yv12).y_width as ::core::ffi::c_uint;
+        (*img).d_w = (*img).r_w;
+        (*img).r_h = (*yv12).y_height as ::core::ffi::c_uint;
+        (*img).d_h = (*img).r_h;
+        (*img).x_chroma_shift = 1 as ::core::ffi::c_uint;
+        (*img).y_chroma_shift = 1 as ::core::ffi::c_uint;
+        (*img).planes[VPX_PLANE_Y as usize] = (*yv12).y_buffer as *mut ::core::ffi::c_uchar;
+        (*img).planes[VPX_PLANE_U as usize] = (*yv12).u_buffer as *mut ::core::ffi::c_uchar;
+        (*img).planes[VPX_PLANE_V as usize] = (*yv12).v_buffer as *mut ::core::ffi::c_uchar;
+        (*img).planes[VPX_PLANE_ALPHA as usize] = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
+        (*img).stride[VPX_PLANE_Y as usize] = (*yv12).y_stride;
+        (*img).stride[VPX_PLANE_U as usize] = (*yv12).uv_stride;
+        (*img).stride[VPX_PLANE_V as usize] = (*yv12).uv_stride;
+        (*img).stride[VPX_PLANE_ALPHA as usize] = (*yv12).y_stride;
+        (*img).bit_depth = 8 as ::core::ffi::c_uint;
+        (*img).bps = 12 as ::core::ffi::c_int;
+        (*img).user_priv = user_priv;
+        (*img).img_data = (*yv12).buffer_alloc as *mut ::core::ffi::c_uchar;
+        (*img).img_data_owner = 0 as ::core::ffi::c_int;
+        (*img).self_allocd = 0 as ::core::ffi::c_int;
+    }
+}
 unsafe extern "C" fn update_fragments(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *const uint8_t,
     mut data_sz: ::core::ffi::c_uint,
     mut res: *mut vpx_codec_err_t,
-) -> ::core::ffi::c_int { unsafe {
-    ::core::ptr::write_volatile(res, VPX_CODEC_OK);
-    if (*ctx).fragments.count == 0 as ::core::ffi::c_uint {
-        memset(
-            &raw mut (*ctx).fragments.ptrs as *mut *const ::core::ffi::c_uchar
-                as *mut ::core::ffi::c_void,
-            0 as ::core::ffi::c_int,
-            ::core::mem::size_of::<[*const ::core::ffi::c_uchar; 9]>() as size_t,
-        );
-        memset(
-            &raw mut (*ctx).fragments.sizes as *mut ::core::ffi::c_uint as *mut ::core::ffi::c_void,
-            0 as ::core::ffi::c_int,
-            ::core::mem::size_of::<[::core::ffi::c_uint; 9]>() as size_t,
-        );
-    }
-    if (*ctx).fragments.enabled != 0
-        && data.is_null()
-        && data_sz == 0 as ::core::ffi::c_uint
-        && (*ctx).fragments.count == 0 as ::core::ffi::c_uint
-    {
-        return 0 as ::core::ffi::c_int;
-    }
-    if (*ctx).fragments.enabled != 0 && !(data.is_null() && data_sz == 0 as ::core::ffi::c_uint) {
-        if (*ctx).fragments.count >= MAX_PARTITIONS as ::core::ffi::c_uint {
-            (*ctx).fragments.count = 0 as ::core::ffi::c_uint;
-            ::core::ptr::write_volatile(res, VPX_CODEC_INVALID_PARAM);
-            return -(1 as ::core::ffi::c_int);
+) -> ::core::ffi::c_int {
+    unsafe {
+        ::core::ptr::write_volatile(res, VPX_CODEC_OK);
+        if (*ctx).fragments.count == 0 as ::core::ffi::c_uint {
+            memset(
+                &raw mut (*ctx).fragments.ptrs as *mut *const ::core::ffi::c_uchar
+                    as *mut ::core::ffi::c_void,
+                0 as ::core::ffi::c_int,
+                ::core::mem::size_of::<[*const ::core::ffi::c_uchar; 9]>() as size_t,
+            );
+            memset(
+                &raw mut (*ctx).fragments.sizes as *mut ::core::ffi::c_uint
+                    as *mut ::core::ffi::c_void,
+                0 as ::core::ffi::c_int,
+                ::core::mem::size_of::<[::core::ffi::c_uint; 9]>() as size_t,
+            );
         }
-        (*ctx).fragments.ptrs[(*ctx).fragments.count as usize] =
-            data as *const ::core::ffi::c_uchar;
-        (*ctx).fragments.sizes[(*ctx).fragments.count as usize] = data_sz;
-        (*ctx).fragments.count = (*ctx).fragments.count.wrapping_add(1);
-        return 0 as ::core::ffi::c_int;
+        if (*ctx).fragments.enabled != 0
+            && data.is_null()
+            && data_sz == 0 as ::core::ffi::c_uint
+            && (*ctx).fragments.count == 0 as ::core::ffi::c_uint
+        {
+            return 0 as ::core::ffi::c_int;
+        }
+        if (*ctx).fragments.enabled != 0 && !(data.is_null() && data_sz == 0 as ::core::ffi::c_uint)
+        {
+            if (*ctx).fragments.count >= MAX_PARTITIONS as ::core::ffi::c_uint {
+                (*ctx).fragments.count = 0 as ::core::ffi::c_uint;
+                ::core::ptr::write_volatile(res, VPX_CODEC_INVALID_PARAM);
+                return -(1 as ::core::ffi::c_int);
+            }
+            (*ctx).fragments.ptrs[(*ctx).fragments.count as usize] =
+                data as *const ::core::ffi::c_uchar;
+            (*ctx).fragments.sizes[(*ctx).fragments.count as usize] = data_sz;
+            (*ctx).fragments.count = (*ctx).fragments.count.wrapping_add(1);
+            return 0 as ::core::ffi::c_int;
+        }
+        if (*ctx).fragments.enabled == 0 && (data.is_null() && data_sz == 0 as ::core::ffi::c_uint)
+        {
+            return 0 as ::core::ffi::c_int;
+        }
+        if (*ctx).fragments.enabled == 0 {
+            (*ctx).fragments.ptrs[0 as ::core::ffi::c_int as usize] =
+                data as *const ::core::ffi::c_uchar;
+            (*ctx).fragments.sizes[0 as ::core::ffi::c_int as usize] = data_sz;
+            (*ctx).fragments.count = 1 as ::core::ffi::c_uint;
+        }
+        return 1 as ::core::ffi::c_int;
     }
-    if (*ctx).fragments.enabled == 0 && (data.is_null() && data_sz == 0 as ::core::ffi::c_uint) {
-        return 0 as ::core::ffi::c_int;
-    }
-    if (*ctx).fragments.enabled == 0 {
-        (*ctx).fragments.ptrs[0 as ::core::ffi::c_int as usize] =
-            data as *const ::core::ffi::c_uchar;
-        (*ctx).fragments.sizes[0 as ::core::ffi::c_int as usize] = data_sz;
-        (*ctx).fragments.count = 1 as ::core::ffi::c_uint;
-    }
-    return 1 as ::core::ffi::c_int;
-}}
+}
 unsafe extern "C" fn vp8_decode(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut data: *const uint8_t,
     mut data_sz: ::core::ffi::c_uint,
     mut user_priv: *mut ::core::ffi::c_void,
-) -> vpx_codec_err_t { unsafe {
-    let mut res: vpx_codec_err_t = VPX_CODEC_OK;
-    let mut resolution_change: ::core::ffi::c_uint = 0 as ::core::ffi::c_uint;
-    let mut w: ::core::ffi::c_uint = 0;
-    let mut h: ::core::ffi::c_uint = 0;
-    if (*ctx).fragments.enabled == 0 && (data.is_null() && data_sz == 0 as ::core::ffi::c_uint) {
-        return VPX_CODEC_OK;
-    }
-    if update_fragments(ctx, data, data_sz, &raw mut res) <= 0 as ::core::ffi::c_int {
-        return res;
-    }
-    ::core::ptr::write_volatile(&mut w as *mut ::core::ffi::c_uint, (*ctx).si.w);
-    ::core::ptr::write_volatile(&mut h as *mut ::core::ffi::c_uint, (*ctx).si.h);
-    ::core::ptr::write_volatile(
-        &mut res as *mut vpx_codec_err_t,
-        vp8_peek_si_internal(
-            (*ctx).fragments.ptrs[0 as ::core::ffi::c_int as usize],
-            (*ctx).fragments.sizes[0 as ::core::ffi::c_int as usize],
-            &raw mut (*ctx).si,
-            (*ctx).decrypt_cb,
-            (*ctx).decrypt_state,
-        ),
-    );
-    if res as ::core::ffi::c_uint
-        == VPX_CODEC_UNSUP_BITSTREAM as ::core::ffi::c_int as ::core::ffi::c_uint
-        && (*ctx).si.is_kf == 0
-    {
-        ::core::ptr::write_volatile(&mut res as *mut vpx_codec_err_t, VPX_CODEC_OK);
-    }
-    if (*ctx).decoder_init == 0 && (*ctx).si.is_kf == 0 {
-        ::core::ptr::write_volatile(&mut res as *mut vpx_codec_err_t, VPX_CODEC_UNSUP_BITSTREAM);
-    }
-    if res as u64 == 0
-        && (*ctx).decoder_init != 0
-        && w == 0 as ::core::ffi::c_uint
-        && h == 0 as ::core::ffi::c_uint
-        && (*ctx).si.h == 0 as ::core::ffi::c_uint
-        && (*ctx).si.w == 0 as ::core::ffi::c_uint
-    {
-        let mut pbi: *mut VP8D_COMP =
-            (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
-        ::core::ptr::write_volatile(&mut res as *mut vpx_codec_err_t, VPX_CODEC_CORRUPT_FRAME);
-        vpx_internal_error(
-            &raw mut (*pbi).common.error,
-            res,
-            b"Keyframe / intra-only frame required to reset decoder state\0" as *const u8
-                as *const ::core::ffi::c_char,
-        );
-    }
-    if (*ctx).si.h != h || (*ctx).si.w != w {
-        ::core::ptr::write_volatile(
-            &mut resolution_change as *mut ::core::ffi::c_uint,
-            1 as ::core::ffi::c_uint,
-        );
-    }
-    if res as u64 == 0 && (*ctx).restart_threads != 0 {
-        let mut pbi_0: *mut VP8D_COMP =
-            (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
-        let pc: *mut VP8_COMMON = &raw mut (*pbi_0).common;
-        if setjmp(&raw mut (*pbi_0).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
-            (*pbi_0).common.error.setjmp = 0 as ::core::ffi::c_int;
-            vp8_decoder_remove_threads(pbi_0);
-            return VPX_CODEC_ERROR;
-        }
-        (*pbi_0).common.error.setjmp = 1 as ::core::ffi::c_int;
-        (*pbi_0).max_threads = (*ctx).cfg.threads as ::core::ffi::c_int;
-        vp8_decoder_create_threads(pbi_0);
-        if vpx_atomic_load_acquire(&raw mut (*pbi_0).b_multithreaded_rd) != 0 {
-            vp8mt_alloc_temp_buffers(pbi_0, (*pc).Width, (*pc).mb_rows);
-        }
-        (*ctx).restart_threads = 0 as ::core::ffi::c_int;
-        (*pbi_0).common.error.setjmp = 0 as ::core::ffi::c_int;
-    }
-    if res as u64 == 0 && (*ctx).decoder_init == 0 {
-        let mut oxcf: VP8D_CONFIG = VP8D_CONFIG {
-            Width: 0,
-            Height: 0,
-            Version: 0,
-            postprocess: 0,
-            max_threads: 0,
-            error_concealment: 0,
-        };
-        oxcf.Width = (*ctx).si.w as ::core::ffi::c_int;
-        oxcf.Height = (*ctx).si.h as ::core::ffi::c_int;
-        oxcf.Version = 9 as ::core::ffi::c_int;
-        oxcf.postprocess = 0 as ::core::ffi::c_int;
-        oxcf.max_threads = (*ctx).cfg.threads as ::core::ffi::c_int;
-        oxcf.error_concealment = ((*ctx).base.init_flags
-            & VPX_CODEC_USE_ERROR_CONCEALMENT as vpx_codec_flags_t)
-            as ::core::ffi::c_int;
-        if (*ctx).postproc_cfg_set == 0
-            && (*ctx).base.init_flags & VPX_CODEC_USE_POSTPROC as vpx_codec_flags_t != 0
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut res: vpx_codec_err_t = VPX_CODEC_OK;
+        let mut resolution_change: ::core::ffi::c_uint = 0 as ::core::ffi::c_uint;
+        let mut w: ::core::ffi::c_uint = 0;
+        let mut h: ::core::ffi::c_uint = 0;
+        if (*ctx).fragments.enabled == 0 && (data.is_null() && data_sz == 0 as ::core::ffi::c_uint)
         {
-            (*ctx).postproc_cfg.post_proc_flag = VP8_DEBLOCK as ::core::ffi::c_int
-                | VP8_DEMACROBLOCK as ::core::ffi::c_int
-                | VP8_MFQE as ::core::ffi::c_int;
-            (*ctx).postproc_cfg.deblocking_level = 4 as ::core::ffi::c_int;
-            (*ctx).postproc_cfg.noise_level = 0 as ::core::ffi::c_int;
+            return VPX_CODEC_OK;
         }
-        ::core::ptr::write_volatile(
-            &mut res as *mut vpx_codec_err_t,
-            vp8_create_decoder_instances(&raw mut (*ctx).yv12_frame_buffers, &raw mut oxcf)
-                as vpx_codec_err_t,
-        );
-        if res as ::core::ffi::c_uint == VPX_CODEC_OK as ::core::ffi::c_int as ::core::ffi::c_uint {
-            (*ctx).decoder_init = 1 as ::core::ffi::c_int;
-        } else {
-            (*ctx).si.w = 0 as ::core::ffi::c_uint;
-            (*ctx).si.h = 0 as ::core::ffi::c_uint;
-        }
-    }
-    if (*ctx).decoder_init != 0 {
-        (*(*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize]).decrypt_cb =
-            (*ctx).decrypt_cb;
-        (*(*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize]).decrypt_state =
-            (*ctx).decrypt_state;
-    }
-    if res as u64 == 0 {
-        let mut pbi_1: *mut VP8D_COMP =
-            (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
-        let pc_0: *mut VP8_COMMON = &raw mut (*pbi_1).common;
-        if resolution_change != 0 {
-            let xd: *mut MACROBLOCKD = &raw mut (*pbi_1).mb;
-            let mut i: ::core::ffi::c_int = 0;
-            (*pc_0).Width = (*ctx).si.w as ::core::ffi::c_int;
-            (*pc_0).Height = (*ctx).si.h as ::core::ffi::c_int;
-            if setjmp(&raw mut (*pbi_1).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
-                (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
-                (*ctx).si.w = 0 as ::core::ffi::c_uint;
-                (*ctx).si.h = 0 as ::core::ffi::c_uint;
-                return 4294967295 as vpx_codec_err_t;
-            }
-            (*pbi_1).common.error.setjmp = 1 as ::core::ffi::c_int;
-            if (*pc_0).Width <= 0 as ::core::ffi::c_int {
-                (*pc_0).Width = w as ::core::ffi::c_int;
-                vpx_internal_error(
-                    &raw mut (*pc_0).error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    b"Invalid frame width\0" as *const u8 as *const ::core::ffi::c_char,
-                );
-            }
-            if (*pc_0).Height <= 0 as ::core::ffi::c_int {
-                (*pc_0).Height = h as ::core::ffi::c_int;
-                vpx_internal_error(
-                    &raw mut (*pc_0).error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    b"Invalid frame height\0" as *const u8 as *const ::core::ffi::c_char,
-                );
-            }
-            if vpx_atomic_load_acquire(&raw mut (*pbi_1).b_multithreaded_rd) != 0 {
-                vp8mt_de_alloc_temp_buffers(pbi_1, (*pc_0).mb_rows);
-            }
-            if vp8_alloc_frame_buffers(pc_0, (*pc_0).Width, (*pc_0).Height) != 0 {
-                vpx_internal_error(
-                    &raw mut (*pc_0).error,
-                    VPX_CODEC_MEM_ERROR,
-                    b"Failed to allocate frame buffers\0" as *const u8
-                        as *const ::core::ffi::c_char,
-                );
-            }
-            (*xd).pre = (*pc_0).yv12_fb[(*pc_0).lst_fb_idx as usize];
-            (*xd).dst = (*pc_0).yv12_fb[(*pc_0).new_fb_idx as usize];
-            i = 0 as ::core::ffi::c_int;
-            while i < (*pbi_1).allocated_decoding_thread_count {
-                (*(*pbi_1).mb_row_di.offset(i as isize)).mbd.dst =
-                    (*pc_0).yv12_fb[(*pc_0).new_fb_idx as usize];
-                vp8_build_block_doffsets(&raw mut (*(*pbi_1).mb_row_di.offset(i as isize)).mbd);
-                i += 1;
-            }
-            vp8_build_block_doffsets(&raw mut (*pbi_1).mb);
-            if vpx_atomic_load_acquire(&raw mut (*pbi_1).b_multithreaded_rd) != 0 {
-                vp8mt_alloc_temp_buffers(pbi_1, (*pc_0).Width, 0 as ::core::ffi::c_int);
-            }
-            (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
-            (*pbi_1).common.fb_idx_ref_cnt[0 as ::core::ffi::c_int as usize] =
-                0 as ::core::ffi::c_int;
-        }
-        if setjmp(&raw mut (*pbi_1).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
-            (*pc_0).yv12_fb[(*pc_0).lst_fb_idx as usize].corrupted = 1 as ::core::ffi::c_int;
-            if (*pc_0).fb_idx_ref_cnt[(*pc_0).new_fb_idx as usize] > 0 as ::core::ffi::c_int {
-                (*pc_0).fb_idx_ref_cnt[(*pc_0).new_fb_idx as usize] -= 1;
-            }
-            (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
-            if (*pbi_1).restart_threads != 0 {
-                (*ctx).si.w = 0 as ::core::ffi::c_uint;
-                (*ctx).si.h = 0 as ::core::ffi::c_uint;
-                (*ctx).restart_threads = 1 as ::core::ffi::c_int;
-            }
-            ::core::ptr::write_volatile(
-                &mut res as *mut vpx_codec_err_t,
-                update_error_state(ctx, &raw mut (*pbi_1).common.error),
-            );
+        if update_fragments(ctx, data, data_sz, &raw mut res) <= 0 as ::core::ffi::c_int {
             return res;
         }
-        (*pbi_1).common.error.setjmp = 1 as ::core::ffi::c_int;
-        (*pbi_1).fragments = (*ctx).fragments;
-        (*pbi_1).restart_threads = 0 as ::core::ffi::c_int;
-        (*ctx).user_priv = user_priv;
-        if vp8dx_receive_compressed_data(pbi_1 as *mut VP8D_COMP) != 0 {
+        ::core::ptr::write_volatile(&mut w as *mut ::core::ffi::c_uint, (*ctx).si.w);
+        ::core::ptr::write_volatile(&mut h as *mut ::core::ffi::c_uint, (*ctx).si.h);
+        ::core::ptr::write_volatile(
+            &mut res as *mut vpx_codec_err_t,
+            vp8_peek_si_internal(
+                (*ctx).fragments.ptrs[0 as ::core::ffi::c_int as usize],
+                (*ctx).fragments.sizes[0 as ::core::ffi::c_int as usize],
+                &raw mut (*ctx).si,
+                (*ctx).decrypt_cb,
+                (*ctx).decrypt_state,
+            ),
+        );
+        if res as ::core::ffi::c_uint
+            == VPX_CODEC_UNSUP_BITSTREAM as ::core::ffi::c_int as ::core::ffi::c_uint
+            && (*ctx).si.is_kf == 0
+        {
+            ::core::ptr::write_volatile(&mut res as *mut vpx_codec_err_t, VPX_CODEC_OK);
+        }
+        if (*ctx).decoder_init == 0 && (*ctx).si.is_kf == 0 {
             ::core::ptr::write_volatile(
                 &mut res as *mut vpx_codec_err_t,
-                update_error_state(ctx, &raw mut (*pbi_1).common.error),
+                VPX_CODEC_UNSUP_BITSTREAM,
             );
         }
-        (*ctx).fragments.count = 0 as ::core::ffi::c_uint;
-        (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
+        if res as u64 == 0
+            && (*ctx).decoder_init != 0
+            && w == 0 as ::core::ffi::c_uint
+            && h == 0 as ::core::ffi::c_uint
+            && (*ctx).si.h == 0 as ::core::ffi::c_uint
+            && (*ctx).si.w == 0 as ::core::ffi::c_uint
+        {
+            let mut pbi: *mut VP8D_COMP =
+                (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
+            ::core::ptr::write_volatile(&mut res as *mut vpx_codec_err_t, VPX_CODEC_CORRUPT_FRAME);
+            vpx_internal_error(
+                &raw mut (*pbi).common.error,
+                res,
+                b"Keyframe / intra-only frame required to reset decoder state\0" as *const u8
+                    as *const ::core::ffi::c_char,
+            );
+        }
+        if (*ctx).si.h != h || (*ctx).si.w != w {
+            ::core::ptr::write_volatile(
+                &mut resolution_change as *mut ::core::ffi::c_uint,
+                1 as ::core::ffi::c_uint,
+            );
+        }
+        if res as u64 == 0 && (*ctx).restart_threads != 0 {
+            let mut pbi_0: *mut VP8D_COMP =
+                (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
+            let pc: *mut VP8_COMMON = &raw mut (*pbi_0).common;
+            if setjmp(&raw mut (*pbi_0).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
+                (*pbi_0).common.error.setjmp = 0 as ::core::ffi::c_int;
+                vp8_decoder_remove_threads(pbi_0);
+                return VPX_CODEC_ERROR;
+            }
+            (*pbi_0).common.error.setjmp = 1 as ::core::ffi::c_int;
+            (*pbi_0).max_threads = (*ctx).cfg.threads as ::core::ffi::c_int;
+            vp8_decoder_create_threads(pbi_0);
+            if vpx_atomic_load_acquire(&raw mut (*pbi_0).b_multithreaded_rd) != 0 {
+                vp8mt_alloc_temp_buffers(pbi_0, (*pc).Width, (*pc).mb_rows);
+            }
+            (*ctx).restart_threads = 0 as ::core::ffi::c_int;
+            (*pbi_0).common.error.setjmp = 0 as ::core::ffi::c_int;
+        }
+        if res as u64 == 0 && (*ctx).decoder_init == 0 {
+            let mut oxcf: VP8D_CONFIG = VP8D_CONFIG {
+                Width: 0,
+                Height: 0,
+                Version: 0,
+                postprocess: 0,
+                max_threads: 0,
+                error_concealment: 0,
+            };
+            oxcf.Width = (*ctx).si.w as ::core::ffi::c_int;
+            oxcf.Height = (*ctx).si.h as ::core::ffi::c_int;
+            oxcf.Version = 9 as ::core::ffi::c_int;
+            oxcf.postprocess = 0 as ::core::ffi::c_int;
+            oxcf.max_threads = (*ctx).cfg.threads as ::core::ffi::c_int;
+            oxcf.error_concealment = ((*ctx).base.init_flags
+                & VPX_CODEC_USE_ERROR_CONCEALMENT as vpx_codec_flags_t)
+                as ::core::ffi::c_int;
+            if (*ctx).postproc_cfg_set == 0
+                && (*ctx).base.init_flags & VPX_CODEC_USE_POSTPROC as vpx_codec_flags_t != 0
+            {
+                (*ctx).postproc_cfg.post_proc_flag = VP8_DEBLOCK as ::core::ffi::c_int
+                    | VP8_DEMACROBLOCK as ::core::ffi::c_int
+                    | VP8_MFQE as ::core::ffi::c_int;
+                (*ctx).postproc_cfg.deblocking_level = 4 as ::core::ffi::c_int;
+                (*ctx).postproc_cfg.noise_level = 0 as ::core::ffi::c_int;
+            }
+            ::core::ptr::write_volatile(
+                &mut res as *mut vpx_codec_err_t,
+                vp8_create_decoder_instances(&raw mut (*ctx).yv12_frame_buffers, &raw mut oxcf)
+                    as vpx_codec_err_t,
+            );
+            if res as ::core::ffi::c_uint
+                == VPX_CODEC_OK as ::core::ffi::c_int as ::core::ffi::c_uint
+            {
+                (*ctx).decoder_init = 1 as ::core::ffi::c_int;
+            } else {
+                (*ctx).si.w = 0 as ::core::ffi::c_uint;
+                (*ctx).si.h = 0 as ::core::ffi::c_uint;
+            }
+        }
+        if (*ctx).decoder_init != 0 {
+            (*(*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize]).decrypt_cb =
+                (*ctx).decrypt_cb;
+            (*(*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize]).decrypt_state =
+                (*ctx).decrypt_state;
+        }
+        if res as u64 == 0 {
+            let mut pbi_1: *mut VP8D_COMP =
+                (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
+            let pc_0: *mut VP8_COMMON = &raw mut (*pbi_1).common;
+            if resolution_change != 0 {
+                let xd: *mut MACROBLOCKD = &raw mut (*pbi_1).mb;
+                let mut i: ::core::ffi::c_int = 0;
+                (*pc_0).Width = (*ctx).si.w as ::core::ffi::c_int;
+                (*pc_0).Height = (*ctx).si.h as ::core::ffi::c_int;
+                if setjmp(&raw mut (*pbi_1).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
+                    (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
+                    (*ctx).si.w = 0 as ::core::ffi::c_uint;
+                    (*ctx).si.h = 0 as ::core::ffi::c_uint;
+                    return 4294967295 as vpx_codec_err_t;
+                }
+                (*pbi_1).common.error.setjmp = 1 as ::core::ffi::c_int;
+                if (*pc_0).Width <= 0 as ::core::ffi::c_int {
+                    (*pc_0).Width = w as ::core::ffi::c_int;
+                    vpx_internal_error(
+                        &raw mut (*pc_0).error,
+                        VPX_CODEC_CORRUPT_FRAME,
+                        b"Invalid frame width\0" as *const u8 as *const ::core::ffi::c_char,
+                    );
+                }
+                if (*pc_0).Height <= 0 as ::core::ffi::c_int {
+                    (*pc_0).Height = h as ::core::ffi::c_int;
+                    vpx_internal_error(
+                        &raw mut (*pc_0).error,
+                        VPX_CODEC_CORRUPT_FRAME,
+                        b"Invalid frame height\0" as *const u8 as *const ::core::ffi::c_char,
+                    );
+                }
+                if vpx_atomic_load_acquire(&raw mut (*pbi_1).b_multithreaded_rd) != 0 {
+                    vp8mt_de_alloc_temp_buffers(pbi_1, (*pc_0).mb_rows);
+                }
+                if vp8_alloc_frame_buffers(pc_0, (*pc_0).Width, (*pc_0).Height) != 0 {
+                    vpx_internal_error(
+                        &raw mut (*pc_0).error,
+                        VPX_CODEC_MEM_ERROR,
+                        b"Failed to allocate frame buffers\0" as *const u8
+                            as *const ::core::ffi::c_char,
+                    );
+                }
+                (*xd).pre = (*pc_0).yv12_fb[(*pc_0).lst_fb_idx as usize];
+                (*xd).dst = (*pc_0).yv12_fb[(*pc_0).new_fb_idx as usize];
+                i = 0 as ::core::ffi::c_int;
+                while i < (*pbi_1).allocated_decoding_thread_count {
+                    (*(*pbi_1).mb_row_di.offset(i as isize)).mbd.dst =
+                        (*pc_0).yv12_fb[(*pc_0).new_fb_idx as usize];
+                    vp8_build_block_doffsets(&raw mut (*(*pbi_1).mb_row_di.offset(i as isize)).mbd);
+                    i += 1;
+                }
+                vp8_build_block_doffsets(&raw mut (*pbi_1).mb);
+                if vpx_atomic_load_acquire(&raw mut (*pbi_1).b_multithreaded_rd) != 0 {
+                    vp8mt_alloc_temp_buffers(pbi_1, (*pc_0).Width, 0 as ::core::ffi::c_int);
+                }
+                (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
+                (*pbi_1).common.fb_idx_ref_cnt[0 as ::core::ffi::c_int as usize] =
+                    0 as ::core::ffi::c_int;
+            }
+            if setjmp(&raw mut (*pbi_1).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
+                (*pc_0).yv12_fb[(*pc_0).lst_fb_idx as usize].corrupted = 1 as ::core::ffi::c_int;
+                if (*pc_0).fb_idx_ref_cnt[(*pc_0).new_fb_idx as usize] > 0 as ::core::ffi::c_int {
+                    (*pc_0).fb_idx_ref_cnt[(*pc_0).new_fb_idx as usize] -= 1;
+                }
+                (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
+                if (*pbi_1).restart_threads != 0 {
+                    (*ctx).si.w = 0 as ::core::ffi::c_uint;
+                    (*ctx).si.h = 0 as ::core::ffi::c_uint;
+                    (*ctx).restart_threads = 1 as ::core::ffi::c_int;
+                }
+                ::core::ptr::write_volatile(
+                    &mut res as *mut vpx_codec_err_t,
+                    update_error_state(ctx, &raw mut (*pbi_1).common.error),
+                );
+                return res;
+            }
+            (*pbi_1).common.error.setjmp = 1 as ::core::ffi::c_int;
+            (*pbi_1).fragments = (*ctx).fragments;
+            (*pbi_1).restart_threads = 0 as ::core::ffi::c_int;
+            (*ctx).user_priv = user_priv;
+            if vp8dx_receive_compressed_data(pbi_1 as *mut VP8D_COMP) != 0 {
+                ::core::ptr::write_volatile(
+                    &mut res as *mut vpx_codec_err_t,
+                    update_error_state(ctx, &raw mut (*pbi_1).common.error),
+                );
+            }
+            (*ctx).fragments.count = 0 as ::core::ffi::c_uint;
+            (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
+        }
+        return res;
     }
-    return res;
-}}
+}
 unsafe extern "C" fn vp8_get_frame(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut iter: *mut vpx_codec_iter_t,
-) -> *mut vpx_image_t { unsafe {
-    let mut img: *mut vpx_image_t = ::core::ptr::null_mut::<vpx_image_t>();
-    if (*iter).is_null()
-        && !(*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize].is_null()
-    {
-        let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
-            y_width: 0,
-            y_height: 0,
-            y_crop_width: 0,
-            y_crop_height: 0,
-            y_stride: 0,
-            uv_width: 0,
-            uv_height: 0,
-            uv_crop_width: 0,
-            uv_crop_height: 0,
-            uv_stride: 0,
-            alpha_width: 0,
-            alpha_height: 0,
-            alpha_stride: 0,
-            y_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            u_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            v_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            alpha_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            buffer_alloc: ::core::ptr::null_mut::<uint8_t>(),
-            buffer_alloc_sz: 0,
-            border: 0,
-            frame_size: 0,
-            subsampling_x: 0,
-            subsampling_y: 0,
-            bit_depth: 0,
-            color_space: VPX_CS_UNKNOWN,
-            color_range: VPX_CR_STUDIO_RANGE,
-            render_width: 0,
-            render_height: 0,
-            corrupted: 0,
-            flags: 0,
-        };
-        let mut flags: vp8_ppflags_t = vp8_ppflags_t {
-            post_proc_flag: 0,
-            deblocking_level: 0,
-            noise_level: 0,
-            display_ref_frame_flag: 0,
-            display_mb_modes_flag: 0,
-            display_b_modes_flag: 0,
-            display_mv_flag: 0,
-        };
-        memset(
-            &raw mut flags as *mut ::core::ffi::c_void,
-            0 as ::core::ffi::c_int,
-            ::core::mem::size_of::<vp8_ppflags_t>() as size_t,
-        );
-        if (*ctx).base.init_flags & VPX_CODEC_USE_POSTPROC as vpx_codec_flags_t != 0 {
-            flags.post_proc_flag = (*ctx).postproc_cfg.post_proc_flag;
-            flags.deblocking_level = (*ctx).postproc_cfg.deblocking_level;
-            flags.noise_level = (*ctx).postproc_cfg.noise_level;
-        }
-        if 0 as ::core::ffi::c_int
-            == vp8dx_get_raw_frame(
-                (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
-                &raw mut sd,
-                &raw mut flags,
-            )
+) -> *mut vpx_image_t {
+    unsafe {
+        let mut img: *mut vpx_image_t = ::core::ptr::null_mut::<vpx_image_t>();
+        if (*iter).is_null()
+            && !(*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize].is_null()
         {
-            yuvconfig2image(&raw mut (*ctx).img, &raw mut sd, (*ctx).user_priv);
-            img = &raw mut (*ctx).img;
-            *iter = img as vpx_codec_iter_t;
+            let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
+                y_width: 0,
+                y_height: 0,
+                y_crop_width: 0,
+                y_crop_height: 0,
+                y_stride: 0,
+                uv_width: 0,
+                uv_height: 0,
+                uv_crop_width: 0,
+                uv_crop_height: 0,
+                uv_stride: 0,
+                alpha_width: 0,
+                alpha_height: 0,
+                alpha_stride: 0,
+                y_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                u_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                v_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                alpha_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                buffer_alloc: ::core::ptr::null_mut::<uint8_t>(),
+                buffer_alloc_sz: 0,
+                border: 0,
+                frame_size: 0,
+                subsampling_x: 0,
+                subsampling_y: 0,
+                bit_depth: 0,
+                color_space: VPX_CS_UNKNOWN,
+                color_range: VPX_CR_STUDIO_RANGE,
+                render_width: 0,
+                render_height: 0,
+                corrupted: 0,
+                flags: 0,
+            };
+            let mut flags: vp8_ppflags_t = vp8_ppflags_t {
+                post_proc_flag: 0,
+                deblocking_level: 0,
+                noise_level: 0,
+                display_ref_frame_flag: 0,
+                display_mb_modes_flag: 0,
+                display_b_modes_flag: 0,
+                display_mv_flag: 0,
+            };
+            memset(
+                &raw mut flags as *mut ::core::ffi::c_void,
+                0 as ::core::ffi::c_int,
+                ::core::mem::size_of::<vp8_ppflags_t>() as size_t,
+            );
+            if (*ctx).base.init_flags & VPX_CODEC_USE_POSTPROC as vpx_codec_flags_t != 0 {
+                flags.post_proc_flag = (*ctx).postproc_cfg.post_proc_flag;
+                flags.deblocking_level = (*ctx).postproc_cfg.deblocking_level;
+                flags.noise_level = (*ctx).postproc_cfg.noise_level;
+            }
+            if 0 as ::core::ffi::c_int
+                == vp8dx_get_raw_frame(
+                    (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
+                    &raw mut sd,
+                    &raw mut flags,
+                )
+            {
+                yuvconfig2image(&raw mut (*ctx).img, &raw mut sd, (*ctx).user_priv);
+                img = &raw mut (*ctx).img;
+                *iter = img as vpx_codec_iter_t;
+            }
         }
+        return img;
     }
-    return img;
-}}
+}
 unsafe extern "C" fn image2yuvconfig(
     mut img: *const vpx_image_t,
     mut yv12: *mut YV12_BUFFER_CONFIG,
-) -> vpx_codec_err_t { unsafe {
-    let y_w: ::core::ffi::c_int = (*img).d_w as ::core::ffi::c_int;
-    let y_h: ::core::ffi::c_int = (*img).d_h as ::core::ffi::c_int;
-    let uv_w: ::core::ffi::c_int = (*img)
-        .d_w
-        .wrapping_add(1 as ::core::ffi::c_uint)
-        .wrapping_div(2 as ::core::ffi::c_uint)
-        as ::core::ffi::c_int;
-    let uv_h: ::core::ffi::c_int = (*img)
-        .d_h
-        .wrapping_add(1 as ::core::ffi::c_uint)
-        .wrapping_div(2 as ::core::ffi::c_uint)
-        as ::core::ffi::c_int;
-    let mut res: vpx_codec_err_t = VPX_CODEC_OK;
-    (*yv12).y_buffer = (*img).planes[VPX_PLANE_Y as usize] as *mut uint8_t;
-    (*yv12).u_buffer = (*img).planes[VPX_PLANE_U as usize] as *mut uint8_t;
-    (*yv12).v_buffer = (*img).planes[VPX_PLANE_V as usize] as *mut uint8_t;
-    (*yv12).y_crop_width = y_w;
-    (*yv12).y_crop_height = y_h;
-    (*yv12).y_width = y_w;
-    (*yv12).y_height = y_h;
-    (*yv12).uv_crop_width = uv_w;
-    (*yv12).uv_crop_height = uv_h;
-    (*yv12).uv_width = uv_w;
-    (*yv12).uv_height = uv_h;
-    (*yv12).y_stride = (*img).stride[VPX_PLANE_Y as usize];
-    (*yv12).uv_stride = (*img).stride[VPX_PLANE_U as usize];
-    (*yv12).border = ((*img).stride[VPX_PLANE_Y as usize] as ::core::ffi::c_uint)
-        .wrapping_sub((*img).d_w)
-        .wrapping_div(2 as ::core::ffi::c_uint) as ::core::ffi::c_int;
-    return res;
-}}
+) -> vpx_codec_err_t {
+    unsafe {
+        let y_w: ::core::ffi::c_int = (*img).d_w as ::core::ffi::c_int;
+        let y_h: ::core::ffi::c_int = (*img).d_h as ::core::ffi::c_int;
+        let uv_w: ::core::ffi::c_int = (*img)
+            .d_w
+            .wrapping_add(1 as ::core::ffi::c_uint)
+            .wrapping_div(2 as ::core::ffi::c_uint)
+            as ::core::ffi::c_int;
+        let uv_h: ::core::ffi::c_int = (*img)
+            .d_h
+            .wrapping_add(1 as ::core::ffi::c_uint)
+            .wrapping_div(2 as ::core::ffi::c_uint)
+            as ::core::ffi::c_int;
+        let mut res: vpx_codec_err_t = VPX_CODEC_OK;
+        (*yv12).y_buffer = (*img).planes[VPX_PLANE_Y as usize] as *mut uint8_t;
+        (*yv12).u_buffer = (*img).planes[VPX_PLANE_U as usize] as *mut uint8_t;
+        (*yv12).v_buffer = (*img).planes[VPX_PLANE_V as usize] as *mut uint8_t;
+        (*yv12).y_crop_width = y_w;
+        (*yv12).y_crop_height = y_h;
+        (*yv12).y_width = y_w;
+        (*yv12).y_height = y_h;
+        (*yv12).uv_crop_width = uv_w;
+        (*yv12).uv_crop_height = uv_h;
+        (*yv12).uv_width = uv_w;
+        (*yv12).uv_height = uv_h;
+        (*yv12).y_stride = (*img).stride[VPX_PLANE_Y as usize];
+        (*yv12).uv_stride = (*img).stride[VPX_PLANE_U as usize];
+        (*yv12).border = ((*img).stride[VPX_PLANE_Y as usize] as ::core::ffi::c_uint)
+            .wrapping_sub((*img).d_w)
+            .wrapping_div(2 as ::core::ffi::c_uint) as ::core::ffi::c_int;
+        return res;
+    }
+}
 unsafe extern "C" fn vp8_set_reference(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
-) -> vpx_codec_err_t { unsafe {
-    let mut data: *mut vpx_ref_frame_t = args.next_arg::<*mut vpx_ref_frame_t>();
-    if !data.is_null() {
-        let mut frame: *mut vpx_ref_frame_t = data;
-        let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
-            y_width: 0,
-            y_height: 0,
-            y_crop_width: 0,
-            y_crop_height: 0,
-            y_stride: 0,
-            uv_width: 0,
-            uv_height: 0,
-            uv_crop_width: 0,
-            uv_crop_height: 0,
-            uv_stride: 0,
-            alpha_width: 0,
-            alpha_height: 0,
-            alpha_stride: 0,
-            y_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            u_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            v_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            alpha_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            buffer_alloc: ::core::ptr::null_mut::<uint8_t>(),
-            buffer_alloc_sz: 0,
-            border: 0,
-            frame_size: 0,
-            subsampling_x: 0,
-            subsampling_y: 0,
-            bit_depth: 0,
-            color_space: VPX_CS_UNKNOWN,
-            color_range: VPX_CR_STUDIO_RANGE,
-            render_width: 0,
-            render_height: 0,
-            corrupted: 0,
-            flags: 0,
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut data: *mut vpx_ref_frame_t = args.next_arg::<*mut vpx_ref_frame_t>();
+        if !data.is_null() {
+            let mut frame: *mut vpx_ref_frame_t = data;
+            let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
+                y_width: 0,
+                y_height: 0,
+                y_crop_width: 0,
+                y_crop_height: 0,
+                y_stride: 0,
+                uv_width: 0,
+                uv_height: 0,
+                uv_crop_width: 0,
+                uv_crop_height: 0,
+                uv_stride: 0,
+                alpha_width: 0,
+                alpha_height: 0,
+                alpha_stride: 0,
+                y_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                u_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                v_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                alpha_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                buffer_alloc: ::core::ptr::null_mut::<uint8_t>(),
+                buffer_alloc_sz: 0,
+                border: 0,
+                frame_size: 0,
+                subsampling_x: 0,
+                subsampling_y: 0,
+                bit_depth: 0,
+                color_space: VPX_CS_UNKNOWN,
+                color_range: VPX_CR_STUDIO_RANGE,
+                render_width: 0,
+                render_height: 0,
+                corrupted: 0,
+                flags: 0,
+            };
+            image2yuvconfig(&raw mut (*frame).img, &raw mut sd);
+            if (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize].is_null() {
+                return VPX_CODEC_CORRUPT_FRAME;
+            }
+            return vp8dx_set_reference(
+                (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
+                (*frame).frame_type as vpx_ref_frame_type,
+                &raw mut sd,
+            );
+        } else {
+            return VPX_CODEC_INVALID_PARAM;
         };
-        image2yuvconfig(&raw mut (*frame).img, &raw mut sd);
-        if (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize].is_null() {
-            return VPX_CODEC_CORRUPT_FRAME;
-        }
-        return vp8dx_set_reference(
-            (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
-            (*frame).frame_type as vpx_ref_frame_type,
-            &raw mut sd,
-        );
-    } else {
-        return VPX_CODEC_INVALID_PARAM;
-    };
-}}
+    }
+}
 unsafe extern "C" fn vp8_get_reference(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
-) -> vpx_codec_err_t { unsafe {
-    let mut data: *mut vpx_ref_frame_t = args.next_arg::<*mut vpx_ref_frame_t>();
-    if !data.is_null() {
-        let mut frame: *mut vpx_ref_frame_t = data;
-        let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
-            y_width: 0,
-            y_height: 0,
-            y_crop_width: 0,
-            y_crop_height: 0,
-            y_stride: 0,
-            uv_width: 0,
-            uv_height: 0,
-            uv_crop_width: 0,
-            uv_crop_height: 0,
-            uv_stride: 0,
-            alpha_width: 0,
-            alpha_height: 0,
-            alpha_stride: 0,
-            y_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            u_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            v_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            alpha_buffer: ::core::ptr::null_mut::<uint8_t>(),
-            buffer_alloc: ::core::ptr::null_mut::<uint8_t>(),
-            buffer_alloc_sz: 0,
-            border: 0,
-            frame_size: 0,
-            subsampling_x: 0,
-            subsampling_y: 0,
-            bit_depth: 0,
-            color_space: VPX_CS_UNKNOWN,
-            color_range: VPX_CR_STUDIO_RANGE,
-            render_width: 0,
-            render_height: 0,
-            corrupted: 0,
-            flags: 0,
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut data: *mut vpx_ref_frame_t = args.next_arg::<*mut vpx_ref_frame_t>();
+        if !data.is_null() {
+            let mut frame: *mut vpx_ref_frame_t = data;
+            let mut sd: YV12_BUFFER_CONFIG = yv12_buffer_config {
+                y_width: 0,
+                y_height: 0,
+                y_crop_width: 0,
+                y_crop_height: 0,
+                y_stride: 0,
+                uv_width: 0,
+                uv_height: 0,
+                uv_crop_width: 0,
+                uv_crop_height: 0,
+                uv_stride: 0,
+                alpha_width: 0,
+                alpha_height: 0,
+                alpha_stride: 0,
+                y_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                u_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                v_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                alpha_buffer: ::core::ptr::null_mut::<uint8_t>(),
+                buffer_alloc: ::core::ptr::null_mut::<uint8_t>(),
+                buffer_alloc_sz: 0,
+                border: 0,
+                frame_size: 0,
+                subsampling_x: 0,
+                subsampling_y: 0,
+                bit_depth: 0,
+                color_space: VPX_CS_UNKNOWN,
+                color_range: VPX_CR_STUDIO_RANGE,
+                render_width: 0,
+                render_height: 0,
+                corrupted: 0,
+                flags: 0,
+            };
+            image2yuvconfig(&raw mut (*frame).img, &raw mut sd);
+            if (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize].is_null() {
+                return VPX_CODEC_CORRUPT_FRAME;
+            }
+            return vp8dx_get_reference(
+                (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
+                (*frame).frame_type as vpx_ref_frame_type,
+                &raw mut sd,
+            );
+        } else {
+            return VPX_CODEC_INVALID_PARAM;
         };
-        image2yuvconfig(&raw mut (*frame).img, &raw mut sd);
-        if (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize].is_null() {
-            return VPX_CODEC_CORRUPT_FRAME;
-        }
-        return vp8dx_get_reference(
-            (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
-            (*frame).frame_type as vpx_ref_frame_type,
-            &raw mut sd,
-        );
-    } else {
-        return VPX_CODEC_INVALID_PARAM;
-    };
-}}
+    }
+}
 unsafe extern "C" fn vp8_get_quantizer(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
-) -> vpx_codec_err_t { unsafe {
-    let arg: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
-    let mut pbi: *mut VP8D_COMP = (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
-    if arg.is_null() {
-        return VPX_CODEC_INVALID_PARAM;
+) -> vpx_codec_err_t {
+    unsafe {
+        let arg: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
+        let mut pbi: *mut VP8D_COMP =
+            (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
+        if arg.is_null() {
+            return VPX_CODEC_INVALID_PARAM;
+        }
+        if pbi.is_null() {
+            return VPX_CODEC_CORRUPT_FRAME;
+        }
+        *arg = vp8dx_get_quantizer(pbi);
+        return VPX_CODEC_OK;
     }
-    if pbi.is_null() {
-        return VPX_CODEC_CORRUPT_FRAME;
-    }
-    *arg = vp8dx_get_quantizer(pbi);
-    return VPX_CODEC_OK;
-}}
+}
 unsafe extern "C" fn vp8_set_postproc(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
@@ -1732,97 +1779,106 @@ unsafe extern "C" fn vp8_set_postproc(
 unsafe extern "C" fn vp8_get_last_ref_updates(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
-) -> vpx_codec_err_t { unsafe {
-    let mut update_info: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
-    if !update_info.is_null() {
-        let mut pbi: *mut VP8D_COMP =
-            (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
-        if pbi.is_null() {
-            return VPX_CODEC_CORRUPT_FRAME;
-        }
-        *update_info = (*pbi).common.refresh_alt_ref_frame * VP8_ALTR_FRAME as ::core::ffi::c_int
-            + (*pbi).common.refresh_golden_frame * VP8_GOLD_FRAME as ::core::ffi::c_int
-            + (*pbi).common.refresh_last_frame * VP8_LAST_FRAME as ::core::ffi::c_int;
-        return VPX_CODEC_OK;
-    } else {
-        return VPX_CODEC_INVALID_PARAM;
-    };
-}}
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut update_info: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
+        if !update_info.is_null() {
+            let mut pbi: *mut VP8D_COMP =
+                (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
+            if pbi.is_null() {
+                return VPX_CODEC_CORRUPT_FRAME;
+            }
+            *update_info = (*pbi).common.refresh_alt_ref_frame
+                * VP8_ALTR_FRAME as ::core::ffi::c_int
+                + (*pbi).common.refresh_golden_frame * VP8_GOLD_FRAME as ::core::ffi::c_int
+                + (*pbi).common.refresh_last_frame * VP8_LAST_FRAME as ::core::ffi::c_int;
+            return VPX_CODEC_OK;
+        } else {
+            return VPX_CODEC_INVALID_PARAM;
+        };
+    }
+}
 unsafe extern "C" fn vp8_get_last_ref_frame(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
-) -> vpx_codec_err_t { unsafe {
-    let mut ref_info: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
-    if !ref_info.is_null() {
-        let mut pbi: *mut VP8D_COMP =
-            (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
-        if !pbi.is_null() {
-            let mut oci: *mut VP8_COMMON = &raw mut (*pbi).common;
-            *ref_info = (if vp8dx_references_buffer(
-                oci as *mut VP8Common,
-                ALTREF_FRAME as ::core::ffi::c_int,
-            ) != 0
-            {
-                VP8_ALTR_FRAME as ::core::ffi::c_int
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut ref_info: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
+        if !ref_info.is_null() {
+            let mut pbi: *mut VP8D_COMP =
+                (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
+            if !pbi.is_null() {
+                let mut oci: *mut VP8_COMMON = &raw mut (*pbi).common;
+                *ref_info = (if vp8dx_references_buffer(
+                    oci as *mut VP8Common,
+                    ALTREF_FRAME as ::core::ffi::c_int,
+                ) != 0
+                {
+                    VP8_ALTR_FRAME as ::core::ffi::c_int
+                } else {
+                    0 as ::core::ffi::c_int
+                }) | (if vp8dx_references_buffer(
+                    oci as *mut VP8Common,
+                    GOLDEN_FRAME as ::core::ffi::c_int,
+                ) != 0
+                {
+                    VP8_GOLD_FRAME as ::core::ffi::c_int
+                } else {
+                    0 as ::core::ffi::c_int
+                }) | (if vp8dx_references_buffer(
+                    oci as *mut VP8Common,
+                    LAST_FRAME as ::core::ffi::c_int,
+                ) != 0
+                {
+                    VP8_LAST_FRAME as ::core::ffi::c_int
+                } else {
+                    0 as ::core::ffi::c_int
+                });
+                return VPX_CODEC_OK;
             } else {
-                0 as ::core::ffi::c_int
-            }) | (if vp8dx_references_buffer(
-                oci as *mut VP8Common,
-                GOLDEN_FRAME as ::core::ffi::c_int,
-            ) != 0
-            {
-                VP8_GOLD_FRAME as ::core::ffi::c_int
-            } else {
-                0 as ::core::ffi::c_int
-            }) | (if vp8dx_references_buffer(
-                oci as *mut VP8Common,
-                LAST_FRAME as ::core::ffi::c_int,
-            ) != 0
-            {
-                VP8_LAST_FRAME as ::core::ffi::c_int
-            } else {
-                0 as ::core::ffi::c_int
-            });
-            return VPX_CODEC_OK;
+                return VPX_CODEC_CORRUPT_FRAME;
+            }
         } else {
-            return VPX_CODEC_CORRUPT_FRAME;
-        }
-    } else {
-        return VPX_CODEC_INVALID_PARAM;
-    };
-}}
+            return VPX_CODEC_INVALID_PARAM;
+        };
+    }
+}
 unsafe extern "C" fn vp8_get_frame_corrupted(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
-) -> vpx_codec_err_t { unsafe {
-    let mut corrupted: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
-    let mut pbi: *mut VP8D_COMP =
-        (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
-    if !corrupted.is_null() && !pbi.is_null() {
-        let frame: *const YV12_BUFFER_CONFIG = (*pbi).common.frame_to_show;
-        if frame.is_null() {
-            return VPX_CODEC_ERROR;
-        }
-        *corrupted = (*frame).corrupted;
-        return VPX_CODEC_OK;
-    } else {
-        return VPX_CODEC_INVALID_PARAM;
-    };
-}}
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut corrupted: *mut ::core::ffi::c_int = args.next_arg::<*mut ::core::ffi::c_int>();
+        let mut pbi: *mut VP8D_COMP =
+            (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
+        if !corrupted.is_null() && !pbi.is_null() {
+            let frame: *const YV12_BUFFER_CONFIG = (*pbi).common.frame_to_show;
+            if frame.is_null() {
+                return VPX_CODEC_ERROR;
+            }
+            *corrupted = (*frame).corrupted;
+            return VPX_CODEC_OK;
+        } else {
+            return VPX_CODEC_INVALID_PARAM;
+        };
+    }
+}
 unsafe extern "C" fn vp8_set_decryptor(
     mut ctx: *mut vpx_codec_alg_priv_t,
     mut args: ::core::ffi::VaList,
-) -> vpx_codec_err_t { unsafe {
-    let mut init: *mut vpx_decrypt_init = args.next_arg::<*mut vpx_decrypt_init>();
-    if !init.is_null() {
-        (*ctx).decrypt_cb = (*init).decrypt_cb;
-        (*ctx).decrypt_state = (*init).decrypt_state;
-    } else {
-        (*ctx).decrypt_cb = None;
-        (*ctx).decrypt_state = NULL;
+) -> vpx_codec_err_t {
+    unsafe {
+        let mut init: *mut vpx_decrypt_init = args.next_arg::<*mut vpx_decrypt_init>();
+        if !init.is_null() {
+            (*ctx).decrypt_cb = (*init).decrypt_cb;
+            (*ctx).decrypt_state = (*init).decrypt_state;
+        } else {
+            (*ctx).decrypt_cb = None;
+            (*ctx).decrypt_state = NULL;
+        }
+        return VPX_CODEC_OK;
     }
-    return VPX_CODEC_OK;
-}}
+}
 static mut vp8_ctf_maps: [vpx_codec_ctrl_fn_map_t; 9] = unsafe {
     [
         vpx_codec_ctrl_fn_map {
@@ -1944,81 +2000,83 @@ pub unsafe extern "C" fn vpx_codec_vp8_dx() -> *const vpx_codec_iface_t {
 }
 pub const __ATOMIC_ACQUIRE: ::core::ffi::c_int = 2 as ::core::ffi::c_int;
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
-unsafe extern "C" fn run_static_initializers() { unsafe {
-    vpx_codec_vp8_dx_algo = vpx_codec_iface {
-        name: b"WebM Project VP8 Decoder v1.16.0-122-ge9efe034e\0" as *const u8
-            as *const ::core::ffi::c_char,
-        abi_version: VPX_CODEC_INTERNAL_ABI_VERSION,
-        caps: (VPX_CODEC_CAP_DECODER
-            | (if CONFIG_POSTPROC != 0 {
-                VPX_CODEC_CAP_POSTPROC
-            } else {
-                0 as ::core::ffi::c_int
-            })
-            | (if CONFIG_ERROR_CONCEALMENT != 0 {
-                VPX_CODEC_CAP_ERROR_CONCEALMENT
-            } else {
-                0 as ::core::ffi::c_int
-            })
-            | VPX_CODEC_CAP_INPUT_FRAGMENTS) as vpx_codec_caps_t,
-        init: Some(
-            vp8_init
-                as unsafe extern "C" fn(
-                    *mut vpx_codec_ctx_t,
-                    *mut vpx_codec_priv_enc_mr_cfg_t,
-                ) -> vpx_codec_err_t,
-        ),
-        destroy: Some(
-            vp8_destroy as unsafe extern "C" fn(*mut vpx_codec_alg_priv_t) -> vpx_codec_err_t,
-        ),
-        ctrl_maps: &raw const vp8_ctf_maps as *const vpx_codec_ctrl_fn_map_t,
-        dec: vpx_codec_dec_iface {
-            peek_si: Some(
-                vp8_peek_si
+unsafe extern "C" fn run_static_initializers() {
+    unsafe {
+        vpx_codec_vp8_dx_algo = vpx_codec_iface {
+            name: b"WebM Project VP8 Decoder v1.16.0-122-ge9efe034e\0" as *const u8
+                as *const ::core::ffi::c_char,
+            abi_version: VPX_CODEC_INTERNAL_ABI_VERSION,
+            caps: (VPX_CODEC_CAP_DECODER
+                | (if CONFIG_POSTPROC != 0 {
+                    VPX_CODEC_CAP_POSTPROC
+                } else {
+                    0 as ::core::ffi::c_int
+                })
+                | (if CONFIG_ERROR_CONCEALMENT != 0 {
+                    VPX_CODEC_CAP_ERROR_CONCEALMENT
+                } else {
+                    0 as ::core::ffi::c_int
+                })
+                | VPX_CODEC_CAP_INPUT_FRAGMENTS) as vpx_codec_caps_t,
+            init: Some(
+                vp8_init
                     as unsafe extern "C" fn(
-                        *const uint8_t,
-                        ::core::ffi::c_uint,
-                        *mut vpx_codec_stream_info_t,
+                        *mut vpx_codec_ctx_t,
+                        *mut vpx_codec_priv_enc_mr_cfg_t,
                     ) -> vpx_codec_err_t,
             ),
-            get_si: Some(
-                vp8_get_si
-                    as unsafe extern "C" fn(
-                        *mut vpx_codec_alg_priv_t,
-                        *mut vpx_codec_stream_info_t,
-                    ) -> vpx_codec_err_t,
+            destroy: Some(
+                vp8_destroy as unsafe extern "C" fn(*mut vpx_codec_alg_priv_t) -> vpx_codec_err_t,
             ),
-            decode: Some(
-                vp8_decode
-                    as unsafe extern "C" fn(
-                        *mut vpx_codec_alg_priv_t,
-                        *const uint8_t,
-                        ::core::ffi::c_uint,
-                        *mut ::core::ffi::c_void,
-                    ) -> vpx_codec_err_t,
-            ),
-            get_frame: Some(
-                vp8_get_frame
-                    as unsafe extern "C" fn(
-                        *mut vpx_codec_alg_priv_t,
-                        *mut vpx_codec_iter_t,
-                    ) -> *mut vpx_image_t,
-            ),
-            set_fb_fn: None,
-        },
-        enc: vpx_codec_enc_iface {
-            cfg_map_count: 0 as ::core::ffi::c_int,
-            cfg_maps: ::core::ptr::null::<vpx_codec_enc_cfg_map_t>(),
-            encode: None,
-            get_cx_data: None,
-            cfg_set: None,
-            get_glob_hdrs: None,
-            get_preview: None,
-            mr_get_mem_loc: None,
-            mr_free_mem_loc: None,
-        },
-    };
-}}
+            ctrl_maps: &raw const vp8_ctf_maps as *const vpx_codec_ctrl_fn_map_t,
+            dec: vpx_codec_dec_iface {
+                peek_si: Some(
+                    vp8_peek_si
+                        as unsafe extern "C" fn(
+                            *const uint8_t,
+                            ::core::ffi::c_uint,
+                            *mut vpx_codec_stream_info_t,
+                        ) -> vpx_codec_err_t,
+                ),
+                get_si: Some(
+                    vp8_get_si
+                        as unsafe extern "C" fn(
+                            *mut vpx_codec_alg_priv_t,
+                            *mut vpx_codec_stream_info_t,
+                        ) -> vpx_codec_err_t,
+                ),
+                decode: Some(
+                    vp8_decode
+                        as unsafe extern "C" fn(
+                            *mut vpx_codec_alg_priv_t,
+                            *const uint8_t,
+                            ::core::ffi::c_uint,
+                            *mut ::core::ffi::c_void,
+                        ) -> vpx_codec_err_t,
+                ),
+                get_frame: Some(
+                    vp8_get_frame
+                        as unsafe extern "C" fn(
+                            *mut vpx_codec_alg_priv_t,
+                            *mut vpx_codec_iter_t,
+                        ) -> *mut vpx_image_t,
+                ),
+                set_fb_fn: None,
+            },
+            enc: vpx_codec_enc_iface {
+                cfg_map_count: 0 as ::core::ffi::c_int,
+                cfg_maps: ::core::ptr::null::<vpx_codec_enc_cfg_map_t>(),
+                encode: None,
+                get_cx_data: None,
+                cfg_set: None,
+                get_glob_hdrs: None,
+                get_preview: None,
+                mr_get_mem_loc: None,
+                mr_free_mem_loc: None,
+            },
+        };
+    }
+}
 #[used]
 #[cfg_attr(target_os = "linux", link_section = ".init_array")]
 #[cfg_attr(target_os = "windows", link_section = ".CRT$XIB")]

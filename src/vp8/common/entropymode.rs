@@ -1643,24 +1643,26 @@ pub static mut vp8_kf_bmode_prob: [[[vp8_prob; 9]; 10]; 10] = [
 pub unsafe extern "C" fn vp8_mv_cont(
     mut l: *const int_mv,
     mut a: *const int_mv,
-) -> ::core::ffi::c_int { unsafe {
-    let mut lez: ::core::ffi::c_int = ((*l).as_int == 0 as uint32_t) as ::core::ffi::c_int;
-    let mut aez: ::core::ffi::c_int = ((*a).as_int == 0 as uint32_t) as ::core::ffi::c_int;
-    let mut lea: ::core::ffi::c_int = ((*l).as_int == (*a).as_int) as ::core::ffi::c_int;
-    if lea != 0 && lez != 0 {
-        return SUBMVREF_LEFT_ABOVE_ZED as ::core::ffi::c_int;
+) -> ::core::ffi::c_int {
+    unsafe {
+        let mut lez: ::core::ffi::c_int = ((*l).as_int == 0 as uint32_t) as ::core::ffi::c_int;
+        let mut aez: ::core::ffi::c_int = ((*a).as_int == 0 as uint32_t) as ::core::ffi::c_int;
+        let mut lea: ::core::ffi::c_int = ((*l).as_int == (*a).as_int) as ::core::ffi::c_int;
+        if lea != 0 && lez != 0 {
+            return SUBMVREF_LEFT_ABOVE_ZED as ::core::ffi::c_int;
+        }
+        if lea != 0 {
+            return SUBMVREF_LEFT_ABOVE_SAME as ::core::ffi::c_int;
+        }
+        if aez != 0 {
+            return SUBMVREF_ABOVE_ZED as ::core::ffi::c_int;
+        }
+        if lez != 0 {
+            return SUBMVREF_LEFT_ZED as ::core::ffi::c_int;
+        }
+        return SUBMVREF_NORMAL as ::core::ffi::c_int;
     }
-    if lea != 0 {
-        return SUBMVREF_LEFT_ABOVE_SAME as ::core::ffi::c_int;
-    }
-    if aez != 0 {
-        return SUBMVREF_ABOVE_ZED as ::core::ffi::c_int;
-    }
-    if lez != 0 {
-        return SUBMVREF_LEFT_ZED as ::core::ffi::c_int;
-    }
-    return SUBMVREF_NORMAL as ::core::ffi::c_int;
-}}
+}
 static mut sub_mv_ref_prob: [vp8_prob; 3] = [
     180 as ::core::ffi::c_int as vp8_prob,
     162 as ::core::ffi::c_int as vp8_prob,
@@ -1881,28 +1883,32 @@ pub static mut vp8_small_mvtree: [vp8_tree_index; 14] = [
     -(7 as ::core::ffi::c_int) as vp8_tree_index,
 ];
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) { unsafe {
-    memcpy(
-        &raw mut (*x).fc.ymode_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
-        &raw const vp8_ymode_prob as *const vp8_prob as *const ::core::ffi::c_void,
-        ::core::mem::size_of::<[vp8_prob; 4]>() as size_t,
-    );
-    memcpy(
-        &raw mut (*x).fc.uv_mode_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
-        &raw const vp8_uv_mode_prob as *const vp8_prob as *const ::core::ffi::c_void,
-        ::core::mem::size_of::<[vp8_prob; 3]>() as size_t,
-    );
-    memcpy(
-        &raw mut (*x).fc.sub_mv_ref_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
-        &raw const sub_mv_ref_prob as *const vp8_prob as *const ::core::ffi::c_void,
-        ::core::mem::size_of::<[vp8_prob; 3]>() as size_t,
-    );
-}}
+pub unsafe extern "C" fn vp8_init_mbmode_probs(mut x: *mut VP8_COMMON) {
+    unsafe {
+        memcpy(
+            &raw mut (*x).fc.ymode_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
+            &raw const vp8_ymode_prob as *const vp8_prob as *const ::core::ffi::c_void,
+            ::core::mem::size_of::<[vp8_prob; 4]>() as size_t,
+        );
+        memcpy(
+            &raw mut (*x).fc.uv_mode_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
+            &raw const vp8_uv_mode_prob as *const vp8_prob as *const ::core::ffi::c_void,
+            ::core::mem::size_of::<[vp8_prob; 3]>() as size_t,
+        );
+        memcpy(
+            &raw mut (*x).fc.sub_mv_ref_prob as *mut vp8_prob as *mut ::core::ffi::c_void,
+            &raw const sub_mv_ref_prob as *const vp8_prob as *const ::core::ffi::c_void,
+            ::core::mem::size_of::<[vp8_prob; 3]>() as size_t,
+        );
+    }
+}
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_default_bmode_probs(mut dest: *mut vp8_prob) { unsafe {
-    memcpy(
-        dest as *mut ::core::ffi::c_void,
-        &raw const vp8_bmode_prob as *const vp8_prob as *const ::core::ffi::c_void,
-        ::core::mem::size_of::<[vp8_prob; 9]>() as size_t,
-    );
-}}
+pub unsafe extern "C" fn vp8_default_bmode_probs(mut dest: *mut vp8_prob) {
+    unsafe {
+        memcpy(
+            dest as *mut ::core::ffi::c_void,
+            &raw const vp8_bmode_prob as *const vp8_prob as *const ::core::ffi::c_void,
+            ::core::mem::size_of::<[vp8_prob; 9]>() as size_t,
+        );
+    }
+}
