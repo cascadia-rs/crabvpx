@@ -17,22 +17,23 @@ pub type vpx_color_range_t = vpx_color_range;
 pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
 pub type uint8_t = u8;
+pub fn vp8_swap_yv12_buffer_safe(
+    new_frame: &mut YV12_BUFFER_CONFIG,
+    last_frame: &mut YV12_BUFFER_CONFIG,
+) {
+    core::mem::swap(&mut new_frame.buffer_alloc, &mut last_frame.buffer_alloc);
+    core::mem::swap(&mut new_frame.y_buffer, &mut last_frame.y_buffer);
+    core::mem::swap(&mut new_frame.u_buffer, &mut last_frame.u_buffer);
+    core::mem::swap(&mut new_frame.v_buffer, &mut last_frame.v_buffer);
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_swap_yv12_buffer(
     mut new_frame: *mut YV12_BUFFER_CONFIG,
     mut last_frame: *mut YV12_BUFFER_CONFIG,
-) { unsafe {
-    let mut temp: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
-    temp = (*last_frame).buffer_alloc as *mut ::core::ffi::c_uchar;
-    (*last_frame).buffer_alloc = (*new_frame).buffer_alloc;
-    (*new_frame).buffer_alloc = temp as *mut uint8_t;
-    temp = (*last_frame).y_buffer as *mut ::core::ffi::c_uchar;
-    (*last_frame).y_buffer = (*new_frame).y_buffer;
-    (*new_frame).y_buffer = temp as *mut uint8_t;
-    temp = (*last_frame).u_buffer as *mut ::core::ffi::c_uchar;
-    (*last_frame).u_buffer = (*new_frame).u_buffer;
-    (*new_frame).u_buffer = temp as *mut uint8_t;
-    temp = (*last_frame).v_buffer as *mut ::core::ffi::c_uchar;
-    (*last_frame).v_buffer = (*new_frame).v_buffer;
-    (*new_frame).v_buffer = temp as *mut uint8_t;
-}}
+) {
+    if new_frame.is_null() || last_frame.is_null() {
+        return;
+    }
+    vp8_swap_yv12_buffer_safe(&mut *new_frame, &mut *last_frame);
+}
