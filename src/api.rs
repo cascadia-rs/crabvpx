@@ -1,8 +1,8 @@
 use crate::vp8::vp8_dx_iface::vpx_codec_vp8_dx;
 use crate::vpx::src::vpx_codec::vpx_codec_destroy;
 use crate::vpx::src::vpx_decoder::{
-    VPX_CODEC_OK, VPX_DECODER_ABI_VERSION, vpx_codec_ctx_t, vpx_codec_dec_init_ver,
-    vpx_codec_decode, vpx_codec_get_frame, vpx_codec_iter_t,
+    VPX_CODEC_OK, VPX_DECODER_ABI_VERSION, VpxCodecCtxT, VpxCodecIterT, vpx_codec_dec_init_ver,
+    vpx_codec_decode, vpx_codec_get_frame,
 };
 
 /// A representation of a decoded video frame's metadata and hash.
@@ -32,9 +32,9 @@ pub trait Decoder {
     fn get_frame(&mut self) -> Result<Option<Self::Frame>, Self::Error>;
 }
 
-/// A safe wrapper around the unsafe VP8 `vpx_codec_ctx_t` decoder lifecycle.
+/// A safe wrapper around the unsafe VP8 `VpxCodecCtxT` decoder lifecycle.
 pub struct Vp8Decoder {
-    ctx: vpx_codec_ctx_t,
+    ctx: VpxCodecCtxT,
     initialized: bool,
 }
 
@@ -59,7 +59,7 @@ impl Drop for Vp8Decoder {
             // Safely destroy the underlying C context to prevent memory leaks.
             unsafe {
                 vpx_codec_destroy(
-                    &raw mut self.ctx as *mut _ as *mut crate::vpx::src::vpx_codec::vpx_codec_ctx_t,
+                    &raw mut self.ctx as *mut _ as *mut crate::vpx::src::vpx_codec::VpxCodecCtxT,
                 );
             }
         }
@@ -115,7 +115,7 @@ impl Decoder for Vp8Decoder {
             return Err("Decoder not initialized".to_string());
         }
 
-        let mut iter: vpx_codec_iter_t = core::ptr::null();
+        let mut iter: VpxCodecIterT = core::ptr::null();
         let img = unsafe { vpx_codec_get_frame(&raw mut self.ctx, &raw mut iter) };
 
         if img.is_null() {

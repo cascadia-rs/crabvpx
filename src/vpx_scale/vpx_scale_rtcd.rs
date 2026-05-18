@@ -1,12 +1,12 @@
 use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn pthread_once(_: *mut pthread_once_t, _: Option<unsafe fn() -> ()>) -> i32;
+    fn pthread_once(_: *mut PthreadOnceT, _: Option<unsafe fn() -> ()>) -> i32;
 }
-pub type pthread_once_t = *mut c_void;
-pub type __darwin_pthread_once_t = _opaque_pthread_once_t;
+pub type PthreadOnceT = *mut c_void;
+pub type DarwinPthreadOnceT = OpaquePthreadOnceT;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct _opaque_pthread_once_t {
+pub struct OpaquePthreadOnceT {
     pub __sig: i64,
     pub __opaque: [i8; 8],
 }

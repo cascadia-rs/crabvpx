@@ -1,17 +1,16 @@
-pub type vp8_prob = u8;
-pub type vp8_tree_index = i8;
+pub type Vp8Prob = u8;
+pub type Vp8TreeIndex = i8;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct vp8_token_struct {
+pub struct Vp8TokenStruct {
     pub value: i32,
-    pub Len: i32,
+    pub len: i32,
 }
-pub type vp8_token = vp8_token_struct;
-pub type uint64_t = u64;
-pub const vp8_prob_half: vp8_prob = 128 as vp8_prob;
+pub type Vp8Token = Vp8TokenStruct;
+pub const vp8_prob_half: Vp8Prob = 128 as Vp8Prob;
 unsafe fn tree2tok(
-    p: *mut vp8_token_struct,
-    mut t: *const vp8_tree_index,
+    p: *mut Vp8TokenStruct,
+    mut t: *const Vp8TreeIndex,
     mut i: i32,
     mut v: i32,
     mut L: i32,
@@ -22,10 +21,10 @@ unsafe fn tree2tok(
         loop {
             let fresh0 = i;
             i += 1;
-            let j: vp8_tree_index = *t.offset(fresh0 as isize);
+            let j: Vp8TreeIndex = *t.offset(fresh0 as isize);
             if j as i32 <= 0 as i32 {
                 (*p.offset(-(j as i32) as isize)).value = v;
-                (*p.offset(-(j as i32) as isize)).Len = L;
+                (*p.offset(-(j as i32) as isize)).len = L;
             } else {
                 tree2tok(p, t, j as i32, v, L);
             }
@@ -37,15 +36,15 @@ unsafe fn tree2tok(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_tokens_from_tree(mut p: *mut vp8_token_struct, mut t: *const vp8_tree_index) {
+pub unsafe fn vp8_tokens_from_tree(mut p: *mut Vp8TokenStruct, mut t: *const Vp8TreeIndex) {
     unsafe {
         tree2tok(p, t, 0 as i32, 0 as i32, 0 as i32);
     }
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_tokens_from_tree_offset(
-    mut p: *mut vp8_token_struct,
-    mut t: *const vp8_tree_index,
+    mut p: *mut Vp8TokenStruct,
+    mut t: *const Vp8TreeIndex,
     mut offset: i32,
 ) {
     unsafe {
@@ -60,8 +59,8 @@ pub unsafe fn vp8_tokens_from_tree_offset(
 }
 unsafe fn branch_counts(
     mut n: i32,
-    mut tok: *const vp8_token,
-    mut tree: *const vp8_tree_index,
+    mut tok: *const Vp8Token,
+    mut tree: *const Vp8TreeIndex,
     mut branch_ct: *mut [u32; 2],
     mut num_events: *const u32,
 ) {
@@ -79,10 +78,10 @@ unsafe fn branch_counts(
         }
         t = 0 as i32;
         loop {
-            let mut L: i32 = (*tok.offset(t as isize)).Len;
+            let mut L: i32 = (*tok.offset(t as isize)).len;
             let enc: i32 = (*tok.offset(t as isize)).value;
             let ct: u32 = *num_events.offset(t as isize);
-            let mut i: vp8_tree_index = 0 as vp8_tree_index;
+            let mut i: Vp8TreeIndex = 0 as Vp8TreeIndex;
             loop {
                 L -= 1;
                 let b: i32 = enc >> L & 1 as i32;
@@ -104,13 +103,13 @@ unsafe fn branch_counts(
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_tree_probs_from_distribution(
     mut n: i32,
-    mut tok: *const vp8_token,
-    mut tree: *const vp8_tree_index,
-    mut probs: *mut vp8_prob,
+    mut tok: *const Vp8Token,
+    mut tree: *const Vp8TreeIndex,
+    mut probs: *mut Vp8Prob,
     mut branch_ct: *mut [u32; 2],
     mut num_events: *const u32,
-    mut Pfactor: u32,
-    mut Round: i32,
+    mut pfactor: u32,
+    mut round: i32,
 ) {
     unsafe {
         let tree_len: i32 = n - 1 as i32;
@@ -120,21 +119,21 @@ pub unsafe fn vp8_tree_probs_from_distribution(
             let c: *const u32 = &raw mut *branch_ct.offset(t as isize) as *mut u32;
             let tot: u32 = (*c.offset(0 as isize)).wrapping_add(*c.offset(1 as isize));
             if tot != 0 {
-                let p: u32 = ((*c.offset(0 as isize) as uint64_t)
-                    .wrapping_mul(Pfactor as uint64_t)
+                let p: u32 = ((*c.offset(0 as isize) as u64)
+                    .wrapping_mul(pfactor as u64)
                     .wrapping_add(
-                        (if Round != 0 {
+                        (if round != 0 {
                             tot >> 1 as i32
                         } else {
                             0 as u32
-                        }) as uint64_t,
+                        }) as u64,
                     ) as u32)
                     .wrapping_div(tot);
                 *probs.offset(t as isize) = (if p < 256 as u32 {
                     if p != 0 { p } else { 1 as u32 }
                 } else {
                     255 as u32
-                }) as vp8_prob;
+                }) as Vp8Prob;
             } else {
                 *probs.offset(t as isize) = vp8_prob_half;
             }

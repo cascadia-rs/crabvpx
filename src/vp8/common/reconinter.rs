@@ -1,28 +1,28 @@
 use std::ffi::c_void;
 unsafe extern "Rust" {}
-pub type __darwin_size_t = usize;
-pub type size_t = __darwin_size_t;
+pub type DarwinSizeT = usize;
+pub type SizeT = DarwinSizeT;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct blockd {
+pub struct Blockd {
     pub qcoeff: *mut i16,
     pub dqcoeff: *mut i16,
     pub predictor: *mut u8,
     pub dequant: *mut i16,
     pub offset: i32,
     pub eob: *mut i8,
-    pub bmi: b_mode_info,
+    pub bmi: BModeInfo,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union b_mode_info {
-    pub as_mode: B_PREDICTION_MODE,
-    pub mv: int_mv,
+pub union BModeInfo {
+    pub as_mode: BPredictionMode,
+    pub mv: IntMv,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union int_mv {
-    pub as_int: uint32_t,
+pub union IntMv {
+    pub as_int: u32,
     pub as_mv: MV,
 }
 #[derive(Copy, Clone)]
@@ -31,26 +31,25 @@ pub struct MV {
     pub row: i16,
     pub col: i16,
 }
-pub type uint32_t = u32;
-pub type B_PREDICTION_MODE = u32;
-pub const B_MODE_COUNT: B_PREDICTION_MODE = 14;
-pub const NEW4X4: B_PREDICTION_MODE = 13;
-pub const ZERO4X4: B_PREDICTION_MODE = 12;
-pub const ABOVE4X4: B_PREDICTION_MODE = 11;
-pub const LEFT4X4: B_PREDICTION_MODE = 10;
-pub const B_HU_PRED: B_PREDICTION_MODE = 9;
-pub const B_HD_PRED: B_PREDICTION_MODE = 8;
-pub const B_VL_PRED: B_PREDICTION_MODE = 7;
-pub const B_VR_PRED: B_PREDICTION_MODE = 6;
-pub const B_RD_PRED: B_PREDICTION_MODE = 5;
-pub const B_LD_PRED: B_PREDICTION_MODE = 4;
-pub const B_HE_PRED: B_PREDICTION_MODE = 3;
-pub const B_VE_PRED: B_PREDICTION_MODE = 2;
-pub const B_TM_PRED: B_PREDICTION_MODE = 1;
-pub const B_DC_PRED: B_PREDICTION_MODE = 0;
+pub type BPredictionMode = u32;
+pub const B_MODE_COUNT: BPredictionMode = 14;
+pub const NEW4X4: BPredictionMode = 13;
+pub const ZERO4X4: BPredictionMode = 12;
+pub const ABOVE4X4: BPredictionMode = 11;
+pub const LEFT4X4: BPredictionMode = 10;
+pub const B_HU_PRED: BPredictionMode = 9;
+pub const B_HD_PRED: BPredictionMode = 8;
+pub const B_VL_PRED: BPredictionMode = 7;
+pub const B_VR_PRED: BPredictionMode = 6;
+pub const B_RD_PRED: BPredictionMode = 5;
+pub const B_LD_PRED: BPredictionMode = 4;
+pub const B_HE_PRED: BPredictionMode = 3;
+pub const B_VE_PRED: BPredictionMode = 2;
+pub const B_TM_PRED: BPredictionMode = 1;
+pub const B_DC_PRED: BPredictionMode = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct macroblockd {
+pub struct Macroblockd {
     pub predictor: [u8; 384],
     pub qcoeff: [i16; 400],
     pub dqcoeff: [i16; 400],
@@ -61,23 +60,23 @@ pub struct macroblockd {
     pub dequant_uv: [i16; 16],
     pub block: [BLOCKD; 25],
     pub fullpixel_mask: i32,
-    pub pre: YV12_BUFFER_CONFIG,
-    pub dst: YV12_BUFFER_CONFIG,
-    pub mode_info_context: *mut MODE_INFO,
+    pub pre: Yv12BufferConfig,
+    pub dst: Yv12BufferConfig,
+    pub mode_info_context: *mut ModeInfo,
     pub mode_info_stride: i32,
-    pub frame_type: FRAME_TYPE,
+    pub frame_type: FrameType,
     pub up_available: i32,
     pub left_available: i32,
     pub recon_above: [*mut u8; 3],
     pub recon_left: [*mut u8; 3],
     pub recon_left_stride: [i32; 2],
-    pub above_context: *mut ENTROPY_CONTEXT_PLANES,
-    pub left_context: *mut ENTROPY_CONTEXT_PLANES,
+    pub above_context: *mut EntropyContextPlanes,
+    pub left_context: *mut EntropyContextPlanes,
     pub segmentation_enabled: u8,
     pub update_mb_segmentation_map: u8,
     pub update_mb_segmentation_data: u8,
     pub mb_segment_abs_delta: u8,
-    pub mb_segment_tree_probs: [vp8_prob; 3],
+    pub mb_segment_tree_probs: [Vp8Prob; 3],
     pub segment_feature_data: [[i8; 4]; 2],
     pub mode_ref_lf_delta_enabled: u8,
     pub mode_ref_lf_delta_update: u8,
@@ -89,74 +88,72 @@ pub struct macroblockd {
     pub mb_to_right_edge: i32,
     pub mb_to_top_edge: i32,
     pub mb_to_bottom_edge: i32,
-    pub subpixel_predict: vp8_subpix_fn_t,
-    pub subpixel_predict8x4: vp8_subpix_fn_t,
-    pub subpixel_predict8x8: vp8_subpix_fn_t,
-    pub subpixel_predict16x16: vp8_subpix_fn_t,
+    pub subpixel_predict: Vp8SubpixFnT,
+    pub subpixel_predict8x4: Vp8SubpixFnT,
+    pub subpixel_predict8x8: Vp8SubpixFnT,
+    pub subpixel_predict16x16: Vp8SubpixFnT,
     pub current_bc: *mut c_void,
     pub corrupted: i32,
-    pub error_info: vpx_internal_error_info,
+    pub error_info: VpxInternalErrorInfo,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct vpx_internal_error_info {
-    pub error_code: vpx_codec_err_t,
+pub struct VpxInternalErrorInfo {
+    pub error_code: VpxCodecErrT,
     pub has_detail: i32,
     pub detail: [i8; 80],
     pub setjmp: i32,
-    pub jmp: jmp_buf,
+    pub jmp: JmpBuf,
 }
-pub type jmp_buf = [i32; 48];
-pub type vpx_codec_err_t = u32;
-pub const VPX_CODEC_LIST_END: vpx_codec_err_t = 9;
-pub const VPX_CODEC_INVALID_PARAM: vpx_codec_err_t = 8;
-pub const VPX_CODEC_CORRUPT_FRAME: vpx_codec_err_t = 7;
-pub const VPX_CODEC_UNSUP_FEATURE: vpx_codec_err_t = 6;
-pub const VPX_CODEC_UNSUP_BITSTREAM: vpx_codec_err_t = 5;
-pub const VPX_CODEC_INCAPABLE: vpx_codec_err_t = 4;
-pub const VPX_CODEC_ABI_MISMATCH: vpx_codec_err_t = 3;
-pub const VPX_CODEC_MEM_ERROR: vpx_codec_err_t = 2;
-pub const VPX_CODEC_ERROR: vpx_codec_err_t = 1;
-pub const VPX_CODEC_OK: vpx_codec_err_t = 0;
-pub type vp8_subpix_fn_t = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -> ()>;
-pub type vp8_prob = u8;
+pub type JmpBuf = [i32; 48];
+pub type VpxCodecErrT = u32;
+pub const VPX_CODEC_LIST_END: VpxCodecErrT = 9;
+pub const VPX_CODEC_INVALID_PARAM: VpxCodecErrT = 8;
+pub const VPX_CODEC_CORRUPT_FRAME: VpxCodecErrT = 7;
+pub const VPX_CODEC_UNSUP_FEATURE: VpxCodecErrT = 6;
+pub const VPX_CODEC_UNSUP_BITSTREAM: VpxCodecErrT = 5;
+pub const VPX_CODEC_INCAPABLE: VpxCodecErrT = 4;
+pub const VPX_CODEC_ABI_MISMATCH: VpxCodecErrT = 3;
+pub const VPX_CODEC_MEM_ERROR: VpxCodecErrT = 2;
+pub const VPX_CODEC_ERROR: VpxCodecErrT = 1;
+pub const VPX_CODEC_OK: VpxCodecErrT = 0;
+pub type Vp8SubpixFnT = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -> ()>;
+pub type Vp8Prob = u8;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct ENTROPY_CONTEXT_PLANES {
-    pub y1: [ENTROPY_CONTEXT; 4],
-    pub u: [ENTROPY_CONTEXT; 2],
-    pub v: [ENTROPY_CONTEXT; 2],
-    pub y2: ENTROPY_CONTEXT,
+pub struct EntropyContextPlanes {
+    pub y1: [EntropyContext; 4],
+    pub u: [EntropyContext; 2],
+    pub v: [EntropyContext; 2],
+    pub y2: EntropyContext,
 }
-pub type ENTROPY_CONTEXT = i8;
-pub type FRAME_TYPE = u32;
-pub const INTER_FRAME: FRAME_TYPE = 1;
-pub const KEY_FRAME: FRAME_TYPE = 0;
-pub type MODE_INFO = modeinfo;
+pub type EntropyContext = i8;
+pub type FrameType = u32;
+pub const INTER_FRAME: FrameType = 1;
+pub const KEY_FRAME: FrameType = 0;
+pub type ModeInfo = Modeinfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct modeinfo {
-    pub mbmi: MB_MODE_INFO,
-    pub bmi: [b_mode_info; 16],
+pub struct Modeinfo {
+    pub mbmi: MbModeInfo,
+    pub bmi: [BModeInfo; 16],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct MB_MODE_INFO {
-    pub mode: uint8_t,
-    pub uv_mode: uint8_t,
-    pub ref_frame: uint8_t,
-    pub is_4x4: uint8_t,
-    pub mv: int_mv,
-    pub partitioning: uint8_t,
-    pub mb_skip_coeff: uint8_t,
-    pub need_to_clamp_mvs: uint8_t,
-    pub segment_id: uint8_t,
+pub struct MbModeInfo {
+    pub mode: u8,
+    pub uv_mode: u8,
+    pub ref_frame: u8,
+    pub is_4x4: u8,
+    pub mv: IntMv,
+    pub partitioning: u8,
+    pub mb_skip_coeff: u8,
+    pub need_to_clamp_mvs: u8,
+    pub segment_id: u8,
 }
-pub type uint8_t = u8;
-pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct yv12_buffer_config {
+pub struct Yv12BufferConfig {
     pub y_width: i32,
     pub y_height: i32,
     pub y_crop_width: i32,
@@ -170,39 +167,40 @@ pub struct yv12_buffer_config {
     pub alpha_width: i32,
     pub alpha_height: i32,
     pub alpha_stride: i32,
-    pub y_buffer: *mut uint8_t,
-    pub u_buffer: *mut uint8_t,
-    pub v_buffer: *mut uint8_t,
-    pub alpha_buffer: *mut uint8_t,
-    pub buffer_alloc: *mut uint8_t,
-    pub buffer_alloc_sz: size_t,
+    pub y_buffer: *mut u8,
+    pub u_buffer: *mut u8,
+    pub v_buffer: *mut u8,
+    pub alpha_buffer: *mut u8,
+    pub buffer_alloc: *mut u8,
+    pub buffer_alloc_sz: SizeT,
     pub border: i32,
-    pub frame_size: size_t,
+    pub frame_size: SizeT,
     pub subsampling_x: i32,
     pub subsampling_y: i32,
     pub bit_depth: u32,
-    pub color_space: vpx_color_space_t,
-    pub color_range: vpx_color_range_t,
+    pub color_space: VpxColorSpaceT,
+    pub color_range: VpxColorRangeT,
     pub render_width: i32,
     pub render_height: i32,
     pub corrupted: i32,
     pub flags: i32,
 }
-pub type vpx_color_range_t = vpx_color_range;
-pub type vpx_color_range = u32;
-pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
-pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
-pub type vpx_color_space_t = vpx_color_space;
-pub type vpx_color_space = u32;
-pub const VPX_CS_SRGB: vpx_color_space = 7;
-pub const VPX_CS_RESERVED: vpx_color_space = 6;
-pub const VPX_CS_BT_2020: vpx_color_space = 5;
-pub const VPX_CS_SMPTE_240: vpx_color_space = 4;
-pub const VPX_CS_SMPTE_170: vpx_color_space = 3;
-pub const VPX_CS_BT_709: vpx_color_space = 2;
-pub const VPX_CS_BT_601: vpx_color_space = 1;
-pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
-pub type BLOCKD = blockd;
+pub type VpxColorRangeT = VpxColorRange;
+pub type VpxColorRange = u32;
+pub const VPX_CR_FULL_RANGE: VpxColorRange = 1;
+pub const VPX_CR_STUDIO_RANGE: VpxColorRange = 0;
+pub type VpxColorSpaceT = VpxColorSpace;
+pub type VpxColorSpace = u32;
+pub const VPX_CS_SRGB: VpxColorSpace = 7;
+pub const VPX_CS_RESERVED: VpxColorSpace = 6;
+pub const VPX_CS_BT_2020: VpxColorSpace = 5;
+pub const VPX_CS_SMPTE_240: VpxColorSpace = 4;
+pub const VPX_CS_SMPTE_170: VpxColorSpace = 3;
+pub const VPX_CS_BT_709: VpxColorSpace = 2;
+pub const VPX_CS_BT_601: VpxColorSpace = 1;
+pub const VPX_CS_UNKNOWN: VpxColorSpace = 0;
+pub type BLOCKD = Blockd;
+#[allow(non_camel_case_types)]
 pub type C2RustUnnamed = u32;
 pub const MB_MODE_COUNT: C2RustUnnamed = 10;
 pub const SPLITMV: C2RustUnnamed = 9;
@@ -215,7 +213,7 @@ pub const TM_PRED: C2RustUnnamed = 3;
 pub const H_PRED: C2RustUnnamed = 2;
 pub const V_PRED: C2RustUnnamed = 1;
 pub const DC_PRED: C2RustUnnamed = 0;
-pub type MACROBLOCKD = macroblockd;
+pub type MACROBLOCKD = Macroblockd;
 pub const CHAR_BIT: i32 = 8 as i32;
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_copy_mem16x16_c(
@@ -231,7 +229,7 @@ pub unsafe fn vp8_copy_mem16x16_c(
             core::ptr::copy_nonoverlapping(
                 src as *const c_void as *const u8,
                 dst as *mut c_void as *mut u8,
-                16 as size_t,
+                16 as SizeT,
             );
             src = src.offset(src_stride as isize);
             dst = dst.offset(dst_stride as isize);
@@ -253,7 +251,7 @@ pub unsafe fn vp8_copy_mem8x8_c(
             core::ptr::copy_nonoverlapping(
                 src as *const c_void as *const u8,
                 dst as *mut c_void as *mut u8,
-                8 as size_t,
+                8 as SizeT,
             );
             src = src.offset(src_stride as isize);
             dst = dst.offset(dst_stride as isize);
@@ -275,7 +273,7 @@ pub unsafe fn vp8_copy_mem8x4_c(
             core::ptr::copy_nonoverlapping(
                 src as *const c_void as *const u8,
                 dst as *mut c_void as *mut u8,
-                8 as size_t,
+                8 as SizeT,
             );
             src = src.offset(src_stride as isize);
             dst = dst.offset(dst_stride as isize);
@@ -289,7 +287,7 @@ pub unsafe fn vp8_build_inter_predictors_b(
     mut pitch: i32,
     mut base_pre: *mut u8,
     mut pre_stride: i32,
-    mut sppf: vp8_subpix_fn_t,
+    mut sppf: Vp8SubpixFnT,
 ) {
     unsafe {
         let mut r: i32 = 0;
@@ -390,7 +388,7 @@ unsafe fn build_inter_predictors_b(
     mut dst_stride: i32,
     mut base_pre: *mut u8,
     mut pre_stride: i32,
-    mut sppf: vp8_subpix_fn_t,
+    mut sppf: Vp8SubpixFnT,
 ) {
     unsafe {
         let mut r: i32 = 0;
@@ -672,7 +670,7 @@ pub unsafe fn vp8_build_inter16x16_predictors_mb(
         let mut ptr: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut uptr: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut vptr: *mut u8 = ::core::ptr::null_mut::<u8>();
-        let mut _16x16mv: int_mv = int_mv { as_int: 0 };
+        let mut _16x16mv: IntMv = IntMv { as_int: 0 };
         let mut ptr_base: *mut u8 = (*x).pre.y_buffer as *mut u8;
         let mut pre_stride: i32 = (*x).pre.y_stride;
         _16x16mv.as_int = (*(*x).mode_info_context).mbmi.mv.as_int;
@@ -682,7 +680,7 @@ pub unsafe fn vp8_build_inter16x16_predictors_mb(
         ptr = ptr_base
             .offset(((_16x16mv.as_mv.row as i32 >> 3 as i32) * pre_stride) as isize)
             .offset((_16x16mv.as_mv.col as i32 >> 3 as i32) as isize);
-        if _16x16mv.as_int & 0x70007 as uint32_t != 0 {
+        if _16x16mv.as_int & 0x70007 as u32 != 0 {
             (*x).subpixel_predict16x16
                 .expect("non-null function pointer")(
                 ptr,
@@ -726,7 +724,7 @@ pub unsafe fn vp8_build_inter16x16_predictors_mb(
             + (_16x16mv.as_mv.col as i32 >> 3 as i32);
         uptr = (*x).pre.u_buffer.offset(offset as isize) as *mut u8;
         vptr = (*x).pre.v_buffer.offset(offset as isize) as *mut u8;
-        if _16x16mv.as_int & 0x70007 as uint32_t != 0 {
+        if _16x16mv.as_int & 0x70007 as u32 != 0 {
             (*x).subpixel_predict8x8.expect("non-null function pointer")(
                 uptr,
                 pre_stride,

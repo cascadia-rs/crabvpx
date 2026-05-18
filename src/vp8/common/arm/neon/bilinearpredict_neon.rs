@@ -2,56 +2,50 @@ use std::ffi::c_void;
 use std::arch::aarch64::*;
 extern "Rust" {
 }
-pub type int8_t = i8;
-pub type int32_t = i32;
-pub type uint8_t = u8;
-pub type uint16_t = u16;
-pub type uint32_t = u32;
-pub type uint64_t = u64;
-pub type __darwin_ptrdiff_t = isize;
-pub type __darwin_size_t = usize;
+pub type DarwinPtrdiffT = isize;
+pub type DarwinSizeT = usize;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct uint32x2x2_t {
+pub struct Uint32x2x2T {
     pub val: [uint32x2_t; 2],
 }
-pub type size_t = __darwin_size_t;
-pub type ptrdiff_t = __darwin_ptrdiff_t;
+pub type SizeT = DarwinSizeT;
+pub type PtrdiffT = DarwinPtrdiffT;
 #[inline]
-unsafe fn uint32_to_mem(mut buf: *mut uint8_t, mut a: uint32_t) {
-    core::ptr::copy_nonoverlapping(&raw mut a as *const c_void as *const u8, buf as *mut c_void as *mut u8, 4 as size_t);
+unsafe fn uint32_to_mem(mut buf: *mut u8, mut a: u32) {
+    core::ptr::copy_nonoverlapping(&raw mut a as *const c_void as *const u8, buf as *mut c_void as *mut u8, 4 as SizeT);
 }
-static mut bifilter4_coeff: [[uint8_t; 2]; 8] = [
+static mut bifilter4_coeff: [[u8; 2]; 8] = [
     [
-        128 as uint8_t,
-        0 as uint8_t,
+        128 as u8,
+        0 as u8,
     ],
     [
-        112 as uint8_t,
-        16 as uint8_t,
+        112 as u8,
+        16 as u8,
     ],
     [
-        96 as uint8_t,
-        32 as uint8_t,
+        96 as u8,
+        32 as u8,
     ],
     [
-        80 as uint8_t,
-        48 as uint8_t,
+        80 as u8,
+        48 as u8,
     ],
     [
-        64 as uint8_t,
-        64 as uint8_t,
+        64 as u8,
+        64 as u8,
     ],
     [
-        48 as uint8_t,
-        80 as uint8_t,
+        48 as u8,
+        80 as u8,
     ],
     [
-        32 as uint8_t,
-        96 as uint8_t,
+        32 as u8,
+        96 as u8,
     ],
     [
-        16 as uint8_t,
-        112 as uint8_t,
+        16 as u8,
+        112 as u8,
     ],
 ];

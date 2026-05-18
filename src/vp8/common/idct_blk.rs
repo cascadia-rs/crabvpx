@@ -9,8 +9,8 @@ unsafe extern "Rust" {
     );
     fn vp8_dequant_idct_add_c(input: *mut i16, dq: *mut i16, dest: *mut u8, stride: i32);
 }
-pub type size_t = __darwin_size_t;
-pub type __darwin_size_t = usize;
+pub type SizeT = DarwinSizeT;
+pub type DarwinSizeT = usize;
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_dequant_idct_add_y_block_c(
     mut q: *mut i16,
@@ -41,7 +41,7 @@ pub unsafe fn vp8_dequant_idct_add_y_block_c(
                     core::ptr::write_bytes(
                         q as *mut c_void as *mut u8,
                         0 as i32 as u8,
-                        (2 as size_t).wrapping_mul(::core::mem::size_of::<i16>() as size_t),
+                        (2 as SizeT).wrapping_mul(::core::mem::size_of::<i16>() as SizeT),
                     );
                 }
                 q = q.offset(16 as isize);
@@ -84,7 +84,7 @@ pub unsafe fn vp8_dequant_idct_add_uv_block_c(
                     core::ptr::write_bytes(
                         q as *mut c_void as *mut u8,
                         0 as i32 as u8,
-                        (2 as size_t).wrapping_mul(::core::mem::size_of::<i16>() as size_t),
+                        (2 as SizeT).wrapping_mul(::core::mem::size_of::<i16>() as SizeT),
                     );
                 }
                 q = q.offset(16 as isize);
@@ -113,7 +113,7 @@ pub unsafe fn vp8_dequant_idct_add_uv_block_c(
                     core::ptr::write_bytes(
                         q as *mut c_void as *mut u8,
                         0 as i32 as u8,
-                        (2 as size_t).wrapping_mul(::core::mem::size_of::<i16>() as size_t),
+                        (2 as SizeT).wrapping_mul(::core::mem::size_of::<i16>() as SizeT),
                     );
                 }
                 q = q.offset(16 as isize);

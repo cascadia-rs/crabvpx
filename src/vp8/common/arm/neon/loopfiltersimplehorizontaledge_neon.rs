@@ -1,7 +1,4 @@
 use std::arch::aarch64::*;
-pub type int8_t = i8;
-pub type int16_t = i16;
-pub type uint8_t = u8;
 #[no_mangle]
 pub unsafe fn vp8_loop_filter_bhs_neon(
     mut y_ptr: *mut u8,

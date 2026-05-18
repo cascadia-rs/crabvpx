@@ -1,7 +1,7 @@
 use std::alloc::{Layout, alloc, dealloc};
 use std::ffi::c_void;
 
-pub type size_t = usize;
+pub type SizeT = usize;
 pub const NULL: *mut c_void = ::core::ptr::null_mut();
 pub const DEFAULT_ALIGNMENT: usize = 32;
 
@@ -12,7 +12,7 @@ struct AllocHeader {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_memalign(mut align: size_t, size: size_t) -> *mut c_void {
+pub unsafe fn vpx_memalign(mut align: SizeT, size: SizeT) -> *mut c_void {
     unsafe {
         if align == 0 {
             align = DEFAULT_ALIGNMENT;
@@ -52,12 +52,12 @@ pub unsafe fn vpx_memalign(mut align: size_t, size: size_t) -> *mut c_void {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_malloc(size: size_t) -> *mut c_void {
+pub unsafe fn vpx_malloc(size: SizeT) -> *mut c_void {
     unsafe { vpx_memalign(DEFAULT_ALIGNMENT, size) }
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_calloc(num: size_t, size: size_t) -> *mut c_void {
+pub unsafe fn vpx_calloc(num: SizeT, size: SizeT) -> *mut c_void {
     unsafe {
         let total = num.wrapping_mul(size);
         let ptr = vpx_malloc(total);

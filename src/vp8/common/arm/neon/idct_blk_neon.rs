@@ -1,21 +1,16 @@
 use std::arch::aarch64::*;
-pub type int8_t = i8;
-pub type int16_t = i16;
-pub type int32_t = i32;
-pub type uint8_t = u8;
-pub type uint16_t = u16;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct int16x8x2_t {
+pub struct Int16x8x2T {
     pub val: [int16x8_t; 2],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct int32x4x2_t {
+pub struct Int32x4x2T {
     pub val: [int32x4_t; 2],
 }
-static mut cospi8sqrt2minus1: int16_t = 20091 as int16_t;
-static mut sinpi8sqrt2: int16_t = 17734 as int16_t;
+static mut cospi8sqrt2minus1: i16 = 20091 as i16;
+static mut sinpi8sqrt2: i16 = 17734 as i16;
 #[no_mangle]
 pub unsafe fn vp8_dequant_idct_add_y_block_neon(
     mut q: *mut i16,
@@ -33,11 +28,11 @@ pub unsafe fn vp8_dequant_idct_add_y_block_neon(
                 & 0xfefe as i32
                 != 0
             {
-                idct_dequant_full_2x_neon(q as *mut int16_t, dq as *mut int16_t, dst, stride);
+                idct_dequant_full_2x_neon(q as *mut i16, dq as *mut i16, dst, stride);
             } else {
                 idct_dequant_0_2x_neon(
-                    q as *mut int16_t,
-                    *dq.offset(0 as isize) as int16_t,
+                    q as *mut i16,
+                    *dq.offset(0 as isize) as i16,
                     dst,
                     stride,
                 );
@@ -51,14 +46,14 @@ pub unsafe fn vp8_dequant_idct_add_y_block_neon(
             {
                 idct_dequant_full_2x_neon(
                     q.offset(32 as isize),
-                    dq as *mut int16_t,
+                    dq as *mut i16,
                     dst.offset(8 as isize),
                     stride,
                 );
             } else {
                 idct_dequant_0_2x_neon(
                     q.offset(32 as isize),
-                    *dq.offset(0 as isize) as int16_t,
+                    *dq.offset(0 as isize) as i16,
                     dst.offset(8 as isize),
                     stride,
                 );
@@ -85,11 +80,11 @@ pub unsafe fn vp8_dequant_idct_add_uv_block_neon(
             & 0xfefe as i32
             != 0
         {
-            idct_dequant_full_2x_neon(q as *mut int16_t, dq as *mut int16_t, dst_u, stride);
+            idct_dequant_full_2x_neon(q as *mut i16, dq as *mut i16, dst_u, stride);
         } else {
             idct_dequant_0_2x_neon(
-                q as *mut int16_t,
-                *dq.offset(0 as isize) as int16_t,
+                q as *mut i16,
+                *dq.offset(0 as isize) as i16,
                 dst_u,
                 stride,
             );
@@ -103,11 +98,11 @@ pub unsafe fn vp8_dequant_idct_add_uv_block_neon(
             & 0xfefe as i32
             != 0
         {
-            idct_dequant_full_2x_neon(q as *mut int16_t, dq as *mut int16_t, dst_u, stride);
+            idct_dequant_full_2x_neon(q as *mut i16, dq as *mut i16, dst_u, stride);
         } else {
             idct_dequant_0_2x_neon(
-                q as *mut int16_t,
-                *dq.offset(0 as isize) as int16_t,
+                q as *mut i16,
+                *dq.offset(0 as isize) as i16,
                 dst_u,
                 stride,
             );
@@ -120,11 +115,11 @@ pub unsafe fn vp8_dequant_idct_add_uv_block_neon(
             & 0xfefe as i32
             != 0
         {
-            idct_dequant_full_2x_neon(q as *mut int16_t, dq as *mut int16_t, dst_v, stride);
+            idct_dequant_full_2x_neon(q as *mut i16, dq as *mut i16, dst_v, stride);
         } else {
             idct_dequant_0_2x_neon(
-                q as *mut int16_t,
-                *dq.offset(0 as isize) as int16_t,
+                q as *mut i16,
+                *dq.offset(0 as isize) as i16,
                 dst_v,
                 stride,
             );
@@ -138,11 +133,11 @@ pub unsafe fn vp8_dequant_idct_add_uv_block_neon(
             & 0xfefe as i32
             != 0
         {
-            idct_dequant_full_2x_neon(q as *mut int16_t, dq as *mut int16_t, dst_v, stride);
+            idct_dequant_full_2x_neon(q as *mut i16, dq as *mut i16, dst_v, stride);
         } else {
             idct_dequant_0_2x_neon(
-                q as *mut int16_t,
-                *dq.offset(0 as isize) as int16_t,
+                q as *mut i16,
+                *dq.offset(0 as isize) as i16,
                 dst_v,
                 stride,
             );

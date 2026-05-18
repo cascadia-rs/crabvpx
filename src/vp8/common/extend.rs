@@ -1,25 +1,24 @@
 use std::ffi::c_void;
 unsafe extern "Rust" {}
-pub type vpx_color_space = u32;
-pub const VPX_CS_SRGB: vpx_color_space = 7;
-pub const VPX_CS_RESERVED: vpx_color_space = 6;
-pub const VPX_CS_BT_2020: vpx_color_space = 5;
-pub const VPX_CS_SMPTE_240: vpx_color_space = 4;
-pub const VPX_CS_SMPTE_170: vpx_color_space = 3;
-pub const VPX_CS_BT_709: vpx_color_space = 2;
-pub const VPX_CS_BT_601: vpx_color_space = 1;
-pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
-pub type vpx_color_space_t = vpx_color_space;
-pub type vpx_color_range = u32;
-pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
-pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
-pub type vpx_color_range_t = vpx_color_range;
-pub type __darwin_size_t = usize;
-pub type size_t = __darwin_size_t;
-pub type uint8_t = u8;
+pub type VpxColorSpace = u32;
+pub const VPX_CS_SRGB: VpxColorSpace = 7;
+pub const VPX_CS_RESERVED: VpxColorSpace = 6;
+pub const VPX_CS_BT_2020: VpxColorSpace = 5;
+pub const VPX_CS_SMPTE_240: VpxColorSpace = 4;
+pub const VPX_CS_SMPTE_170: VpxColorSpace = 3;
+pub const VPX_CS_BT_709: VpxColorSpace = 2;
+pub const VPX_CS_BT_601: VpxColorSpace = 1;
+pub const VPX_CS_UNKNOWN: VpxColorSpace = 0;
+pub type VpxColorSpaceT = VpxColorSpace;
+pub type VpxColorRange = u32;
+pub const VPX_CR_FULL_RANGE: VpxColorRange = 1;
+pub const VPX_CR_STUDIO_RANGE: VpxColorRange = 0;
+pub type VpxColorRangeT = VpxColorRange;
+pub type DarwinSizeT = usize;
+pub type SizeT = DarwinSizeT;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct yv12_buffer_config {
+pub struct Yv12BufferConfig {
     pub y_width: i32,
     pub y_height: i32,
     pub y_crop_width: i32,
@@ -33,25 +32,24 @@ pub struct yv12_buffer_config {
     pub alpha_width: i32,
     pub alpha_height: i32,
     pub alpha_stride: i32,
-    pub y_buffer: *mut uint8_t,
-    pub u_buffer: *mut uint8_t,
-    pub v_buffer: *mut uint8_t,
-    pub alpha_buffer: *mut uint8_t,
-    pub buffer_alloc: *mut uint8_t,
-    pub buffer_alloc_sz: size_t,
+    pub y_buffer: *mut u8,
+    pub u_buffer: *mut u8,
+    pub v_buffer: *mut u8,
+    pub alpha_buffer: *mut u8,
+    pub buffer_alloc: *mut u8,
+    pub buffer_alloc_sz: SizeT,
     pub border: i32,
-    pub frame_size: size_t,
+    pub frame_size: SizeT,
     pub subsampling_x: i32,
     pub subsampling_y: i32,
     pub bit_depth: u32,
-    pub color_space: vpx_color_space_t,
-    pub color_range: vpx_color_range_t,
+    pub color_space: VpxColorSpaceT,
+    pub color_range: VpxColorRangeT,
     pub render_width: i32,
     pub render_height: i32,
     pub corrupted: i32,
     pub flags: i32,
 }
-pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 unsafe fn copy_and_extend_plane(
     mut s: *mut u8,
     mut sp: i32,
@@ -85,13 +83,13 @@ unsafe fn copy_and_extend_plane(
             core::ptr::write_bytes(
                 dest_ptr1 as *mut c_void as *mut u8,
                 *src_ptr1.offset(0 as isize) as i32 as u8,
-                el as size_t,
+                el as SizeT,
             );
             if interleave_step == 1 as i32 {
                 core::ptr::copy_nonoverlapping(
                     src_ptr1 as *const c_void as *const u8,
                     dest_ptr1.offset(el as isize) as *mut c_void as *mut u8,
-                    w as size_t,
+                    w as SizeT,
                 );
             } else {
                 j = 0 as i32;
@@ -104,7 +102,7 @@ unsafe fn copy_and_extend_plane(
             core::ptr::write_bytes(
                 dest_ptr2 as *mut c_void as *mut u8,
                 *src_ptr2.offset(0 as isize) as i32 as u8,
-                er as size_t,
+                er as SizeT,
             );
             src_ptr1 = src_ptr1.offset(sp as isize);
             src_ptr2 = src_ptr2.offset(sp as isize);
@@ -124,7 +122,7 @@ unsafe fn copy_and_extend_plane(
             core::ptr::copy_nonoverlapping(
                 src_ptr1 as *const c_void as *const u8,
                 dest_ptr1 as *mut c_void as *mut u8,
-                linesize as size_t,
+                linesize as SizeT,
             );
             dest_ptr1 = dest_ptr1.offset(dp as isize);
             i += 1;
@@ -134,7 +132,7 @@ unsafe fn copy_and_extend_plane(
             core::ptr::copy_nonoverlapping(
                 src_ptr2 as *const c_void as *const u8,
                 dest_ptr2 as *mut c_void as *mut u8,
-                linesize as size_t,
+                linesize as SizeT,
             );
             dest_ptr2 = dest_ptr2.offset(dp as isize);
             i += 1;
@@ -143,8 +141,8 @@ unsafe fn copy_and_extend_plane(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_copy_and_extend_frame(
-    mut src: *mut YV12_BUFFER_CONFIG,
-    mut dst: *mut YV12_BUFFER_CONFIG,
+    mut src: *mut Yv12BufferConfig,
+    mut dst: *mut Yv12BufferConfig,
 ) {
     unsafe {
         let mut et: i32 = (*dst).border;
@@ -204,8 +202,8 @@ pub unsafe fn vp8_copy_and_extend_frame(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_copy_and_extend_frame_with_rect(
-    mut src: *mut YV12_BUFFER_CONFIG,
-    mut dst: *mut YV12_BUFFER_CONFIG,
+    mut src: *mut Yv12BufferConfig,
+    mut dst: *mut Yv12BufferConfig,
     mut srcy: i32,
     mut srcx: i32,
     mut srch: i32,
@@ -287,31 +285,31 @@ pub unsafe fn vp8_copy_and_extend_frame_with_rect(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_extend_mb_row(
-    mut ybf: *mut YV12_BUFFER_CONFIG,
-    mut YPtr: *mut u8,
-    mut UPtr: *mut u8,
-    mut VPtr: *mut u8,
+    mut ybf: *mut Yv12BufferConfig,
+    mut yptr: *mut u8,
+    mut uptr: *mut u8,
+    mut vptr: *mut u8,
 ) {
     unsafe {
         let mut i: i32 = 0;
-        YPtr = YPtr.offset(((*ybf).y_stride * 14 as i32) as isize);
-        UPtr = UPtr.offset(((*ybf).uv_stride * 6 as i32) as isize);
-        VPtr = VPtr.offset(((*ybf).uv_stride * 6 as i32) as isize);
+        yptr = yptr.offset(((*ybf).y_stride * 14 as i32) as isize);
+        uptr = uptr.offset(((*ybf).uv_stride * 6 as i32) as isize);
+        vptr = vptr.offset(((*ybf).uv_stride * 6 as i32) as isize);
         i = 0 as i32;
         while i < 4 as i32 {
-            *YPtr.offset(i as isize) = *YPtr.offset(-(1 as i32) as isize);
-            *UPtr.offset(i as isize) = *UPtr.offset(-(1 as i32) as isize);
-            *VPtr.offset(i as isize) = *VPtr.offset(-(1 as i32) as isize);
+            *yptr.offset(i as isize) = *yptr.offset(-(1 as i32) as isize);
+            *uptr.offset(i as isize) = *uptr.offset(-(1 as i32) as isize);
+            *vptr.offset(i as isize) = *vptr.offset(-(1 as i32) as isize);
             i += 1;
         }
-        YPtr = YPtr.offset((*ybf).y_stride as isize);
-        UPtr = UPtr.offset((*ybf).uv_stride as isize);
-        VPtr = VPtr.offset((*ybf).uv_stride as isize);
+        yptr = yptr.offset((*ybf).y_stride as isize);
+        uptr = uptr.offset((*ybf).uv_stride as isize);
+        vptr = vptr.offset((*ybf).uv_stride as isize);
         i = 0 as i32;
         while i < 4 as i32 {
-            *YPtr.offset(i as isize) = *YPtr.offset(-(1 as i32) as isize);
-            *UPtr.offset(i as isize) = *UPtr.offset(-(1 as i32) as isize);
-            *VPtr.offset(i as isize) = *VPtr.offset(-(1 as i32) as isize);
+            *yptr.offset(i as isize) = *yptr.offset(-(1 as i32) as isize);
+            *uptr.offset(i as isize) = *uptr.offset(-(1 as i32) as isize);
+            *vptr.offset(i as isize) = *vptr.offset(-(1 as i32) as isize);
             i += 1;
         }
     }

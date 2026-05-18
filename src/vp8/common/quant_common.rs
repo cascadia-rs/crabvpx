@@ -35,44 +35,44 @@ static mut ac_qlookup: [i32; 128] = [
     254 as i32, 259 as i32, 264 as i32, 269 as i32, 274 as i32, 279 as i32, 284 as i32,
 ];
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_dc_quant(mut QIndex: i32, mut Delta: i32) -> i32 {
+pub unsafe fn vp8_dc_quant(mut qindex: i32, mut delta: i32) -> i32 {
     unsafe {
         let mut retval: i32 = 0;
-        QIndex += Delta;
-        if QIndex > 127 as i32 {
-            QIndex = 127 as i32;
-        } else if QIndex < 0 as i32 {
-            QIndex = 0 as i32;
+        qindex += delta;
+        if qindex > 127 as i32 {
+            qindex = 127 as i32;
+        } else if qindex < 0 as i32 {
+            qindex = 0 as i32;
         }
-        retval = dc_qlookup[QIndex as usize];
+        retval = dc_qlookup[qindex as usize];
         retval
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_dc2quant(mut QIndex: i32, mut Delta: i32) -> i32 {
+pub unsafe fn vp8_dc2quant(mut qindex: i32, mut delta: i32) -> i32 {
     unsafe {
         let mut retval: i32 = 0;
-        QIndex += Delta;
-        if QIndex > 127 as i32 {
-            QIndex = 127 as i32;
-        } else if QIndex < 0 as i32 {
-            QIndex = 0 as i32;
+        qindex += delta;
+        if qindex > 127 as i32 {
+            qindex = 127 as i32;
+        } else if qindex < 0 as i32 {
+            qindex = 0 as i32;
         }
-        retval = dc_qlookup[QIndex as usize] * 2 as i32;
+        retval = dc_qlookup[qindex as usize] * 2 as i32;
         retval
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_dc_uv_quant(mut QIndex: i32, mut Delta: i32) -> i32 {
+pub unsafe fn vp8_dc_uv_quant(mut qindex: i32, mut delta: i32) -> i32 {
     unsafe {
         let mut retval: i32 = 0;
-        QIndex += Delta;
-        if QIndex > 127 as i32 {
-            QIndex = 127 as i32;
-        } else if QIndex < 0 as i32 {
-            QIndex = 0 as i32;
+        qindex += delta;
+        if qindex > 127 as i32 {
+            qindex = 127 as i32;
+        } else if qindex < 0 as i32 {
+            qindex = 0 as i32;
         }
-        retval = dc_qlookup[QIndex as usize];
+        retval = dc_qlookup[qindex as usize];
         if retval > 132 as i32 {
             retval = 132 as i32;
         }
@@ -80,29 +80,29 @@ pub unsafe fn vp8_dc_uv_quant(mut QIndex: i32, mut Delta: i32) -> i32 {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_ac_yquant(mut QIndex: i32) -> i32 {
+pub unsafe fn vp8_ac_yquant(mut qindex: i32) -> i32 {
     unsafe {
         let mut retval: i32 = 0;
-        if QIndex > 127 as i32 {
-            QIndex = 127 as i32;
-        } else if QIndex < 0 as i32 {
-            QIndex = 0 as i32;
+        if qindex > 127 as i32 {
+            qindex = 127 as i32;
+        } else if qindex < 0 as i32 {
+            qindex = 0 as i32;
         }
-        retval = ac_qlookup[QIndex as usize];
+        retval = ac_qlookup[qindex as usize];
         retval
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_ac2quant(mut QIndex: i32, mut Delta: i32) -> i32 {
+pub unsafe fn vp8_ac2quant(mut qindex: i32, mut delta: i32) -> i32 {
     unsafe {
         let mut retval: i32 = 0;
-        QIndex += Delta;
-        if QIndex > 127 as i32 {
-            QIndex = 127 as i32;
-        } else if QIndex < 0 as i32 {
-            QIndex = 0 as i32;
+        qindex += delta;
+        if qindex > 127 as i32 {
+            qindex = 127 as i32;
+        } else if qindex < 0 as i32 {
+            qindex = 0 as i32;
         }
-        retval = (ac_qlookup[QIndex as usize] * 101581 as i32) >> 16 as i32;
+        retval = (ac_qlookup[qindex as usize] * 101581 as i32) >> 16 as i32;
         if retval < 8 as i32 {
             retval = 8 as i32;
         }
@@ -110,16 +110,16 @@ pub unsafe fn vp8_ac2quant(mut QIndex: i32, mut Delta: i32) -> i32 {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_ac_uv_quant(mut QIndex: i32, mut Delta: i32) -> i32 {
+pub unsafe fn vp8_ac_uv_quant(mut qindex: i32, mut delta: i32) -> i32 {
     unsafe {
         let mut retval: i32 = 0;
-        QIndex += Delta;
-        if QIndex > 127 as i32 {
-            QIndex = 127 as i32;
-        } else if QIndex < 0 as i32 {
-            QIndex = 0 as i32;
+        qindex += delta;
+        if qindex > 127 as i32 {
+            qindex = 127 as i32;
+        } else if qindex < 0 as i32 {
+            qindex = 0 as i32;
         }
-        retval = ac_qlookup[QIndex as usize];
+        retval = ac_qlookup[qindex as usize];
         retval
     }
 }

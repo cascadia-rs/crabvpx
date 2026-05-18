@@ -2,8 +2,8 @@ use std::ffi::c_void;
 use std::sync::{Condvar, Mutex};
 use std::thread::{self, JoinHandle};
 
-pub type pthread_t = *mut c_void;
-pub type semaphore_t = *mut c_void;
+pub type PthreadT = *mut c_void;
+pub type SemaphoreT = *mut c_void;
 
 // Opaque struct for semaphore
 struct Semaphore {
@@ -14,7 +14,7 @@ struct Semaphore {
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_semaphore_create(
     _task: u32,
-    sem: *mut semaphore_t,
+    sem: *mut SemaphoreT,
     _policy: i32,
     value: i32,
 ) -> i32 {
@@ -29,7 +29,7 @@ pub unsafe fn vp8_semaphore_create(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_semaphore_destroy(_task: u32, sem: semaphore_t) -> i32 {
+pub unsafe fn vp8_semaphore_destroy(_task: u32, sem: SemaphoreT) -> i32 {
     unsafe {
         if !sem.is_null() {
             let _ = Box::from_raw(sem as *mut Semaphore);
@@ -39,7 +39,7 @@ pub unsafe fn vp8_semaphore_destroy(_task: u32, sem: semaphore_t) -> i32 {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_semaphore_wait(sem: semaphore_t) -> i32 {
+pub unsafe fn vp8_semaphore_wait(sem: SemaphoreT) -> i32 {
     unsafe {
         if sem.is_null() {
             return -1;
@@ -55,7 +55,7 @@ pub unsafe fn vp8_semaphore_wait(sem: semaphore_t) -> i32 {
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_semaphore_signal(sem: semaphore_t) -> i32 {
+pub unsafe fn vp8_semaphore_signal(sem: SemaphoreT) -> i32 {
     unsafe {
         if sem.is_null() {
             return -1;
@@ -77,7 +77,7 @@ unsafe impl Send for ThreadArg {}
 
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_pthread_create(
-    thread: *mut pthread_t,
+    thread: *mut PthreadT,
     _attr: *const c_void,
     start_routine: Option<unsafe fn(*mut c_void) -> *mut c_void>,
     arg: *mut c_void,
@@ -104,7 +104,7 @@ pub unsafe fn vp8_pthread_create(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_pthread_join(thread: pthread_t, retval: *mut *mut c_void) -> i32 {
+pub unsafe fn vp8_pthread_join(thread: PthreadT, retval: *mut *mut c_void) -> i32 {
     unsafe {
         if thread.is_null() {
             return -1;

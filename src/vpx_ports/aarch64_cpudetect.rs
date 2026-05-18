@@ -9,14 +9,13 @@ unsafe extern "Rust" {
     fn sysctlbyname(
         _: *const i8,
         _: *mut c_void,
-        oldlenp: *mut size_t,
+        oldlenp: *mut SizeT,
         _: *mut c_void,
-        newlen: size_t,
+        newlen: SizeT,
     ) -> i32;
 }
-pub type __darwin_size_t = usize;
-pub type int64_t = i64;
-pub type size_t = __darwin_size_t;
+pub type DarwinSizeT = usize;
+pub type SizeT = DarwinSizeT;
 pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
 pub const NULL: *mut c_void = __DARWIN_NULL;
 pub const HAS_NEON: i32 = (1 as i32) << 0 as i32;
@@ -54,18 +53,18 @@ unsafe fn arm_cpu_env_mask() -> i32 {
     };
 }
 #[inline]
-unsafe fn have_feature(mut feature: *const i8) -> int64_t {
-    let mut feature_present: int64_t = 0 as int64_t;
-    let mut size: size_t = ::core::mem::size_of::<int64_t>() as size_t;
+unsafe fn have_feature(mut feature: *const i8) -> i64 {
+    let mut feature_present: i64 = 0 as i64;
+    let mut size: SizeT = ::core::mem::size_of::<i64>() as SizeT;
     if sysctlbyname(
    feature,
    &raw mut feature_present as *mut c_void,
    &raw mut size,
    NULL,
-   0 as size_t,
+   0 as SizeT,
     ) != 0 as i32
     {
-   return 0 as int64_t;
+   return 0 as i64;
     }
     return feature_present;
 }

@@ -6,7 +6,7 @@ unsafe extern "Rust" {
         v_ptr: *mut u8,
         y_stride: i32,
         uv_stride: i32,
-        lfi: *mut loop_filter_info,
+        lfi: *mut LoopFilterInfo,
     );
     fn vp8_loop_filter_bv_c(
         y_ptr: *mut u8,
@@ -14,7 +14,7 @@ unsafe extern "Rust" {
         v_ptr: *mut u8,
         y_stride: i32,
         uv_stride: i32,
-        lfi: *mut loop_filter_info,
+        lfi: *mut LoopFilterInfo,
     );
     fn vp8_loop_filter_mbh_c(
         y_ptr: *mut u8,
@@ -22,7 +22,7 @@ unsafe extern "Rust" {
         v_ptr: *mut u8,
         y_stride: i32,
         uv_stride: i32,
-        lfi: *mut loop_filter_info,
+        lfi: *mut LoopFilterInfo,
     );
     fn vp8_loop_filter_mbv_c(
         y_ptr: *mut u8,
@@ -30,7 +30,7 @@ unsafe extern "Rust" {
         v_ptr: *mut u8,
         y_stride: i32,
         uv_stride: i32,
-        lfi: *mut loop_filter_info,
+        lfi: *mut LoopFilterInfo,
     );
     fn vp8_loop_filter_bhs_c(y_ptr: *mut u8, y_stride: i32, blimit: *const u8);
     fn vp8_loop_filter_bvs_c(y_ptr: *mut u8, y_stride: i32, blimit: *const u8);
@@ -39,25 +39,25 @@ unsafe extern "Rust" {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct blockd {
+pub struct Blockd {
     pub qcoeff: *mut i16,
     pub dqcoeff: *mut i16,
     pub predictor: *mut u8,
     pub dequant: *mut i16,
     pub offset: i32,
     pub eob: *mut i8,
-    pub bmi: b_mode_info,
+    pub bmi: BModeInfo,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union b_mode_info {
-    pub as_mode: B_PREDICTION_MODE,
-    pub mv: int_mv,
+pub union BModeInfo {
+    pub as_mode: BPredictionMode,
+    pub mv: IntMv,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub union int_mv {
-    pub as_int: uint32_t,
+pub union IntMv {
+    pub as_int: u32,
     pub as_mv: MV,
 }
 #[derive(Copy, Clone)]
@@ -66,26 +66,25 @@ pub struct MV {
     pub row: i16,
     pub col: i16,
 }
-pub type uint32_t = u32;
-pub type B_PREDICTION_MODE = u32;
-pub const B_MODE_COUNT: B_PREDICTION_MODE = 14;
-pub const NEW4X4: B_PREDICTION_MODE = 13;
-pub const ZERO4X4: B_PREDICTION_MODE = 12;
-pub const ABOVE4X4: B_PREDICTION_MODE = 11;
-pub const LEFT4X4: B_PREDICTION_MODE = 10;
-pub const B_HU_PRED: B_PREDICTION_MODE = 9;
-pub const B_HD_PRED: B_PREDICTION_MODE = 8;
-pub const B_VL_PRED: B_PREDICTION_MODE = 7;
-pub const B_VR_PRED: B_PREDICTION_MODE = 6;
-pub const B_RD_PRED: B_PREDICTION_MODE = 5;
-pub const B_LD_PRED: B_PREDICTION_MODE = 4;
-pub const B_HE_PRED: B_PREDICTION_MODE = 3;
-pub const B_VE_PRED: B_PREDICTION_MODE = 2;
-pub const B_TM_PRED: B_PREDICTION_MODE = 1;
-pub const B_DC_PRED: B_PREDICTION_MODE = 0;
+pub type BPredictionMode = u32;
+pub const B_MODE_COUNT: BPredictionMode = 14;
+pub const NEW4X4: BPredictionMode = 13;
+pub const ZERO4X4: BPredictionMode = 12;
+pub const ABOVE4X4: BPredictionMode = 11;
+pub const LEFT4X4: BPredictionMode = 10;
+pub const B_HU_PRED: BPredictionMode = 9;
+pub const B_HD_PRED: BPredictionMode = 8;
+pub const B_VL_PRED: BPredictionMode = 7;
+pub const B_VR_PRED: BPredictionMode = 6;
+pub const B_RD_PRED: BPredictionMode = 5;
+pub const B_LD_PRED: BPredictionMode = 4;
+pub const B_HE_PRED: BPredictionMode = 3;
+pub const B_VE_PRED: BPredictionMode = 2;
+pub const B_TM_PRED: BPredictionMode = 1;
+pub const B_DC_PRED: BPredictionMode = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct macroblockd {
+pub struct Macroblockd {
     pub predictor: [u8; 384],
     pub qcoeff: [i16; 400],
     pub dqcoeff: [i16; 400],
@@ -96,23 +95,23 @@ pub struct macroblockd {
     pub dequant_uv: [i16; 16],
     pub block: [BLOCKD; 25],
     pub fullpixel_mask: i32,
-    pub pre: YV12_BUFFER_CONFIG,
-    pub dst: YV12_BUFFER_CONFIG,
-    pub mode_info_context: *mut MODE_INFO,
+    pub pre: Yv12BufferConfig,
+    pub dst: Yv12BufferConfig,
+    pub mode_info_context: *mut ModeInfo,
     pub mode_info_stride: i32,
-    pub frame_type: FRAME_TYPE,
+    pub frame_type: FrameType,
     pub up_available: i32,
     pub left_available: i32,
     pub recon_above: [*mut u8; 3],
     pub recon_left: [*mut u8; 3],
     pub recon_left_stride: [i32; 2],
-    pub above_context: *mut ENTROPY_CONTEXT_PLANES,
-    pub left_context: *mut ENTROPY_CONTEXT_PLANES,
+    pub above_context: *mut EntropyContextPlanes,
+    pub left_context: *mut EntropyContextPlanes,
     pub segmentation_enabled: u8,
     pub update_mb_segmentation_map: u8,
     pub update_mb_segmentation_data: u8,
     pub mb_segment_abs_delta: u8,
-    pub mb_segment_tree_probs: [vp8_prob; 3],
+    pub mb_segment_tree_probs: [Vp8Prob; 3],
     pub segment_feature_data: [[i8; 4]; 2],
     pub mode_ref_lf_delta_enabled: u8,
     pub mode_ref_lf_delta_update: u8,
@@ -124,74 +123,72 @@ pub struct macroblockd {
     pub mb_to_right_edge: i32,
     pub mb_to_top_edge: i32,
     pub mb_to_bottom_edge: i32,
-    pub subpixel_predict: vp8_subpix_fn_t,
-    pub subpixel_predict8x4: vp8_subpix_fn_t,
-    pub subpixel_predict8x8: vp8_subpix_fn_t,
-    pub subpixel_predict16x16: vp8_subpix_fn_t,
+    pub subpixel_predict: Vp8SubpixFnT,
+    pub subpixel_predict8x4: Vp8SubpixFnT,
+    pub subpixel_predict8x8: Vp8SubpixFnT,
+    pub subpixel_predict16x16: Vp8SubpixFnT,
     pub current_bc: *mut c_void,
     pub corrupted: i32,
-    pub error_info: vpx_internal_error_info,
+    pub error_info: VpxInternalErrorInfo,
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct vpx_internal_error_info {
-    pub error_code: vpx_codec_err_t,
+pub struct VpxInternalErrorInfo {
+    pub error_code: VpxCodecErrT,
     pub has_detail: i32,
     pub detail: [i8; 80],
     pub setjmp: i32,
-    pub jmp: jmp_buf,
+    pub jmp: JmpBuf,
 }
-pub type jmp_buf = [i32; 48];
-pub type vpx_codec_err_t = u32;
-pub const VPX_CODEC_LIST_END: vpx_codec_err_t = 9;
-pub const VPX_CODEC_INVALID_PARAM: vpx_codec_err_t = 8;
-pub const VPX_CODEC_CORRUPT_FRAME: vpx_codec_err_t = 7;
-pub const VPX_CODEC_UNSUP_FEATURE: vpx_codec_err_t = 6;
-pub const VPX_CODEC_UNSUP_BITSTREAM: vpx_codec_err_t = 5;
-pub const VPX_CODEC_INCAPABLE: vpx_codec_err_t = 4;
-pub const VPX_CODEC_ABI_MISMATCH: vpx_codec_err_t = 3;
-pub const VPX_CODEC_MEM_ERROR: vpx_codec_err_t = 2;
-pub const VPX_CODEC_ERROR: vpx_codec_err_t = 1;
-pub const VPX_CODEC_OK: vpx_codec_err_t = 0;
-pub type vp8_subpix_fn_t = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -> ()>;
-pub type vp8_prob = u8;
+pub type JmpBuf = [i32; 48];
+pub type VpxCodecErrT = u32;
+pub const VPX_CODEC_LIST_END: VpxCodecErrT = 9;
+pub const VPX_CODEC_INVALID_PARAM: VpxCodecErrT = 8;
+pub const VPX_CODEC_CORRUPT_FRAME: VpxCodecErrT = 7;
+pub const VPX_CODEC_UNSUP_FEATURE: VpxCodecErrT = 6;
+pub const VPX_CODEC_UNSUP_BITSTREAM: VpxCodecErrT = 5;
+pub const VPX_CODEC_INCAPABLE: VpxCodecErrT = 4;
+pub const VPX_CODEC_ABI_MISMATCH: VpxCodecErrT = 3;
+pub const VPX_CODEC_MEM_ERROR: VpxCodecErrT = 2;
+pub const VPX_CODEC_ERROR: VpxCodecErrT = 1;
+pub const VPX_CODEC_OK: VpxCodecErrT = 0;
+pub type Vp8SubpixFnT = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -> ()>;
+pub type Vp8Prob = u8;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct ENTROPY_CONTEXT_PLANES {
-    pub y1: [ENTROPY_CONTEXT; 4],
-    pub u: [ENTROPY_CONTEXT; 2],
-    pub v: [ENTROPY_CONTEXT; 2],
-    pub y2: ENTROPY_CONTEXT,
+pub struct EntropyContextPlanes {
+    pub y1: [EntropyContext; 4],
+    pub u: [EntropyContext; 2],
+    pub v: [EntropyContext; 2],
+    pub y2: EntropyContext,
 }
-pub type ENTROPY_CONTEXT = i8;
-pub type FRAME_TYPE = u32;
-pub const INTER_FRAME: FRAME_TYPE = 1;
-pub const KEY_FRAME: FRAME_TYPE = 0;
-pub type MODE_INFO = modeinfo;
+pub type EntropyContext = i8;
+pub type FrameType = u32;
+pub const INTER_FRAME: FrameType = 1;
+pub const KEY_FRAME: FrameType = 0;
+pub type ModeInfo = Modeinfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct modeinfo {
-    pub mbmi: MB_MODE_INFO,
-    pub bmi: [b_mode_info; 16],
+pub struct Modeinfo {
+    pub mbmi: MbModeInfo,
+    pub bmi: [BModeInfo; 16],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct MB_MODE_INFO {
-    pub mode: uint8_t,
-    pub uv_mode: uint8_t,
-    pub ref_frame: uint8_t,
-    pub is_4x4: uint8_t,
-    pub mv: int_mv,
-    pub partitioning: uint8_t,
-    pub mb_skip_coeff: uint8_t,
-    pub need_to_clamp_mvs: uint8_t,
-    pub segment_id: uint8_t,
+pub struct MbModeInfo {
+    pub mode: u8,
+    pub uv_mode: u8,
+    pub ref_frame: u8,
+    pub is_4x4: u8,
+    pub mv: IntMv,
+    pub partitioning: u8,
+    pub mb_skip_coeff: u8,
+    pub need_to_clamp_mvs: u8,
+    pub segment_id: u8,
 }
-pub type uint8_t = u8;
-pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct yv12_buffer_config {
+pub struct Yv12BufferConfig {
     pub y_width: i32,
     pub y_height: i32,
     pub y_crop_width: i32,
@@ -205,44 +202,44 @@ pub struct yv12_buffer_config {
     pub alpha_width: i32,
     pub alpha_height: i32,
     pub alpha_stride: i32,
-    pub y_buffer: *mut uint8_t,
-    pub u_buffer: *mut uint8_t,
-    pub v_buffer: *mut uint8_t,
-    pub alpha_buffer: *mut uint8_t,
-    pub buffer_alloc: *mut uint8_t,
-    pub buffer_alloc_sz: size_t,
+    pub y_buffer: *mut u8,
+    pub u_buffer: *mut u8,
+    pub v_buffer: *mut u8,
+    pub alpha_buffer: *mut u8,
+    pub buffer_alloc: *mut u8,
+    pub buffer_alloc_sz: SizeT,
     pub border: i32,
-    pub frame_size: size_t,
+    pub frame_size: SizeT,
     pub subsampling_x: i32,
     pub subsampling_y: i32,
     pub bit_depth: u32,
-    pub color_space: vpx_color_space_t,
-    pub color_range: vpx_color_range_t,
+    pub color_space: VpxColorSpaceT,
+    pub color_range: VpxColorRangeT,
     pub render_width: i32,
     pub render_height: i32,
     pub corrupted: i32,
     pub flags: i32,
 }
-pub type vpx_color_range_t = vpx_color_range;
-pub type vpx_color_range = u32;
-pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
-pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
-pub type vpx_color_space_t = vpx_color_space;
-pub type vpx_color_space = u32;
-pub const VPX_CS_SRGB: vpx_color_space = 7;
-pub const VPX_CS_RESERVED: vpx_color_space = 6;
-pub const VPX_CS_BT_2020: vpx_color_space = 5;
-pub const VPX_CS_SMPTE_240: vpx_color_space = 4;
-pub const VPX_CS_SMPTE_170: vpx_color_space = 3;
-pub const VPX_CS_BT_709: vpx_color_space = 2;
-pub const VPX_CS_BT_601: vpx_color_space = 1;
-pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
-pub type size_t = __darwin_size_t;
-pub type __darwin_size_t = usize;
-pub type BLOCKD = blockd;
+pub type VpxColorRangeT = VpxColorRange;
+pub type VpxColorRange = u32;
+pub const VPX_CR_FULL_RANGE: VpxColorRange = 1;
+pub const VPX_CR_STUDIO_RANGE: VpxColorRange = 0;
+pub type VpxColorSpaceT = VpxColorSpace;
+pub type VpxColorSpace = u32;
+pub const VPX_CS_SRGB: VpxColorSpace = 7;
+pub const VPX_CS_RESERVED: VpxColorSpace = 6;
+pub const VPX_CS_BT_2020: VpxColorSpace = 5;
+pub const VPX_CS_SMPTE_240: VpxColorSpace = 4;
+pub const VPX_CS_SMPTE_170: VpxColorSpace = 3;
+pub const VPX_CS_BT_709: VpxColorSpace = 2;
+pub const VPX_CS_BT_601: VpxColorSpace = 1;
+pub const VPX_CS_UNKNOWN: VpxColorSpace = 0;
+pub type SizeT = DarwinSizeT;
+pub type DarwinSizeT = usize;
+pub type BLOCKD = Blockd;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct loop_filter_info {
+pub struct LoopFilterInfo {
     pub mblim: *const u8,
     pub blim: *const u8,
     pub lim: *const u8,
@@ -253,7 +250,7 @@ pub const SIMPLE_LOOPFILTER: LOOPFILTERTYPE = 1;
 pub const NORMAL_LOOPFILTER: LOOPFILTERTYPE = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct loop_filter_info_n {
+pub struct LoopFilterInfoN {
     pub mblim: [[u8; 16]; 64],
     pub blim: [[u8; 16]; 64],
     pub lim: [[u8; 16]; 64],
@@ -265,28 +262,28 @@ pub struct loop_filter_info_n {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VP8Common {
-    pub error: vpx_internal_error_info,
-    pub Y1dequant: [[i16; 2]; 128],
-    pub Y2dequant: [[i16; 2]; 128],
-    pub UVdequant: [[i16; 2]; 128],
-    pub Width: i32,
-    pub Height: i32,
+    pub error: VpxInternalErrorInfo,
+    pub y1dequant: [[i16; 2]; 128],
+    pub y2dequant: [[i16; 2]; 128],
+    pub uvdequant: [[i16; 2]; 128],
+    pub width: i32,
+    pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
-    pub clamp_type: CLAMP_TYPE,
-    pub frame_to_show: *mut YV12_BUFFER_CONFIG,
-    pub yv12_fb: [YV12_BUFFER_CONFIG; 4],
+    pub clamp_type: ClampType,
+    pub frame_to_show: *mut Yv12BufferConfig,
+    pub yv12_fb: [Yv12BufferConfig; 4],
     pub fb_idx_ref_cnt: [i32; 4],
     pub new_fb_idx: i32,
     pub lst_fb_idx: i32,
     pub gld_fb_idx: i32,
     pub alt_fb_idx: i32,
-    pub temp_scale_frame: YV12_BUFFER_CONFIG,
-    pub last_frame_type: FRAME_TYPE,
-    pub frame_type: FRAME_TYPE,
+    pub temp_scale_frame: Yv12BufferConfig,
+    pub last_frame_type: FrameType,
+    pub frame_type: FrameType,
     pub show_frame: i32,
     pub frame_flags: i32,
-    pub MBs: i32,
+    pub mbs: i32,
     pub mb_rows: i32,
     pub mb_cols: i32,
     pub mode_info_stride: i32,
@@ -300,11 +297,11 @@ pub struct VP8Common {
     pub y2ac_delta_q: i32,
     pub uvdc_delta_q: i32,
     pub uvac_delta_q: i32,
-    pub mip: *mut MODE_INFO,
-    pub mi: *mut MODE_INFO,
-    pub show_frame_mi: *mut MODE_INFO,
+    pub mip: *mut ModeInfo,
+    pub mi: *mut ModeInfo,
+    pub show_frame_mi: *mut ModeInfo,
     pub filter_type: LOOPFILTERTYPE,
-    pub lf_info: loop_filter_info_n,
+    pub lf_info: LoopFilterInfoN,
     pub filter_level: i32,
     pub last_sharpness_level: i32,
     pub sharpness_level: i32,
@@ -315,41 +312,40 @@ pub struct VP8Common {
     pub copy_buffer_to_arf: i32,
     pub refresh_entropy_probs: i32,
     pub ref_frame_sign_bias: [i32; 4],
-    pub above_context: *mut ENTROPY_CONTEXT_PLANES,
-    pub left_context: ENTROPY_CONTEXT_PLANES,
-    pub lfc: FRAME_CONTEXT,
-    pub fc: FRAME_CONTEXT,
+    pub above_context: *mut EntropyContextPlanes,
+    pub left_context: EntropyContextPlanes,
+    pub lfc: FrameContext,
+    pub fc: FrameContext,
     pub current_video_frame: u32,
     pub version: i32,
-    pub multi_token_partition: TOKEN_PARTITION,
+    pub multi_token_partition: TokenPartition,
     pub processor_core_count: i32,
 }
-pub type TOKEN_PARTITION = u32;
-pub const EIGHT_PARTITION: TOKEN_PARTITION = 3;
-pub const FOUR_PARTITION: TOKEN_PARTITION = 2;
-pub const TWO_PARTITION: TOKEN_PARTITION = 1;
-pub const ONE_PARTITION: TOKEN_PARTITION = 0;
-pub type FRAME_CONTEXT = frame_contexts;
+pub type TokenPartition = u32;
+pub const EIGHT_PARTITION: TokenPartition = 3;
+pub const FOUR_PARTITION: TokenPartition = 2;
+pub const TWO_PARTITION: TokenPartition = 1;
+pub const ONE_PARTITION: TokenPartition = 0;
+pub type FrameContext = FrameContexts;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct frame_contexts {
-    pub bmode_prob: [vp8_prob; 9],
-    pub ymode_prob: [vp8_prob; 4],
-    pub uv_mode_prob: [vp8_prob; 3],
-    pub sub_mv_ref_prob: [vp8_prob; 3],
-    pub coef_probs: [[[[vp8_prob; 11]; 3]; 8]; 4],
-    pub mvc: [MV_CONTEXT; 2],
+pub struct FrameContexts {
+    pub bmode_prob: [Vp8Prob; 9],
+    pub ymode_prob: [Vp8Prob; 4],
+    pub uv_mode_prob: [Vp8Prob; 3],
+    pub sub_mv_ref_prob: [Vp8Prob; 3],
+    pub coef_probs: [[[[Vp8Prob; 11]; 3]; 8]; 4],
+    pub mvc: [MvContext; 2],
 }
-pub type MV_CONTEXT = mv_context;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct mv_context {
-    pub prob: [vp8_prob; 19],
+pub struct MvContext {
+    pub prob: [Vp8Prob; 19],
 }
-pub type CLAMP_TYPE = u32;
-pub const RECON_CLAMP_NOTREQUIRED: CLAMP_TYPE = 1;
-pub const RECON_CLAMP_REQUIRED: CLAMP_TYPE = 0;
-pub type VP8_COMMON = VP8Common;
+pub type ClampType = u32;
+pub const RECON_CLAMP_NOTREQUIRED: ClampType = 1;
+pub const RECON_CLAMP_REQUIRED: ClampType = 0;
+pub type Vp8Common = VP8Common;
 pub const SPLITMV: C2RustUnnamed = 9;
 pub const NEWMV: C2RustUnnamed = 8;
 pub const NEARMV: C2RustUnnamed = 6;
@@ -360,15 +356,18 @@ pub const TM_PRED: C2RustUnnamed = 3;
 pub const H_PRED: C2RustUnnamed = 2;
 pub const V_PRED: C2RustUnnamed = 1;
 pub const DC_PRED: C2RustUnnamed = 0;
-pub type MACROBLOCKD = macroblockd;
+pub type MACROBLOCKD = Macroblockd;
 pub const MAX_REF_FRAMES: C2RustUnnamed_1 = 4;
 pub const INTRA_FRAME: C2RustUnnamed_1 = 0;
 pub const MB_LVL_ALT_LF: C2RustUnnamed_0 = 1;
+#[allow(non_camel_case_types)]
 pub type C2RustUnnamed = u32;
 pub const MB_MODE_COUNT: C2RustUnnamed = 10;
+#[allow(non_camel_case_types)]
 pub type C2RustUnnamed_0 = u32;
 pub const MB_LVL_MAX: C2RustUnnamed_0 = 2;
 pub const MB_LVL_ALT_Q: C2RustUnnamed_0 = 0;
+#[allow(non_camel_case_types)]
 pub type C2RustUnnamed_1 = u32;
 pub const ALTREF_FRAME: C2RustUnnamed_1 = 3;
 pub const GOLDEN_FRAME: C2RustUnnamed_1 = 2;
@@ -378,7 +377,7 @@ pub const PARTIAL_FRAME_FRACTION: i32 = 8 as i32;
 pub const SIMD_WIDTH: i32 = 16 as i32;
 pub const MAX_MB_SEGMENTS: i32 = 4 as i32;
 pub const SEGMENT_ABSDATA: i32 = 1 as i32;
-unsafe fn lf_init_lut(mut lfi: *mut loop_filter_info_n) {
+unsafe fn lf_init_lut(mut lfi: *mut LoopFilterInfoN) {
     unsafe {
         let mut filt_lvl: i32 = 0;
         filt_lvl = 0 as i32;
@@ -412,7 +411,7 @@ unsafe fn lf_init_lut(mut lfi: *mut loop_filter_info_n) {
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_update_sharpness(
-    mut lfi: *mut loop_filter_info_n,
+    mut lfi: *mut LoopFilterInfoN,
     mut sharpness_lvl: i32,
 ) {
     unsafe {
@@ -433,28 +432,28 @@ pub unsafe fn vp8_loop_filter_update_sharpness(
                 &raw mut *(&raw mut (*lfi).lim as *mut [u8; 16]).offset(i as isize) as *mut u8
                     as *mut c_void as *mut u8,
                 block_inside_limit as u8,
-                SIMD_WIDTH as size_t,
+                SIMD_WIDTH as SizeT,
             );
             core::ptr::write_bytes(
                 &raw mut *(&raw mut (*lfi).blim as *mut [u8; 16]).offset(i as isize) as *mut u8
                     as *mut c_void as *mut u8,
                 (2 as i32 * filt_lvl + block_inside_limit) as u8,
-                SIMD_WIDTH as size_t,
+                SIMD_WIDTH as SizeT,
             );
             core::ptr::write_bytes(
                 &raw mut *(&raw mut (*lfi).mblim as *mut [u8; 16]).offset(i as isize) as *mut u8
                     as *mut c_void as *mut u8,
                 (2 as i32 * (filt_lvl + 2 as i32) + block_inside_limit) as u8,
-                SIMD_WIDTH as size_t,
+                SIMD_WIDTH as SizeT,
             );
             i += 1;
         }
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) {
+pub unsafe fn vp8_loop_filter_init(mut cm: *mut Vp8Common) {
     unsafe {
-        let mut lfi: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
+        let mut lfi: *mut LoopFilterInfoN = &raw mut (*cm).lf_info;
         let mut i: i32 = 0;
         vp8_loop_filter_update_sharpness(lfi, (*cm).sharpness_level);
         (*cm).last_sharpness_level = (*cm).sharpness_level;
@@ -465,7 +464,7 @@ pub unsafe fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) {
                 &raw mut *(&raw mut (*lfi).hev_thr as *mut [u8; 16]).offset(i as isize) as *mut u8
                     as *mut c_void as *mut u8,
                 i as u8,
-                SIMD_WIDTH as size_t,
+                SIMD_WIDTH as SizeT,
             );
             i += 1;
         }
@@ -473,7 +472,7 @@ pub unsafe fn vp8_loop_filter_init(mut cm: *mut VP8_COMMON) {
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_frame_init(
-    mut cm: *mut VP8_COMMON,
+    mut cm: *mut Vp8Common,
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: i32,
 ) {
@@ -481,7 +480,7 @@ pub unsafe fn vp8_loop_filter_frame_init(
         let mut seg: i32 = 0;
         let mut ref_0: i32 = 0;
         let mut mode: i32 = 0;
-        let mut lfi: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
+        let mut lfi: *mut LoopFilterInfoN = &raw mut (*cm).lf_info;
         if (*cm).last_sharpness_level != (*cm).sharpness_level {
             vp8_loop_filter_update_sharpness(lfi, (*cm).sharpness_level);
             (*cm).last_sharpness_level = (*cm).sharpness_level;
@@ -516,7 +515,7 @@ pub unsafe fn vp8_loop_filter_frame_init(
                         .offset(0 as isize) as *mut u8 as *mut c_void
                         as *mut u8,
                     lvl_seg as u8,
-                    (4 as i32 * 4 as i32) as size_t,
+                    (4 as i32 * 4 as i32) as SizeT,
                 );
             } else {
                 ref_0 = INTRA_FRAME as i32;
@@ -571,8 +570,8 @@ pub unsafe fn vp8_loop_filter_frame_init(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_row_normal(
-    mut cm: *mut VP8_COMMON,
-    mut mode_info_context: *mut MODE_INFO,
+    mut cm: *mut Vp8Common,
+    mut mode_info_context: *mut ModeInfo,
     mut mb_row: i32,
     mut post_ystride: i32,
     mut post_uvstride: i32,
@@ -583,14 +582,14 @@ pub unsafe fn vp8_loop_filter_row_normal(
     unsafe {
         let mut mb_col: i32 = 0;
         let mut filter_level: i32 = 0;
-        let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
-        let mut lfi: loop_filter_info = loop_filter_info {
+        let mut lfi_n: *mut LoopFilterInfoN = &raw mut (*cm).lf_info;
+        let mut lfi: LoopFilterInfo = LoopFilterInfo {
             mblim: ::core::ptr::null::<u8>(),
             blim: ::core::ptr::null::<u8>(),
             lim: ::core::ptr::null::<u8>(),
             hev_thr: ::core::ptr::null::<u8>(),
         };
-        let mut frame_type: FRAME_TYPE = (*cm).frame_type;
+        let mut frame_type: FrameType = (*cm).frame_type;
         mb_col = 0 as i32;
         while mb_col < (*cm).mb_cols {
             let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode as i32 != B_PRED as i32
@@ -665,8 +664,8 @@ pub unsafe fn vp8_loop_filter_row_normal(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_row_simple(
-    mut cm: *mut VP8_COMMON,
-    mut mode_info_context: *mut MODE_INFO,
+    mut cm: *mut Vp8Common,
+    mut mode_info_context: *mut ModeInfo,
     mut mb_row: i32,
     mut post_ystride: i32,
     mut y_ptr: *mut u8,
@@ -674,7 +673,7 @@ pub unsafe fn vp8_loop_filter_row_simple(
     unsafe {
         let mut mb_col: i32 = 0;
         let mut filter_level: i32 = 0;
-        let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
+        let mut lfi_n: *mut LoopFilterInfoN = &raw mut (*cm).lf_info;
         mb_col = 0 as i32;
         while mb_col < (*cm).mb_cols {
             let mut skip_lf: i32 = ((*mode_info_context).mbmi.mode as i32 != B_PRED as i32
@@ -729,14 +728,14 @@ pub unsafe fn vp8_loop_filter_row_simple(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_frame(
-    mut cm: *mut VP8_COMMON,
+    mut cm: *mut Vp8Common,
     mut mbd: *mut MACROBLOCKD,
     mut frame_type: i32,
 ) {
     unsafe {
-        let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
-        let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
-        let mut lfi: loop_filter_info = loop_filter_info {
+        let mut post: *mut Yv12BufferConfig = (*cm).frame_to_show;
+        let mut lfi_n: *mut LoopFilterInfoN = &raw mut (*cm).lf_info;
+        let mut lfi: LoopFilterInfo = LoopFilterInfo {
             mblim: ::core::ptr::null::<u8>(),
             blim: ::core::ptr::null::<u8>(),
             lim: ::core::ptr::null::<u8>(),
@@ -750,7 +749,7 @@ pub unsafe fn vp8_loop_filter_frame(
         let mut y_ptr: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut u_ptr: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut v_ptr: *mut u8 = ::core::ptr::null_mut::<u8>();
-        let mut mode_info_context: *const MODE_INFO = (*cm).mi;
+        let mut mode_info_context: *const ModeInfo = (*cm).mi;
         let mut post_y_stride: i32 = (*post).y_stride;
         let mut post_uv_stride: i32 = (*post).uv_stride;
         vp8_loop_filter_frame_init(cm, mbd, (*cm).filter_level);
@@ -895,25 +894,25 @@ pub unsafe fn vp8_loop_filter_frame(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_frame_yonly(
-    mut cm: *mut VP8_COMMON,
+    mut cm: *mut Vp8Common,
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: i32,
 ) {
     unsafe {
-        let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
+        let mut post: *mut Yv12BufferConfig = (*cm).frame_to_show;
         let mut y_ptr: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut mb_row: i32 = 0;
         let mut mb_col: i32 = 0;
-        let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
-        let mut lfi: loop_filter_info = loop_filter_info {
+        let mut lfi_n: *mut LoopFilterInfoN = &raw mut (*cm).lf_info;
+        let mut lfi: LoopFilterInfo = LoopFilterInfo {
             mblim: ::core::ptr::null::<u8>(),
             blim: ::core::ptr::null::<u8>(),
             lim: ::core::ptr::null::<u8>(),
             hev_thr: ::core::ptr::null::<u8>(),
         };
         let mut filter_level: i32 = 0;
-        let mut frame_type: FRAME_TYPE = (*cm).frame_type;
-        let mut mode_info_context: *const MODE_INFO = (*cm).mi;
+        let mut frame_type: FrameType = (*cm).frame_type;
+        let mut mode_info_context: *const ModeInfo = (*cm).mi;
         vp8_loop_filter_frame_init(cm, mbd, default_filt_lvl);
         y_ptr = (*post).y_buffer as *mut u8;
         mb_row = 0 as i32;
@@ -1037,28 +1036,28 @@ pub unsafe fn vp8_loop_filter_frame_yonly(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_loop_filter_partial_frame(
-    mut cm: *mut VP8_COMMON,
+    mut cm: *mut Vp8Common,
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: i32,
 ) {
     unsafe {
-        let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
+        let mut post: *mut Yv12BufferConfig = (*cm).frame_to_show;
         let mut y_ptr: *mut u8 = ::core::ptr::null_mut::<u8>();
         let mut mb_row: i32 = 0;
         let mut mb_col: i32 = 0;
         let mut mb_cols: i32 = (*post).y_width >> 4 as i32;
         let mut mb_rows: i32 = (*post).y_height >> 4 as i32;
         let mut linestocopy: i32 = 0;
-        let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
-        let mut lfi: loop_filter_info = loop_filter_info {
+        let mut lfi_n: *mut LoopFilterInfoN = &raw mut (*cm).lf_info;
+        let mut lfi: LoopFilterInfo = LoopFilterInfo {
             mblim: ::core::ptr::null::<u8>(),
             blim: ::core::ptr::null::<u8>(),
             lim: ::core::ptr::null::<u8>(),
             hev_thr: ::core::ptr::null::<u8>(),
         };
         let mut filter_level: i32 = 0;
-        let mut frame_type: FRAME_TYPE = (*cm).frame_type;
-        let mut mode_info_context: *const MODE_INFO = ::core::ptr::null::<MODE_INFO>();
+        let mut frame_type: FrameType = (*cm).frame_type;
+        let mut mode_info_context: *const ModeInfo = ::core::ptr::null::<ModeInfo>();
         vp8_loop_filter_frame_init(cm, mbd, default_filt_lvl);
         linestocopy = mb_rows / PARTIAL_FRAME_FRACTION;
         linestocopy = if linestocopy != 0 {

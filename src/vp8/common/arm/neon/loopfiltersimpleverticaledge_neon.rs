@@ -1,15 +1,12 @@
 use std::arch::aarch64::*;
-pub type int8_t = i8;
-pub type int16_t = i16;
-pub type uint8_t = u8;
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct uint8x8x2_t {
+pub struct Uint8x8x2T {
     pub val: [uint8x8_t; 2],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct uint8x8x4_t {
+pub struct Uint8x8x4T {
     pub val: [uint8x8_t; 4],
 }
 #[no_mangle]

@@ -62,13 +62,13 @@ extern "Rust" {
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
-pub struct loop_filter_info {
+pub struct LoopFilterInfo {
     pub mblim: *const u8,
     pub blim: *const u8,
     pub lim: *const u8,
     pub hev_thr: *const u8,
 }
-pub type loopfilter_uv_neon = unsafe fn(
+pub type LoopfilterUvNeon = unsafe fn(
     *mut u8,
     i32,
     u8,
@@ -76,7 +76,7 @@ pub type loopfilter_uv_neon = unsafe fn(
     u8,
     *mut u8,
 ) -> ();
-pub type loopfilter_y_neon = unsafe fn(
+pub type LoopfilterYNeon = unsafe fn(
     *mut u8,
     i32,
     u8,
@@ -90,7 +90,7 @@ pub unsafe fn vp8_loop_filter_mbh_neon(
     mut v_ptr: *mut u8,
     mut y_stride: i32,
     mut uv_stride: i32,
-    mut lfi: *mut loop_filter_info,
+    mut lfi: *mut LoopFilterInfo,
 ) {
     let mut mblim: u8 = *(*lfi).mblim;
     let mut lim: u8 = *(*lfi).lim;
@@ -107,7 +107,7 @@ pub unsafe fn vp8_loop_filter_mbv_neon(
     mut v_ptr: *mut u8,
     mut y_stride: i32,
     mut uv_stride: i32,
-    mut lfi: *mut loop_filter_info,
+    mut lfi: *mut LoopFilterInfo,
 ) {
     let mut mblim: u8 = *(*lfi).mblim;
     let mut lim: u8 = *(*lfi).lim;
@@ -124,7 +124,7 @@ pub unsafe fn vp8_loop_filter_bh_neon(
     mut v_ptr: *mut u8,
     mut y_stride: i32,
     mut uv_stride: i32,
-    mut lfi: *mut loop_filter_info,
+    mut lfi: *mut LoopFilterInfo,
 ) {
     let mut blim: u8 = *(*lfi).blim;
     let mut lim: u8 = *(*lfi).lim;
@@ -168,7 +168,7 @@ pub unsafe fn vp8_loop_filter_bv_neon(
     mut v_ptr: *mut u8,
     mut y_stride: i32,
     mut uv_stride: i32,
-    mut lfi: *mut loop_filter_info,
+    mut lfi: *mut LoopFilterInfo,
 ) {
     let mut blim: u8 = *(*lfi).blim;
     let mut lim: u8 = *(*lfi).lim;
