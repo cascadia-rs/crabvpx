@@ -5,6 +5,8 @@ use crate::vp8::common::mbpitch::vp8_setup_block_dptrs;
 use crate::vp8::common::extend::vp8_extend_mb_row;
 use crate::vp8::common::reconintra::intra_prediction_down_copy;
 use crate::vp8::common::idctllm::vp8_short_inv_walsh4x4_1_safe;
+use crate::vp8::common::dequantize::vp8_dequantize_b_safe;
+use crate::vp8::common::idctllm::vp8_short_inv_walsh4x4_safe;
 unsafe extern "C" {
     fn vp8_dc_only_idct_add_neon(
         input_dc: ::core::ffi::c_short,
@@ -449,45 +451,27 @@ fn mt_decode_macroblock(
             let mut DQC_0: *mut ::core::ffi::c_short =
                 &raw mut xd.dequant_y1 as *mut ::core::ffi::c_short;
             if mode as ::core::ffi::c_uint != SPLITMV as ::core::ffi::c_int as ::core::ffi::c_uint {
-                let mut b_0: *mut BLOCKD = (&raw mut xd.block as *mut BLOCKD)
-                    .offset(24 as ::core::ffi::c_int as isize)
-                    as *mut BLOCKD;
                 if xd.eobs[24 as ::core::ffi::c_int as usize] as ::core::ffi::c_int
                     > 1 as ::core::ffi::c_int
                 {
-                    vp8_dequantize_b_neon(
-                        b_0 as *mut blockd,
-                        &raw mut xd.dequant_y2 as *mut ::core::ffi::c_short,
-                    );
-                    vp8_short_inv_walsh4x4_neon(
-                        (*b_0).dqcoeff.offset(0 as ::core::ffi::c_int as isize)
-                            as *mut ::core::ffi::c_short,
-                        &raw mut xd.qcoeff as *mut ::core::ffi::c_short,
-                    );
-                    memset(
-                        (*b_0).qcoeff as *mut ::core::ffi::c_void,
-                        0 as ::core::ffi::c_int,
-                        (16 as size_t)
-                            .wrapping_mul(::core::mem::size_of::<::core::ffi::c_short>() as size_t),
-                    );
+                    let qcoeff_slice = &xd.qcoeff[24 * 16 .. 24 * 16 + 16];
+                    let dqcoeff_slice = &mut xd.dqcoeff[24 * 16 .. 24 * 16 + 16];
+                    vp8_dequantize_b_safe(qcoeff_slice, dqcoeff_slice, &xd.dequant_y2);
+
+                    let walsh_input: &[i16; 16] = (&xd.dqcoeff[24 * 16 .. 24 * 16 + 16]).try_into().unwrap();
+                    vp8_short_inv_walsh4x4_safe(walsh_input, &mut xd.qcoeff);
+
+                    xd.qcoeff[24 * 16 .. 24 * 16 + 16].fill(0);
                 } else {
-                    *(*b_0).dqcoeff.offset(0 as ::core::ffi::c_int as isize) = (*(*b_0)
-                        .qcoeff
-                        .offset(0 as ::core::ffi::c_int as isize)
-                        as ::core::ffi::c_int
+                    xd.dqcoeff[24 * 16] = (xd.qcoeff[24 * 16] as i32
                         * xd.dequant_y2[0 as ::core::ffi::c_int as usize] as ::core::ffi::c_int)
                         as ::core::ffi::c_short;
-                    let dqcoeff_slice = std::slice::from_raw_parts((*b_0).dqcoeff, 16);
+                    let dqcoeff_slice = &xd.dqcoeff[24 * 16 .. 24 * 16 + 16];
                     vp8_short_inv_walsh4x4_1_safe(
                         dqcoeff_slice,
                         &mut xd.qcoeff,
                     );
-                    memset(
-                        (*b_0).qcoeff as *mut ::core::ffi::c_void,
-                        0 as ::core::ffi::c_int,
-                        (2 as size_t)
-                            .wrapping_mul(::core::mem::size_of::<::core::ffi::c_short>() as size_t),
-                    );
+                    xd.qcoeff[24 * 16 .. 24 * 16 + 2].fill(0);
                 }
                 DQC_0 = &raw mut xd.dequant_y1_dc as *mut ::core::ffi::c_short;
             }

@@ -4,18 +4,17 @@ pub type uint32_t = u32;
 pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
 
-pub fn vp8_dequantize_b_c(
-    d: &mut BLOCKD,
+pub fn vp8_dequantize_b_safe(
+    q: &[i16],
+    dq: &mut [i16],
     DQC: &[i16],
 ) {
-    assert!(!d.dqcoeff.is_null(), "dqcoeff is null");
-    assert!(!d.qcoeff.is_null(), "qcoeff is null");
-    let dq = unsafe { std::slice::from_raw_parts_mut(d.dqcoeff, 16) };
-    let q = unsafe { std::slice::from_raw_parts(d.qcoeff, 16) };
     for i in 0..16 {
         dq[i] = (q[i] as i32 * DQC[i] as i32) as i16;
     }
 }
+
+
 
 pub fn vp8_dequant_idct_add_safe(
     input: &mut [i16; 16],
