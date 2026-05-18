@@ -1,6 +1,7 @@
 # VP8 Decoder Safety Hints
 
 ## Current Progress (May 2026)
+- **Safe Motion Vector Clamping**: Refactored `clamp_mv_to_umv_border` and `clamp_uvmv_to_umv_border` in `src/vp8/common/reconinter.rs` to safe Rust by taking `&mut MV` and explicit edge limits instead of raw pointers. Updated call sites in `reconinter.rs`. Reduced unsafe count by 4.
 - **Safe Frame Buffer Allocation API**: Refactored `get_free_fb` in `src/vp8/decoder/onyxd_if.rs` to take a safe reference `&mut VP8_COMMON` instead of a raw pointer. Eliminated `unsafe extern "C"` linkage and internal `unsafe` block. Updated 3 call sites in `onyxd_if.rs` to pass `&mut *cm`. Reduced unsafe count by 2.
 - **Safe Macroblock Mode & Motion Vector Decoding API (Internal Refactoring)**: Refactored `vp8_decode_mode_mvs` in `src/vp8/decoder/decodemv.rs` to take `mip_slice: &mut [MODE_INFO]` and `safe_decoder: &mut SafeBoolDecoder` instead of accessing raw pointers in `VP8D_COMP`. This eliminated the internal `unsafe` block needed to construct `SafeBoolDecoder` from `mbc[8]`. Updated call site in `vp8_decode_frame`. Reduced unsafe count by 1.
 - **Safe Macroblock Mode & Motion Vector Decoding API (Complete)**: Refactored `vp8_decode_mode_mvs` in `src/vp8/decoder/decodemv.rs` to take safe reference `&mut VP8D_COMP` instead of raw pointer. Eliminated `unsafe extern "C"` linkage, `#[unsafe(no_mangle)]`, and `unsafe` from signature. Updated call site in `decodeframe.rs`. Reduced unsafe count by 2.

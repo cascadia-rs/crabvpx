@@ -496,67 +496,79 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mby(
         vp8_copy_mem16x16_neon(ptr, pre_stride, dst_y, dst_ystride);
     };
 }}
-unsafe extern "C" fn clamp_mv_to_umv_border(mut mv: *mut MV, mut xd: *const MACROBLOCKD) { unsafe {
-    if ((*mv).col as ::core::ffi::c_int)
-        < (*xd).mb_to_left_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+fn clamp_mv_to_umv_border(
+    mv: &mut MV,
+    mb_to_left_edge: ::core::ffi::c_int,
+    mb_to_right_edge: ::core::ffi::c_int,
+    mb_to_top_edge: ::core::ffi::c_int,
+    mb_to_bottom_edge: ::core::ffi::c_int,
+) {
+    if (mv.col as ::core::ffi::c_int)
+        < mb_to_left_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
     {
-        (*mv).col = ((*xd).mb_to_left_edge
+        mv.col = (mb_to_left_edge
             - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int))
             as ::core::ffi::c_short;
-    } else if (*mv).col as ::core::ffi::c_int
-        > (*xd).mb_to_right_edge + ((18 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+    } else if mv.col as ::core::ffi::c_int
+        > mb_to_right_edge + ((18 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
     {
-        (*mv).col = ((*xd).mb_to_right_edge
+        mv.col = (mb_to_right_edge
             + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int))
             as ::core::ffi::c_short;
     }
-    if ((*mv).row as ::core::ffi::c_int)
-        < (*xd).mb_to_top_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+    if (mv.row as ::core::ffi::c_int)
+        < mb_to_top_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
     {
-        (*mv).row = ((*xd).mb_to_top_edge - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int))
+        mv.row = (mb_to_top_edge - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int))
             as ::core::ffi::c_short;
-    } else if (*mv).row as ::core::ffi::c_int
-        > (*xd).mb_to_bottom_edge + ((18 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+    } else if mv.row as ::core::ffi::c_int
+        > mb_to_bottom_edge + ((18 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
     {
-        (*mv).row = ((*xd).mb_to_bottom_edge
+        mv.row = (mb_to_bottom_edge
             + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int))
             as ::core::ffi::c_short;
     }
-}}
-unsafe extern "C" fn clamp_uvmv_to_umv_border(mut mv: *mut MV, mut xd: *const MACROBLOCKD) { unsafe {
-    (*mv).col = (if (2 as ::core::ffi::c_int * (*mv).col as ::core::ffi::c_int)
-        < (*xd).mb_to_left_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+}
+fn clamp_uvmv_to_umv_border(
+    mv: &mut MV,
+    mb_to_left_edge: ::core::ffi::c_int,
+    mb_to_right_edge: ::core::ffi::c_int,
+    mb_to_top_edge: ::core::ffi::c_int,
+    mb_to_bottom_edge: ::core::ffi::c_int,
+) {
+    mv.col = (if (2 as ::core::ffi::c_int * mv.col as ::core::ffi::c_int)
+        < mb_to_left_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
     {
-        (*xd).mb_to_left_edge - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+        mb_to_left_edge - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
             >> 1 as ::core::ffi::c_int
     } else {
-        (*mv).col as ::core::ffi::c_int
+        mv.col as ::core::ffi::c_int
     }) as ::core::ffi::c_short;
-    (*mv).col = (if 2 as ::core::ffi::c_int * (*mv).col as ::core::ffi::c_int
-        > (*xd).mb_to_right_edge + ((18 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+    mv.col = (if 2 as ::core::ffi::c_int * mv.col as ::core::ffi::c_int
+        > mb_to_right_edge + ((18 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
     {
-        (*xd).mb_to_right_edge + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+        mb_to_right_edge + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
             >> 1 as ::core::ffi::c_int
     } else {
-        (*mv).col as ::core::ffi::c_int
+        mv.col as ::core::ffi::c_int
     }) as ::core::ffi::c_short;
-    (*mv).row = (if (2 as ::core::ffi::c_int * (*mv).row as ::core::ffi::c_int)
-        < (*xd).mb_to_top_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+    mv.row = (if (2 as ::core::ffi::c_int * mv.row as ::core::ffi::c_int)
+        < mb_to_top_edge - ((19 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
     {
-        (*xd).mb_to_top_edge - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+        mb_to_top_edge - ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
             >> 1 as ::core::ffi::c_int
     } else {
-        (*mv).row as ::core::ffi::c_int
+        mv.row as ::core::ffi::c_int
     }) as ::core::ffi::c_short;
-    (*mv).row = (if 2 as ::core::ffi::c_int * (*mv).row as ::core::ffi::c_int
-        > (*xd).mb_to_bottom_edge + ((18 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+    mv.row = (if 2 as ::core::ffi::c_int * mv.row as ::core::ffi::c_int
+        > mb_to_bottom_edge + ((18 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
     {
-        (*xd).mb_to_bottom_edge + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
+        mb_to_bottom_edge + ((16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int)
             >> 1 as ::core::ffi::c_int
     } else {
-        (*mv).row as ::core::ffi::c_int
+        mv.row as ::core::ffi::c_int
     }) as ::core::ffi::c_short;
-}}
+}
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mb(
     mut x: *mut MACROBLOCKD,
@@ -575,7 +587,13 @@ pub unsafe extern "C" fn vp8_build_inter16x16_predictors_mb(
     let mut pre_stride: ::core::ffi::c_int = (*x).pre.y_stride;
     _16x16mv.as_int = (*(*x).mode_info_context).mbmi.mv.as_int;
     if (*(*x).mode_info_context).mbmi.need_to_clamp_mvs != 0 {
-        clamp_mv_to_umv_border(&raw mut _16x16mv.as_mv, x);
+        clamp_mv_to_umv_border(
+            &mut _16x16mv.as_mv,
+            (*x).mb_to_left_edge,
+            (*x).mb_to_right_edge,
+            (*x).mb_to_top_edge,
+            (*x).mb_to_bottom_edge,
+        );
     }
     ptr = ptr_base
         .offset(
@@ -672,36 +690,32 @@ unsafe extern "C" fn build_inter4x4_predictors_mb(mut x: *mut MACROBLOCKD) { uns
             (*(*x).mode_info_context).bmi[10 as ::core::ffi::c_int as usize];
         if (*(*x).mode_info_context).mbmi.need_to_clamp_mvs != 0 {
             clamp_mv_to_umv_border(
-                &raw mut (*(&raw mut (*x).block as *mut BLOCKD)
-                    .offset(0 as ::core::ffi::c_int as isize))
-                .bmi
-                .mv
-                .as_mv,
-                x,
+                &mut (*x).block[0].bmi.mv.as_mv,
+                (*x).mb_to_left_edge,
+                (*x).mb_to_right_edge,
+                (*x).mb_to_top_edge,
+                (*x).mb_to_bottom_edge,
             );
             clamp_mv_to_umv_border(
-                &raw mut (*(&raw mut (*x).block as *mut BLOCKD)
-                    .offset(2 as ::core::ffi::c_int as isize))
-                .bmi
-                .mv
-                .as_mv,
-                x,
+                &mut (*x).block[2].bmi.mv.as_mv,
+                (*x).mb_to_left_edge,
+                (*x).mb_to_right_edge,
+                (*x).mb_to_top_edge,
+                (*x).mb_to_bottom_edge,
             );
             clamp_mv_to_umv_border(
-                &raw mut (*(&raw mut (*x).block as *mut BLOCKD)
-                    .offset(8 as ::core::ffi::c_int as isize))
-                .bmi
-                .mv
-                .as_mv,
-                x,
+                &mut (*x).block[8].bmi.mv.as_mv,
+                (*x).mb_to_left_edge,
+                (*x).mb_to_right_edge,
+                (*x).mb_to_top_edge,
+                (*x).mb_to_bottom_edge,
             );
             clamp_mv_to_umv_border(
-                &raw mut (*(&raw mut (*x).block as *mut BLOCKD)
-                    .offset(10 as ::core::ffi::c_int as isize))
-                .bmi
-                .mv
-                .as_mv,
-                x,
+                &mut (*x).block[10].bmi.mv.as_mv,
+                (*x).mb_to_left_edge,
+                (*x).mb_to_right_edge,
+                (*x).mb_to_top_edge,
+                (*x).mb_to_bottom_edge,
             );
         }
         b = (&raw mut (*x).block as *mut BLOCKD).offset(0 as ::core::ffi::c_int as isize)
@@ -759,20 +773,18 @@ unsafe extern "C" fn build_inter4x4_predictors_mb(mut x: *mut MACROBLOCKD) { uns
                 (*(*x).mode_info_context).bmi[(i + 1 as ::core::ffi::c_int) as usize];
             if (*(*x).mode_info_context).mbmi.need_to_clamp_mvs != 0 {
                 clamp_mv_to_umv_border(
-                    &raw mut (*(&raw mut (*x).block as *mut BLOCKD)
-                        .offset((i + 0 as ::core::ffi::c_int) as isize))
-                    .bmi
-                    .mv
-                    .as_mv,
-                    x,
+                    &mut (*x).block[(i + 0) as usize].bmi.mv.as_mv,
+                    (*x).mb_to_left_edge,
+                    (*x).mb_to_right_edge,
+                    (*x).mb_to_top_edge,
+                    (*x).mb_to_bottom_edge,
                 );
                 clamp_mv_to_umv_border(
-                    &raw mut (*(&raw mut (*x).block as *mut BLOCKD)
-                        .offset((i + 1 as ::core::ffi::c_int) as isize))
-                    .bmi
-                    .mv
-                    .as_mv,
-                    x,
+                    &mut (*x).block[(i + 1) as usize].bmi.mv.as_mv,
+                    (*x).mb_to_left_edge,
+                    (*x).mb_to_right_edge,
+                    (*x).mb_to_top_edge,
+                    (*x).mb_to_bottom_edge,
                 );
             }
             if (*d0).bmi.mv.as_int == (*d1).bmi.mv.as_int {
@@ -948,11 +960,11 @@ unsafe extern "C" fn build_4x4uvmvs(mut x: *mut MACROBLOCKD) { unsafe {
                 (temp / 8 as ::core::ffi::c_int & (*x).fullpixel_mask) as ::core::ffi::c_short;
             if (*(*x).mode_info_context).mbmi.need_to_clamp_mvs != 0 {
                 clamp_uvmv_to_umv_border(
-                    &raw mut (*(&raw mut (*x).block as *mut BLOCKD).offset(uoffset as isize))
-                        .bmi
-                        .mv
-                        .as_mv,
-                    x,
+                    &mut (*x).block[uoffset as usize].bmi.mv.as_mv,
+                    (*x).mb_to_left_edge,
+                    (*x).mb_to_right_edge,
+                    (*x).mb_to_top_edge,
+                    (*x).mb_to_bottom_edge,
                 );
             }
             (*x).block[voffset as usize].bmi.mv.as_int = (*x).block[uoffset as usize].bmi.mv.as_int;
