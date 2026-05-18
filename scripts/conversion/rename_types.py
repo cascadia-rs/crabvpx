@@ -1,58 +1,63 @@
-import os, glob, re
+import os, glob, re, json
 
 def to_pascal_case(name):
-    if name.startswith("C2RustUnnamed"):
-        return name.replace("C2RustUnnamed", "C2rustUnnamed")
+    if name.lower().startswith("c2rustunnamed"):
+        return name
     parts = re.split(r"_+", name)
-    parts = [p for p in parts if p]
-    return "".join(p.capitalize() for p in parts)
+    return "".join(p.capitalize() for p in parts if p)
 
 def main():
-    # 1. Discover all renames
-    type_definitions = set()
+    # 1. Discover PascalCase renames
+    pascal_renames = {}
     for filepath in glob.glob("src/**/*.rs", recursive=True):
         if "scripts" in filepath: continue
         with open(filepath, "r") as f:
             content = f.read()
-        for match in re.finditer(r"pub\s+(struct|enum|union|type)\s+([a-zA-Z0-9_]+)", content):
+        # Discover all type definitions
+        for match in re.finditer(r"\b(struct|enum|union|type)\s+([a-zA-Z0-9_]+)", content):
             name = match.group(2)
-            if name and not (name[0].isupper() and "_" not in name):
-                if name in ["size_t", "intptr_t", "uintptr_t", "ptrdiff_t", "ssize_t"]:
-                    continue
-                type_definitions.add(name)
+            # Standard primitives or special cases we want to keep
+            if name in ["u8", "u16", "u32", "u64", "i8", "i16", "i32", "i64", "usize", "isize", "f32", "f64", "bool", "SizeT", "PtrdiffT"]:
+                continue
+            if name.lower().startswith("c2rustunnamed"):
+                continue
+            if "_" in name or (name[0].islower()):
+                pascal_renames[name] = to_pascal_case(name)
 
-    renames = {name: to_pascal_case(name) for name in type_definitions}
-    sorted_old_names = sorted(renames.keys(), key=len, reverse=True)
-    
-    # 2. Apply renames
-    # Stricter pattern: word boundary, but NOT preceded by "mod "
-    # We use a negative lookbehind for "mod "
-    pattern = re.compile(r"(?<!mod\s)\b(" + "|".join(re.escape(name) for name in sorted_old_names) + r")\b")
+    # Filter out keywords
+    keywords = {"as", "for", "if", "in", "let", "mod", "mut", "pub", "ref", "use", "where", "while", "type", "struct", "enum", "union", "trait", "impl", "fn", "unsafe", "extern", "static", "const"}
+    pascal_renames = {k: v for k, v in pascal_renames.items() if k not in keywords and v not in keywords}
 
-    count = 0
+    sorted_old = sorted(pascal_renames.keys(), key=len, reverse=True)
+    pattern = re.compile(r"(?<!mod\s)\b(" + "|".join(re.escape(o) for o in sorted_old) + r")\b")
+
     for filepath in glob.glob("src/**/*.rs", recursive=True):
+        if "scripts" in filepath: continue
         with open(filepath, "r") as f:
             content = f.read()
-        
         orig = content
         
-        content = pattern.sub(lambda m: renames[m.group(1)], content)
-        
-        # 3. Remove circular type aliases: pub type NewName = NewName;
-        # ONLY if they were actually created by our renaming
-        # i.e. it was `pub type OLD = TARGET;` where `renames[OLD] == renames[TARGET]`
-        # We can just look for the literal after-rename circularity.
-        # EXCEPT we must not touch api.rs which has intentional `type Frame = Frame;`
-        if "api.rs" not in filepath:
-            content = re.sub(r"pub\s+type\s+([a-zA-Z0-9_]+)\s*=\s*\1\s*;", "", content)
-            content = re.sub(r"type\s+([a-zA-Z0-9_]+)\s*=\s*\1\s*;", "", content)
+        # Strip redundant aliases BEFORE they become circular
+        lines = content.split("\n")
+        new_lines = []
+        for line in lines:
+            m = re.match(r"^\s*(pub\s+)?type\s+([a-zA-Z0-9_]+)\s*=\s*([a-zA-Z0-9_]+)\s*;", line)
+            if m:
+                alias, target = m.group(2), m.group(3)
+                if pascal_renames.get(alias, alias) == pascal_renames.get(target, target):
+                    if "api.rs" in filepath and alias == "Frame":
+                        pass
+                    else:
+                        continue
+            new_lines.append(line)
+        content = "\n".join(new_lines)
 
+        content = pattern.sub(lambda m: pascal_renames[m.group(1)], content)
+        
         if orig != content:
-            with open(filepath, "w") as f:
-                f.write(content)
-            count += 1
-            
-    print(f"Renamed types in {count} files.")
+            with open(filepath, "w") as f: f.write(content)
+
+    print(f"Renamed {len(pascal_renames)} types to PascalCase.")
 
 if __name__ == "__main__":
     main()
