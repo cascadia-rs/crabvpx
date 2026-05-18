@@ -1,6 +1,7 @@
 # VP8 Decoder Safety Hints
 
 ## Current Progress (May 2026)
+- **Safe Raw Frame Retrieval API**: Refactored `vp8dx_get_raw_frame` in `src/vp8/decoder/onyxd_if.rs` to safe Rust by taking `&mut VP8D_COMP` and `&mut YV12_BUFFER_CONFIG` instead of raw pointers, and removing the unused `flags` pointer. Eliminated `unsafe extern "C"` linkage and internal `unsafe` block. Updated call site in `vp8_dx_iface.rs`. Reduced unsafe count by 2 (1280 remaining).
 - **Safe Reference Buffer Check API**: Refactored `vp8dx_references_buffer` in `src/vp8/decoder/onyxd_if.rs` to safe Rust by taking `&VP8_COMMON` and `&[MODE_INFO]` slice instead of raw pointer. Eliminated `unsafe extern "C"` linkage and internal `unsafe` block. Updated call site in `vp8_get_last_ref_frame` in `vp8_dx_iface.rs`. Reduced unsafe count by 3 (1282 remaining).
 - **Safe Decompressor Removal API**: Refactored `remove_decompressor` in `src/vp8/decoder/onyxd_if.rs` to safe Rust by taking `Box<VP8D_COMP>` instead of a raw pointer. Eliminated `unsafe extern "C"` linkage and internal `unsafe` block. Updated call sites in `create_decompressor` and `vp8_remove_decoder_instances`. Reduced unsafe count by 2 (1288 remaining).
 - **Safe Quantizer Retrieval API**: Refactored `vp8dx_get_quantizer` in `src/vp8/decoder/onyxd_if.rs` to safe Rust by taking a safe reference `&VP8D_COMP` instead of a raw pointer. Eliminated `unsafe extern "C"` linkage and internal `unsafe` block. Updated call site in `vp8_get_quantizer` in `vp8_dx_iface.rs`. Reduced unsafe count by 3 (1290 remaining).

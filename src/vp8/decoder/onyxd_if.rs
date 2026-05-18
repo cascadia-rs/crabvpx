@@ -420,31 +420,29 @@ pub unsafe extern "C" fn vp8dx_receive_compressed_data(
     }
     return retcode;
 }}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_get_raw_frame(
-    mut pbi: *mut VP8D_COMP,
-    mut sd: *mut YV12_BUFFER_CONFIG,
-    mut flags: *mut vp8_ppflags_t,
-) -> ::core::ffi::c_int { unsafe {
+pub fn vp8dx_get_raw_frame(
+    pbi: &mut VP8D_COMP,
+    sd: &mut YV12_BUFFER_CONFIG,
+) -> ::core::ffi::c_int {
     let mut ret: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
-    if (*pbi).ready_for_new_data == 1 as ::core::ffi::c_int {
+    if pbi.ready_for_new_data == 1 as ::core::ffi::c_int {
         return ret;
     }
-    if (*pbi).common.show_frame == 0 as ::core::ffi::c_int {
+    if pbi.common.show_frame == 0 as ::core::ffi::c_int {
         return ret;
     }
-    (*pbi).ready_for_new_data = 1 as ::core::ffi::c_int;
-    if !(*pbi).common.frame_to_show.is_null() {
-        *sd = *(*pbi).common.frame_to_show;
-        (*sd).y_width = (*pbi).common.Width;
-        (*sd).y_height = (*pbi).common.Height;
-        (*sd).uv_height = (*pbi).common.Height / 2 as ::core::ffi::c_int;
+    pbi.ready_for_new_data = 1 as ::core::ffi::c_int;
+    if !pbi.common.frame_to_show.is_null() {
+        *sd = unsafe { *pbi.common.frame_to_show };
+        sd.y_width = pbi.common.Width;
+        sd.y_height = pbi.common.Height;
+        sd.uv_height = pbi.common.Height / 2 as ::core::ffi::c_int;
         ret = 0 as ::core::ffi::c_int;
     } else {
         ret = -(1 as ::core::ffi::c_int);
     }
     return ret;
-}}
+}
 pub fn vp8dx_references_buffer(
     oci: &VP8_COMMON,
     mip_slice: &[MODE_INFO],

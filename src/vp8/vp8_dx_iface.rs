@@ -28,11 +28,6 @@ unsafe extern "C" {
     fn vpx_calloc(num: size_t, size: size_t) -> *mut ::core::ffi::c_void;
     fn vpx_free(memblk: *mut ::core::ffi::c_void);
     fn vp8dx_receive_compressed_data(pbi: *mut VP8D_COMP) -> ::core::ffi::c_int;
-    fn vp8dx_get_raw_frame(
-        pbi: *mut VP8D_COMP,
-        sd: *mut YV12_BUFFER_CONFIG,
-        flags: *mut vp8_ppflags_t,
-    ) -> ::core::ffi::c_int;
     fn vp8dx_get_reference(
         pbi: *mut VP8D_COMP,
         ref_frame_flag: vpx_ref_frame_type,
@@ -1150,10 +1145,9 @@ unsafe extern "C" fn vp8_get_frame(
             flags.noise_level = (*ctx).postproc_cfg.noise_level;
         }
         if 0 as ::core::ffi::c_int
-            == vp8dx_get_raw_frame(
-                (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
-                &raw mut sd,
-                &raw mut flags,
+            == crate::vp8::decoder::onyxd_if::vp8dx_get_raw_frame(
+                &mut *(*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize],
+                &mut sd,
             )
         {
             yuvconfig2image(&raw mut (*ctx).img, &raw mut sd, (*ctx).user_priv);
