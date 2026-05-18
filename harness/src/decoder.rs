@@ -76,6 +76,12 @@ impl LibVpxOracleDecoder {
     }
 }
 
+impl Default for LibVpxOracleDecoder {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl Drop for LibVpxOracleDecoder {
     fn drop(&mut self) {
         if self.initialized {
@@ -152,6 +158,12 @@ impl CrabVpxDecoder {
         Self {
             inner: crabvpx::api::Vp8Decoder::new(),
         }
+    }
+}
+
+impl Default for CrabVpxDecoder {
+    fn default() -> Self {
+        Self::new()
     }
 }
 
