@@ -1,4 +1,5 @@
 use crate::vp8::decoder::decodeframe::vp8cx_init_de_quantizer;
+use crate::vp8::common::mbpitch::vp8_setup_block_dptrs;
 
 unsafe extern "C" {
     fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
@@ -9,7 +10,6 @@ unsafe extern "C" {
         ...
     );
     fn vp8_loop_filter_init(cm: *mut VP8Common);
-    fn vp8_setup_block_dptrs(x: *mut MACROBLOCKD);
     fn pthread_once(
         _: *mut pthread_once_t,
         _: Option<unsafe extern "C" fn() -> ()>,
@@ -159,7 +159,7 @@ unsafe extern "C" fn create_decompressor(mut oxcf: *mut VP8D_CONFIG) -> *mut VP8
     (*pbi).ec_active = 0 as ::core::ffi::c_int;
     (*pbi).decoded_key_frame = 0 as ::core::ffi::c_int;
     (*pbi).independent_partitions = 0 as ::core::ffi::c_int;
-    vp8_setup_block_dptrs(&raw mut (*pbi).mb);
+    vp8_setup_block_dptrs(&mut (*pbi).mb);
     once(Some(initialize_dec as unsafe extern "C" fn() -> ()));
     return pbi as *mut VP8D_COMP;
 }}

@@ -17,16 +17,15 @@ pub type size_t = __darwin_size_t;
 pub type uint8_t = u8;
 pub type uint32_t = u32;
 pub use crate::vp8::common::types::*;
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) { unsafe {
+pub fn vp8_setup_block_dptrs(x: &mut MACROBLOCKD) { unsafe {
     let mut r: ::core::ffi::c_int = 0;
     let mut c: ::core::ffi::c_int = 0;
     r = 0 as ::core::ffi::c_int;
     while r < 4 as ::core::ffi::c_int {
         c = 0 as ::core::ffi::c_int;
         while c < 4 as ::core::ffi::c_int {
-            (*x).block[(r * 4 as ::core::ffi::c_int + c) as usize].predictor =
-                (&raw mut (*x).predictor as *mut ::core::ffi::c_uchar)
+            x.block[(r * 4 as ::core::ffi::c_int + c) as usize].predictor =
+                x.predictor.as_mut_ptr()
                     .offset((r * 4 as ::core::ffi::c_int * 16 as ::core::ffi::c_int) as isize)
                     .offset((c * 4 as ::core::ffi::c_int) as isize);
             c += 1;
@@ -37,8 +36,8 @@ pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) { unsafe
     while r < 2 as ::core::ffi::c_int {
         c = 0 as ::core::ffi::c_int;
         while c < 2 as ::core::ffi::c_int {
-            (*x).block[(16 as ::core::ffi::c_int + r * 2 as ::core::ffi::c_int + c) as usize]
-                .predictor = (&raw mut (*x).predictor as *mut ::core::ffi::c_uchar)
+            x.block[(16 as ::core::ffi::c_int + r * 2 as ::core::ffi::c_int + c) as usize]
+                .predictor = x.predictor.as_mut_ptr()
                 .offset(256 as ::core::ffi::c_int as isize)
                 .offset((r * 4 as ::core::ffi::c_int * 8 as ::core::ffi::c_int) as isize)
                 .offset((c * 4 as ::core::ffi::c_int) as isize);
@@ -50,8 +49,8 @@ pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) { unsafe
     while r < 2 as ::core::ffi::c_int {
         c = 0 as ::core::ffi::c_int;
         while c < 2 as ::core::ffi::c_int {
-            (*x).block[(20 as ::core::ffi::c_int + r * 2 as ::core::ffi::c_int + c) as usize]
-                .predictor = (&raw mut (*x).predictor as *mut ::core::ffi::c_uchar)
+            x.block[(20 as ::core::ffi::c_int + r * 2 as ::core::ffi::c_int + c) as usize]
+                .predictor = x.predictor.as_mut_ptr()
                 .offset(320 as ::core::ffi::c_int as isize)
                 .offset((r * 4 as ::core::ffi::c_int * 8 as ::core::ffi::c_int) as isize)
                 .offset((c * 4 as ::core::ffi::c_int) as isize);
@@ -61,12 +60,11 @@ pub unsafe extern "C" fn vp8_setup_block_dptrs(mut x: *mut MACROBLOCKD) { unsafe
     }
     r = 0 as ::core::ffi::c_int;
     while r < 25 as ::core::ffi::c_int {
-        (*x).block[r as usize].qcoeff = (&raw mut (*x).qcoeff as *mut ::core::ffi::c_short)
+        x.block[r as usize].qcoeff = x.qcoeff.as_mut_ptr()
             .offset((r * 16 as ::core::ffi::c_int) as isize);
-        (*x).block[r as usize].dqcoeff = (&raw mut (*x).dqcoeff as *mut ::core::ffi::c_short)
+        x.block[r as usize].dqcoeff = x.dqcoeff.as_mut_ptr()
             .offset((r * 16 as ::core::ffi::c_int) as isize);
-        (*x).block[r as usize].eob =
-            (&raw mut (*x).eobs as *mut ::core::ffi::c_char).offset(r as isize);
+        x.block[r as usize].eob = x.eobs.as_mut_ptr().offset(r as isize);
         r += 1;
     }
 }}

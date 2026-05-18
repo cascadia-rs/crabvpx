@@ -1,6 +1,7 @@
 use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_context};
 use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_frame_init;
 use crate::vp8::decoder::decodeframe::vp8_mb_init_dequantizer;
+use crate::vp8::common::mbpitch::vp8_setup_block_dptrs;
 
 unsafe extern "C" {
     fn vp8_dc_only_idct_add_neon(
@@ -99,7 +100,6 @@ unsafe extern "C" {
         fmt: *const ::core::ffi::c_char,
         ...
     );
-    fn vp8_setup_block_dptrs(x: *mut MACROBLOCKD);
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -1175,7 +1175,7 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) { u
             {
                 break;
             }
-            vp8_setup_block_dptrs(&raw mut (*(*pbi).mb_row_di.offset(ithread as isize)).mbd);
+            vp8_setup_block_dptrs(&mut (*(*pbi).mb_row_di.offset(ithread as isize)).mbd);
             (*(*pbi).de_thread_data.offset(ithread as isize)).ithread =
                 ithread as ::core::ffi::c_int;
             let ref mut fresh6 = (*(*pbi).de_thread_data.offset(ithread as isize)).ptr1;
