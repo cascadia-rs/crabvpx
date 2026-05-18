@@ -1,6 +1,7 @@
 use crate::vp8::decoder::dboolhuff::SafeBoolDecoder;
 use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_context};
 use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_frame_init;
+use crate::vp8::common::quant_common::{vp8_ac_yquant, vp8_dc_quant, vp8_dc2quant, vp8_ac2quant, vp8_dc_uv_quant, vp8_ac_uv_quant};
 
 unsafe extern "C" {
     fn vp8dx_decode_bool(br: *mut BOOL_DECODER, probability: ::core::ffi::c_int) -> ::core::ffi::c_int;
@@ -163,14 +164,6 @@ unsafe extern "C" {
     );
     fn vp8_setup_version(cm: *mut VP8_COMMON);
     fn vp8_init_mbmode_probs(x: *mut VP8_COMMON);
-    fn vp8_ac_yquant(QIndex: ::core::ffi::c_int) -> ::core::ffi::c_int;
-    fn vp8_dc_quant(QIndex: ::core::ffi::c_int, Delta: ::core::ffi::c_int) -> ::core::ffi::c_int;
-    fn vp8_dc2quant(QIndex: ::core::ffi::c_int, Delta: ::core::ffi::c_int) -> ::core::ffi::c_int;
-    fn vp8_ac2quant(QIndex: ::core::ffi::c_int, Delta: ::core::ffi::c_int) -> ::core::ffi::c_int;
-    fn vp8_dc_uv_quant(QIndex: ::core::ffi::c_int, Delta: ::core::ffi::c_int)
-        -> ::core::ffi::c_int;
-    fn vp8_ac_uv_quant(QIndex: ::core::ffi::c_int, Delta: ::core::ffi::c_int)
-        -> ::core::ffi::c_int;
     fn vp8_setup_intra_recon_top_line(ybf: *mut YV12_BUFFER_CONFIG);
     fn vp8_decode_mode_mvs(_: *mut VP8D_COMP);
     fn vp8_extend_mb_row(
@@ -319,27 +312,25 @@ unsafe extern "C" fn setup_intra_recon_left(
         i += 1;
     }
 }}
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8cx_init_de_quantizer(mut pbi: *mut VP8D_COMP) { unsafe {
+pub fn vp8cx_init_de_quantizer(pbi: &mut VP8D_COMP) {
+    let pc = &mut pbi.common;
     let mut Q: ::core::ffi::c_int = 0;
-    let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
-    Q = 0 as ::core::ffi::c_int;
     while Q < QINDEX_RANGE {
-        (*pc).Y1dequant[Q as usize][0 as ::core::ffi::c_int as usize] =
-            vp8_dc_quant(Q, (*pc).y1dc_delta_q) as ::core::ffi::c_short;
-        (*pc).Y2dequant[Q as usize][0 as ::core::ffi::c_int as usize] =
-            vp8_dc2quant(Q, (*pc).y2dc_delta_q) as ::core::ffi::c_short;
-        (*pc).UVdequant[Q as usize][0 as ::core::ffi::c_int as usize] =
-            vp8_dc_uv_quant(Q, (*pc).uvdc_delta_q) as ::core::ffi::c_short;
-        (*pc).Y1dequant[Q as usize][1 as ::core::ffi::c_int as usize] =
+        pc.Y1dequant[Q as usize][0 as ::core::ffi::c_int as usize] =
+            vp8_dc_quant(Q, pc.y1dc_delta_q) as ::core::ffi::c_short;
+        pc.Y2dequant[Q as usize][0 as ::core::ffi::c_int as usize] =
+            vp8_dc2quant(Q, pc.y2dc_delta_q) as ::core::ffi::c_short;
+        pc.UVdequant[Q as usize][0 as ::core::ffi::c_int as usize] =
+            vp8_dc_uv_quant(Q, pc.uvdc_delta_q) as ::core::ffi::c_short;
+        pc.Y1dequant[Q as usize][1 as ::core::ffi::c_int as usize] =
             vp8_ac_yquant(Q) as ::core::ffi::c_short;
-        (*pc).Y2dequant[Q as usize][1 as ::core::ffi::c_int as usize] =
-            vp8_ac2quant(Q, (*pc).y2ac_delta_q) as ::core::ffi::c_short;
-        (*pc).UVdequant[Q as usize][1 as ::core::ffi::c_int as usize] =
-            vp8_ac_uv_quant(Q, (*pc).uvac_delta_q) as ::core::ffi::c_short;
+        pc.Y2dequant[Q as usize][1 as ::core::ffi::c_int as usize] =
+            vp8_ac2quant(Q, pc.y2ac_delta_q) as ::core::ffi::c_short;
+        pc.UVdequant[Q as usize][1 as ::core::ffi::c_int as usize] =
+            vp8_ac_uv_quant(Q, pc.uvac_delta_q) as ::core::ffi::c_short;
         Q += 1;
     }
-}}
+}
 pub fn vp8_mb_init_dequantizer(
     pc: &VP8_COMMON,
     xd: &mut MACROBLOCKD,
@@ -1681,7 +1672,7 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
     (*pc).uvdc_delta_q = get_delta_q(&mut safe_decoder, (*pc).uvdc_delta_q, &mut q_update);
     (*pc).uvac_delta_q = get_delta_q(&mut safe_decoder, (*pc).uvac_delta_q, &mut q_update);
     if q_update != 0 {
-        vp8cx_init_de_quantizer(pbi);
+        vp8cx_init_de_quantizer(&mut *pbi);
     }
     vp8_mb_init_dequantizer(&(*pbi).common, &mut (*pbi).mb);
     if (*pc).frame_type as ::core::ffi::c_uint
