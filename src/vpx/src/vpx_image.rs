@@ -170,18 +170,14 @@ unsafe fn img_alloc_helper(
                     s = if fmt as u32 & VPX_IMG_FMT_PLANAR as u32 != 0 {
                         w as u64
                     } else {
-                        (bps as u64)
-                            .wrapping_mul(w as u64)
-                            .wrapping_div(8 as u64)
+                        (bps as u64).wrapping_mul(w as u64).wrapping_div(8 as u64)
                     };
                     s = if fmt as u32 & VPX_IMG_FMT_HIGHBITDEPTH as u32 != 0 {
                         s.wrapping_mul(2 as u64)
                     } else {
                         s
                     };
-                    s = s
-                        .wrapping_add(stride_align as u64)
-                        .wrapping_sub(1 as u64)
+                    s = s.wrapping_add(stride_align as u64).wrapping_sub(1 as u64)
                         & !(stride_align as u64).wrapping_sub(1 as u64);
                     if !(s > INT_MAX as u64) {
                         stride_in_bytes = s as i32;

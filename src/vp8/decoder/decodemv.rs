@@ -678,8 +678,7 @@ unsafe fn read_kf_modes(mut pbi: *mut VP8D_COMP, mut mi: *mut MODE_INFO) {
             (&raw mut (*pbi).mbc as *mut vp8_reader).offset(8 as isize) as *mut vp8_reader;
         let mis: i32 = (*pbi).common.mode_info_stride;
         (*mi).mbmi.ref_frame = INTRA_FRAME as u8;
-        (*mi).mbmi.mode =
-            read_kf_ymode(bc, &raw const vp8_kf_ymode_prob as *const vp8_prob) as u8;
+        (*mi).mbmi.mode = read_kf_ymode(bc, &raw const vp8_kf_ymode_prob as *const vp8_prob) as u8;
         if (*mi).mbmi.mode as i32 == B_PRED as i32 {
             let mut i: i32 = 0 as i32;
             (*mi).mbmi.is_4x4 = 1 as u8;
@@ -1223,8 +1222,7 @@ unsafe fn read_mb_modes_mv(
                 }
             }
             (*mbmi).uv_mode =
-                read_uv_mode(bc, &raw mut (*pbi).common.fc.uv_mode_prob as *mut vp8_prob)
-                    as u8;
+                read_uv_mode(bc, &raw mut (*pbi).common.fc.uv_mode_prob as *mut vp8_prob) as u8;
         };
     }
 }

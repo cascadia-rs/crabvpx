@@ -316,9 +316,8 @@ pub type vpx_get_frame_buffer_cb_fn_t =
     Option<unsafe fn(*mut c_void, size_t, *mut vpx_codec_frame_buffer_t) -> i32>;
 pub type vpx_codec_get_frame_fn_t =
     Option<unsafe fn(*mut vpx_codec_alg_priv_t, *mut vpx_codec_iter_t) -> *mut vpx_image_t>;
-pub type vpx_codec_decode_fn_t = Option<
-    unsafe fn(*mut vpx_codec_alg_priv_t, *const u8, u32, *mut c_void) -> vpx_codec_err_t,
->;
+pub type vpx_codec_decode_fn_t =
+    Option<unsafe fn(*mut vpx_codec_alg_priv_t, *const u8, u32, *mut c_void) -> vpx_codec_err_t>;
 pub type vpx_codec_get_si_fn_t =
     Option<unsafe fn(*mut vpx_codec_alg_priv_t, *mut vpx_codec_stream_info_t) -> vpx_codec_err_t>;
 pub type vpx_codec_stream_info_t = vpx_codec_stream_info;

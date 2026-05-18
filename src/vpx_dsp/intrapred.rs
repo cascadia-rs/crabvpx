@@ -30,8 +30,7 @@ unsafe fn d207_predictor(
             *dst.offset((r as ptrdiff_t * stride) as isize) = ((*left.offset(r as isize) as i32
                 + *left.offset((r + 1 as i32) as isize) as i32
                 + 1 as i32)
-                >> 1 as i32)
-                as u8;
+                >> 1 as i32) as u8;
             r += 1;
         }
         *dst.offset((bs - 1 as i32) as ptrdiff_t * stride) = *left.offset((bs - 1 as i32) as isize);
@@ -42,8 +41,7 @@ unsafe fn d207_predictor(
                 + 2 as i32 * *left.offset((r + 1 as i32) as isize) as i32
                 + *left.offset((r + 2 as i32) as isize) as i32
                 + 2 as i32)
-                >> 2 as i32)
-                as u8;
+                >> 2 as i32) as u8;
             r += 1;
         }
         *dst.offset((bs - 2 as i32) as ptrdiff_t * stride) =
@@ -96,8 +94,7 @@ unsafe fn d63_predictor(
                 + 2 as i32 * *above.offset((c + 1 as i32) as isize) as i32
                 + *above.offset((c + 2 as i32) as isize) as i32
                 + 2 as i32)
-                >> 2 as i32)
-                as u8;
+                >> 2 as i32) as u8;
             c += 1;
         }
         r = 2 as i32;

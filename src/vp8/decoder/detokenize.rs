@@ -482,53 +482,17 @@ pub unsafe fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
     }
 }
 static mut kBands: [u8; 17] = [
-    0 as u8,
-    1 as u8,
-    2 as u8,
-    3 as u8,
-    6 as u8,
-    4 as u8,
-    5 as u8,
-    6 as u8,
-    6 as u8,
-    6 as u8,
-    6 as u8,
-    6 as u8,
-    6 as u8,
-    6 as u8,
-    6 as u8,
-    7 as u8,
-    0 as u8,
+    0 as u8, 1 as u8, 2 as u8, 3 as u8, 6 as u8, 4 as u8, 5 as u8, 6 as u8, 6 as u8, 6 as u8,
+    6 as u8, 6 as u8, 6 as u8, 6 as u8, 6 as u8, 7 as u8, 0 as u8,
 ];
 static mut kCat3: [u8; 4] = [173 as u8, 148 as u8, 140 as u8, 0 as u8];
-static mut kCat4: [u8; 5] = [
-    176 as u8,
-    155 as u8,
-    140 as u8,
-    135 as u8,
-    0 as u8,
-];
+static mut kCat4: [u8; 5] = [176 as u8, 155 as u8, 140 as u8, 135 as u8, 0 as u8];
 static mut kCat5: [u8; 6] = [
-    180 as u8,
-    157 as u8,
-    141 as u8,
-    134 as u8,
-    130 as u8,
-    0 as u8,
+    180 as u8, 157 as u8, 141 as u8, 134 as u8, 130 as u8, 0 as u8,
 ];
 static mut kCat6: [u8; 12] = [
-    254 as u8,
-    254 as u8,
-    243 as u8,
-    230 as u8,
-    196 as u8,
-    177 as u8,
-    153 as u8,
-    140 as u8,
-    133 as u8,
-    130 as u8,
-    129 as u8,
-    0 as u8,
+    254 as u8, 254 as u8, 243 as u8, 230 as u8, 196 as u8, 177 as u8, 153 as u8, 140 as u8,
+    133 as u8, 130 as u8, 129 as u8, 0 as u8,
 ];
 static mut kCat3456: [*const u8; 4] = {
     [
@@ -539,22 +503,8 @@ static mut kCat3456: [*const u8; 4] = {
     ]
 };
 static mut kZigzag: [u8; 16] = [
-    0 as u8,
-    1 as u8,
-    4 as u8,
-    8 as u8,
-    5 as u8,
-    2 as u8,
-    3 as u8,
-    6 as u8,
-    9 as u8,
-    12 as u8,
-    13 as u8,
-    10 as u8,
-    7 as u8,
-    11 as u8,
-    14 as u8,
-    15 as u8,
+    0 as u8, 1 as u8, 4 as u8, 8 as u8, 5 as u8, 2 as u8, 3 as u8, 6 as u8, 9 as u8, 12 as u8,
+    13 as u8, 10 as u8, 7 as u8, 11 as u8, 14 as u8, 15 as u8,
 ];
 unsafe fn get_signed(mut br: *mut BOOL_DECODER, mut value_to_sign: i32) -> i32 {
     unsafe {
@@ -586,8 +536,7 @@ unsafe fn get_coeffs(
     mut out: *mut i16,
 ) -> i32 {
     unsafe {
-        let mut p: *const u8 = &raw const *(&raw const *prob.offset(n as isize)
-            as *const [u8; 11])
+        let mut p: *const u8 = &raw const *(&raw const *prob.offset(n as isize) as *const [u8; 11])
             .offset(ctx as isize) as *const u8;
         if vp8dx_decode_bool(br, *p.offset(0 as isize) as i32) == 0 {
             return 0 as i32;
