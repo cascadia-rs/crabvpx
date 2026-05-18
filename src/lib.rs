@@ -13,6 +13,8 @@
 #![allow(clippy::unnecessary_cast)]
 #![allow(clippy::misrefactored_assign_op)]
 #![allow(clippy::unnecessary_unwrap)]
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::type_complexity)]
 #![feature(extern_types)]
 
 pub mod api;
