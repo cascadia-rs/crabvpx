@@ -4,6 +4,7 @@ use crate::vp8::decoder::decodemv::vp8_decode_mode_mvs;
 use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_frame_init;
 use crate::vp8::common::quant_common::{vp8_ac_yquant, vp8_dc_quant, vp8_dc2quant, vp8_ac2quant, vp8_dc_uv_quant, vp8_ac_uv_quant};
 use crate::vpx_scale::generic::yv12extend::vp8_yv12_extend_frame_borders_c;
+use crate::vp8::common::extend::vp8_extend_mb_row;
 
 unsafe extern "C" {
     fn vp8dx_decode_bool(br: *mut BOOL_DECODER, probability: ::core::ffi::c_int) -> ::core::ffi::c_int;
@@ -164,12 +165,6 @@ unsafe extern "C" {
         top_left: ::core::ffi::c_uchar,
     );
     fn vp8_setup_intra_recon_top_line(ybf: *mut YV12_BUFFER_CONFIG);
-    fn vp8_extend_mb_row(
-        ybf: *mut YV12_BUFFER_CONFIG,
-        YPtr: *mut ::core::ffi::c_uchar,
-        UPtr: *mut ::core::ffi::c_uchar,
-        VPtr: *mut ::core::ffi::c_uchar,
-    );
     fn vp8mt_decode_mb_rows(pbi: *mut VP8D_COMP, xd: *mut MACROBLOCKD) -> ::core::ffi::c_int;
     fn vp8_decoder_remove_threads(pbi: *mut VP8D_COMP);
 }
@@ -958,10 +953,8 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) { unsafe {
             mb_col += 1;
         }
         vp8_extend_mb_row(
-            yv12_fb_new,
-            (*xd).dst.y_buffer.offset(16 as ::core::ffi::c_int as isize),
-            (*xd).dst.u_buffer.offset(8 as ::core::ffi::c_int as isize),
-            (*xd).dst.v_buffer.offset(8 as ::core::ffi::c_int as isize),
+            &mut *yv12_fb_new,
+            mb_row,
         );
         (*xd).mode_info_context = (*xd).mode_info_context.offset(1);
         (*xd).up_available = 1 as ::core::ffi::c_int;

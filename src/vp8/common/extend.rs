@@ -262,31 +262,94 @@ pub unsafe extern "C" fn vp8_copy_and_extend_frame_with_rect(
     );
 }}
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_extend_mb_row(
-    mut ybf: *mut YV12_BUFFER_CONFIG,
-    mut YPtr: *mut ::core::ffi::c_uchar,
-    mut UPtr: *mut ::core::ffi::c_uchar,
-    mut VPtr: *mut ::core::ffi::c_uchar,
-) { unsafe {
-    let mut i: ::core::ffi::c_int = 0;
-    YPtr = YPtr.offset(((*ybf).y_stride * 14 as ::core::ffi::c_int) as isize);
-    UPtr = UPtr.offset(((*ybf).uv_stride * 6 as ::core::ffi::c_int) as isize);
-    VPtr = VPtr.offset(((*ybf).uv_stride * 6 as ::core::ffi::c_int) as isize);
-    i = 0 as ::core::ffi::c_int;
-    while i < 4 as ::core::ffi::c_int {
-        *YPtr.offset(i as isize) = *YPtr.offset(-(1 as ::core::ffi::c_int) as isize);
-        *UPtr.offset(i as isize) = *UPtr.offset(-(1 as ::core::ffi::c_int) as isize);
-        *VPtr.offset(i as isize) = *VPtr.offset(-(1 as ::core::ffi::c_int) as isize);
-        i += 1;
+pub fn vp8_extend_mb_row(
+    ybf: &mut YV12_BUFFER_CONFIG,
+    mb_row: i32,
+) {
+    let y_stride = ybf.y_stride as usize;
+    let uv_stride = ybf.uv_stride as usize;
+    let y_width = ybf.y_width as usize;
+    let uv_width = ybf.uv_width as usize;
+    let border = ybf.border as usize;
+    let mb_row = mb_row as usize;
+
+    // Y plane border extension
+    {
+        let y_slice = unsafe { ybf.y_slice_mut() };
+        
+        // Y plane row 14
+        {
+            let row_idx = border + mb_row * 16 + 14;
+            let row_start = row_idx * y_stride;
+            let src_val = y_slice[row_start + border + y_width - 1];
+            let dst_start = row_start + border + y_width;
+            for i in 0..4 {
+                y_slice[dst_start + i] = src_val;
+            }
+        }
+        // Y plane row 15
+        {
+            let row_idx = border + mb_row * 16 + 15;
+            let row_start = row_idx * y_stride;
+            let src_val = y_slice[row_start + border + y_width - 1];
+            let dst_start = row_start + border + y_width;
+            for i in 0..4 {
+                y_slice[dst_start + i] = src_val;
+            }
+        }
     }
-    YPtr = YPtr.offset((*ybf).y_stride as isize);
-    UPtr = UPtr.offset((*ybf).uv_stride as isize);
-    VPtr = VPtr.offset((*ybf).uv_stride as isize);
-    i = 0 as ::core::ffi::c_int;
-    while i < 4 as ::core::ffi::c_int {
-        *YPtr.offset(i as isize) = *YPtr.offset(-(1 as ::core::ffi::c_int) as isize);
-        *UPtr.offset(i as isize) = *UPtr.offset(-(1 as ::core::ffi::c_int) as isize);
-        *VPtr.offset(i as isize) = *VPtr.offset(-(1 as ::core::ffi::c_int) as isize);
-        i += 1;
+
+    let uv_border = border / 2;
+
+    // U plane border extension
+    {
+        let u_slice = unsafe { ybf.u_slice_mut() };
+        
+        // U plane row 6
+        {
+            let row_idx = uv_border + mb_row * 8 + 6;
+            let row_start = row_idx * uv_stride;
+            let src_val = u_slice[row_start + uv_border + uv_width - 1];
+            let dst_start = row_start + uv_border + uv_width;
+            for i in 0..4 {
+                u_slice[dst_start + i] = src_val;
+            }
+        }
+        // U plane row 7
+        {
+            let row_idx = uv_border + mb_row * 8 + 7;
+            let row_start = row_idx * uv_stride;
+            let src_val = u_slice[row_start + uv_border + uv_width - 1];
+            let dst_start = row_start + uv_border + uv_width;
+            for i in 0..4 {
+                u_slice[dst_start + i] = src_val;
+            }
+        }
     }
-}}
+
+    // V plane border extension
+    {
+        let v_slice = unsafe { ybf.v_slice_mut() };
+        
+        // V plane row 6
+        {
+            let row_idx = uv_border + mb_row * 8 + 6;
+            let row_start = row_idx * uv_stride;
+            let src_val = v_slice[row_start + uv_border + uv_width - 1];
+            let dst_start = row_start + uv_border + uv_width;
+            for i in 0..4 {
+                v_slice[dst_start + i] = src_val;
+            }
+        }
+        // V plane row 7
+        {
+            let row_idx = uv_border + mb_row * 8 + 7;
+            let row_start = row_idx * uv_stride;
+            let src_val = v_slice[row_start + uv_border + uv_width - 1];
+            let dst_start = row_start + uv_border + uv_width;
+            for i in 0..4 {
+                v_slice[dst_start + i] = src_val;
+            }
+        }
+    }
+}

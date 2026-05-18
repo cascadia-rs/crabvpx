@@ -173,6 +173,68 @@ pub struct yv12_buffer_config {
 
 pub type YV12_BUFFER_CONFIG = yv12_buffer_config;
 
+impl yv12_buffer_config {
+    pub unsafe fn y_slice(&self) -> &[u8] {
+        let border = self.border as usize;
+        let stride = self.y_stride as usize;
+        let height = self.y_height as usize;
+        let total_height = height + 2 * border;
+        let total_size = total_height * stride;
+        let start_ptr = self.y_buffer.offset(-((border * stride + border) as isize));
+        core::slice::from_raw_parts(start_ptr, total_size)
+    }
+
+    pub unsafe fn y_slice_mut(&mut self) -> &mut [u8] {
+        let border = self.border as usize;
+        let stride = self.y_stride as usize;
+        let height = self.y_height as usize;
+        let total_height = height + 2 * border;
+        let total_size = total_height * stride;
+        let start_ptr = self.y_buffer.offset(-((border * stride + border) as isize));
+        core::slice::from_raw_parts_mut(start_ptr, total_size)
+    }
+
+    pub unsafe fn u_slice(&self) -> &[u8] {
+        let border = (self.border / 2) as usize;
+        let stride = self.uv_stride as usize;
+        let height = self.uv_height as usize;
+        let total_height = height + 2 * border;
+        let total_size = total_height * stride;
+        let start_ptr = self.u_buffer.offset(-((border * stride + border) as isize));
+        core::slice::from_raw_parts(start_ptr, total_size)
+    }
+
+    pub unsafe fn u_slice_mut(&mut self) -> &mut [u8] {
+        let border = (self.border / 2) as usize;
+        let stride = self.uv_stride as usize;
+        let height = self.uv_height as usize;
+        let total_height = height + 2 * border;
+        let total_size = total_height * stride;
+        let start_ptr = self.u_buffer.offset(-((border * stride + border) as isize));
+        core::slice::from_raw_parts_mut(start_ptr, total_size)
+    }
+
+    pub unsafe fn v_slice(&self) -> &[u8] {
+        let border = (self.border / 2) as usize;
+        let stride = self.uv_stride as usize;
+        let height = self.uv_height as usize;
+        let total_height = height + 2 * border;
+        let total_size = total_height * stride;
+        let start_ptr = self.v_buffer.offset(-((border * stride + border) as isize));
+        core::slice::from_raw_parts(start_ptr, total_size)
+    }
+
+    pub unsafe fn v_slice_mut(&mut self) -> &mut [u8] {
+        let border = (self.border / 2) as usize;
+        let stride = self.uv_stride as usize;
+        let height = self.uv_height as usize;
+        let total_height = height + 2 * border;
+        let total_size = total_height * stride;
+        let start_ptr = self.v_buffer.offset(-((border * stride + border) as isize));
+        core::slice::from_raw_parts_mut(start_ptr, total_size)
+    }
+}
+
 pub type vpx_codec_err_t = ::core::ffi::c_uint;
 pub const VPX_CODEC_LIST_END: vpx_codec_err_t = 9;
 pub const VPX_CODEC_INVALID_PARAM: vpx_codec_err_t = 8;

@@ -2,7 +2,7 @@ use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_
 use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_frame_init;
 use crate::vp8::decoder::decodeframe::vp8_mb_init_dequantizer;
 use crate::vp8::common::mbpitch::vp8_setup_block_dptrs;
-
+use crate::vp8::common::extend::vp8_extend_mb_row;
 unsafe extern "C" {
     fn vp8_dc_only_idct_add_neon(
         input_dc: ::core::ffi::c_short,
@@ -114,12 +114,7 @@ unsafe extern "C" {
     fn vpx_malloc(size: size_t) -> *mut ::core::ffi::c_void;
     fn vpx_calloc(num: size_t, size: size_t) -> *mut ::core::ffi::c_void;
     fn vpx_free(memblk: *mut ::core::ffi::c_void);
-    fn vp8_extend_mb_row(
-        ybf: *mut YV12_BUFFER_CONFIG,
-        YPtr: *mut ::core::ffi::c_uchar,
-        UPtr: *mut ::core::ffi::c_uchar,
-        VPtr: *mut ::core::ffi::c_uchar,
-    );
+
     
     fn vp8_intra4x4_predict(
         above: *mut ::core::ffi::c_uchar,
@@ -1001,10 +996,8 @@ unsafe extern "C" fn mt_decode_mb_rows(
             }
         } else {
             vp8_extend_mb_row(
-                yv12_fb_new,
-                (*xd).dst.y_buffer.offset(16 as ::core::ffi::c_int as isize),
-                (*xd).dst.u_buffer.offset(8 as ::core::ffi::c_int as isize),
-                (*xd).dst.v_buffer.offset(8 as ::core::ffi::c_int as isize),
+                &mut *yv12_fb_new,
+                mb_row,
             );
         }
         vpx_atomic_store_release(current_mb_col, mb_col + nsync);
