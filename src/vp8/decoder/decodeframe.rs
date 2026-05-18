@@ -772,9 +772,9 @@ unsafe extern "C" fn yv12_extend_frame_left_right_c(
         i += 1;
     }
 }}
-unsafe extern "C" fn decode_mb_rows(mut pbi: *mut VP8D_COMP) { unsafe {
-    let pc: *mut VP8_COMMON = &raw mut (*pbi).common;
-    let xd: *mut MACROBLOCKD = &raw mut (*pbi).mb;
+fn decode_mb_rows(pbi: &mut VP8D_COMP) { unsafe {
+    let pc: *mut VP8_COMMON = &raw mut pbi.common;
+    let xd: *mut MACROBLOCKD = &raw mut pbi.mb;
     let mut lf_mic: *mut MODE_INFO = (*xd).mode_info_context;
     let mut ibc: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     let mut num_part: ::core::ffi::c_int =
@@ -785,7 +785,7 @@ unsafe extern "C" fn decode_mb_rows(mut pbi: *mut VP8D_COMP) { unsafe {
     let mut mb_col: ::core::ffi::c_int = 0;
     let mut mb_idx: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     let mut yv12_fb_new: *mut YV12_BUFFER_CONFIG =
-        (*pbi).dec_fb_ref[INTRA_FRAME as ::core::ffi::c_int as usize];
+        pbi.dec_fb_ref[INTRA_FRAME as ::core::ffi::c_int as usize];
     let mut recon_y_stride: ::core::ffi::c_int = (*yv12_fb_new).y_stride;
     let mut recon_uv_stride: ::core::ffi::c_int = (*yv12_fb_new).uv_stride;
     let mut ref_buffer: [[*mut ::core::ffi::c_uchar; 3]; 4] =
@@ -801,7 +801,7 @@ unsafe extern "C" fn decode_mb_rows(mut pbi: *mut VP8D_COMP) { unsafe {
     ref_fb_corrupted[INTRA_FRAME as ::core::ffi::c_int as usize] = 0 as ::core::ffi::c_int;
     i = 1 as ::core::ffi::c_int;
     while i < MAX_REF_FRAMES as ::core::ffi::c_int {
-        let mut this_fb: *mut YV12_BUFFER_CONFIG = (*pbi).dec_fb_ref[i as usize];
+        let mut this_fb: *mut YV12_BUFFER_CONFIG = pbi.dec_fb_ref[i as usize];
         ref_buffer[i as usize][0 as ::core::ffi::c_int as usize] =
             (*this_fb).y_buffer as *mut ::core::ffi::c_uchar;
         ref_buffer[i as usize][1 as ::core::ffi::c_int as usize] =
@@ -917,10 +917,10 @@ unsafe extern "C" fn decode_mb_rows(mut pbi: *mut VP8D_COMP) { unsafe {
                 (*xd).pre.v_buffer = ::core::ptr::null_mut::<uint8_t>();
             }
             (*xd).corrupted |= ref_fb_corrupted[(*(*xd).mode_info_context).mbmi.ref_frame as usize];
-            decode_macroblock(&mut *pbi, &mut *xd, mb_idx as ::core::ffi::c_uint);
+            decode_macroblock(pbi, &mut *xd, mb_idx as ::core::ffi::c_uint);
             mb_idx += 1;
             (*xd).left_available = 1 as ::core::ffi::c_int;
-            (*xd).corrupted |= vp8dx_bool_error(&(*pbi).mbc[(*xd).current_bc_idx]);
+            (*xd).corrupted |= vp8dx_bool_error(&pbi.mbc[(*xd).current_bc_idx]);
             (*xd).recon_above[0 as ::core::ffi::c_int as usize] = (*xd).recon_above
                 [0 as ::core::ffi::c_int as usize]
                 .offset(16 as ::core::ffi::c_int as isize);
@@ -1783,7 +1783,7 @@ pub unsafe extern "C" fn vp8_decode_frame(mut pbi: *mut VP8D_COMP) -> ::core::ff
             thread = thread.wrapping_add(1);
         }
     } else {
-        decode_mb_rows(pbi);
+        decode_mb_rows(&mut *pbi);
         corrupt_tokens |= (*xd).corrupted;
     }
     (*yv12_fb_new).corrupted = vp8dx_bool_error(bc);
