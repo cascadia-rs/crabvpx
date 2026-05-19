@@ -68,21 +68,6 @@ pub struct loop_filter_info {
     pub lim: *const ::core::ffi::c_uchar,
     pub hev_thr: *const ::core::ffi::c_uchar,
 }
-pub type loopfilter_uv_neon = unsafe extern "C" fn(
-    *mut ::core::ffi::c_uchar,
-    ::core::ffi::c_int,
-    ::core::ffi::c_uchar,
-    ::core::ffi::c_uchar,
-    ::core::ffi::c_uchar,
-    *mut ::core::ffi::c_uchar,
-) -> ();
-pub type loopfilter_y_neon = unsafe extern "C" fn(
-    *mut ::core::ffi::c_uchar,
-    ::core::ffi::c_int,
-    ::core::ffi::c_uchar,
-    ::core::ffi::c_uchar,
-    ::core::ffi::c_uchar,
-) -> ();
 #[no_mangle]
 pub unsafe extern "C" fn vp8_loop_filter_mbh_neon(
     mut y_ptr: *mut ::core::ffi::c_uchar,
