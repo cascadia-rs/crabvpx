@@ -878,10 +878,7 @@ unsafe fn vpx_atomic_load_acquire(mut atomic: *const VpxAtomicInt) -> i32 {
 }
 unsafe fn vp8_init_ctx(mut ctx: *mut VpxCodecCtxT) -> i32 {
     unsafe {
-        let mut priv_0: *mut VpxCodecAlgPrivT = vpx_calloc(
-            1 as usize,
-            ::core::mem::size_of::<VpxCodecAlgPrivT>() as usize,
-        ) as *mut VpxCodecAlgPrivT;
+        let priv_0 = Box::into_raw(Box::new(core::mem::zeroed::<VpxCodecAlgPrivT>()));
         if priv_0.is_null() {
             return 1 as i32;
         }
@@ -919,7 +916,7 @@ unsafe fn vp8_init(mut ctx: *mut VpxCodecCtxT, _data: *mut VpxCodecPrivEncMrCfgT
 unsafe fn vp8_destroy(mut ctx: *mut VpxCodecAlgPrivT) -> u32 {
     unsafe {
         vp8_remove_decoder_instances(&raw mut (*ctx).yv12_frame_buffers);
-        vpx_free(ctx as *mut c_void);
+        let _ = Box::from_raw(ctx);
         VPX_CODEC_OK
     }
 }
