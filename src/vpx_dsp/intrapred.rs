@@ -38,55 +38,7 @@ pub fn vpx_d207_predictor_safe(
 
 
 
-pub fn vpx_d153_predictor_safe(
-    dst: &mut [u8],
-    stride: usize,
-    bs: usize,
-    above: &[u8],
-    left: &[u8],
-) {
-    let mut r0 = [0u8; 32];
-    let mut c0 = [0u8; 32];
-    let mut c1 = [0u8; 32];
 
-    let bs = bs.min(32);
-
-    // Setup boundaries
-    r0[0] = ((left[0] as i32 + above[0] as i32 + 1) >> 1) as u8;
-    r0[1] = ((left[0] as i32 + 2 * above[0] as i32 + above[1] as i32 + 2) >> 2) as u8;
-    for c in 2..bs {
-        r0[c] = ((above[c - 2] as i32 + 2 * above[c - 1] as i32 + above[c] as i32 + 2) >> 2) as u8;
-    }
-
-    c0[0] = r0[0];
-    for r in 1..bs {
-        c0[r] = ((left[r - 1] as i32 + left[r] as i32 + 1) >> 1) as u8;
-    }
-
-    c1[0] = r0[1];
-    c1[1] = ((above[0] as i32 + 2 * left[0] as i32 + left[1] as i32 + 2) >> 2) as u8;
-    for r in 2..bs {
-        c1[r] = ((left[r - 2] as i32 + 2 * left[r - 1] as i32 + left[r] as i32 + 2) >> 2) as u8;
-    }
-
-    // Fill dst
-    for r in 0..bs {
-        let start = r * stride;
-        dst[start] = c0[r];
-        dst[start + 1] = c1[r];
-        for c in 2..bs {
-            if c >= 2 * r + 2 {
-                dst[start + c] = r0[c - 2 * r];
-            } else {
-                if c % 2 == 0 {
-                    dst[start + c] = c0[r - c / 2];
-                } else {
-                    dst[start + c] = c1[r - (c - 1) / 2];
-                }
-            }
-        }
-    }
-}
 
 
 pub fn vpx_he_predictor_4x4_safe(
@@ -436,60 +388,7 @@ pub fn vpx_d153_predictor_4x4_safe(
 
 
 
-#[unsafe(no_mangle)]
-pub extern "C" fn vpx_d153_predictor_32x32_c(
-    dst: *mut uint8_t,
-    stride: ptrdiff_t,
-    above: *const uint8_t,
-    left: *const uint8_t,
-) {
-    if dst.is_null() || above.is_null() || left.is_null() {
-        return;
-    }
-    unsafe {
-        let dst_len = 31 * stride as usize + 32;
-        let dst_slice = core::slice::from_raw_parts_mut(dst, dst_len);
-        let above_slice = core::slice::from_raw_parts(above.offset(-1), 32);
-        let left_slice = core::slice::from_raw_parts(left, 32);
-        vpx_d153_predictor_safe(dst_slice, stride as usize, 32, above_slice, left_slice);
-    }
-}
-#[unsafe(no_mangle)]
-pub extern "C" fn vpx_d153_predictor_8x8_c(
-    dst: *mut uint8_t,
-    stride: ptrdiff_t,
-    above: *const uint8_t,
-    left: *const uint8_t,
-) {
-    if dst.is_null() || above.is_null() || left.is_null() {
-        return;
-    }
-    unsafe {
-        let dst_len = 7 * stride as usize + 8;
-        let dst_slice = core::slice::from_raw_parts_mut(dst, dst_len);
-        let above_slice = core::slice::from_raw_parts(above.offset(-1), 8);
-        let left_slice = core::slice::from_raw_parts(left, 8);
-        vpx_d153_predictor_safe(dst_slice, stride as usize, 8, above_slice, left_slice);
-    }
-}
-#[unsafe(no_mangle)]
-pub extern "C" fn vpx_d153_predictor_16x16_c(
-    dst: *mut uint8_t,
-    stride: ptrdiff_t,
-    above: *const uint8_t,
-    left: *const uint8_t,
-) {
-    if dst.is_null() || above.is_null() || left.is_null() {
-        return;
-    }
-    unsafe {
-        let dst_len = 15 * stride as usize + 16;
-        let dst_slice = core::slice::from_raw_parts_mut(dst, dst_len);
-        let above_slice = core::slice::from_raw_parts(above.offset(-1), 16);
-        let left_slice = core::slice::from_raw_parts(left, 16);
-        vpx_d153_predictor_safe(dst_slice, stride as usize, 16, above_slice, left_slice);
-    }
-}
+
 pub fn vpx_v_predictor_8x8_safe(
     dst: &mut [u8],
     stride: usize,
