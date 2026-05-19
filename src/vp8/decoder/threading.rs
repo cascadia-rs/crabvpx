@@ -14,7 +14,6 @@ use crate::vp8::common::reconintra4x4::vp8_intra4x4_predict_safe;
 
 unsafe extern "C" {
 
-    fn vp8_dequantize_b_neon(_: *mut blockd, DQC: *mut ::core::ffi::c_short);
     fn vp8_loop_filter_bh_neon(
         y_ptr: *mut ::core::ffi::c_uchar,
         u_ptr: *mut ::core::ffi::c_uchar,

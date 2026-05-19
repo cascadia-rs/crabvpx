@@ -1,8 +1,6 @@
 #![cfg(not(target_arch = "aarch64"))]
 
 use core::ffi::{c_uchar, c_int, c_short, c_void, c_char};
-use crate::vp8::common::types::BLOCKD;
-use crate::vp8::common::dequantize::vp8_dequantize_b_safe;
 pub type ptrdiff_t = isize;
 
 unsafe extern "C" {
@@ -75,16 +73,6 @@ pub unsafe extern "C" fn vp8_dc_only_idct_add_neon(input_dc: c_short, pred_ptr: 
 
 
 
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_dequantize_b_neon(d: *mut c_void, DQC: *mut c_short) {
-    let d_ref = &mut *(d as *mut BLOCKD);
-    let dqc_slice = std::slice::from_raw_parts(DQC as *const i16, 16);
-    assert!(!d_ref.dqcoeff.is_null(), "dqcoeff is null");
-    assert!(!d_ref.qcoeff.is_null(), "qcoeff is null");
-    let dq = std::slice::from_raw_parts_mut(d_ref.dqcoeff, 16);
-    let q = std::slice::from_raw_parts(d_ref.qcoeff, 16);
-    vp8_dequantize_b_safe(q, dq, dqc_slice);
-}
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8_loop_filter_bh_neon(y_ptr: *mut c_uchar, u_ptr: *mut c_uchar, v_ptr: *mut c_uchar, y_stride: c_int, uv_stride: c_int, lfi: *mut c_void) {
