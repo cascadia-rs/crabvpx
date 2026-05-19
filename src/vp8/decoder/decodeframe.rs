@@ -701,10 +701,6 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
     let new_fb_idx = pc.new_fb_idx as usize;
     let mut recon_y_stride: ::core::ffi::c_int = pc.yv12_fb[new_fb_idx].y_stride;
     let mut recon_uv_stride: ::core::ffi::c_int = pc.yv12_fb[new_fb_idx].uv_stride;
-    let mut ref_buffer: [[*mut ::core::ffi::c_uchar; 3]; 4] =
-        [[::core::ptr::null_mut::<::core::ffi::c_uchar>(); 3]; 4];
-    let mut dst_buffer: [*mut ::core::ffi::c_uchar; 3] =
-        [::core::ptr::null_mut::<::core::ffi::c_uchar>(); 3];
     let mut y_offset: usize = 0;
     let mut u_offset: usize = 0;
     let mut v_offset: usize = 0;
@@ -721,21 +717,9 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
             _ => panic!("Invalid ref frame index"),
         };
         let this_fb = &pc.yv12_fb[fb_idx];
-        ref_buffer[i as usize][0 as ::core::ffi::c_int as usize] =
-            this_fb.y_buffer as *mut ::core::ffi::c_uchar;
-        ref_buffer[i as usize][1 as ::core::ffi::c_int as usize] =
-            this_fb.u_buffer as *mut ::core::ffi::c_uchar;
-        ref_buffer[i as usize][2 as ::core::ffi::c_int as usize] =
-            this_fb.v_buffer as *mut ::core::ffi::c_uchar;
         ref_fb_corrupted[i as usize] = this_fb.corrupted;
         i += 1;
     }
-    dst_buffer[0 as ::core::ffi::c_int as usize] =
-        pc.yv12_fb[new_fb_idx].y_buffer as *mut ::core::ffi::c_uchar;
-    dst_buffer[1 as ::core::ffi::c_int as usize] =
-        pc.yv12_fb[new_fb_idx].u_buffer as *mut ::core::ffi::c_uchar;
-    dst_buffer[2 as ::core::ffi::c_int as usize] =
-        pc.yv12_fb[new_fb_idx].v_buffer as *mut ::core::ffi::c_uchar;
     xd.up_available = 0 as ::core::ffi::c_int;
     if pc.filter_level != 0 {
         let filter_level = pc.filter_level;
@@ -774,49 +758,78 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
         );
         mb_col = 0 as ::core::ffi::c_int;
         while mb_col < pc.mb_cols {
+            xd.mb_to_left_edge =
+                -((mb_col * 16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int);
+            xd.mb_to_right_edge = ((pc.mb_cols - 1 as ::core::ffi::c_int - mb_col)
+                * 16 as ::core::ffi::c_int)
+                << 3 as ::core::ffi::c_int;
+
+            let (y_ptr, u_ptr, v_ptr) = {
+                let new_fb = &mut pc.yv12_fb[new_fb_idx];
+                let (y_slice, u_slice, v_slice) = new_fb.views_mut();
+                (
+                    y_slice[recon_yoffset as usize..].as_mut_ptr(),
+                    u_slice[recon_uvoffset as usize..].as_mut_ptr(),
+                    v_slice[recon_uvoffset as usize..].as_mut_ptr(),
+                )
+            };
+            xd.dst.y_buffer = y_ptr;
+            xd.dst.u_buffer = u_ptr;
+            xd.dst.v_buffer = v_ptr;
+
+            let ref_frame = xd.mode_info().mbmi.ref_frame;
+            
+            if ref_frame as ::core::ffi::c_int
+                >= LAST_FRAME as ::core::ffi::c_int
+            {
+                let ref_0: MV_REFERENCE_FRAME = ref_frame as MV_REFERENCE_FRAME;
+                let fb_idx = match ref_0 {
+                    LAST_FRAME => pc.lst_fb_idx as usize,
+                    GOLDEN_FRAME => pc.gld_fb_idx as usize,
+                    ALTREF_FRAME => pc.alt_fb_idx as usize,
+                    _ => panic!("Invalid ref frame"),
+                };
+                let (pre_y, pre_u, pre_v) = {
+                    let ref_fb = &pc.yv12_fb[fb_idx];
+                    let border = ref_fb.border as usize;
+                    let stride = ref_fb.y_stride as usize;
+                    let uv_border = border / 2;
+                    let uv_stride = ref_fb.uv_stride as usize;
+                    
+                    let y_slice = ref_fb.y_slice_safe();
+                    let u_slice = ref_fb.u_slice_safe();
+                    let v_slice = ref_fb.v_slice_safe();
+                    
+                    let y_offset = border * stride + border + recon_yoffset as usize;
+                    let u_offset = uv_border * uv_stride + uv_border + recon_uvoffset as usize;
+                    let v_offset = uv_border * uv_stride + uv_border + recon_uvoffset as usize;
+                    
+                    (
+                        y_slice[y_offset..].as_ptr() as *mut u8,
+                        u_slice[u_offset..].as_ptr() as *mut u8,
+                        v_slice[v_offset..].as_ptr() as *mut u8,
+                    )
+                };
+                xd.pre.y_buffer = pre_y;
+                xd.pre.u_buffer = pre_u;
+                xd.pre.v_buffer = pre_v;
+            } else {
+                xd.pre.y_buffer = ::core::ptr::null_mut::<uint8_t>();
+                xd.pre.u_buffer = ::core::ptr::null_mut::<uint8_t>();
+                xd.pre.v_buffer = ::core::ptr::null_mut::<uint8_t>();
+            }
+            xd.corrupted |= ref_fb_corrupted[ref_frame as usize];
+            
+            decode_macroblock(pc, &mut pbi.mbc, xd, mb_idx as ::core::ffi::c_uint);
+            
+            mb_idx += 1;
+            xd.left_available = 1 as ::core::ffi::c_int;
+            xd.corrupted |= vp8dx_bool_error(&pbi.mbc[xd.current_bc_idx]);
+            
+            recon_yoffset += 16 as ::core::ffi::c_int;
+            recon_uvoffset += 8 as ::core::ffi::c_int;
+            
             unsafe {
-                xd.mb_to_left_edge =
-                    -((mb_col * 16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int);
-                xd.mb_to_right_edge = ((pc.mb_cols - 1 as ::core::ffi::c_int - mb_col)
-                    * 16 as ::core::ffi::c_int)
-                    << 3 as ::core::ffi::c_int;
-                xd.dst.y_buffer = dst_buffer[0 as ::core::ffi::c_int as usize]
-                    .offset(recon_yoffset as isize) as *mut uint8_t;
-                xd.dst.u_buffer = dst_buffer[1 as ::core::ffi::c_int as usize]
-                    .offset(recon_uvoffset as isize) as *mut uint8_t;
-                xd.dst.v_buffer = dst_buffer[2 as ::core::ffi::c_int as usize]
-                    .offset(recon_uvoffset as isize) as *mut uint8_t;
-                
-                let ref_frame = (*xd.mode_info_context).mbmi.ref_frame;
-                if ref_frame as ::core::ffi::c_int
-                    >= LAST_FRAME as ::core::ffi::c_int
-                {
-                    let ref_0: MV_REFERENCE_FRAME = ref_frame as MV_REFERENCE_FRAME;
-                    xd.pre.y_buffer = ref_buffer[ref_0 as usize][0 as ::core::ffi::c_int as usize]
-                        .offset(recon_yoffset as isize)
-                        as *mut uint8_t;
-                    xd.pre.u_buffer = ref_buffer[ref_0 as usize][1 as ::core::ffi::c_int as usize]
-                        .offset(recon_uvoffset as isize)
-                        as *mut uint8_t;
-                    xd.pre.v_buffer = ref_buffer[ref_0 as usize][2 as ::core::ffi::c_int as usize]
-                        .offset(recon_uvoffset as isize)
-                        as *mut uint8_t;
-                } else {
-                    xd.pre.y_buffer = ::core::ptr::null_mut::<uint8_t>();
-                    xd.pre.u_buffer = ::core::ptr::null_mut::<uint8_t>();
-                    xd.pre.v_buffer = ::core::ptr::null_mut::<uint8_t>();
-                }
-                xd.corrupted |= ref_fb_corrupted[ref_frame as usize];
-                
-                decode_macroblock(pc, &mut pbi.mbc, xd, mb_idx as ::core::ffi::c_uint);
-                
-                mb_idx += 1;
-                xd.left_available = 1 as ::core::ffi::c_int;
-                xd.corrupted |= vp8dx_bool_error(&pbi.mbc[xd.current_bc_idx]);
-                
-                recon_yoffset += 16 as ::core::ffi::c_int;
-                recon_uvoffset += 8 as ::core::ffi::c_int;
-                
                 xd.mode_info_context = xd.mode_info_context.offset(1);
                 xd.above_context = xd.above_context.offset(1);
             }
