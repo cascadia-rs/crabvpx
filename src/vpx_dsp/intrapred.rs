@@ -192,103 +192,6 @@ pub fn vpx_d153_predictor_safe(
 }
 
 
-#[inline]
-unsafe extern "C" fn dc_128_predictor(
-    mut dst: *mut uint8_t,
-    mut stride: ptrdiff_t,
-    mut bs: ::core::ffi::c_int,
-    mut above: *const uint8_t,
-    mut left: *const uint8_t,
-) { unsafe {
-    let mut r: ::core::ffi::c_int = 0;
-    r = 0 as ::core::ffi::c_int;
-    while r < bs {
-        memset(
-            dst as *mut ::core::ffi::c_void,
-            128 as ::core::ffi::c_int,
-            bs as size_t,
-        );
-        dst = dst.offset(stride as isize);
-        r += 1;
-    }
-}}
-#[inline]
-unsafe extern "C" fn dc_left_predictor(
-    mut dst: *mut uint8_t,
-    mut stride: ptrdiff_t,
-    mut bs: ::core::ffi::c_int,
-    mut above: *const uint8_t,
-    mut left: *const uint8_t,
-) { unsafe {
-    let mut i: ::core::ffi::c_int = 0;
-    let mut r: ::core::ffi::c_int = 0;
-    let mut expected_dc: ::core::ffi::c_int = 0;
-    let mut sum: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    i = 0 as ::core::ffi::c_int;
-    while i < bs {
-        sum += *left.offset(i as isize) as ::core::ffi::c_int;
-        i += 1;
-    }
-    expected_dc = (sum + (bs >> 1 as ::core::ffi::c_int)) / bs;
-    r = 0 as ::core::ffi::c_int;
-    while r < bs {
-        memset(dst as *mut ::core::ffi::c_void, expected_dc, bs as size_t);
-        dst = dst.offset(stride as isize);
-        r += 1;
-    }
-}}
-#[inline]
-unsafe extern "C" fn dc_top_predictor(
-    mut dst: *mut uint8_t,
-    mut stride: ptrdiff_t,
-    mut bs: ::core::ffi::c_int,
-    mut above: *const uint8_t,
-    mut left: *const uint8_t,
-) { unsafe {
-    let mut i: ::core::ffi::c_int = 0;
-    let mut r: ::core::ffi::c_int = 0;
-    let mut expected_dc: ::core::ffi::c_int = 0;
-    let mut sum: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    i = 0 as ::core::ffi::c_int;
-    while i < bs {
-        sum += *above.offset(i as isize) as ::core::ffi::c_int;
-        i += 1;
-    }
-    expected_dc = (sum + (bs >> 1 as ::core::ffi::c_int)) / bs;
-    r = 0 as ::core::ffi::c_int;
-    while r < bs {
-        memset(dst as *mut ::core::ffi::c_void, expected_dc, bs as size_t);
-        dst = dst.offset(stride as isize);
-        r += 1;
-    }
-}}
-#[inline]
-unsafe extern "C" fn dc_predictor(
-    mut dst: *mut uint8_t,
-    mut stride: ptrdiff_t,
-    mut bs: ::core::ffi::c_int,
-    mut above: *const uint8_t,
-    mut left: *const uint8_t,
-) { unsafe {
-    let mut i: ::core::ffi::c_int = 0;
-    let mut r: ::core::ffi::c_int = 0;
-    let mut expected_dc: ::core::ffi::c_int = 0;
-    let mut sum: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    let count: ::core::ffi::c_int = 2 as ::core::ffi::c_int * bs;
-    i = 0 as ::core::ffi::c_int;
-    while i < bs {
-        sum += *above.offset(i as isize) as ::core::ffi::c_int;
-        sum += *left.offset(i as isize) as ::core::ffi::c_int;
-        i += 1;
-    }
-    expected_dc = (sum + (count >> 1 as ::core::ffi::c_int)) / count;
-    r = 0 as ::core::ffi::c_int;
-    while r < bs {
-        memset(dst as *mut ::core::ffi::c_void, expected_dc, bs as size_t);
-        dst = dst.offset(stride as isize);
-        r += 1;
-    }
-}}
 pub fn vpx_he_predictor_4x4_safe(
     dst: &mut [u8],
     stride: usize,
@@ -1586,14 +1489,21 @@ pub extern "C" fn vpx_tm_predictor_8x8_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_dc_128_predictor_32x32_c(
-    mut dst: *mut uint8_t,
-    mut stride: ptrdiff_t,
-    mut above: *const uint8_t,
-    mut left: *const uint8_t,
-) { unsafe {
-    dc_128_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}}
+pub extern "C" fn vpx_dc_128_predictor_32x32_c(
+    dst: *mut uint8_t,
+    stride: ptrdiff_t,
+    _above: *const uint8_t,
+    _left: *const uint8_t,
+) {
+    if dst.is_null() {
+        return;
+    }
+    unsafe {
+        let dst_len = 31 * stride as usize + 32;
+        let dst_slice = core::slice::from_raw_parts_mut(dst, dst_len);
+        vpx_dc_128_predictor_32x32_safe(dst_slice, stride as usize);
+    }
+}
 #[unsafe(no_mangle)]
 pub extern "C" fn vpx_dc_128_predictor_16x16_c(
     dst: *mut uint8_t,
@@ -1677,14 +1587,22 @@ pub extern "C" fn vpx_dc_left_predictor_4x4_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_dc_left_predictor_32x32_c(
-    mut dst: *mut uint8_t,
-    mut stride: ptrdiff_t,
-    mut above: *const uint8_t,
-    mut left: *const uint8_t,
-) { unsafe {
-    dc_left_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}}
+pub extern "C" fn vpx_dc_left_predictor_32x32_c(
+    dst: *mut uint8_t,
+    stride: ptrdiff_t,
+    _above: *const uint8_t,
+    left: *const uint8_t,
+) {
+    if dst.is_null() || left.is_null() {
+        return;
+    }
+    unsafe {
+        let dst_len = 31 * stride as usize + 32;
+        let dst_slice = core::slice::from_raw_parts_mut(dst, dst_len);
+        let left_slice = core::slice::from_raw_parts(left, 32);
+        vpx_dc_left_predictor_32x32_safe(dst_slice, stride as usize, left_slice);
+    }
+}
 #[unsafe(no_mangle)]
 pub extern "C" fn vpx_dc_left_predictor_16x16_c(
     dst: *mut uint8_t,
@@ -1703,14 +1621,22 @@ pub extern "C" fn vpx_dc_left_predictor_16x16_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_dc_top_predictor_32x32_c(
-    mut dst: *mut uint8_t,
-    mut stride: ptrdiff_t,
-    mut above: *const uint8_t,
-    mut left: *const uint8_t,
-) { unsafe {
-    dc_top_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}}
+pub extern "C" fn vpx_dc_top_predictor_32x32_c(
+    dst: *mut uint8_t,
+    stride: ptrdiff_t,
+    above: *const uint8_t,
+    _left: *const uint8_t,
+) {
+    if dst.is_null() || above.is_null() {
+        return;
+    }
+    unsafe {
+        let dst_len = 31 * stride as usize + 32;
+        let dst_slice = core::slice::from_raw_parts_mut(dst, dst_len);
+        let above_slice = core::slice::from_raw_parts(above, 32);
+        vpx_dc_top_predictor_32x32_safe(dst_slice, stride as usize, above_slice);
+    }
+}
 #[unsafe(no_mangle)]
 pub extern "C" fn vpx_dc_top_predictor_8x8_c(
     dst: *mut uint8_t,
@@ -1763,14 +1689,23 @@ pub extern "C" fn vpx_dc_top_predictor_4x4_c(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_dc_predictor_32x32_c(
-    mut dst: *mut uint8_t,
-    mut stride: ptrdiff_t,
-    mut above: *const uint8_t,
-    mut left: *const uint8_t,
-) { unsafe {
-    dc_predictor(dst, stride, 32 as ::core::ffi::c_int, above, left);
-}}
+pub extern "C" fn vpx_dc_predictor_32x32_c(
+    dst: *mut uint8_t,
+    stride: ptrdiff_t,
+    above: *const uint8_t,
+    left: *const uint8_t,
+) {
+    if dst.is_null() || above.is_null() || left.is_null() {
+        return;
+    }
+    unsafe {
+        let dst_len = 31 * stride as usize + 32;
+        let dst_slice = core::slice::from_raw_parts_mut(dst, dst_len);
+        let above_slice = core::slice::from_raw_parts(above, 32);
+        let left_slice = core::slice::from_raw_parts(left, 32);
+        vpx_dc_predictor_32x32_safe(dst_slice, stride as usize, above_slice, left_slice);
+    }
+}
 pub fn vpx_dc_predictor_4x4_safe(
     dst: &mut [u8],
     stride: usize,
@@ -1960,5 +1895,54 @@ pub fn vpx_dc_top_predictor_4x4_safe(dst: &mut [u8], stride: usize, above: &[u8]
     for r in 0..4 {
         let start = r * stride;
         dst[start..start + 4].fill(expected_dc);
+    }
+}
+
+pub fn vpx_dc_128_predictor_32x32_safe(dst: &mut [u8], stride: usize) {
+    for r in 0..32 {
+        let start = r * stride;
+        dst[start..start + 32].fill(128);
+    }
+}
+
+pub fn vpx_dc_left_predictor_32x32_safe(dst: &mut [u8], stride: usize, left: &[u8]) {
+    let mut sum = 0i32;
+    for i in 0..32 {
+        sum += left[i] as i32;
+    }
+    let expected_dc = ((sum + 16) / 32) as u8;
+    for r in 0..32 {
+        let start = r * stride;
+        dst[start..start + 32].fill(expected_dc);
+    }
+}
+
+pub fn vpx_dc_top_predictor_32x32_safe(dst: &mut [u8], stride: usize, above: &[u8]) {
+    let mut sum = 0i32;
+    for i in 0..32 {
+        sum += above[i] as i32;
+    }
+    let expected_dc = ((sum + 16) / 32) as u8;
+    for r in 0..32 {
+        let start = r * stride;
+        dst[start..start + 32].fill(expected_dc);
+    }
+}
+
+pub fn vpx_dc_predictor_32x32_safe(
+    dst: &mut [u8],
+    stride: usize,
+    above: &[u8],
+    left: &[u8],
+) {
+    let mut sum = 0i32;
+    for i in 0..32 {
+        sum += above[i] as i32;
+        sum += left[i] as i32;
+    }
+    let expected_dc = ((sum + 32) / 64) as u8;
+    for r in 0..32 {
+        let start = r * stride;
+        dst[start..start + 32].fill(expected_dc);
     }
 }
