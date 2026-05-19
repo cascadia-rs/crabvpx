@@ -1,5 +1,7 @@
 # VP8 Decoder Safety Hints
 
+See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
+
 ## Current Status (May 2026)
 * **Top-Level Struct Decoupling Complete**: All three core decoupling phases outlined in [top_level_struct_decoupling_strategy.md](top_level_struct_decoupling_strategy.md) have been successfully achieved! Legacy pointer caches (`mode_info_context`, `above_context`, `left_context`) have been fully eliminated from `MACROBLOCKD` and replaced with absolute slice indices (`mode_info_idx`, `above_context_idx`). Safe destructuring via `split_mut()` is successfully implemented on `VP8D_COMP`.
 * **Bitstream FFI Thrashing Mitigation Complete**: All four implementation milestones outlined in [bitstream_thrashing_mitigation_strategy.md](bitstream_thrashing_mitigation_strategy.md) have been successfully achieved! Both single-threaded (`decode_mb_rows`) and multithreaded (`mt_decode_mb_rows`) partition pipelines have been fully converted to outer row root slice instantiations. Per-macroblock temporary slice wrapping, raw pointer syncing, and obsolete C-ABI wrapper declarations (`vp8dx_decode_bool`) have been completely eliminated from internal token decoding paths (`GetCoeffs`, `vp8_decode_mb_tokens`, `vp8_decode_mode_mvs`).
