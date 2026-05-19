@@ -89,13 +89,6 @@ unsafe extern "C" {
         dst_pitch: ::core::ffi::c_int,
     );
 
-    fn vpx_internal_error(
-        info: *mut vpx_internal_error_info,
-        error: vpx_codec_err_t,
-        fmt: *const ::core::ffi::c_char,
-        ...
-    );
-
 
 
 
@@ -991,13 +984,10 @@ fn read_available_partition_size(
         } else if pbi.ec_active != 0 {
             partition_size = bytes_left as ::core::ffi::c_uint;
         } else {
-            unsafe {
-                vpx_internal_error(
-                    &mut pbi.common.error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    b"Truncated partition size data\0" as *const u8 as *const ::core::ffi::c_char,
-                );
-            }
+            pbi.common.error.trigger(
+                VPX_CODEC_CORRUPT_FRAME,
+                "Truncated partition size data",
+            );
         }
     } else {
         partition_size = bytes_left as ::core::ffi::c_uint;
@@ -1006,15 +996,10 @@ fn read_available_partition_size(
         if pbi.ec_active != 0 {
             partition_size = bytes_left as ::core::ffi::c_uint;
         } else {
-            unsafe {
-                vpx_internal_error(
-                    &mut pbi.common.error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    b"Truncated packet or corrupt partition %d length\0" as *const u8
-                        as *const ::core::ffi::c_char,
-                    i + 1,
-                );
-            }
+            pbi.common.error.trigger(
+                VPX_CODEC_CORRUPT_FRAME,
+                &format!("Truncated packet or corrupt partition {} length", i + 1),
+            );
         }
     }
     partition_size
@@ -1046,14 +1031,10 @@ fn setup_token_decoder(
                     .wrapping_mul(num_token_partitions.wrapping_sub(1 as ::core::ffi::c_uint))
                     as ptrdiff_t;
             if fragment_size < ext_first_part_size as ::core::ffi::c_uint {
-                unsafe {
-                    vpx_internal_error(
-                        &raw mut pbi.common.error,
-                        VPX_CODEC_CORRUPT_FRAME,
-                        b"Corrupted fragment size %d\0" as *const u8 as *const ::core::ffi::c_char,
-                        fragment_size,
-                    );
-                }
+                pbi.common.error.trigger(
+                    VPX_CODEC_CORRUPT_FRAME,
+                    &format!("Corrupted fragment size {}", fragment_size),
+                );
             }
             fragment_size = fragment_size.wrapping_sub(ext_first_part_size as ::core::ffi::c_uint);
             if fragment_size > 0 as ::core::ffi::c_uint {
@@ -1079,14 +1060,10 @@ fn setup_token_decoder(
             ) as ptrdiff_t;
             pbi.fragments.sizes[fragment_idx as usize] = partition_size as ::core::ffi::c_uint;
             if fragment_size < partition_size as ::core::ffi::c_uint {
-                unsafe {
-                    vpx_internal_error(
-                        &raw mut pbi.common.error,
-                        VPX_CODEC_CORRUPT_FRAME,
-                        b"Corrupted fragment size %d\0" as *const u8 as *const ::core::ffi::c_char,
-                        fragment_size,
-                    );
-                }
+                pbi.common.error.trigger(
+                    VPX_CODEC_CORRUPT_FRAME,
+                    &format!("Corrupted fragment size {}", fragment_size),
+                );
             }
             fragment_size = fragment_size.wrapping_sub(partition_size as ::core::ffi::c_uint);
             if fragment_size > 0 as ::core::ffi::c_uint {
@@ -1106,14 +1083,10 @@ fn setup_token_decoder(
         let partition_ptr = pbi.fragments.ptrs[partition_idx as usize];
         let partition_size = pbi.fragments.sizes[partition_idx as usize];
         if partition_size != 0 && partition_ptr.is_null() {
-            unsafe {
-                vpx_internal_error(
-                    &raw mut pbi.common.error,
-                    VPX_CODEC_MEM_ERROR,
-                    b"Failed to allocate bool decoder %d\0" as *const u8 as *const ::core::ffi::c_char,
-                    partition_idx,
-                );
-            }
+            pbi.common.error.trigger(
+                VPX_CODEC_MEM_ERROR,
+                &format!("Failed to allocate bool decoder {}", partition_idx),
+            );
         } else {
             let slice = unsafe { core::slice::from_raw_parts(partition_ptr, partition_size as usize) };
             crate::vp8::decoder::dboolhuff::vp8dx_start_decode_safe(
@@ -1299,14 +1272,10 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
     if pbi.ec_active == 0
         && (data_slice.len() - data_idx) < first_partition_length_in_bytes as usize
     {
-        unsafe {
-            vpx_internal_error(
-                &raw mut pbi.common.error,
-                VPX_CODEC_CORRUPT_FRAME,
-                b"Truncated packet or corrupt partition 0 length\0" as *const u8
-                    as *const ::core::ffi::c_char,
-            );
-        }
+        pbi.common.error.trigger(
+            VPX_CODEC_CORRUPT_FRAME,
+            "Truncated packet or corrupt partition 0 length",
+        );
     }
     
     init_frame(pbi);
@@ -1524,13 +1493,10 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         if unsafe { vp8mt_decode_mb_rows(pbi, &mut *xd_ptr) } != 0 {
             unsafe { vp8_decoder_remove_threads(pbi) };
             pbi.restart_threads = 1 as ::core::ffi::c_int;
-            unsafe {
-                vpx_internal_error(
-                    &raw mut pbi.common.error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    ::core::ptr::null::<::core::ffi::c_char>(),
-                );
-            }
+            pbi.common.error.trigger(
+                VPX_CODEC_CORRUPT_FRAME,
+                "",
+            );
         }
         
         vp8_yv12_extend_frame_borders_c(&mut pbi.common.yv12_fb[new_fb_idx]);
@@ -1554,14 +1520,10 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         {
             pbi.decoded_key_frame = 1 as ::core::ffi::c_int;
         } else {
-            unsafe {
-                vpx_internal_error(
-                    &raw mut pbi.common.error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    b"A stream must start with a complete key frame\0" as *const u8
-                        as *const ::core::ffi::c_char,
-                );
-            }
+            pbi.common.error.trigger(
+                VPX_CODEC_CORRUPT_FRAME,
+                "A stream must start with a complete key frame",
+            );
         }
     }
     
