@@ -98,16 +98,7 @@ unsafe extern "C" {
 
 
 
-    fn memcpy(
-        __dst: *mut ::core::ffi::c_void,
-        __src: *const ::core::ffi::c_void,
-        __n: size_t,
-    ) -> *mut ::core::ffi::c_void;
-    fn memset(
-        __b: *mut ::core::ffi::c_void,
-        __c: ::core::ffi::c_int,
-        __len: size_t,
-    ) -> *mut ::core::ffi::c_void;
+
     fn vp8_intra4x4_predict(
         above: *mut ::core::ffi::c_uchar,
         yleft: *mut ::core::ffi::c_uchar,
@@ -1388,12 +1379,7 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int { unsafe {
         if (*xd).update_mb_segmentation_data != 0 {
             (*xd).mb_segment_abs_delta =
                 safe_decoder.read_bool(vp8_prob_half as i32) as ::core::ffi::c_uchar;
-            memset(
-                &raw mut (*xd).segment_feature_data as *mut [::core::ffi::c_schar; 4]
-                    as *mut ::core::ffi::c_void,
-                0 as ::core::ffi::c_int,
-                ::core::mem::size_of::<[[::core::ffi::c_schar; 4]; 2]>() as size_t,
-            );
+            (*xd).segment_feature_data = [[0; 4]; 2];
             i = 0 as ::core::ffi::c_int;
             while i < MB_LVL_MAX as ::core::ffi::c_int {
                 j = 0 as ::core::ffi::c_int;
@@ -1416,11 +1402,7 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int { unsafe {
             }
         }
         if (*xd).update_mb_segmentation_map != 0 {
-            memset(
-                &raw mut (*xd).mb_segment_tree_probs as *mut vp8_prob as *mut ::core::ffi::c_void,
-                255 as ::core::ffi::c_int,
-                ::core::mem::size_of::<[vp8_prob; 3]>() as size_t,
-            );
+            (*xd).mb_segment_tree_probs = [255; 3];
             i = 0 as ::core::ffi::c_int;
             while i < MB_FEATURE_TREE_PROBS {
                 if safe_decoder.read_bool(vp8_prob_half as i32) != 0 {
@@ -1570,11 +1552,7 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int { unsafe {
         i += 1;
     }
 
-    memset(
-        &raw mut (*xd).qcoeff as *mut ::core::ffi::c_short as *mut ::core::ffi::c_void,
-        0 as ::core::ffi::c_int,
-        ::core::mem::size_of::<[::core::ffi::c_short; 400]>() as size_t,
-    );
+    (*xd).qcoeff = [0; 400];
     let stride = (*pbi).common.mode_info_stride as usize;
     let mip_len = ((*pbi).common.mb_rows + 1) as usize * stride;
     let mip_slice = core::slice::from_raw_parts_mut((*pbi).common.mip_mut_ptr(), mip_len);

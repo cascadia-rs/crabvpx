@@ -537,11 +537,7 @@ fn mt_decode_mb_rows(
         recon_yoffset = mb_row * recon_y_stride * 16 as ::core::ffi::c_int;
         recon_uvoffset = mb_row * recon_uv_stride * 8 as ::core::ffi::c_int;
         (*xd).above_context = (*pc).above_context_ptr();
-        memset(
-            (*xd).left_context as *mut ::core::ffi::c_void,
-            0 as ::core::ffi::c_int,
-            ::core::mem::size_of::<ENTROPY_CONTEXT_PLANES>() as size_t,
-        );
+        *xd.left_context_mut() = ENTROPY_CONTEXT_PLANES::default();
         (*xd).left_available = 0 as ::core::ffi::c_int;
         (*xd).mb_to_top_edge = -((mb_row * 16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int);
         (*xd).mb_to_bottom_edge = (((*pc).mb_rows - 1 as ::core::ffi::c_int - mb_row)
