@@ -1,5 +1,5 @@
 #[unsafe(no_mangle)]
-pub static mut vp8_block2left: [::core::ffi::c_uchar; 25] = [
+pub static vp8_block2left: [::core::ffi::c_uchar; 25] = [
     0 as ::core::ffi::c_int as ::core::ffi::c_uchar,
     0 as ::core::ffi::c_int as ::core::ffi::c_uchar,
     0 as ::core::ffi::c_int as ::core::ffi::c_uchar,
@@ -27,7 +27,7 @@ pub static mut vp8_block2left: [::core::ffi::c_uchar; 25] = [
     8 as ::core::ffi::c_int as ::core::ffi::c_uchar,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_block2above: [::core::ffi::c_uchar; 25] = [
+pub static vp8_block2above: [::core::ffi::c_uchar; 25] = [
     0 as ::core::ffi::c_int as ::core::ffi::c_uchar,
     1 as ::core::ffi::c_int as ::core::ffi::c_uchar,
     2 as ::core::ffi::c_int as ::core::ffi::c_uchar,
