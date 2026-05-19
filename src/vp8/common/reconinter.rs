@@ -152,6 +152,29 @@ pub extern "C" fn vp8_copy_mem8x4_c(
     }
 }
 
+fn call_subpixel_predict(
+    sppf: vp8_subpix_fn_t,
+    src: &[u8],
+    src_stride: i32,
+    xoffset: i32,
+    yoffset: i32,
+    dst: &mut [u8],
+    dst_stride: i32,
+) {
+    if let Some(f) = sppf {
+        unsafe {
+            f(
+                src.as_ptr() as *mut u8,
+                src_stride,
+                xoffset,
+                yoffset,
+                dst.as_mut_ptr(),
+                dst_stride,
+            );
+        }
+    }
+}
+
 fn build_inter_predictors4b_safe(
     sppf: vp8_subpix_fn_t,
     d: &BLOCKD,
@@ -178,16 +201,15 @@ fn build_inter_predictors4b_safe(
     if row & 7 != 0 || col & 7 != 0 {
         let sub_pre = &pre_slice[pre_idx..];
         let sub_dst = &mut dst_slice[dst_idx..];
-        unsafe {
-            sppf.expect("non-null function pointer")(
-                sub_pre.as_ptr() as *mut u8,
-                pre_stride,
-                col & 7,
-                row & 7,
-                sub_dst.as_mut_ptr(),
-                dst_stride,
-            );
-        }
+        call_subpixel_predict(
+            sppf,
+            sub_pre,
+            pre_stride,
+            col & 7,
+            row & 7,
+            sub_dst,
+            dst_stride,
+        );
     } else {
         let pre_len = 7 * pre_stride_u + 8;
         let dst_len = 7 * dst_stride_u + 8;
@@ -225,16 +247,15 @@ fn build_inter_predictors2b_safe(
     if row & 7 != 0 || col & 7 != 0 {
         let sub_pre = &pre_slice[pre_idx..];
         let sub_dst = &mut dst_slice[dst_idx..];
-        unsafe {
-            sppf.expect("non-null function pointer")(
-                sub_pre.as_ptr() as *mut u8,
-                pre_stride,
-                col & 7,
-                row & 7,
-                sub_dst.as_mut_ptr(),
-                dst_stride,
-            );
-        }
+        call_subpixel_predict(
+            sppf,
+            sub_pre,
+            pre_stride,
+            col & 7,
+            row & 7,
+            sub_dst,
+            dst_stride,
+        );
     } else {
         let pre_len = 3 * pre_stride_u + 8;
         let dst_len = 3 * dst_stride_u + 8;
@@ -272,16 +293,15 @@ fn build_inter_predictors_b_safe(
     if row & 7 != 0 || col & 7 != 0 {
         let sub_pre = &pre_slice[pre_idx..];
         let sub_dst = &mut dst_slice[dst_idx..];
-        unsafe {
-            sppf.expect("non-null function pointer")(
-                sub_pre.as_ptr() as *mut u8,
-                pre_stride,
-                col & 7,
-                row & 7,
-                sub_dst.as_mut_ptr(),
-                dst_stride,
-            );
-        }
+        call_subpixel_predict(
+            sppf,
+            sub_pre,
+            pre_stride,
+            col & 7,
+            row & 7,
+            sub_dst,
+            dst_stride,
+        );
     } else {
         for r in 0..4 {
             let s_idx = pre_idx + r * pre_stride_u;
@@ -420,16 +440,15 @@ pub fn vp8_build_inter16x16_predictors_mb(
     if _16x16mv.as_int() & 0x70007 as uint32_t != 0 {
         let sub_pre = &pre_y_slice[pre_y_offset..];
         let sub_dst = &mut dst_y_slice[dst_y_active_offset..];
-        unsafe {
-            subpixel_predict16x16.expect("non-null function pointer")(
-                sub_pre.as_ptr() as *mut u8,
-                pre_y_stride,
-                _16x16mv.as_mv().col as ::core::ffi::c_int & 7,
-                _16x16mv.as_mv().row as ::core::ffi::c_int & 7,
-                sub_dst.as_mut_ptr(),
-                dst_y_stride,
-            );
-        }
+        call_subpixel_predict(
+            subpixel_predict16x16,
+            sub_pre,
+            pre_y_stride,
+            _16x16mv.as_mv().col as ::core::ffi::c_int & 7,
+            _16x16mv.as_mv().row as ::core::ffi::c_int & 7,
+            sub_dst,
+            dst_y_stride,
+        );
     } else {
         let pre_len = 15 * pre_y_stride as usize + 16;
         let dst_len = 15 * dst_y_stride as usize + 16;
@@ -485,28 +504,26 @@ pub fn vp8_build_inter16x16_predictors_mb(
     if _16x16mv.as_int() & 0x70007 as uint32_t != 0 {
         let sub_pre_u = &pre_u_slice[pre_uv_offset..];
         let sub_dst_u = &mut dst_u_slice[dst_uv_active_offset..];
-        unsafe {
-            subpixel_predict8x8.expect("non-null function pointer")(
-                sub_pre_u.as_ptr() as *mut u8,
-                pre_uv_stride,
-                _16x16mv.as_mv().col as ::core::ffi::c_int & 7,
-                _16x16mv.as_mv().row as ::core::ffi::c_int & 7,
-                sub_dst_u.as_mut_ptr(),
-                dst_uv_stride,
-            );
-        }
+        call_subpixel_predict(
+            subpixel_predict8x8,
+            sub_pre_u,
+            pre_uv_stride,
+            _16x16mv.as_mv().col as ::core::ffi::c_int & 7,
+            _16x16mv.as_mv().row as ::core::ffi::c_int & 7,
+            sub_dst_u,
+            dst_uv_stride,
+        );
         let sub_pre_v = &pre_v_slice[pre_uv_offset..];
         let sub_dst_v = &mut dst_v_slice[dst_uv_active_offset..];
-        unsafe {
-            subpixel_predict8x8.expect("non-null function pointer")(
-                sub_pre_v.as_ptr() as *mut u8,
-                pre_uv_stride,
-                _16x16mv.as_mv().col as ::core::ffi::c_int & 7,
-                _16x16mv.as_mv().row as ::core::ffi::c_int & 7,
-                sub_dst_v.as_mut_ptr(),
-                dst_uv_stride,
-            );
-        }
+        call_subpixel_predict(
+            subpixel_predict8x8,
+            sub_pre_v,
+            pre_uv_stride,
+            _16x16mv.as_mv().col as ::core::ffi::c_int & 7,
+            _16x16mv.as_mv().row as ::core::ffi::c_int & 7,
+            sub_dst_v,
+            dst_uv_stride,
+        );
     } else {
         let pre_len = 7 * pre_uv_stride as usize + 8;
         let dst_len = 7 * dst_uv_stride as usize + 8;
