@@ -203,11 +203,13 @@ pub const PREV_COEF_CONTEXTS: ::core::ffi::c_int = 3 as ::core::ffi::c_int;
 pub const MAXQ: ::core::ffi::c_int = 127 as ::core::ffi::c_int;
 pub const QINDEX_RANGE: ::core::ffi::c_int = MAXQ + 1 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vpx_atomic_load_acquire(
-    mut atomic: *const vpx_atomic_int,
-) -> ::core::ffi::c_int { unsafe {
-    return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
-}}
+fn vpx_atomic_load_acquire(
+    atomic: &vpx_atomic_int,
+) -> ::core::ffi::c_int {
+    unsafe {
+        (*(&raw const atomic.value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire)
+    }
+}
 
 pub(crate) fn setup_intra_recon_left(
     ybf: &mut YV12_BUFFER_CONFIG,
@@ -1562,7 +1564,7 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int { unsafe {
         above_context.fill(ENTROPY_CONTEXT_PLANES::default());
     }
     (*pbi).frame_corrupt_residual = 0 as ::core::ffi::c_int;
-    if vpx_atomic_load_acquire(&raw mut (*pbi).b_multithreaded_rd) != 0
+    if vpx_atomic_load_acquire(&pbi.b_multithreaded_rd) != 0
         && (*pc).multi_token_partition as ::core::ffi::c_uint
             != ONE_PARTITION as ::core::ffi::c_int as ::core::ffi::c_uint
     {

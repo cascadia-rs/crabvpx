@@ -620,11 +620,13 @@ pub const VPX_CODEC_INTERNAL_ABI_VERSION: ::core::ffi::c_int = 5 as ::core::ffi:
 pub const VP8BORDERINPIXELS: ::core::ffi::c_int = 32 as ::core::ffi::c_int;
 pub const MAX_PARTITIONS: ::core::ffi::c_int = 9 as ::core::ffi::c_int;
 #[inline]
-unsafe extern "C" fn vpx_atomic_load_acquire(
-    mut atomic: *const vpx_atomic_int,
-) -> ::core::ffi::c_int { unsafe {
-    return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
-}}
+fn vpx_atomic_load_acquire(
+    atomic: &vpx_atomic_int,
+) -> ::core::ffi::c_int {
+    unsafe {
+        (*(&raw const atomic.value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire)
+    }
+}
 unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi::c_int { unsafe {
     let mut priv_0: *mut vpx_codec_alg_priv_t = vpx_calloc(
         1 as size_t,
@@ -929,7 +931,7 @@ unsafe extern "C" fn vp8_decode(
         (*pbi_0).common.error.setjmp = 1 as ::core::ffi::c_int;
         (*pbi_0).max_threads = (*ctx).cfg.threads as ::core::ffi::c_int;
         vp8_decoder_create_threads(pbi_0);
-        if vpx_atomic_load_acquire(&raw mut (*pbi_0).b_multithreaded_rd) != 0 {
+        if vpx_atomic_load_acquire(&(*pbi_0).b_multithreaded_rd) != 0 {
             vp8mt_alloc_temp_buffers(pbi_0, (*pc).Width, (*pc).mb_rows);
         }
         (*ctx).restart_threads = 0 as ::core::ffi::c_int;
@@ -1011,7 +1013,7 @@ unsafe extern "C" fn vp8_decode(
                     b"Invalid frame height\0" as *const u8 as *const ::core::ffi::c_char,
                 );
             }
-            if vpx_atomic_load_acquire(&raw mut (*pbi_1).b_multithreaded_rd) != 0 {
+            if vpx_atomic_load_acquire(&(*pbi_1).b_multithreaded_rd) != 0 {
                 vp8mt_de_alloc_temp_buffers(pbi_1, (*pc_0).mb_rows);
             }
             if vp8_alloc_frame_buffers(&mut *pc_0, (*pc_0).Width, (*pc_0).Height) != 0 {
@@ -1032,7 +1034,7 @@ unsafe extern "C" fn vp8_decode(
                 i += 1;
             }
             vp8_build_block_doffsets(&mut (*pbi_1).mb);
-            if vpx_atomic_load_acquire(&raw mut (*pbi_1).b_multithreaded_rd) != 0 {
+            if vpx_atomic_load_acquire(&(*pbi_1).b_multithreaded_rd) != 0 {
                 vp8mt_alloc_temp_buffers(pbi_1, (*pc_0).Width, 0 as ::core::ffi::c_int);
             }
             (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;

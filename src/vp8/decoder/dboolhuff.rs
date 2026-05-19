@@ -31,31 +31,35 @@ pub unsafe extern "C" fn vp8dx_start_decode(
     mut source_sz: ::core::ffi::c_uint,
     mut decrypt_cb: vpx_decrypt_cb,
     mut decrypt_state: *mut ::core::ffi::c_void,
-) -> ::core::ffi::c_int { unsafe {
+) -> ::core::ffi::c_int {
     if br.is_null() {
         return 1;
     }
     if source_sz != 0 && source.is_null() {
         return 1;
     }
-    let slice = if source.is_null() {
-        &[]
-    } else {
-        core::slice::from_raw_parts(source, source_sz as usize)
-    };
-    vp8dx_start_decode_safe(&mut *br, slice, decrypt_cb, decrypt_state);
+    unsafe {
+        let slice = if source.is_null() {
+            &[]
+        } else {
+            core::slice::from_raw_parts(source, source_sz as usize)
+        };
+        vp8dx_start_decode_safe(&mut *br, slice, decrypt_cb, decrypt_state);
+    }
     0
-}}
+}
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) { unsafe {
+pub unsafe extern "C" fn vp8dx_bool_decoder_fill(mut br: *mut BOOL_DECODER) {
     if br.is_null() {
         return;
     }
-    let mut safe_decoder = SafeBoolDecoder::from_bool_decoder(&*br);
+    // SAFETY: br is not null.
+    let br_ref = unsafe { &mut *br };
+    let mut safe_decoder = SafeBoolDecoder::from_bool_decoder(br_ref);
     safe_decoder.fill();
-    safe_decoder.update_bool_decoder(&mut *br);
-}}
+    safe_decoder.update_bool_decoder(br_ref);
+}
 
 pub struct SafeBoolDecoder<'a> {
     pub buffer: &'a [u8],
@@ -180,34 +184,27 @@ impl<'a> SafeBoolDecoder<'a> {
     }
 }
 
+pub fn vp8dx_decode_bool_safe(
+    br: &mut BOOL_DECODER,
+    probability: i32,
+) -> i32 {
+    let mut safe_decoder = SafeBoolDecoder::from_bool_decoder(br);
+    let bit = safe_decoder.read_bool(probability);
+    safe_decoder.update_bool_decoder(br);
+    bit
+}
+
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vp8dx_decode_bool(
     br: *mut BOOL_DECODER,
     probability: ::core::ffi::c_int,
 ) -> ::core::ffi::c_int {
-    unsafe {
-        let len = (*br).user_buffer_end.offset_from((*br).user_buffer) as usize;
-        let slice = if len == 0 {
-            &[]
-        } else {
-            core::slice::from_raw_parts((*br).user_buffer, len)
-        };
-        let mut safe_decoder = SafeBoolDecoder {
-            buffer: slice,
-            offset: 0,
-            value: (*br).value,
-            count: (*br).count,
-            range: (*br).range,
-            decrypt_cb: (*br).decrypt_cb,
-            decrypt_state: (*br).decrypt_state,
-        };
-        let bit = safe_decoder.read_bool(probability);
-        (*br).user_buffer = (*br).user_buffer.add(safe_decoder.offset);
-        (*br).value = safe_decoder.value;
-        (*br).count = safe_decoder.count;
-        (*br).range = safe_decoder.range;
-        bit
+    if br.is_null() {
+        return 0;
     }
+    // SAFETY: br is not null.
+    let br_ref = unsafe { &mut *br };
+    vp8dx_decode_bool_safe(br_ref, probability)
 }
 
 
