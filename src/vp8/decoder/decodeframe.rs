@@ -1010,75 +1010,93 @@ fn setup_token_decoder(
     first_partition_length: usize,
     safe_decoder: &mut SafeBoolDecoder,
 ) {
-    let mut partition_idx: ::core::ffi::c_uint = 0;
-    let mut fragment_idx: ::core::ffi::c_uint = 0;
-    let mut num_token_partitions: ::core::ffi::c_uint = 0;
     let mut multi_token_partition: TOKEN_PARTITION =
         safe_decoder.read_literal(2) as TOKEN_PARTITION;
     if safe_decoder.count <= VP8_BD_VALUE_SIZE || safe_decoder.count >= VP8_LOTS_OF_BITS {
         pbi.common.multi_token_partition = multi_token_partition;
     }
 
-    num_token_partitions = ((1 as ::core::ffi::c_int)
-        << pbi.common.multi_token_partition as ::core::ffi::c_uint)
-        as ::core::ffi::c_uint;
-    fragment_idx = 0 as ::core::ffi::c_uint;
-    while fragment_idx < pbi.fragments.count {
-        let mut fragment_size: ::core::ffi::c_uint = pbi.fragments.sizes[fragment_idx as usize];
-        if fragment_idx == 0 as ::core::ffi::c_uint {
-            let ext_first_part_size: ptrdiff_t = first_partition_length as ptrdiff_t
-                + (3 as ::core::ffi::c_uint)
-                    .wrapping_mul(num_token_partitions.wrapping_sub(1 as ::core::ffi::c_uint))
-                    as ptrdiff_t;
-            if fragment_size < ext_first_part_size as ::core::ffi::c_uint {
+    let num_token_partitions = (1 as usize) << pbi.common.multi_token_partition as usize;
+    
+    let mut new_ptrs: [*const u8; 9] = [core::ptr::null(); 9];
+    let mut new_sizes: [u32; 9] = [0; 9];
+    let mut new_count = 0;
+
+    let mut fragment_idx = 0;
+    
+    let orig_count = pbi.fragments.count as usize;
+    let orig_ptrs = pbi.fragments.ptrs;
+    let orig_sizes = pbi.fragments.sizes;
+
+    let mut target_partition_idx = 0;
+
+    while fragment_idx < orig_count && target_partition_idx < num_token_partitions + 1 {
+        let fragment_ptr = orig_ptrs[fragment_idx];
+        let fragment_size = orig_sizes[fragment_idx] as usize;
+        
+        if fragment_ptr.is_null() || fragment_size == 0 {
+            fragment_idx += 1;
+            continue;
+        }
+        
+        // SAFETY: We assume the original pointers and sizes passed from FFI/caller are valid.
+        let mut current_remaining = unsafe { core::slice::from_raw_parts(fragment_ptr, fragment_size) };
+        
+        if fragment_idx == 0 {
+            let ext_first_part_size = first_partition_length + 3 * (num_token_partitions - 1);
+            if current_remaining.len() < ext_first_part_size {
                 pbi.common.error.trigger(
                     VPX_CODEC_CORRUPT_FRAME,
-                    &format!("Corrupted fragment size {}", fragment_size),
+                    &format!("Corrupted fragment size {}", current_remaining.len()),
                 );
             }
-            fragment_size = fragment_size.wrapping_sub(ext_first_part_size as ::core::ffi::c_uint);
-            if fragment_size > 0 as ::core::ffi::c_uint {
-                pbi.fragments.sizes[0 as ::core::ffi::c_int as usize] =
-                    ext_first_part_size as ::core::ffi::c_uint;
-                fragment_idx = fragment_idx.wrapping_add(1);
-                pbi.fragments.ptrs[fragment_idx as usize] = unsafe {
-                    pbi.fragments.ptrs[0 as ::core::ffi::c_int as usize]
-                        .offset(pbi.fragments.sizes[0 as ::core::ffi::c_int as usize] as isize)
-                };
-            }
+            
+            let (first_part, remaining) = current_remaining.split_at(ext_first_part_size);
+            
+            new_ptrs[0] = first_part.as_ptr();
+            new_sizes[0] = first_part.len() as u32;
+            new_count = 1;
+            target_partition_idx = 1;
+            
+            current_remaining = remaining;
         }
-        while fragment_size > 0 as ::core::ffi::c_uint {
-            let fragment_slice = unsafe {
-                core::slice::from_raw_parts(pbi.fragments.ptrs[fragment_idx as usize], fragment_size as usize)
-            };
-            let partition_size: ptrdiff_t = read_available_partition_size(
+        
+        while !current_remaining.is_empty() && target_partition_idx < num_token_partitions + 1 {
+            let partition_size = read_available_partition_size(
                 pbi,
                 token_part_sizes,
-                fragment_slice,
-                fragment_idx.wrapping_sub(1 as ::core::ffi::c_uint) as ::core::ffi::c_int,
-                num_token_partitions as ::core::ffi::c_int,
-            ) as ptrdiff_t;
-            pbi.fragments.sizes[fragment_idx as usize] = partition_size as ::core::ffi::c_uint;
-            if fragment_size < partition_size as ::core::ffi::c_uint {
+                current_remaining,
+                (target_partition_idx - 1) as i32,
+                num_token_partitions as i32,
+            ) as usize;
+            
+            if current_remaining.len() < partition_size {
                 pbi.common.error.trigger(
                     VPX_CODEC_CORRUPT_FRAME,
-                    &format!("Corrupted fragment size {}", fragment_size),
+                    &format!("Corrupted fragment size {}", current_remaining.len()),
                 );
             }
-            fragment_size = fragment_size.wrapping_sub(partition_size as ::core::ffi::c_uint);
-            if fragment_size > 0 as ::core::ffi::c_uint {
-                fragment_idx = fragment_idx.wrapping_add(1);
-                pbi.fragments.ptrs[fragment_idx as usize] = unsafe {
-                    pbi.fragments.ptrs
-                        [fragment_idx.wrapping_sub(1 as ::core::ffi::c_uint) as usize]
-                        .offset(partition_size as isize)
-                };
-            }
+            
+            let (partition, next_remaining) = current_remaining.split_at(partition_size);
+            
+            new_ptrs[target_partition_idx] = partition.as_ptr();
+            new_sizes[target_partition_idx] = partition.len() as u32;
+            new_count = target_partition_idx + 1;
+            
+            target_partition_idx += 1;
+            current_remaining = next_remaining;
         }
-        fragment_idx = fragment_idx.wrapping_add(1);
+        
+        fragment_idx += 1;
     }
-    pbi.fragments.count = num_token_partitions.wrapping_add(1 as ::core::ffi::c_uint);
-    partition_idx = 1 as ::core::ffi::c_uint;
+    
+    pbi.fragments.count = new_count as u32;
+    for i in 0..9 {
+        pbi.fragments.ptrs[i] = new_ptrs[i];
+        pbi.fragments.sizes[i] = new_sizes[i];
+    }
+
+    let mut partition_idx = 1;
     while partition_idx < pbi.fragments.count {
         let partition_ptr = pbi.fragments.ptrs[partition_idx as usize];
         let partition_size = pbi.fragments.sizes[partition_idx as usize];
@@ -1088,6 +1106,7 @@ fn setup_token_decoder(
                 &format!("Failed to allocate bool decoder {}", partition_idx),
             );
         } else {
+            // SAFETY: We just populated these pointers from valid slices, so they are valid.
             let slice = unsafe { core::slice::from_raw_parts(partition_ptr, partition_size as usize) };
             crate::vp8::decoder::dboolhuff::vp8dx_start_decode_safe(
                 &mut pbi.mbc[(partition_idx - 1) as usize],
@@ -1098,8 +1117,8 @@ fn setup_token_decoder(
         }
         partition_idx = partition_idx.wrapping_add(1);
     }
-    if pbi.decoding_thread_count > num_token_partitions.wrapping_sub(1 as ::core::ffi::c_uint) {
-        pbi.decoding_thread_count = num_token_partitions.wrapping_sub(1 as ::core::ffi::c_uint);
+    if pbi.decoding_thread_count > num_token_partitions.wrapping_sub(1) as u32 {
+        pbi.decoding_thread_count = num_token_partitions.wrapping_sub(1) as u32;
     }
     if pbi.decoding_thread_count as ::core::ffi::c_int
         > pbi.common.mb_rows - 1 as ::core::ffi::c_int
