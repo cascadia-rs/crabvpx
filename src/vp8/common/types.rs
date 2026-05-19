@@ -751,8 +751,8 @@ impl Default for macroblockd {
 pub type MACROBLOCKD = macroblockd;
 
 impl macroblockd {
-    pub fn mode_info(&self) -> &MODE_INFO {
-        unsafe { &*self.mode_info_context }
+    pub fn mode_info(&self, mi_base: *const MODE_INFO) -> &MODE_INFO {
+        unsafe { &*mi_base.add(self.mode_info_idx) }
     }
     pub fn mode_info_mut(&mut self, mi_base: *mut MODE_INFO) -> &mut MODE_INFO {
         unsafe { &mut *mi_base.add(self.mode_info_idx) }

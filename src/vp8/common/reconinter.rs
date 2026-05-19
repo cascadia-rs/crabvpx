@@ -309,6 +309,7 @@ fn clamp_uvmv_to_umv_border(
 }
 pub fn vp8_build_inter16x16_predictors_mb(
     x: &mut MACROBLOCKD,
+    mip_base: *const MODE_INFO,
 ) {
     let dst_y_stride = x.dst.y_stride;
     let dst_uv_stride = x.dst.uv_stride;
@@ -318,7 +319,7 @@ pub fn vp8_build_inter16x16_predictors_mb(
     let border = x.dst.border as usize;
     let uv_border = border / 2;
 
-    let mbmi = x.mode_info().mbmi;
+    let mbmi = x.mode_info(mip_base).mbmi;
     let mut _16x16mv = mbmi.mv;
     let need_to_clamp_mvs = mbmi.need_to_clamp_mvs;
     
@@ -461,9 +462,9 @@ pub fn vp8_build_inter16x16_predictors_mb(
         vp8_copy_mem8x8_safe(sub_pre_v, pre_uv_stride, sub_dst_v, dst_uv_stride);
     }
 }
-fn build_inter4x4_predictors_mb(x: &mut MACROBLOCKD) {
-    let partitioning = x.mode_info().mbmi.partitioning;
-    let need_to_clamp_mvs = x.mode_info().mbmi.need_to_clamp_mvs;
+fn build_inter4x4_predictors_mb(x: &mut MACROBLOCKD, mip_base: *const MODE_INFO) {
+    let partitioning = x.mode_info(mip_base).mbmi.partitioning;
+    let need_to_clamp_mvs = x.mode_info(mip_base).mbmi.need_to_clamp_mvs;
     
     let dst_y_stride = x.dst.y_stride;
     let dst_uv_stride = x.dst.uv_stride;
@@ -484,7 +485,7 @@ fn build_inter4x4_predictors_mb(x: &mut MACROBLOCKD) {
     let pre_recon_uvoffset = mb_row * 8 * pre_uv_stride as usize + mb_col * 8;
     
     {
-        let bmi = x.mode_info().bmi;
+        let bmi = x.mode_info(mip_base).bmi;
         if (partitioning as ::core::ffi::c_int) < 3 as ::core::ffi::c_int {
             x.block[0].bmi = bmi[0];
             x.block[2].bmi = bmi[2];
@@ -705,7 +706,7 @@ fn build_inter4x4_predictors_mb(x: &mut MACROBLOCKD) {
         }
     }
 }
-fn build_4x4uvmvs(x: &mut MACROBLOCKD) {
+fn build_4x4uvmvs(x: &mut MACROBLOCKD, mip_base: *const MODE_INFO) {
     let mut i: ::core::ffi::c_int = 0;
     let mut j: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
@@ -719,19 +720,19 @@ fn build_4x4uvmvs(x: &mut MACROBLOCKD) {
             let mut voffset: ::core::ffi::c_int =
                 20 as ::core::ffi::c_int + i * 2 as ::core::ffi::c_int + j;
             let mut temp: ::core::ffi::c_int = 0;
-            temp = x.mode_info().bmi[(yoffset + 0 as ::core::ffi::c_int) as usize]
+            temp = x.mode_info(mip_base).bmi[(yoffset + 0 as ::core::ffi::c_int) as usize]
                 .mv()
                 .as_mv()
                 .row as ::core::ffi::c_int
-                + x.mode_info().bmi[(yoffset + 1 as ::core::ffi::c_int) as usize]
+                + x.mode_info(mip_base).bmi[(yoffset + 1 as ::core::ffi::c_int) as usize]
                     .mv()
                     .as_mv()
                     .row as ::core::ffi::c_int
-                + x.mode_info().bmi[(yoffset + 4 as ::core::ffi::c_int) as usize]
+                + x.mode_info(mip_base).bmi[(yoffset + 4 as ::core::ffi::c_int) as usize]
                     .mv()
                     .as_mv()
                     .row as ::core::ffi::c_int
-                + x.mode_info().bmi[(yoffset + 5 as ::core::ffi::c_int) as usize]
+                + x.mode_info(mip_base).bmi[(yoffset + 5 as ::core::ffi::c_int) as usize]
                     .mv()
                     .as_mv()
                     .row as ::core::ffi::c_int;
@@ -743,19 +744,19 @@ fn build_4x4uvmvs(x: &mut MACROBLOCKD) {
                     * 8 as ::core::ffi::c_int;
             x.block[uoffset as usize].bmi.mv_mut().as_mv_mut().row =
                 (temp / 8 as ::core::ffi::c_int & x.fullpixel_mask) as ::core::ffi::c_short;
-            temp = x.mode_info().bmi[(yoffset + 0 as ::core::ffi::c_int) as usize]
+            temp = x.mode_info(mip_base).bmi[(yoffset + 0 as ::core::ffi::c_int) as usize]
                 .mv()
                 .as_mv()
                 .col as ::core::ffi::c_int
-                + x.mode_info().bmi[(yoffset + 1 as ::core::ffi::c_int) as usize]
+                + x.mode_info(mip_base).bmi[(yoffset + 1 as ::core::ffi::c_int) as usize]
                     .mv()
                     .as_mv()
                     .col as ::core::ffi::c_int
-                + x.mode_info().bmi[(yoffset + 4 as ::core::ffi::c_int) as usize]
+                + x.mode_info(mip_base).bmi[(yoffset + 4 as ::core::ffi::c_int) as usize]
                     .mv()
                     .as_mv()
                     .col as ::core::ffi::c_int
-                + x.mode_info().bmi[(yoffset + 5 as ::core::ffi::c_int) as usize]
+                + x.mode_info(mip_base).bmi[(yoffset + 5 as ::core::ffi::c_int) as usize]
                     .mv()
                     .as_mv()
                     .col as ::core::ffi::c_int;
@@ -767,7 +768,7 @@ fn build_4x4uvmvs(x: &mut MACROBLOCKD) {
                     * 8 as ::core::ffi::c_int;
             x.block[uoffset as usize].bmi.mv_mut().as_mv_mut().col =
                 (temp / 8 as ::core::ffi::c_int & x.fullpixel_mask) as ::core::ffi::c_short;
-            if x.mode_info().mbmi.need_to_clamp_mvs != 0 {
+            if x.mode_info(mip_base).mbmi.need_to_clamp_mvs != 0 {
                 clamp_uvmv_to_umv_border(
                     x.block[uoffset as usize].bmi.mv_mut().as_mv_mut(),
                     x.mb_to_left_edge,
@@ -783,11 +784,11 @@ fn build_4x4uvmvs(x: &mut MACROBLOCKD) {
         i += 1;
     }
 }
-pub fn vp8_build_inter_predictors_mb(xd: &mut MACROBLOCKD) {
-    if xd.mode_info().mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int {
-        vp8_build_inter16x16_predictors_mb(xd);
+pub fn vp8_build_inter_predictors_mb(xd: &mut MACROBLOCKD, mip_base: *const MODE_INFO) {
+    if xd.mode_info(mip_base).mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int {
+        vp8_build_inter16x16_predictors_mb(xd, mip_base);
     } else {
-        build_4x4uvmvs(xd);
-        build_inter4x4_predictors_mb(xd);
+        build_4x4uvmvs(xd, mip_base);
+        build_inter4x4_predictors_mb(xd, mip_base);
     };
 }

@@ -247,7 +247,7 @@ pub fn vp8_mb_init_dequantizer(
 ) {
     let mut i: ::core::ffi::c_int = 0;
     let mut QIndex: ::core::ffi::c_int = 0;
-    let mbmi = &xd.mode_info().mbmi;
+    let mbmi = &xd.mode_info(pc.mip_ptr()).mbmi;
     if xd.segmentation_enabled != 0 {
         if xd.mb_segment_abs_delta as ::core::ffi::c_int == SEGMENT_ABSDATA {
             QIndex = xd.segment_feature_data[MB_LVL_ALT_Q as ::core::ffi::c_int as usize]
@@ -298,12 +298,13 @@ fn decode_macroblock(
 ) {
     let mut mode: MB_PREDICTION_MODE = DC_PRED;
     let mut i: ::core::ffi::c_int = 0;
-    if xd.mode_info().mbmi.mb_skip_coeff != 0 {
-        let is_4x4 = xd.mode_info().mbmi.is_4x4 != 0;
+    let mip = common.mip_ptr();
+    if xd.mode_info(mip).mbmi.mb_skip_coeff != 0 {
+        let is_4x4 = xd.mode_info(mip).mbmi.is_4x4 != 0;
         vp8_reset_mb_tokens_context(above, left, is_4x4);
     } else if vp8dx_bool_error(&mbc[xd.current_bc_idx]) == 0 {
         let mut eobtotal: ::core::ffi::c_int = 0;
-        let is_4x4 = xd.mode_info().mbmi.is_4x4 != 0;
+        let is_4x4 = xd.mode_info(mip).mbmi.is_4x4 != 0;
         let bc_idx = xd.current_bc_idx;
         let qcoeff = &mut xd.qcoeff;
         let eobs = &mut xd.eobs;
@@ -319,15 +320,15 @@ fn decode_macroblock(
         xd.mode_info_mut(common.mip_ptr()).mbmi.mb_skip_coeff =
             (eobtotal == 0 as ::core::ffi::c_int) as ::core::ffi::c_int as uint8_t;
     }
-    mode = xd.mode_info().mbmi.mode as MB_PREDICTION_MODE;
+    mode = xd.mode_info(mip).mbmi.mode as MB_PREDICTION_MODE;
 
     if xd.segmentation_enabled != 0 {
         vp8_mb_init_dequantizer(common, xd);
     }
-    if xd.mode_info().mbmi.ref_frame as ::core::ffi::c_int
+    if xd.mode_info(mip).mbmi.ref_frame as ::core::ffi::c_int
         == INTRA_FRAME as ::core::ffi::c_int
     {
-        let uvmode = xd.mode_info().mbmi.uv_mode as MB_PREDICTION_MODE;
+        let uvmode = xd.mode_info(mip).mbmi.uv_mode as MB_PREDICTION_MODE;
         let left_available = xd.left_available;
         let up_available = xd.up_available;
         let left_stride_uv = xd.recon_left_stride[1] as usize;
@@ -398,13 +399,13 @@ fn decode_macroblock(
                 dst_stride_us,
             );
         } else {
-            if xd.mode_info().mbmi.mb_skip_coeff != 0 {
+            if xd.mode_info(mip).mbmi.mb_skip_coeff != 0 {
                 xd.eobs.fill(0);
             }
             intra_prediction_down_copy(xd, None);
             
             let b_modes = {
-                let mi = xd.mode_info();
+                let mi = xd.mode_info(mip);
                 let mut modes = [0 as B_PREDICTION_MODE; 16];
                 for idx in 0..16 {
                     modes[idx] = mi.bmi[idx].mode();
@@ -479,10 +480,10 @@ fn decode_macroblock(
             }
         }
     } else {
-        crate::vp8::common::reconinter::vp8_build_inter_predictors_mb(xd);
+        crate::vp8::common::reconinter::vp8_build_inter_predictors_mb(xd, mip);
     }
 
-    if xd.mode_info().mbmi.mb_skip_coeff == 0 {
+    if xd.mode_info(mip).mbmi.mb_skip_coeff == 0 {
         if mode as ::core::ffi::c_uint != B_PRED as ::core::ffi::c_int as ::core::ffi::c_uint {
             let dq_y: &[i16; 16] = if mode as ::core::ffi::c_uint != SPLITMV as ::core::ffi::c_int as ::core::ffi::c_uint {
                 if xd.eobs[24 as ::core::ffi::c_int as usize] as ::core::ffi::c_int
@@ -788,7 +789,7 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
             xd.dst.u_buffer = u_ptr;
             xd.dst.v_buffer = v_ptr;
 
-            let ref_frame = xd.mode_info().mbmi.ref_frame;
+            let ref_frame = xd.mode_info(pc.mip_ptr()).mbmi.ref_frame;
             
             if ref_frame as ::core::ffi::c_int
                 >= LAST_FRAME as ::core::ffi::c_int
