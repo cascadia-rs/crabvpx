@@ -136,13 +136,16 @@ pub fn vp8_dequant_idct_add_uv_block_safe(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_dequant_idct_add_y_block_c(
+pub extern "C" fn vp8_dequant_idct_add_y_block_c(
     q: *mut ::core::ffi::c_short,
     dq: *mut ::core::ffi::c_short,
     dst: *mut ::core::ffi::c_uchar,
     stride: ::core::ffi::c_int,
     eobs: *mut ::core::ffi::c_char,
 ) {
+    if q.is_null() || dq.is_null() || dst.is_null() || eobs.is_null() {
+        return;
+    }
     unsafe {
         let q_ref = &mut *(q as *mut [i16; 256]);
         let dq_ref = &*(dq as *const [i16; 16]);
@@ -156,7 +159,7 @@ pub unsafe extern "C" fn vp8_dequant_idct_add_y_block_c(
 }
 
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_dequant_idct_add_uv_block_c(
+pub extern "C" fn vp8_dequant_idct_add_uv_block_c(
     q: *mut ::core::ffi::c_short,
     dq: *mut ::core::ffi::c_short,
     dst_u: *mut ::core::ffi::c_uchar,
@@ -164,6 +167,9 @@ pub unsafe extern "C" fn vp8_dequant_idct_add_uv_block_c(
     stride: ::core::ffi::c_int,
     eobs: *mut ::core::ffi::c_char,
 ) {
+    if q.is_null() || dq.is_null() || dst_u.is_null() || dst_v.is_null() || eobs.is_null() {
+        return;
+    }
     unsafe {
         let q_ref = &mut *(q as *mut [i16; 128]);
         let dq_ref = &*(dq as *const [i16; 16]);
