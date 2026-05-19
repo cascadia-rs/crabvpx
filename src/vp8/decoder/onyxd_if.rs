@@ -80,10 +80,8 @@ pub const NUM_YV12_BUFFERS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
 static INIT: Once = Once::new();
 
 fn initialize_dec() {
-    unsafe {
-        vpx_dsp_rtcd();
-        vp8_init_intra_predictors();
-    }
+    vpx_dsp_rtcd();
+    vp8_init_intra_predictors();
 }
 fn remove_decompressor(mut pbi: Box<VP8D_COMP>) {
     vp8_remove_common(&mut pbi.common);

@@ -224,7 +224,7 @@ pub fn vp8_build_intra_predictors_mbuv_s(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_init_intra_predictors() {}
+pub extern "C" fn vp8_init_intra_predictors() {}
 
 pub fn intra_prediction_down_copy(
     xd: &mut MACROBLOCKD,
