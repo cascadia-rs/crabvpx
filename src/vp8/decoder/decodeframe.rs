@@ -299,18 +299,20 @@ fn decode_macroblock(
     mbc: &mut [vp8_reader; 9],
     xd: &mut MACROBLOCKD,
     mb_idx: ::core::ffi::c_uint,
+    above: &mut ENTROPY_CONTEXT_PLANES,
+    left: &mut ENTROPY_CONTEXT_PLANES,
 ) {
     let mut mode: MB_PREDICTION_MODE = DC_PRED;
     let mut i: ::core::ffi::c_int = 0;
     if xd.mode_info().mbmi.mb_skip_coeff != 0 {
         let is_4x4 = xd.mode_info().mbmi.is_4x4 != 0;
-        let (above, left) = xd.contexts_mut();
         vp8_reset_mb_tokens_context(above, left, is_4x4);
     } else if vp8dx_bool_error(&mbc[xd.current_bc_idx]) == 0 {
         let mut eobtotal: ::core::ffi::c_int = 0;
         let is_4x4 = xd.mode_info().mbmi.is_4x4 != 0;
         let bc_idx = xd.current_bc_idx;
-        let (above, left, qcoeff, eobs) = xd.decode_tokens_inputs_mut();
+        let qcoeff = &mut xd.qcoeff;
+        let eobs = &mut xd.eobs;
         eobtotal = vp8_decode_mb_tokens(
             &mut mbc[bc_idx],
             &common.fc,
@@ -743,6 +745,9 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
         vp8_loop_filter_frame_init(pc, xd, filter_level);
     }
     vp8_setup_intra_recon_top_line(&mut pc.yv12_fb[new_fb_idx]);
+    
+    let mut above_context_box = pc.above_context.take().unwrap();
+    
     mb_row = 0 as ::core::ffi::c_int;
     while mb_row < pc.mb_rows {
         if num_part > 1 as ::core::ffi::c_int {
@@ -754,13 +759,8 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
         }
         recon_yoffset = mb_row * recon_y_stride * 16 as ::core::ffi::c_int;
         recon_uvoffset = mb_row * recon_uv_stride * 8 as ::core::ffi::c_int;
-        xd.above_context = pc.above_context_ptr();
-        *xd.left_context_mut() = ENTROPY_CONTEXT_PLANES {
-            y1: [0; 4],
-            u: [0; 2],
-            v: [0; 2],
-            y2: 0,
-        };
+        
+        let mut left_context = ENTROPY_CONTEXT_PLANES::default();
         xd.left_available = 0 as ::core::ffi::c_int;
         xd.mb_to_top_edge = -((mb_row * 16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int);
         xd.mb_to_bottom_edge = ((pc.mb_rows - 1 as ::core::ffi::c_int - mb_row)
@@ -837,7 +837,8 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
             }
             xd.corrupted |= ref_fb_corrupted[ref_frame as usize];
             
-            decode_macroblock(pc, &mut pbi.mbc, xd, mb_idx as ::core::ffi::c_uint);
+            let above = &mut above_context_box[mb_col as usize];
+            decode_macroblock(pc, &mut pbi.mbc, xd, mb_idx as ::core::ffi::c_uint, above, &mut left_context);
             
             mb_idx += 1;
             xd.left_available = 1 as ::core::ffi::c_int;
@@ -848,7 +849,6 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
             
             unsafe {
                 xd.mode_info_context = xd.mode_info_context.offset(1);
-                xd.above_context = xd.above_context.offset(1);
             }
             mb_col += 1;
         }
@@ -957,6 +957,8 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
     yv12_extend_frame_left_right(&mut pc.yv12_fb[new_fb_idx], extended_row);
     yv12_extend_frame_top_c(&mut pc.yv12_fb[new_fb_idx]);
     yv12_extend_frame_bottom_c(&mut pc.yv12_fb[new_fb_idx]);
+    
+    pc.above_context = Some(above_context_box);
 }
 fn read_partition_size(
     pbi: &VP8D_COMP,
