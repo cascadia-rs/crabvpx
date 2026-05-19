@@ -89,21 +89,6 @@ void vpx_d207_predictor_4x4_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *
 #define vpx_d207_predictor_4x4 vpx_d207_predictor_4x4_neon
 
 
-void vpx_d45_predictor_16x16_c(uint8_t *dst, ptrdiff_t stride, const uint8_t *above, const uint8_t *left);
-void vpx_d45_predictor_16x16_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *above, const uint8_t *left);
-#define vpx_d45_predictor_16x16 vpx_d45_predictor_16x16_neon
-
-void vpx_d45_predictor_32x32_c(uint8_t *dst, ptrdiff_t stride, const uint8_t *above, const uint8_t *left);
-void vpx_d45_predictor_32x32_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *above, const uint8_t *left);
-#define vpx_d45_predictor_32x32 vpx_d45_predictor_32x32_neon
-
-void vpx_d45_predictor_4x4_c(uint8_t *dst, ptrdiff_t stride, const uint8_t *above, const uint8_t *left);
-void vpx_d45_predictor_4x4_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *above, const uint8_t *left);
-#define vpx_d45_predictor_4x4 vpx_d45_predictor_4x4_neon
-
-void vpx_d45_predictor_8x8_c(uint8_t *dst, ptrdiff_t stride, const uint8_t *above, const uint8_t *left);
-void vpx_d45_predictor_8x8_neon(uint8_t *dst, ptrdiff_t stride, const uint8_t *above, const uint8_t *left);
-#define vpx_d45_predictor_8x8 vpx_d45_predictor_8x8_neon
 
 void vpx_d45e_predictor_4x4_c(uint8_t *dst, ptrdiff_t stride, const uint8_t *above, const uint8_t *left);
 #define vpx_d45e_predictor_4x4 vpx_d45e_predictor_4x4_c
