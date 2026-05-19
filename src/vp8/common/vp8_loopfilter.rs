@@ -279,7 +279,9 @@ pub fn vp8_loop_filter_frame_init(
     }
 }
 pub fn vp8_loop_filter_row_normal_safe(
-    cm: &VP8_COMMON,
+    mb_cols: ::core::ffi::c_int,
+    lf_info: &loop_filter_info_n,
+    frame_type: FRAME_TYPE,
     mode_info_slice: &[MODE_INFO],
     mode_info_idx: usize,
     mb_row: ::core::ffi::c_int,
@@ -294,21 +296,20 @@ pub fn vp8_loop_filter_row_normal_safe(
 ) {
     let mut mb_col: ::core::ffi::c_int = 0;
     let mut filter_level: ::core::ffi::c_int = 0;
-    let lfi_n = &cm.lf_info;
+    let lfi_n = lf_info;
     let mut lfi: loop_filter_info = loop_filter_info {
         mblim: ::core::ptr::null::<::core::ffi::c_uchar>(),
         blim: ::core::ptr::null::<::core::ffi::c_uchar>(),
         lim: ::core::ptr::null::<::core::ffi::c_uchar>(),
         hev_thr: ::core::ptr::null::<::core::ffi::c_uchar>(),
     };
-    let frame_type: FRAME_TYPE = cm.frame_type;
     mb_col = 0 as ::core::ffi::c_int;
     let mut cur_mi_idx = mode_info_idx;
     let mut cur_y_offset = y_offset;
     let mut cur_u_offset = u_offset;
     let mut cur_v_offset = v_offset;
 
-    while mb_col < cm.mb_cols {
+    while mb_col < mb_cols {
         let mi = &mode_info_slice[cur_mi_idx];
         let mut skip_lf: ::core::ffi::c_int = (mi.mbmi.mode as ::core::ffi::c_int
             != B_PRED as ::core::ffi::c_int
@@ -392,7 +393,8 @@ pub fn vp8_loop_filter_row_normal_safe(
     }
 }
 pub fn vp8_loop_filter_row_simple_safe(
-    cm: &VP8_COMMON,
+    mb_cols: ::core::ffi::c_int,
+    lf_info: &loop_filter_info_n,
     mode_info_slice: &[MODE_INFO],
     mode_info_idx: usize,
     mb_row: ::core::ffi::c_int,
@@ -402,12 +404,12 @@ pub fn vp8_loop_filter_row_simple_safe(
 ) {
     let mut mb_col: ::core::ffi::c_int = 0;
     let mut filter_level: ::core::ffi::c_int = 0;
-    let lfi_n = &cm.lf_info;
+    let lfi_n = lf_info;
     mb_col = 0 as ::core::ffi::c_int;
     let mut cur_mi_idx = mode_info_idx;
     let mut cur_y_offset = y_offset;
 
-    while mb_col < cm.mb_cols {
+    while mb_col < mb_cols {
         let mi = &mode_info_slice[cur_mi_idx];
         let mut skip_lf: ::core::ffi::c_int = (mi.mbmi.mode as ::core::ffi::c_int
             != B_PRED as ::core::ffi::c_int

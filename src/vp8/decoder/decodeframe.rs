@@ -883,10 +883,7 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
         xd.up_available = 1 as ::core::ffi::c_int;
         if pc.filter_level != 0 {
             if mb_row > 0 as ::core::ffi::c_int {
-                let (mut y_slice, mut u_slice, mut v_slice) = unsafe {
-                    let fb = &pc.yv12_fb[new_fb_idx];
-                    (fb.y_view_mut(), fb.u_view_mut(), fb.v_view_mut())
-                };
+                let (y_slice, u_slice, v_slice) = pc.yv12_fb[new_fb_idx].views_mut();
 
                 let stride = pc.mode_info_stride as usize;
                 let mip_slice = pc.mip.as_ref().unwrap();
@@ -896,7 +893,9 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
                     == NORMAL_LOOPFILTER as ::core::ffi::c_int as ::core::ffi::c_uint
                 {
                     vp8_loop_filter_row_normal_safe(
-                        pc,
+                        pc.mb_cols,
+                        &pc.lf_info,
+                        pc.frame_type,
                         mip_slice,
                         mode_info_idx,
                         mb_row - 1 as ::core::ffi::c_int,
@@ -911,7 +910,8 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
                     );
                 } else {
                     vp8_loop_filter_row_simple_safe(
-                        pc,
+                        pc.mb_cols,
+                        &pc.lf_info,
                         mip_slice,
                         mode_info_idx,
                         mb_row - 1 as ::core::ffi::c_int,
@@ -935,10 +935,7 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
         mb_row += 1;
     }
     if pc.filter_level != 0 {
-        let (mut y_slice, mut u_slice, mut v_slice) = unsafe {
-            let fb = &pc.yv12_fb[new_fb_idx];
-            (fb.y_view_mut(), fb.u_view_mut(), fb.v_view_mut())
-        };
+        let (y_slice, u_slice, v_slice) = pc.yv12_fb[new_fb_idx].views_mut();
 
         let stride = pc.mode_info_stride as usize;
         let mip_slice = pc.mip.as_ref().unwrap();
@@ -948,7 +945,9 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
             == NORMAL_LOOPFILTER as ::core::ffi::c_int as ::core::ffi::c_uint
         {
             vp8_loop_filter_row_normal_safe(
-                pc,
+                pc.mb_cols,
+                &pc.lf_info,
+                pc.frame_type,
                 mip_slice,
                 mode_info_idx,
                 mb_row - 1 as ::core::ffi::c_int,
@@ -963,7 +962,8 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
             );
         } else {
             vp8_loop_filter_row_simple_safe(
-                pc,
+                pc.mb_cols,
+                &pc.lf_info,
                 mip_slice,
                 mode_info_idx,
                 mb_row - 1 as ::core::ffi::c_int,
