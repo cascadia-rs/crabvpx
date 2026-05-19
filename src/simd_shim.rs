@@ -33,10 +33,7 @@ unsafe extern "C" {
     fn vp8_loop_filter_simple_vertical_edge_c(y_ptr: *mut c_uchar, y_stride: c_int, blimit: *const c_uchar);
 
 
-    fn vpx_dc_predictor_16x16_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
-    fn vpx_dc_predictor_32x32_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
 
-    fn vpx_dc_predictor_8x8_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
     fn vpx_h_predictor_16x16_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
     fn vpx_h_predictor_32x32_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
     fn vpx_h_predictor_8x8_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
@@ -194,22 +191,6 @@ pub unsafe extern "C" fn vp8_loop_filter_mbvs_neon(y_ptr: *mut c_uchar, y_stride
 
 
 
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_dc_predictor_16x16_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
-    vpx_dc_predictor_16x16_c(dst, stride, above, left);
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_dc_predictor_32x32_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
-    vpx_dc_predictor_32x32_c(dst, stride, above, left);
-}
-
-
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_dc_predictor_8x8_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
-    vpx_dc_predictor_8x8_c(dst, stride, above, left);
-}
 
 
 #[unsafe(no_mangle)]
