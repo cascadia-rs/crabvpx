@@ -846,10 +846,17 @@ pub struct MB_ROW_DEC {
     pub mbd: MACROBLOCKD,
 }
 
-#[derive(Copy, Clone)]
-#[repr(C)]
+#[repr(transparent)]
 pub struct vpx_atomic_int {
-    pub value: ::core::ffi::c_int,
+    pub value: core::sync::atomic::AtomicI32,
+}
+
+impl Clone for vpx_atomic_int {
+    fn clone(&self) -> Self {
+        vpx_atomic_int {
+            value: core::sync::atomic::AtomicI32::new(self.value.load(core::sync::atomic::Ordering::Relaxed)),
+        }
+    }
 }
 
 #[derive(Copy, Clone)]

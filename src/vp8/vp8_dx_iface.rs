@@ -623,9 +623,7 @@ pub const MAX_PARTITIONS: ::core::ffi::c_int = 9 as ::core::ffi::c_int;
 fn vpx_atomic_load_acquire(
     atomic: &vpx_atomic_int,
 ) -> ::core::ffi::c_int {
-    unsafe {
-        (*(&raw const atomic.value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire)
-    }
+    atomic.value.load(core::sync::atomic::Ordering::Acquire)
 }
 unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi::c_int { unsafe {
     let mut priv_0: *mut vpx_codec_alg_priv_t = vpx_calloc(

@@ -197,9 +197,7 @@ pub const QINDEX_RANGE: ::core::ffi::c_int = MAXQ + 1 as ::core::ffi::c_int;
 fn vpx_atomic_load_acquire(
     atomic: &vpx_atomic_int,
 ) -> ::core::ffi::c_int {
-    unsafe {
-        (*(&raw const atomic.value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire)
-    }
+    atomic.value.load(core::sync::atomic::Ordering::Acquire)
 }
 
 pub(crate) fn setup_intra_recon_left(

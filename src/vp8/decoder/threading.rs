@@ -190,20 +190,20 @@ unsafe extern "C" fn vpx_atomic_init(
     mut atomic: *mut vpx_atomic_int,
     mut value: ::core::ffi::c_int,
 ) { unsafe {
-    ::core::ptr::write_volatile(&mut (*atomic).value as *mut ::core::ffi::c_int, value);
+    (*atomic).value.store(value, core::sync::atomic::Ordering::SeqCst);
 }}
 #[inline]
 unsafe extern "C" fn vpx_atomic_store_release(
     mut atomic: *mut vpx_atomic_int,
     mut value: ::core::ffi::c_int,
 ) { unsafe {
-    (*(&raw mut (*atomic).value as *const core::sync::atomic::AtomicI32)).store(value, core::sync::atomic::Ordering::Release);
+    (*atomic).value.store(value, core::sync::atomic::Ordering::Release);
 }}
 #[inline]
 unsafe extern "C" fn vpx_atomic_load_acquire(
     mut atomic: *const vpx_atomic_int,
 ) -> ::core::ffi::c_int { unsafe {
-    return (*(&raw const (*atomic).value as *const core::sync::atomic::AtomicI32)).load(core::sync::atomic::Ordering::Acquire);
+    return (*atomic).value.load(core::sync::atomic::Ordering::Acquire);
 }}
 #[inline]
 unsafe extern "C" fn vp8_atomic_spin_wait(
@@ -475,7 +475,7 @@ fn mt_decode_mb_rows(
     let mut pc: *mut VP8_COMMON = &raw mut (*pbi).common;
     let nsync: ::core::ffi::c_int = (*pbi).sync_range;
     let first_row_no_sync_above: vpx_atomic_int = vpx_atomic_int {
-        value: (*pc).mb_cols + nsync,
+        value: core::sync::atomic::AtomicI32::new((*pc).mb_cols + nsync),
     };
     let mut num_part: ::core::ffi::c_int =
         (1 as ::core::ffi::c_int) << (*pbi).common.multi_token_partition as ::core::ffi::c_uint;
@@ -1210,7 +1210,7 @@ pub unsafe extern "C" fn vp8mt_alloc_temp_buffers(
         uv_width = width >> 1 as ::core::ffi::c_int;
         let mb_rows_usize = (*pc).mb_rows as usize;
         
-        (*pbi).mt_current_mb_col = Box::into_raw(vec![vpx_atomic_int { value: 0 }; mb_rows_usize].into_boxed_slice()) as *mut vpx_atomic_int;
+        (*pbi).mt_current_mb_col = Box::into_raw(vec![vpx_atomic_int { value: core::sync::atomic::AtomicI32::new(0) }; mb_rows_usize].into_boxed_slice()) as *mut vpx_atomic_int;
         if (*pbi).mt_current_mb_col.is_null() {
             vpx_internal_error(
                 &raw mut (*pc).error,
