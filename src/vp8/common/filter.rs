@@ -204,17 +204,25 @@ fn filter_block2d_second_pass_safe(
         let r5 = &src[(i + 5) * src_stride..(i + 5) * src_stride + output_width];
         let dst_row = &mut dst[i * dst_pitch..i * dst_pitch + output_width];
 
-        for j in 0..output_width {
-            let mut temp = r0[j] * f0
-                + r1[j] * f1
-                + r2[j] * f2
-                + r3[j] * f3
-                + r4[j] * f4
-                + r5[j] * f5
+        for ((((((dst_pix, &p0), &p1), &p2), &p3), &p4), &p5) in dst_row
+            .iter_mut()
+            .zip(r0.iter())
+            .zip(r1.iter())
+            .zip(r2.iter())
+            .zip(r3.iter())
+            .zip(r4.iter())
+            .zip(r5.iter())
+        {
+            let mut temp = p0 * f0
+                + p1 * f1
+                + p2 * f2
+                + p3 * f3
+                + p4 * f4
+                + p5 * f5
                 + half_weight;
 
             temp >>= VP8_FILTER_SHIFT;
-            dst_row[j] = temp.clamp(0, 255) as u8;
+            *dst_pix = temp.clamp(0, 255) as u8;
         }
     }
 }
@@ -304,9 +312,9 @@ fn filter_block2d_bil_second_pass_safe(
         let r1 = &src[(i + 1) * src_stride..(i + 1) * src_stride + width];
         let dst_row = &mut dst[i * dst_pitch..i * dst_pitch + width];
 
-        for j in 0..width {
-            let temp = r0[j] as i32 * f0 + r1[j] as i32 * f1 + half_weight;
-            dst_row[j] = (temp >> VP8_FILTER_SHIFT) as u8;
+        for ((dst_pix, &p0), &p1) in dst_row.iter_mut().zip(r0.iter()).zip(r1.iter()) {
+            let temp = p0 as i32 * f0 + p1 as i32 * f1 + half_weight;
+            *dst_pix = (temp >> VP8_FILTER_SHIFT) as u8;
         }
     }
 }
