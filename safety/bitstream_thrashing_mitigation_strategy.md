@@ -74,3 +74,41 @@ Once all internal call paths natively consume `SafeBoolDecoder`, remove the inte
 2. **Never Splinter Bitstream Contexts:** Do not create multiple overlapping `SafeBoolDecoder` instances over the same underlying buffer space simultaneously.
 3. **Continuous Build & Verification:** Any alteration to token or boolean parsing risks catastrophic bitstream corruption. After refactoring any bitstream reading path, immediately verify with `./build.sh` and execute `./scripts/compare.py`.
 4. **Log State in HINTS:** Document which token decoder modules (e.g., `detokenize`, `entropymode`) have successfully transitioned to persistent `SafeBoolDecoder` instances in `safety/HINTS.md`.
+
+## Suggested Implementation Plan
+Resolving the bitstream slice thrashing requires approximately 10 to 12 discrete units of work.
+
+Because bitstream token parsing follows a clear calling hierarchy, an autonomous agent can systematically refactor the pipeline
+bottom-up across four logical milestones:
+
+### 1. Leaf Reader Interface & Tree Decoders (~2 to 3 Work Units)
+
+Establishing native safe reader overloads at the lowest layer of binary and entropy extraction.
+
+• Unit 1: Expose native non-FFI decoding primitives on dboolhuff.rs inside  dboolhuff.rs .
+• Unit 2: Refactor binary probability tree parsers ( vp8_treedecode ) in  treecoder.rs  to take  &mut SafeBoolDecoder .
+• Unit 3: Update probability update utilities in  entropymode.rs  /  entropymv.rs .
+
+### 2. Token & Macroblock Mode Pipelines (~4 to 5 Work Units)
+
+Updating call prototypes in the heavyweight token parsing modules to take persistent  &mut SafeBoolDecoder  references instead of raw
+BOOL_DECODER  pointers.
+
+• Unit 4: Refactor block coefficient detokenizers in  detokenize.rs .
+• Unit 5: Update macroblock token pipeline entry points ( vp8_decode_mb_tokens ).
+• Unit 6: Refactor motion vector component extractors in  decodemv.rs .
+• Units 7+: Refactor macroblock mode decoding ( vp8_decode_mode_mvs ).
+
+### 3. Outer Partition Root Instantiation (~2 Work Units)
+
+Pushing slice creation to the topmost partition loop, wrapping pointer conversions entirely at the boundary.
+
+• Unit 8: Instantiate persistent safe slice readers at the partition root of  decode_mb_rows  in  decodeframe.rs .
+• Unit 9: Instantiate safe slice readers inside multithreaded row workers in  threading.rs .
+
+### 4. Legacy Cleanup & Sync Deprecation (~2 Work Units)
+
+Pruning obsolete wrapper logic and intermediate conversion shims.
+
+• Unit 10: Eliminate unneeded raw pointer  bc  dereferencing blocks across internal functions.
+• Unit 11: Purge internal usages of the legacy dboolhuff.rs wrapper shim.
