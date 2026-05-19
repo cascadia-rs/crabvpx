@@ -1496,8 +1496,7 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
             != ONE_PARTITION as ::core::ffi::c_int as ::core::ffi::c_uint
     {
         let mut thread: ::core::ffi::c_uint = 0;
-        let xd_ptr = &raw mut pbi.mb;
-        if unsafe { vp8mt_decode_mb_rows(pbi, &mut *xd_ptr) } != 0 {
+        if vp8mt_decode_mb_rows(pbi) != 0 {
             unsafe { vp8_decoder_remove_threads(pbi) };
             pbi.restart_threads = 1 as ::core::ffi::c_int;
             pbi.common.error.trigger(

@@ -1274,7 +1274,6 @@ pub unsafe extern "C" fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) { u
 #[unsafe(no_mangle)]
 pub fn vp8mt_decode_mb_rows(
     pbi: &mut VP8D_COMP,
-    xd: &mut MACROBLOCKD,
 ) -> ::core::ffi::c_int {
     let pc_ref = &mut pbi.common;
     let mut i: ::core::ffi::c_uint = 0;
@@ -1327,25 +1326,27 @@ pub fn vp8mt_decode_mb_rows(
         vp8_setup_intra_recon_top_line(yv12_fb_new_ref);
     }
     
+    let xd_ptr = &raw mut pbi.mb;
     let mb_row_di = pbi.mb_row_di.as_mut().unwrap();
-    setup_decoding_thread_data(
-        &pbi.common,
-        pbi.mt_current_mb_col.as_deref(),
-        xd,
-        mb_row_di,
-    );
     
     unsafe {
+        setup_decoding_thread_data(
+            &pbi.common,
+            pbi.mt_current_mb_col.as_deref(),
+            &*xd_ptr,
+            mb_row_di,
+        );
+
         i = 0;
         while i < pbi.decoding_thread_count {
             crate::thread_shim::vp8_semaphore_signal(*pbi.h_event_start_decoding.offset(i as isize));
             i = i.wrapping_add(1);
         }
         
-        let setjmp_res = setjmp(&raw mut xd.error_info.jmp as *mut ::core::ffi::c_int);
+        let setjmp_res = setjmp(&raw mut (*xd_ptr).error_info.jmp as *mut ::core::ffi::c_int);
         if setjmp_res != 0 {
-            xd.error_info.setjmp = 0;
-            xd.corrupted = 1;
+            (*xd_ptr).error_info.setjmp = 0;
+            (*xd_ptr).corrupted = 1;
             i = 0;
             while i < pbi.decoding_thread_count {
                 crate::thread_shim::vp8_semaphore_wait(pbi.h_event_end_decoding);
@@ -1354,9 +1355,9 @@ pub fn vp8mt_decode_mb_rows(
             return -1;
         }
         
-        xd.error_info.setjmp = 1;
-        mt_decode_mb_rows(pbi, xd, 0);
-        xd.error_info.setjmp = 0;
+        (*xd_ptr).error_info.setjmp = 1;
+        mt_decode_mb_rows(pbi, &mut *xd_ptr, 0);
+        (*xd_ptr).error_info.setjmp = 0;
         
         i = 0;
         while i < pbi.decoding_thread_count.wrapping_add(1) {
