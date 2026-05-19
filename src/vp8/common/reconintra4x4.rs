@@ -228,16 +228,6 @@ pub fn vp8_intra4x4_predict_safe(
                 Aboveb[3],
             );
         }
-        _ => {
-            let dst_ptr = y_slice[dst_offset..].as_mut_ptr();
-            unsafe {
-                pred[b_mode as usize].expect("non-null function pointer")(
-                    dst_ptr,
-                    dst_stride as ptrdiff_t,
-                    Aboveb[4..].as_ptr(),
-                    Left.as_ptr(),
-                );
-            }
-        }
+        _ => unreachable!("Invalid b_mode: {}", b_mode),
     }
 }
