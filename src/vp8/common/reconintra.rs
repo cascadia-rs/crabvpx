@@ -1,53 +1,4 @@
-unsafe extern "C" {
-    fn vpx_dc_128_predictor_16x16_neon(
-        dst: *mut uint8_t,
-        stride: ptrdiff_t,
-        above: *const uint8_t,
-        left: *const uint8_t,
-    );
-    fn vpx_dc_128_predictor_8x8_neon(
-        dst: *mut uint8_t,
-        stride: ptrdiff_t,
-        above: *const uint8_t,
-        left: *const uint8_t,
-    );
-    fn vpx_dc_left_predictor_16x16_neon(
-        dst: *mut uint8_t,
-        stride: ptrdiff_t,
-        above: *const uint8_t,
-        left: *const uint8_t,
-    );
-    fn vpx_dc_left_predictor_8x8_neon(
-        dst: *mut uint8_t,
-        stride: ptrdiff_t,
-        above: *const uint8_t,
-        left: *const uint8_t,
-    );
-    fn vpx_dc_predictor_16x16_neon(
-        dst: *mut uint8_t,
-        stride: ptrdiff_t,
-        above: *const uint8_t,
-        left: *const uint8_t,
-    );
-    fn vpx_dc_predictor_8x8_neon(
-        dst: *mut uint8_t,
-        stride: ptrdiff_t,
-        above: *const uint8_t,
-        left: *const uint8_t,
-    );
-    fn vpx_dc_top_predictor_16x16_neon(
-        dst: *mut uint8_t,
-        stride: ptrdiff_t,
-        above: *const uint8_t,
-        left: *const uint8_t,
-    );
-    fn vpx_dc_top_predictor_8x8_neon(
-        dst: *mut uint8_t,
-        stride: ptrdiff_t,
-        above: *const uint8_t,
-        left: *const uint8_t,
-    );
-}
+
 pub type __darwin_ptrdiff_t = isize;
 pub type __darwin_size_t = usize;
 pub type ptrdiff_t = __darwin_ptrdiff_t;
@@ -71,37 +22,7 @@ pub const VPX_CS_BT_709: vpx_color_space = 2;
 pub const VPX_CS_BT_601: vpx_color_space = 1;
 pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
 
-pub type intra_pred_fn =
-    Option<unsafe extern "C" fn(*mut uint8_t, ptrdiff_t, *const uint8_t, *const uint8_t) -> ()>;
-pub const SIZE_16: C2RustUnnamed = 0;
-pub const SIZE_8: C2RustUnnamed = 1;
-pub type C2RustUnnamed = ::core::ffi::c_uint;
-pub const NUM_SIZES: C2RustUnnamed = 2;
 
-
-
-static dc_pred: [[[intra_pred_fn; 2]; 2]; 2] = [
-    [
-        [
-            Some(vpx_dc_128_predictor_16x16_neon),
-            Some(vpx_dc_128_predictor_8x8_neon),
-        ],
-        [
-            Some(vpx_dc_top_predictor_16x16_neon),
-            Some(vpx_dc_top_predictor_8x8_neon),
-        ],
-    ],
-    [
-        [
-            Some(vpx_dc_left_predictor_16x16_neon),
-            Some(vpx_dc_left_predictor_8x8_neon),
-        ],
-        [
-            Some(vpx_dc_predictor_16x16_neon),
-            Some(vpx_dc_predictor_8x8_neon),
-        ],
-    ],
-];
 pub fn vp8_build_intra_predictors_mby_safe(
     mode: MB_PREDICTION_MODE,
     left_available: i32,
@@ -137,15 +58,18 @@ pub fn vp8_build_intra_predictors_mby_safe(
         }
         _ => {
             debug_assert_eq!(mode, DC_PRED);
-            let fn_0 = dc_pred[left_available as usize][up_available as usize][SIZE_16 as usize];
-            if let Some(pred_fn) = fn_0 {
-                unsafe {
-                    pred_fn(
-                        ypred_slice.as_mut_ptr(),
-                        y_stride as ptrdiff_t,
-                        yabove[1..].as_ptr(),
-                        yleft.as_ptr(),
-                    );
+            match (left_available != 0, up_available != 0) {
+                (false, false) => {
+                    crate::vpx_dsp::intrapred::vpx_dc_128_predictor_16x16_safe(ypred_slice, y_stride);
+                }
+                (false, true) => {
+                    crate::vpx_dsp::intrapred::vpx_dc_top_predictor_16x16_safe(ypred_slice, y_stride, &yabove[1..]);
+                }
+                (true, false) => {
+                    crate::vpx_dsp::intrapred::vpx_dc_left_predictor_16x16_safe(ypred_slice, y_stride, yleft);
+                }
+                (true, true) => {
+                    crate::vpx_dsp::intrapred::vpx_dc_predictor_16x16_safe(ypred_slice, y_stride, &yabove[1..], yleft);
                 }
             }
         }
@@ -206,21 +130,22 @@ pub fn vp8_build_intra_predictors_mbuv_safe(
         }
         _ => {
             debug_assert_eq!(uvmode, DC_PRED);
-            let fn_0 = dc_pred[left_available as usize][up_available as usize][SIZE_8 as usize];
-            if let Some(pred_fn) = fn_0 {
-                unsafe {
-                    pred_fn(
-                        upred_slice.as_mut_ptr(),
-                        uv_stride as ptrdiff_t,
-                        uabove[1..].as_ptr(),
-                        uleft.as_ptr(),
-                    );
-                    pred_fn(
-                        vpred_slice.as_mut_ptr(),
-                        uv_stride as ptrdiff_t,
-                        vabove[1..].as_ptr(),
-                        vleft.as_ptr(),
-                    );
+            match (left_available != 0, up_available != 0) {
+                (false, false) => {
+                    crate::vpx_dsp::intrapred::vpx_dc_128_predictor_8x8_safe(upred_slice, uv_stride);
+                    crate::vpx_dsp::intrapred::vpx_dc_128_predictor_8x8_safe(vpred_slice, uv_stride);
+                }
+                (false, true) => {
+                    crate::vpx_dsp::intrapred::vpx_dc_top_predictor_8x8_safe(upred_slice, uv_stride, &uabove[1..]);
+                    crate::vpx_dsp::intrapred::vpx_dc_top_predictor_8x8_safe(vpred_slice, uv_stride, &vabove[1..]);
+                }
+                (true, false) => {
+                    crate::vpx_dsp::intrapred::vpx_dc_left_predictor_8x8_safe(upred_slice, uv_stride, uleft);
+                    crate::vpx_dsp::intrapred::vpx_dc_left_predictor_8x8_safe(vpred_slice, uv_stride, vleft);
+                }
+                (true, true) => {
+                    crate::vpx_dsp::intrapred::vpx_dc_predictor_8x8_safe(upred_slice, uv_stride, &uabove[1..], uleft);
+                    crate::vpx_dsp::intrapred::vpx_dc_predictor_8x8_safe(vpred_slice, uv_stride, &vabove[1..], vleft);
                 }
             }
         }
