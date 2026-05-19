@@ -31,10 +31,6 @@ unsafe extern "C" {
     fn vp8_sixtap_predict8x8_c(src_ptr: *mut c_uchar, src_pixels_per_line: c_int, xoffset: c_int, yoffset: c_int, dst_ptr: *mut c_uchar, dst_pitch: c_int);
     fn vp8_loop_filter_simple_horizontal_edge_c(y_ptr: *mut c_uchar, y_stride: c_int, blimit: *const c_uchar);
     fn vp8_loop_filter_simple_vertical_edge_c(y_ptr: *mut c_uchar, y_stride: c_int, blimit: *const c_uchar);
-    fn vpx_d135_predictor_16x16_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
-    fn vpx_d135_predictor_32x32_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
-
-    fn vpx_d135_predictor_8x8_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
     fn vpx_d153_predictor_16x16_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
     fn vpx_d153_predictor_32x32_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
     fn vpx_d153_predictor_8x8_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
@@ -200,22 +196,6 @@ pub unsafe extern "C" fn vp8_loop_filter_mbvs_neon(y_ptr: *mut c_uchar, y_stride
     vp8_loop_filter_simple_vertical_edge_c(y_ptr, y_stride, blimit);
 }
 
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_d135_predictor_16x16_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
-    vpx_d135_predictor_16x16_c(dst, stride, above, left);
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_d135_predictor_32x32_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
-    vpx_d135_predictor_32x32_c(dst, stride, above, left);
-}
-
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_d135_predictor_8x8_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
-    vpx_d135_predictor_8x8_c(dst, stride, above, left);
-}
 
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_d153_predictor_16x16_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
