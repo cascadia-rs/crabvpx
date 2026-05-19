@@ -772,32 +772,7 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
         xd.mb_to_bottom_edge = ((pc.mb_rows - 1 as ::core::ffi::c_int - mb_row)
             * 16 as ::core::ffi::c_int)
             << 3 as ::core::ffi::c_int;
-        unsafe {
-            xd.recon_above[0 as ::core::ffi::c_int as usize] =
-                dst_buffer[0 as ::core::ffi::c_int as usize].offset(recon_yoffset as isize);
-            xd.recon_above[1 as ::core::ffi::c_int as usize] =
-                dst_buffer[1 as ::core::ffi::c_int as usize].offset(recon_uvoffset as isize);
-            xd.recon_above[2 as ::core::ffi::c_int as usize] =
-                dst_buffer[2 as ::core::ffi::c_int as usize].offset(recon_uvoffset as isize);
-            xd.recon_left[0 as ::core::ffi::c_int as usize] = xd.recon_above
-                [0 as ::core::ffi::c_int as usize]
-                .offset(-(1 as ::core::ffi::c_int as isize));
-            xd.recon_left[1 as ::core::ffi::c_int as usize] = xd.recon_above
-                [1 as ::core::ffi::c_int as usize]
-                .offset(-(1 as ::core::ffi::c_int as isize));
-            xd.recon_left[2 as ::core::ffi::c_int as usize] = xd.recon_above
-                [2 as ::core::ffi::c_int as usize]
-                .offset(-(1 as ::core::ffi::c_int as isize));
-            xd.recon_above[0 as ::core::ffi::c_int as usize] = xd.recon_above
-                [0 as ::core::ffi::c_int as usize]
-                .offset(-(xd.dst.y_stride as isize));
-            xd.recon_above[1 as ::core::ffi::c_int as usize] = xd.recon_above
-                [1 as ::core::ffi::c_int as usize]
-                .offset(-(xd.dst.uv_stride as isize));
-            xd.recon_above[2 as ::core::ffi::c_int as usize] = xd.recon_above
-                [2 as ::core::ffi::c_int as usize]
-                .offset(-(xd.dst.uv_stride as isize));
-        }
+
         xd.recon_left_stride[0 as ::core::ffi::c_int as usize] = xd.dst.y_stride;
         xd.recon_left_stride[1 as ::core::ffi::c_int as usize] = xd.dst.uv_stride;
         setup_intra_recon_left(
