@@ -1197,9 +1197,7 @@ fn init_frame(pbi: &mut VP8D_COMP) {
     pbi.mb.left_context = &raw mut pbi.common.left_context;
     pbi.mb.mode_info_context = pbi.common.mi;
     pbi.mb.frame_type = pbi.common.frame_type;
-    unsafe {
-        (*pbi.mb.mode_info_context).mbmi.mode = DC_PRED as ::core::ffi::c_int as uint8_t;
-    }
+    pbi.mb.mode_info_mut().mbmi.mode = DC_PRED as ::core::ffi::c_int as uint8_t;
     pbi.mb.mode_info_stride = pbi.common.mode_info_stride;
     pbi.mb.corrupted = 0 as ::core::ffi::c_int;
     pbi.mb.fullpixel_mask = !(0 as ::core::ffi::c_int);
