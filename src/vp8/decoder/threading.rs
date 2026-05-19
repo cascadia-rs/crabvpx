@@ -603,9 +603,6 @@ fn mt_decode_mb_rows(
     dst_buffer[2 as ::core::ffi::c_int as usize] =
         (*yv12_fb_new).v_buffer as *mut ::core::ffi::c_uchar;
     (*xd).up_available = (start_mb_row != 0 as ::core::ffi::c_int) as ::core::ffi::c_int;
-    (*xd).mode_info_context = (*pc)
-        .mi
-        .offset(((*pc).mode_info_stride * start_mb_row) as isize);
     (*xd).mode_info_idx = ((*pc).mode_info_stride * (start_mb_row + 1) + 1) as usize;
     (*xd).mode_info_stride = (*pc).mode_info_stride;
     mb_row = start_mb_row;
@@ -709,7 +706,8 @@ fn mt_decode_mb_rows(
                 .offset(recon_uvoffset as isize) as *mut uint8_t;
             (*xd).dst.v_buffer = dst_buffer[2 as ::core::ffi::c_int as usize]
                 .offset(recon_uvoffset as isize) as *mut uint8_t;
-            (*xd).corrupted |= ref_fb_corrupted[(*(*xd).mode_info_context).mbmi.ref_frame as usize];
+            let cur_ref_frame = (*xd).mode_info((*pc).mip_ptr()).mbmi.ref_frame;
+            (*xd).corrupted |= ref_fb_corrupted[cur_ref_frame as usize];
             if (*xd).corrupted != 0 {
                 let mt_current_mb_col = pbi.mt_current_mb_col.as_ref().unwrap();
                 while mb_row < (*pc).mb_rows {
@@ -727,11 +725,11 @@ fn mt_decode_mb_rows(
                     b"Corrupted reference frame\0" as *const u8 as *const ::core::ffi::c_char,
                 );
             }
-            if (*(*xd).mode_info_context).mbmi.ref_frame as ::core::ffi::c_int
+            if cur_ref_frame as ::core::ffi::c_int
                 >= LAST_FRAME as ::core::ffi::c_int
             {
                 let ref_0: MV_REFERENCE_FRAME =
-                    (*(*xd).mode_info_context).mbmi.ref_frame as MV_REFERENCE_FRAME;
+                    cur_ref_frame as MV_REFERENCE_FRAME;
                 (*xd).pre.y_buffer = ref_buffer[ref_0 as usize][0 as ::core::ffi::c_int as usize]
                     .offset(recon_yoffset as isize)
                     as *mut uint8_t;
@@ -803,20 +801,21 @@ fn mt_decode_mb_rows(
                     .offset(8 as ::core::ffi::c_int as isize);
             }
             if (*pbi).common.filter_level != 0 {
-                let mut skip_lf: ::core::ffi::c_int = ((*(*xd).mode_info_context).mbmi.mode
+                let cur_mbmi = &(*xd).mode_info((*pc).mip_ptr()).mbmi;
+                let mut skip_lf: ::core::ffi::c_int = (cur_mbmi.mode
                     as ::core::ffi::c_int
                     != B_PRED as ::core::ffi::c_int
-                    && (*(*xd).mode_info_context).mbmi.mode as ::core::ffi::c_int
+                    && cur_mbmi.mode as ::core::ffi::c_int
                         != SPLITMV as ::core::ffi::c_int
-                    && (*(*xd).mode_info_context).mbmi.mb_skip_coeff as ::core::ffi::c_int != 0)
+                    && cur_mbmi.mb_skip_coeff as ::core::ffi::c_int != 0)
                     as ::core::ffi::c_int;
                 let mode_index: ::core::ffi::c_int = (*lfi_n).mode_lf_lut
-                    [(*(*xd).mode_info_context).mbmi.mode as usize]
+                    [cur_mbmi.mode as usize]
                     as ::core::ffi::c_int;
                 let seg: ::core::ffi::c_int =
-                    (*(*xd).mode_info_context).mbmi.segment_id as ::core::ffi::c_int;
+                    cur_mbmi.segment_id as ::core::ffi::c_int;
                 let ref_frame: ::core::ffi::c_int =
-                    (*(*xd).mode_info_context).mbmi.ref_frame as ::core::ffi::c_int;
+                    cur_mbmi.ref_frame as ::core::ffi::c_int;
                 filter_level = (*lfi_n).lvl[seg as usize][ref_frame as usize][mode_index as usize]
                     as ::core::ffi::c_int;
                 if mb_row != (*pc).mb_rows - 1 as ::core::ffi::c_int {
@@ -842,10 +841,8 @@ fn mt_decode_mb_rows(
                     dst_ab_v.as_slice_mut()[offset_uv..offset_uv + 8].copy_from_slice(src_slice_v);
                 }
                 if mb_col != (*pc).mb_cols - 1 as ::core::ffi::c_int {
-                    let mut next: *mut MODE_INFO = (*xd)
-                        .mode_info_context
-                        .offset(1 as ::core::ffi::c_int as isize);
-                    if (*next).mbmi.ref_frame as ::core::ffi::c_int
+                    let next_mbmi = &(*pc).mip.as_ref().unwrap()[(*xd).mode_info_idx + 1].mbmi;
+                    if next_mbmi.ref_frame as ::core::ffi::c_int
                         == INTRA_FRAME as ::core::ffi::c_int
                     {
                         let border = xd.dst.border as usize;
@@ -999,7 +996,6 @@ fn mt_decode_mb_rows(
             }
             recon_yoffset += 16 as ::core::ffi::c_int;
             recon_uvoffset += 8 as ::core::ffi::c_int;
-            (*xd).mode_info_context = (*xd).mode_info_context.offset(1);
             (*xd).mode_info_idx += 1;
             (*xd).above_context_idx += 1;
             mb_col += 1;
@@ -1037,13 +1033,8 @@ fn mt_decode_mb_rows(
             }
         }
         vpx_atomic_store_release(current_mb_col, mb_col + nsync);
-        (*xd).mode_info_context = (*xd).mode_info_context.offset(1);
         (*xd).mode_info_idx += 1;
         (*xd).up_available = 1 as ::core::ffi::c_int;
-        (*xd).mode_info_context = (*xd).mode_info_context.offset(
-            ((*xd).mode_info_stride as ::core::ffi::c_uint)
-                .wrapping_mul((*pbi).decoding_thread_count) as isize,
-        );
         (*xd).mode_info_idx += ((*xd).mode_info_stride as usize) * ((*pbi).decoding_thread_count as usize);
         mb_row = (mb_row as ::core::ffi::c_uint).wrapping_add(
             (*pbi)
