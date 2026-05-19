@@ -1513,13 +1513,9 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
     }
     
     pbi.mb.qcoeff = [0; 400];
-    let stride = pbi.common.mode_info_stride as usize;
-    let mip_len = (pbi.common.mb_rows + 1) as usize * stride;
-    
-    let mip_slice = unsafe {
-        core::slice::from_raw_parts_mut(pbi.common.mip_mut_ptr(), mip_len)
-    };
-    vp8_decode_mode_mvs(pbi, mip_slice, &mut safe_decoder);
+    let mut mip = pbi.common.mip.take().unwrap();
+    vp8_decode_mode_mvs(pbi, &mut mip, &mut safe_decoder);
+    pbi.common.mip = Some(mip);
     
     safe_decoder.update_bool_decoder(&mut pbi.mbc[8]);
     
