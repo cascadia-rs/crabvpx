@@ -971,7 +971,6 @@ pub struct VP8D_CONFIG {
     pub error_concealment: ::core::ffi::c_int,
 }
 
-#[derive(Clone)]
 #[repr(C)]
 pub struct VP8D_COMP {
     pub mb: MACROBLOCKD,
@@ -988,12 +987,12 @@ pub struct VP8D_COMP {
     pub mt_baseline_filter_level: [::core::ffi::c_int; 4],
     pub sync_range: ::core::ffi::c_int,
     pub mt_current_mb_col: Option<Box<[vpx_atomic_int]>>,
-    pub mt_yabove_row: *mut *mut ::core::ffi::c_uchar,
-    pub mt_uabove_row: *mut *mut ::core::ffi::c_uchar,
-    pub mt_vabove_row: *mut *mut ::core::ffi::c_uchar,
-    pub mt_yleft_col: *mut *mut ::core::ffi::c_uchar,
-    pub mt_uleft_col: *mut *mut ::core::ffi::c_uchar,
-    pub mt_vleft_col: *mut *mut ::core::ffi::c_uchar,
+    pub mt_yabove_row: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_uabove_row: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_vabove_row: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_yleft_col: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_uleft_col: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_vleft_col: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
     pub mb_row_di: Option<Box<[MB_ROW_DEC]>>,
     pub de_thread_data: *mut DECODETHREAD_DATA,
     pub h_decoding_thread: *mut pthread_t,
