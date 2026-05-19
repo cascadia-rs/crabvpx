@@ -1,6 +1,9 @@
 use crate::vp8::decoder::decodeframe::{vp8cx_init_de_quantizer, vp8_decode_frame};
 use crate::vp8::common::mbpitch::vp8_setup_block_dptrs;
 use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_init;
+use std::sync::Once;
+use crate::vpx_dsp::vpx_dsp_rtcd::vpx_dsp_rtcd;
+use crate::vp8::common::reconintra::vp8_init_intra_predictors;
 
 unsafe extern "C" {
     fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
@@ -10,10 +13,6 @@ unsafe extern "C" {
         fmt: *const ::core::ffi::c_char,
         ...
     );
-    fn pthread_once(
-        _: *mut pthread_once_t,
-        _: Option<unsafe extern "C" fn() -> ()>,
-    ) -> ::core::ffi::c_int;
     fn memcpy(
         __dst: *mut ::core::ffi::c_void,
         __src: *const ::core::ffi::c_void,
@@ -28,8 +27,6 @@ unsafe extern "C" {
     fn vpx_free(memblk: *mut ::core::ffi::c_void);
     fn vp8_decoder_remove_threads(pbi: *mut VP8D_COMP);
     fn vp8_decoder_create_threads(pbi: *mut VP8D_COMP);
-    fn vp8_init_intra_predictors();
-    fn vpx_dsp_rtcd();
 }
 pub use crate::vp8::common::alloccommon::{vp8_create_common, vp8_remove_common};
 pub use crate::vp8::common::types::*;
@@ -56,28 +53,6 @@ pub type __darwin_size_t = usize;
 pub type __darwin_natural_t = ::core::ffi::c_uint;
 pub type __darwin_mach_port_name_t = __darwin_natural_t;
 pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct __darwin_pthread_handler_rec {
-    pub __routine: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>,
-    pub __arg: *mut ::core::ffi::c_void,
-    pub __next: *mut __darwin_pthread_handler_rec,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _opaque_pthread_once_t {
-    pub __sig: ::core::ffi::c_long,
-    pub __opaque: [::core::ffi::c_char; 8],
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _opaque_pthread_t {
-    pub __sig: ::core::ffi::c_long,
-    pub __cleanup_stack: *mut __darwin_pthread_handler_rec,
-    pub __opaque: [::core::ffi::c_char; 8176],
-}
-pub type __darwin_pthread_once_t = _opaque_pthread_once_t;
-pub type __darwin_pthread_t = *mut _opaque_pthread_t;
 pub type C2RustUnnamed = ::core::ffi::c_uint;
 pub const MAX_REF_FRAMES: C2RustUnnamed = 4;
 pub const ALTREF_FRAME: C2RustUnnamed = 3;
@@ -99,37 +74,17 @@ pub type vpx_ref_frame_type = ::core::ffi::c_uint;
 pub const VP8_ALTR_FRAME: vpx_ref_frame_type = 4;
 pub const VP8_GOLD_FRAME: vpx_ref_frame_type = 2;
 pub const VP8_LAST_FRAME: vpx_ref_frame_type = 1;
-pub type pthread_once_t = __darwin_pthread_once_t;
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
-pub const _PTHREAD_ONCE_SIG_init: ::core::ffi::c_int = 0x30b1bcba as ::core::ffi::c_int;
 pub const NUM_YV12_BUFFERS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
-unsafe extern "C" fn once(mut func: Option<unsafe extern "C" fn() -> ()>) { unsafe {
-    static mut lock: pthread_once_t = _opaque_pthread_once_t {
-        __sig: _PTHREAD_ONCE_SIG_init as ::core::ffi::c_long,
-        __opaque: [
-            0 as ::core::ffi::c_int as ::core::ffi::c_char,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-            0,
-        ],
-    };
-    pthread_once(&raw mut lock, func as Option<unsafe extern "C" fn() -> ()>);
-}}
-unsafe extern "C" fn initialize_dec() { unsafe {
-    static mut init_done: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    if init_done == 0 {
+
+static INIT: Once = Once::new();
+
+fn initialize_dec() {
+    unsafe {
         vpx_dsp_rtcd();
         vp8_init_intra_predictors();
-        ::core::ptr::write_volatile(
-            &raw mut init_done as *mut ::core::ffi::c_int,
-            1 as ::core::ffi::c_int,
-        );
     }
-}}
+}
 fn remove_decompressor(mut pbi: Box<VP8D_COMP>) {
     vp8_remove_common(&mut pbi.common);
 }
@@ -155,7 +110,7 @@ unsafe extern "C" fn create_decompressor(mut oxcf: *mut VP8D_CONFIG) -> *mut VP8
     (*pbi).decoded_key_frame = 0 as ::core::ffi::c_int;
     (*pbi).independent_partitions = 0 as ::core::ffi::c_int;
     vp8_setup_block_dptrs(&mut (*pbi).mb);
-    once(Some(initialize_dec as unsafe extern "C" fn() -> ()));
+    INIT.call_once(initialize_dec);
     return pbi as *mut VP8D_COMP;
 }}
 pub fn vp8dx_get_reference(
