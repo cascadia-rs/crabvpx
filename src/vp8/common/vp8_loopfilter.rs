@@ -477,7 +477,8 @@ pub unsafe extern "C" fn vp8_loop_filter_frame(
     mut mbd: *mut MACROBLOCKD,
     mut frame_type: ::core::ffi::c_int,
 ) { unsafe {
-    let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
+    let post_idx = (*cm).frame_to_show_idx.expect("frame_to_show_idx is None");
+    let mut post: *mut YV12_BUFFER_CONFIG = &raw mut (*cm).yv12_fb[post_idx];
     let mut lfi_n: *mut loop_filter_info_n = &raw mut (*cm).lf_info;
     let mut lfi: loop_filter_info = loop_filter_info {
         mblim: ::core::ptr::null::<::core::ffi::c_uchar>(),
@@ -664,7 +665,8 @@ pub unsafe extern "C" fn vp8_loop_filter_frame_yonly(
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: ::core::ffi::c_int,
 ) { unsafe {
-    let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
+    let post_idx = (*cm).frame_to_show_idx.expect("frame_to_show_idx is None");
+    let mut post: *mut YV12_BUFFER_CONFIG = &raw mut (*cm).yv12_fb[post_idx];
     let mut y_ptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut mb_row: ::core::ffi::c_int = 0;
     let mut mb_col: ::core::ffi::c_int = 0;
@@ -815,7 +817,8 @@ pub unsafe extern "C" fn vp8_loop_filter_partial_frame(
     mut mbd: *mut MACROBLOCKD,
     mut default_filt_lvl: ::core::ffi::c_int,
 ) { unsafe {
-    let mut post: *mut YV12_BUFFER_CONFIG = (*cm).frame_to_show;
+    let post_idx = (*cm).frame_to_show_idx.expect("frame_to_show_idx is None");
+    let mut post: *mut YV12_BUFFER_CONFIG = &raw mut (*cm).yv12_fb[post_idx];
     let mut y_ptr: *mut ::core::ffi::c_uchar = ::core::ptr::null_mut::<::core::ffi::c_uchar>();
     let mut mb_row: ::core::ffi::c_int = 0;
     let mut mb_col: ::core::ffi::c_int = 0;

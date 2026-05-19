@@ -1381,15 +1381,16 @@ unsafe extern "C" fn vp8_get_frame_corrupted(
     let mut pbi: *mut VP8D_COMP =
         (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize] as *mut VP8D_COMP;
     if !corrupted.is_null() && !pbi.is_null() {
-        let frame: *const YV12_BUFFER_CONFIG = (*pbi).common.frame_to_show;
-        if frame.is_null() {
+        if let Some(idx) = (*pbi).common.frame_to_show_idx {
+            let frame = &(*pbi).common.yv12_fb[idx];
+            *corrupted = frame.corrupted;
+            return VPX_CODEC_OK;
+        } else {
             return VPX_CODEC_ERROR;
         }
-        *corrupted = (*frame).corrupted;
-        return VPX_CODEC_OK;
     } else {
         return VPX_CODEC_INVALID_PARAM;
-    };
+    }
 }}
 unsafe extern "C" fn vp8_set_decryptor(
     mut ctx: *mut vpx_codec_alg_priv_t,

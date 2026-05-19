@@ -777,7 +777,7 @@ pub struct VP8Common {
     pub horiz_scale: ::core::ffi::c_int,
     pub vert_scale: ::core::ffi::c_int,
     pub clamp_type: CLAMP_TYPE,
-    pub frame_to_show: *mut YV12_BUFFER_CONFIG,
+    pub frame_to_show_idx: Option<usize>,
     pub yv12_fb: [YV12_BUFFER_CONFIG; 4],
     pub fb_idx_ref_cnt: [::core::ffi::c_int; 4],
     pub new_fb_idx: ::core::ffi::c_int,

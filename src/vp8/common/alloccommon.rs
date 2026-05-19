@@ -70,7 +70,7 @@ pub fn vp8_de_alloc_frame_buffers(oci: &mut VP8_COMMON) {
     oci.mip = None;
     oci.mi = ::core::ptr::null_mut::<MODE_INFO>();
     oci.show_frame_mi = ::core::ptr::null_mut::<MODE_INFO>();
-    oci.frame_to_show = ::core::ptr::null_mut::<YV12_BUFFER_CONFIG>();
+    oci.frame_to_show_idx = None;
 }
 #[unsafe(no_mangle)]
 pub fn vp8_alloc_frame_buffers(
@@ -193,6 +193,7 @@ pub fn vp8_create_common(oci: &mut VP8_COMMON) {
     oci.ref_frame_sign_bias = [0 as ::core::ffi::c_int; 4];
     oci.copy_buffer_to_gf = 0 as ::core::ffi::c_int;
     oci.copy_buffer_to_arf = 0 as ::core::ffi::c_int;
+    oci.frame_to_show_idx = None;
 }
 pub fn vp8_remove_common(oci: &mut VP8_COMMON) {
     vp8_de_alloc_frame_buffers(oci);

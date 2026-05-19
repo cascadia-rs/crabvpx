@@ -315,10 +315,10 @@ fn swap_frame_buffers(cm: &mut VP8_COMMON) -> ::core::ffi::c_int {
             cm.new_fb_idx,
         );
         let lst_fb_idx = cm.lst_fb_idx as usize;
-        cm.frame_to_show = &raw mut cm.yv12_fb[lst_fb_idx] as *mut YV12_BUFFER_CONFIG;
+        cm.frame_to_show_idx = Some(lst_fb_idx);
     } else {
         let new_fb_idx = cm.new_fb_idx as usize;
-        cm.frame_to_show = &raw mut cm.yv12_fb[new_fb_idx] as *mut YV12_BUFFER_CONFIG;
+        cm.frame_to_show_idx = Some(new_fb_idx);
     }
     cm.fb_idx_ref_cnt[cm.new_fb_idx as usize] -= 1;
     return err;
@@ -416,8 +416,8 @@ pub fn vp8dx_get_raw_frame(
         return ret;
     }
     pbi.ready_for_new_data = 1 as ::core::ffi::c_int;
-    if !pbi.common.frame_to_show.is_null() {
-        *sd = unsafe { *pbi.common.frame_to_show };
+    if let Some(idx) = pbi.common.frame_to_show_idx {
+        *sd = pbi.common.yv12_fb[idx];
         sd.y_width = pbi.common.Width;
         sd.y_height = pbi.common.Height;
         sd.uv_height = pbi.common.Height / 2 as ::core::ffi::c_int;
