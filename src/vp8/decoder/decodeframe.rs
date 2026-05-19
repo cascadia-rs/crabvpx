@@ -1213,13 +1213,10 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
 
     if data_slice.len() < 3 {
         if pbi.ec_active == 0 {
-            unsafe {
-                vpx_internal_error(
-                    &raw mut pbi.common.error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    b"Truncated packet\0" as *const u8 as *const ::core::ffi::c_char,
-                );
-            }
+            pbi.common.error.trigger(
+                VPX_CODEC_CORRUPT_FRAME,
+                "Truncated packet",
+            );
         }
         pbi.common.frame_type = INTER_FRAME;
         pbi.common.version = 0 as ::core::ffi::c_int;
@@ -1266,13 +1263,10 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
                     || clear_slice[1] as ::core::ffi::c_int != 0x1 as ::core::ffi::c_int
                     || clear_slice[2] as ::core::ffi::c_int != 0x2a as ::core::ffi::c_int
                 {
-                    unsafe {
-                        vpx_internal_error(
-                            &raw mut pbi.common.error,
-                            VPX_CODEC_UNSUP_BITSTREAM,
-                            b"Invalid frame sync code\0" as *const u8 as *const ::core::ffi::c_char,
-                        );
-                    }
+                    pbi.common.error.trigger(
+                        VPX_CODEC_UNSUP_BITSTREAM,
+                        "Invalid frame sync code",
+                    );
                 }
                 pbi.common.Width = ((clear_slice[3] as ::core::ffi::c_int
                     | (clear_slice[4] as ::core::ffi::c_int) << 8)
@@ -1284,13 +1278,10 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
                 pbi.common.vert_scale = (clear_slice[6] as ::core::ffi::c_int >> 6);
                 data_idx += 7;
             } else if pbi.ec_active == 0 {
-                unsafe {
-                    vpx_internal_error(
-                        &raw mut pbi.common.error,
-                        VPX_CODEC_CORRUPT_FRAME,
-                        b"Truncated key frame header\0" as *const u8 as *const ::core::ffi::c_char,
-                    );
-                }
+                pbi.common.error.trigger(
+                    VPX_CODEC_CORRUPT_FRAME,
+                    "Truncated key frame header",
+                );
             } else {
                 data_idx = data_slice.len();
             }

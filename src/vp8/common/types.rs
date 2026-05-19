@@ -593,6 +593,34 @@ pub struct vpx_internal_error_info {
     pub jmp: jmp_buf,
 }
 
+impl vpx_internal_error_info {
+    pub fn trigger(&mut self, error: vpx_codec_err_t, detail: &str) {
+        self.error_code = error;
+        self.has_detail = 0;
+        if !detail.is_empty() {
+            self.has_detail = 1;
+            let bytes = detail.as_bytes();
+            let len = std::cmp::min(bytes.len(), self.detail.len() - 1);
+            for i in 0..len {
+                self.detail[i] = bytes[i] as ::core::ffi::c_char;
+            }
+            self.detail[len] = 0; // Null terminator
+        }
+        if self.setjmp != 0 {
+            unsafe {
+                unsafe extern "C" {
+                    fn longjmp(_: *mut ::core::ffi::c_int, _: ::core::ffi::c_int) -> !;
+                }
+                longjmp(
+                    &raw mut self.jmp as *mut ::core::ffi::c_int,
+                    self.error_code as ::core::ffi::c_int,
+                );
+            }
+        }
+    }
+}
+
+
 pub type FRAME_TYPE = ::core::ffi::c_uint;
 pub const INTER_FRAME: FRAME_TYPE = 1;
 pub const KEY_FRAME: FRAME_TYPE = 0;
