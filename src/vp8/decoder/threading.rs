@@ -713,25 +713,21 @@ fn mt_decode_mb_rows(
                     let src_idx = (border + 15) * stride + border + (mb_col * 16) as usize;
                     let src_slice = &xd.dst.y_slice_safe()[src_idx..src_idx + 16];
                     
-                    let dst_ab = pbi.mt_yabove_row.as_ref().unwrap()[(mb_row + 1) as usize].as_ref().unwrap();
+                    let dst_ab = pbi.mt_yabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
                     let border_uv = (xd.dst.border / 2) as usize;
                     let stride_uv = xd.dst.uv_stride as usize;
                     let src_idx_u = (border_uv + 7) * stride_uv + border_uv + (mb_col * 8) as usize;
                     let src_slice_u = &xd.dst.u_slice_safe()[src_idx_u..src_idx_u + 8];
                     let src_slice_v = &xd.dst.v_slice_safe()[src_idx_u..src_idx_u + 8];
-                    let dst_ab_u = pbi.mt_uabove_row.as_ref().unwrap()[(mb_row + 1) as usize].as_ref().unwrap();
-                    let dst_ab_v = pbi.mt_vabove_row.as_ref().unwrap()[(mb_row + 1) as usize].as_ref().unwrap();
+                    let dst_ab_u = pbi.mt_uabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
+                    let dst_ab_v = pbi.mt_vabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
                     
-                    unsafe {
-                        let dst_slice = core::slice::from_raw_parts_mut(dst_ab.as_ptr().add(32 + (mb_col * 16) as usize), 16);
-                        dst_slice.copy_from_slice(src_slice);
-                        
-                        let dst_slice_u = core::slice::from_raw_parts_mut(dst_ab_u.as_ptr().add(16 + (mb_col * 8) as usize), 8);
-                        dst_slice_u.copy_from_slice(src_slice_u);
-                        
-                        let dst_slice_v = core::slice::from_raw_parts_mut(dst_ab_v.as_ptr().add(16 + (mb_col * 8) as usize), 8);
-                        dst_slice_v.copy_from_slice(src_slice_v);
-                    }
+                    let offset = 32 + (mb_col * 16) as usize;
+                    dst_ab.as_slice_mut()[offset..offset + 16].copy_from_slice(src_slice);
+                    
+                    let offset_uv = 16 + (mb_col * 8) as usize;
+                    dst_ab_u.as_slice_mut()[offset_uv..offset_uv + 8].copy_from_slice(src_slice_u);
+                    dst_ab_v.as_slice_mut()[offset_uv..offset_uv + 8].copy_from_slice(src_slice_v);
                 }
                 if mb_col != (*pc).mb_cols - 1 as ::core::ffi::c_int {
                     let mut next: *mut MODE_INFO = (*xd)
@@ -743,28 +739,26 @@ fn mt_decode_mb_rows(
                         let border = xd.dst.border as usize;
                         let stride = xd.dst.y_stride as usize;
                         let y_slice = xd.dst.y_slice_safe();
-                        let dst_ab = pbi.mt_yleft_col.as_ref().unwrap()[mb_row as usize].as_ref().unwrap();
+                        let dst_ab = pbi.mt_yleft_col.as_mut().unwrap()[mb_row as usize].as_mut().unwrap();
                         let border_uv = (xd.dst.border / 2) as usize;
                         let stride_uv = xd.dst.uv_stride as usize;
                         let u_slice = xd.dst.u_slice_safe();
                         let v_slice = xd.dst.v_slice_safe();
-                        let dst_ab_u = pbi.mt_uleft_col.as_ref().unwrap()[mb_row as usize].as_ref().unwrap();
-                        let dst_ab_v = pbi.mt_vleft_col.as_ref().unwrap()[mb_row as usize].as_ref().unwrap();
+                        let dst_ab_u = pbi.mt_uleft_col.as_mut().unwrap()[mb_row as usize].as_mut().unwrap();
+                        let dst_ab_v = pbi.mt_vleft_col.as_mut().unwrap()[mb_row as usize].as_mut().unwrap();
                         
-                        unsafe {
-                            let dst_slice = core::slice::from_raw_parts_mut(dst_ab.as_ptr(), 16);
-                            for i in 0..16 {
-                                let src_idx = border * stride + border + i * stride + 15;
-                                dst_slice[i] = y_slice[src_idx];
-                            }
-                            
-                            let dst_slice_u = core::slice::from_raw_parts_mut(dst_ab_u.as_ptr(), 8);
-                            let dst_slice_v = core::slice::from_raw_parts_mut(dst_ab_v.as_ptr(), 8);
-                            for i in 0..8 {
-                                let src_idx = border_uv * stride_uv + border_uv + i * stride_uv + 7;
-                                dst_slice_u[i] = u_slice[src_idx];
-                                dst_slice_v[i] = v_slice[src_idx];
-                            }
+                        let dst_slice = dst_ab.as_slice_mut();
+                        for i in 0..16 {
+                            let src_idx = border * stride + border + i * stride + 15;
+                            dst_slice[i] = y_slice[src_idx];
+                        }
+                        
+                        let dst_slice_u = dst_ab_u.as_slice_mut();
+                        let dst_slice_v = dst_ab_v.as_slice_mut();
+                        for i in 0..8 {
+                            let src_idx = border_uv * stride_uv + border_uv + i * stride_uv + 7;
+                            dst_slice_u[i] = u_slice[src_idx];
+                            dst_slice_v[i] = v_slice[src_idx];
                         }
                     }
                 }
@@ -892,22 +886,21 @@ fn mt_decode_mb_rows(
                 let mut lastuv: ::core::ffi::c_int = ((*yv12_fb_lst).y_width
                     >> 1 as ::core::ffi::c_int)
                     + (VP8BORDERINPIXELS >> 1 as ::core::ffi::c_int);
-                let dst_ab = pbi.mt_yabove_row.as_ref().unwrap()[(mb_row + 1) as usize].as_ref().unwrap();
-                let dst_ab_u = pbi.mt_uabove_row.as_ref().unwrap()[(mb_row + 1) as usize].as_ref().unwrap();
-                let dst_ab_v = pbi.mt_vabove_row.as_ref().unwrap()[(mb_row + 1) as usize].as_ref().unwrap();
-                unsafe {
-                    let dst_slice = core::slice::from_raw_parts_mut(dst_ab.as_ptr(), lasty as usize + 4);
-                    let val = dst_slice[lasty as usize - 1];
-                    dst_slice[lasty as usize..lasty as usize + 4].fill(val);
-                    
-                    let dst_slice_u = core::slice::from_raw_parts_mut(dst_ab_u.as_ptr(), lastuv as usize + 4);
-                    let val_u = dst_slice_u[lastuv as usize - 1];
-                    dst_slice_u[lastuv as usize..lastuv as usize + 4].fill(val_u);
-                    
-                    let dst_slice_v = core::slice::from_raw_parts_mut(dst_ab_v.as_ptr(), lastuv as usize + 4);
-                    let val_v = dst_slice_v[lastuv as usize - 1];
-                    dst_slice_v[lastuv as usize..lastuv as usize + 4].fill(val_v);
-                }
+                let dst_ab = pbi.mt_yabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
+                let dst_ab_u = pbi.mt_uabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
+                let dst_ab_v = pbi.mt_vabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
+                
+                let dst_slice = dst_ab.as_slice_mut();
+                let val = dst_slice[lasty as usize - 1];
+                dst_slice[lasty as usize..lasty as usize + 4].fill(val);
+                
+                let dst_slice_u = dst_ab_u.as_slice_mut();
+                let val_u = dst_slice_u[lastuv as usize - 1];
+                dst_slice_u[lastuv as usize..lastuv as usize + 4].fill(val_u);
+                
+                let dst_slice_v = dst_ab_v.as_slice_mut();
+                let val_v = dst_slice_v[lastuv as usize - 1];
+                dst_slice_v[lastuv as usize..lastuv as usize + 4].fill(val_v);
             }
         } else {
             vp8_extend_mb_row(
@@ -1288,48 +1281,49 @@ pub fn vp8mt_decode_mb_rows(
     let mut j: ::core::ffi::c_int = 0;
     let filter_level: ::core::ffi::c_int = pc_ref.filter_level;
     
-    let (yv12_fb_new_ref, filter_branch) = unsafe {
-        let yv12_fb_new_ref = &mut *pbi.dec_fb_ref[INTRA_FRAME as usize];
-        if filter_level != 0 {
-            let yabove_ab = pbi.mt_yabove_row.as_ref().unwrap()[0].as_ref().unwrap();
-            let len = (yv12_fb_new_ref.y_width + 5) as usize;
-            let uabove_ab = pbi.mt_uabove_row.as_ref().unwrap()[0].as_ref().unwrap();
-            let len_uv = ((yv12_fb_new_ref.y_width >> 1) + 5) as usize;
-            let vabove_ab = pbi.mt_vabove_row.as_ref().unwrap()[0].as_ref().unwrap();
-            core::slice::from_raw_parts_mut(yabove_ab.as_ptr().add(31), len).fill(127);
-            core::slice::from_raw_parts_mut(uabove_ab.as_ptr().add(15), len_uv).fill(127);
-            core::slice::from_raw_parts_mut(vabove_ab.as_ptr().add(15), len_uv).fill(127);
-            
-            j = 1;
-            while j < pc_ref.mb_rows {
-                let yabove_ab = pbi.mt_yabove_row.as_ref().unwrap()[j as usize].as_ref().unwrap();
-                let uabove_ab = pbi.mt_uabove_row.as_ref().unwrap()[j as usize].as_ref().unwrap();
-                let vabove_ab = pbi.mt_vabove_row.as_ref().unwrap()[j as usize].as_ref().unwrap();
-                *yabove_ab.as_ptr().add(31) = 129;
-                *uabove_ab.as_ptr().add(15) = 129;
-                *vabove_ab.as_ptr().add(15) = 129;
-                j += 1;
-            }
-            
-            j = 0;
-            while j < pc_ref.mb_rows {
-                let yleft_ab = pbi.mt_yleft_col.as_ref().unwrap()[j as usize].as_ref().unwrap();
-                let uleft_ab = pbi.mt_uleft_col.as_ref().unwrap()[j as usize].as_ref().unwrap();
-                let vleft_ab = pbi.mt_vleft_col.as_ref().unwrap()[j as usize].as_ref().unwrap();
-                core::slice::from_raw_parts_mut(yleft_ab.as_ptr(), 16).fill(129);
-                core::slice::from_raw_parts_mut(uleft_ab.as_ptr(), 8).fill(129);
-                core::slice::from_raw_parts_mut(vleft_ab.as_ptr(), 8).fill(129);
-                j += 1;
-            }
-            (yv12_fb_new_ref, true)
-        } else {
-            (yv12_fb_new_ref, false)
+    let new_fb_idx = pc_ref.new_fb_idx as usize;
+    let y_width = pc_ref.yv12_fb[new_fb_idx].y_width;
+    let mut filter_branch = false;
+    
+    if filter_level != 0 {
+        let yabove_ab = pbi.mt_yabove_row.as_mut().unwrap()[0].as_mut().unwrap();
+        let len = (y_width + 5) as usize;
+        let uabove_ab = pbi.mt_uabove_row.as_mut().unwrap()[0].as_mut().unwrap();
+        let len_uv = ((y_width >> 1) + 5) as usize;
+        let vabove_ab = pbi.mt_vabove_row.as_mut().unwrap()[0].as_mut().unwrap();
+        
+        yabove_ab.as_slice_mut()[31..31+len].fill(127);
+        uabove_ab.as_slice_mut()[15..15+len_uv].fill(127);
+        vabove_ab.as_slice_mut()[15..15+len_uv].fill(127);
+        
+        j = 1;
+        while j < pc_ref.mb_rows {
+            let yabove_ab = pbi.mt_yabove_row.as_mut().unwrap()[j as usize].as_mut().unwrap();
+            let uabove_ab = pbi.mt_uabove_row.as_mut().unwrap()[j as usize].as_mut().unwrap();
+            let vabove_ab = pbi.mt_vabove_row.as_mut().unwrap()[j as usize].as_mut().unwrap();
+            yabove_ab.as_slice_mut()[31] = 129;
+            uabove_ab.as_slice_mut()[15] = 129;
+            vabove_ab.as_slice_mut()[15] = 129;
+            j += 1;
         }
-    };
+        
+        j = 0;
+        while j < pc_ref.mb_rows {
+            let yleft_ab = pbi.mt_yleft_col.as_mut().unwrap()[j as usize].as_mut().unwrap();
+            let uleft_ab = pbi.mt_uleft_col.as_mut().unwrap()[j as usize].as_mut().unwrap();
+            let vleft_ab = pbi.mt_vleft_col.as_mut().unwrap()[j as usize].as_mut().unwrap();
+            yleft_ab.as_slice_mut()[..16].fill(129);
+            uleft_ab.as_slice_mut()[..8].fill(129);
+            vleft_ab.as_slice_mut()[..8].fill(129);
+            j += 1;
+        }
+        filter_branch = true;
+    }
     
     if filter_branch {
         vp8_loop_filter_frame_init(pc_ref, &pbi.mb, filter_level);
     } else {
+        let yv12_fb_new_ref = &mut pc_ref.yv12_fb[new_fb_idx];
         vp8_setup_intra_recon_top_line(yv12_fb_new_ref);
     }
     

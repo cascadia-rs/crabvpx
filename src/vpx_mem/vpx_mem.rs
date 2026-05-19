@@ -9,10 +9,12 @@ pub const DEFAULT_ALIGNMENT: usize = 32;
 struct AllocHeader {
     base_ptr: NonNull<u8>,
     layout: Layout,
+    size: usize,
 }
 
 pub struct AlignedBox {
     data_ptr: NonNull<u8>,
+    size: usize,
 }
 
 impl AlignedBox {
@@ -39,9 +41,9 @@ impl AlignedBox {
             let data_ptr = NonNull::new(aligned_x as *mut u8)?;
 
             let header_ptr = (data_ptr.as_ptr() as *mut AllocHeader).sub(1);
-            core::ptr::write(header_ptr, AllocHeader { base_ptr, layout });
+            core::ptr::write(header_ptr, AllocHeader { base_ptr, layout, size });
 
-            Some(Self { data_ptr })
+            Some(Self { data_ptr, size })
         }
     }
 
@@ -56,9 +58,20 @@ impl AlignedBox {
     }
 
     pub unsafe fn from_raw(ptr: *mut u8) -> Self {
+        let header_ptr = (ptr as *mut AllocHeader).sub(1);
+        let size = (*header_ptr).size;
         Self {
             data_ptr: NonNull::new(ptr).expect("AlignedBox::from_raw on null pointer"),
+            size,
         }
+    }
+
+    pub fn as_slice(&self) -> &[u8] {
+        unsafe { core::slice::from_raw_parts(self.data_ptr.as_ptr(), self.size) }
+    }
+
+    pub fn as_slice_mut(&mut self) -> &mut [u8] {
+        unsafe { core::slice::from_raw_parts_mut(self.data_ptr.as_ptr(), self.size) }
     }
 }
 
