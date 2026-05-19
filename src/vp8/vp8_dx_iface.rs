@@ -1026,9 +1026,9 @@ unsafe extern "C" fn vp8_decode(
             (*xd).dst = (*pc_0).yv12_fb[(*pc_0).new_fb_idx as usize];
             i = 0 as ::core::ffi::c_int;
             while i < (*pbi_1).allocated_decoding_thread_count {
-                (*(*pbi_1).mb_row_di.offset(i as isize)).mbd.dst =
+                (*pbi_1).mb_row_di.as_mut().unwrap()[i as usize].mbd.dst =
                     (*pc_0).yv12_fb[(*pc_0).new_fb_idx as usize];
-                vp8_build_block_doffsets(&mut (*(*pbi_1).mb_row_di.offset(i as isize)).mbd);
+                vp8_build_block_doffsets(&mut (*pbi_1).mb_row_di.as_mut().unwrap()[i as usize].mbd);
                 i += 1;
             }
             vp8_build_block_doffsets(&mut (*pbi_1).mb);

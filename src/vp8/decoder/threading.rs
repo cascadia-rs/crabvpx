@@ -217,11 +217,11 @@ fn vp8_atomic_spin_wait(
 #[inline]
 
 fn setup_decoding_thread_data(
-    pbi: &mut VP8D_COMP,
+    pc: &VP8_COMMON,
+    mt_current_mb_col: Option<&[vpx_atomic_int]>,
     xd: &MACROBLOCKD,
     mbrd: &mut [MB_ROW_DEC],
 ) {
-    let pc = &pbi.common;
     for m in mbrd.iter_mut() {
         let mbd = &mut m.mbd;
         mbd.subpixel_predict = xd.subpixel_predict;
@@ -248,7 +248,7 @@ fn setup_decoding_thread_data(
             mbd.fullpixel_mask = !7;
         }
     }
-    if let Some(ref mt_current_mb_col) = pbi.mt_current_mb_col {
+    if let Some(mt_current_mb_col) = mt_current_mb_col {
         for i in 0..pc.mb_rows as usize {
             vpx_atomic_store_release(
                 &mt_current_mb_col[i],
@@ -1027,23 +1027,8 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) { u
                     as *const ::core::ffi::c_char,
             );
         }
-        (*pbi).mb_row_di = match crate::vpx_mem::vpx_mem::AlignedBox::new(32, core::mem::size_of::<MB_ROW_DEC>() * count) {
-            Some(b) => b.into_raw() as *mut MB_ROW_DEC,
-            None => core::ptr::null_mut(),
-        };
-        if (*pbi).mb_row_di.is_null() {
-            vpx_internal_error(
-                &raw mut (*pbi).common.error,
-                VPX_CODEC_MEM_ERROR,
-                b"Failed to allocate (pbi->mb_row_di)\0" as *const u8 as *const ::core::ffi::c_char,
-            );
-        }
-        memset(
-            (*pbi).mb_row_di as *mut ::core::ffi::c_void,
-            0 as ::core::ffi::c_int,
-            ((*pbi).decoding_thread_count as size_t)
-                .wrapping_mul(::core::mem::size_of::<MB_ROW_DEC>() as size_t),
-        );
+        let mb_row_di_vec = vec![MB_ROW_DEC::default(); count];
+        (*pbi).mb_row_di = Some(mb_row_di_vec.into_boxed_slice());
         (*pbi).de_thread_data = Box::into_raw(vec![DECODETHREAD_DATA { ithread: 0, ptr1: core::ptr::null_mut(), ptr2: core::ptr::null_mut() }; count].into_boxed_slice()) as *mut DECODETHREAD_DATA;
         if (*pbi).de_thread_data.is_null() {
             vpx_internal_error(
@@ -1077,13 +1062,13 @@ pub unsafe extern "C" fn vp8_decoder_create_threads(mut pbi: *mut VP8D_COMP) { u
             {
                 break;
             }
-            vp8_setup_block_dptrs(&mut (*(*pbi).mb_row_di.offset(ithread as isize)).mbd);
+            vp8_setup_block_dptrs(&mut (*pbi).mb_row_di.as_mut().unwrap()[ithread as usize].mbd);
             (*(*pbi).de_thread_data.offset(ithread as isize)).ithread =
                 ithread as ::core::ffi::c_int;
             let ref mut fresh6 = (*(*pbi).de_thread_data.offset(ithread as isize)).ptr1;
             *fresh6 = pbi as *mut ::core::ffi::c_void;
             let ref mut fresh7 = (*(*pbi).de_thread_data.offset(ithread as isize)).ptr2;
-            *fresh7 = (*pbi).mb_row_di.offset(ithread as isize) as *mut MB_ROW_DEC
+            *fresh7 = &mut (*pbi).mb_row_di.as_mut().unwrap()[ithread as usize] as *mut MB_ROW_DEC
                 as *mut ::core::ffi::c_void;
             if crate::thread_shim::vp8_pthread_create(
                 (*pbi).h_decoding_thread.offset(ithread as isize) as *mut pthread_t,
@@ -1443,10 +1428,7 @@ pub unsafe extern "C" fn vp8_decoder_remove_threads(mut pbi: *mut VP8D_COMP) { u
             let _ = Box::from_raw(core::ptr::slice_from_raw_parts_mut((*pbi).h_event_start_decoding, count));
             (*pbi).h_event_start_decoding = ::core::ptr::null_mut::<semaphore_t>();
         }
-        if !(*pbi).mb_row_di.is_null() {
-            let _ = crate::vpx_mem::vpx_mem::AlignedBox::from_raw((*pbi).mb_row_di as *mut u8);
-            (*pbi).mb_row_di = ::core::ptr::null_mut::<MB_ROW_DEC>();
-        }
+        (*pbi).mb_row_di = None;
         if !(*pbi).de_thread_data.is_null() {
             let _ = Box::from_raw(core::ptr::slice_from_raw_parts_mut((*pbi).de_thread_data, count));
             (*pbi).de_thread_data = ::core::ptr::null_mut::<DECODETHREAD_DATA>();
@@ -1546,12 +1528,12 @@ pub fn vp8mt_decode_mb_rows(
     } else {
         vp8_setup_intra_recon_top_line(&mut *yv12_fb_new);
     }
-    let mb_row_di = pbi.mb_row_di;
-    let decoding_thread_count = pbi.decoding_thread_count as usize;
+    let mb_row_di = pbi.mb_row_di.as_mut().unwrap();
     setup_decoding_thread_data(
-        pbi,
+        &pbi.common,
+        pbi.mt_current_mb_col.as_deref(),
         xd,
-        core::slice::from_raw_parts_mut(mb_row_di, decoding_thread_count),
+        mb_row_di,
     );
     i = 0 as ::core::ffi::c_uint;
     while i < (*pbi).decoding_thread_count {

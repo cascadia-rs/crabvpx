@@ -147,7 +147,7 @@ impl Default for MB_MODE_INFO {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct blockd {
     pub qcoeff: *mut ::core::ffi::c_short,
@@ -186,7 +186,7 @@ pub type vpx_color_space_t = vpx_color_space;
 pub type vpx_color_range = ::core::ffi::c_uint;
 pub type vpx_color_range_t = vpx_color_range;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct yv12_buffer_config {
     pub y_width: ::core::ffi::c_int,
@@ -593,6 +593,18 @@ pub struct vpx_internal_error_info {
     pub jmp: jmp_buf,
 }
 
+impl Default for vpx_internal_error_info {
+    fn default() -> Self {
+        vpx_internal_error_info {
+            error_code: 0,
+            has_detail: 0,
+            detail: [0; 80],
+            setjmp: 0,
+            jmp: [0; 48],
+        }
+    }
+}
+
 impl vpx_internal_error_info {
     pub fn trigger(&mut self, error: vpx_codec_err_t, detail: &str) {
         self.error_code = error;
@@ -684,6 +696,58 @@ pub struct macroblockd {
     pub current_bc_idx: usize,
     pub corrupted: ::core::ffi::c_int,
     pub error_info: vpx_internal_error_info,
+}
+
+impl Default for macroblockd {
+    fn default() -> Self {
+        macroblockd {
+            predictor: [0; 384],
+            qcoeff: [0; 400],
+            dqcoeff: [0; 400],
+            eobs: [0; 25],
+            dequant_y1: [0; 16],
+            dequant_y1_dc: [0; 16],
+            dequant_y2: [0; 16],
+            dequant_uv: [0; 16],
+            block: [BLOCKD::default(); 25],
+            fullpixel_mask: 0,
+            pre: YV12_BUFFER_CONFIG::default(),
+            dst: YV12_BUFFER_CONFIG::default(),
+            mode_info_context: core::ptr::null_mut(),
+            mode_info_stride: 0,
+            frame_type: 0,
+            up_available: 0,
+            left_available: 0,
+            recon_above: [core::ptr::null_mut(); 3],
+            recon_left: [core::ptr::null_mut(); 3],
+            recon_left_stride: [0; 2],
+            above_context: core::ptr::null_mut(),
+            left_context: core::ptr::null_mut(),
+            segmentation_enabled: 0,
+            update_mb_segmentation_map: 0,
+            update_mb_segmentation_data: 0,
+            mb_segment_abs_delta: 0,
+            mb_segment_tree_probs: [0; 3],
+            segment_feature_data: [[0; 4]; 2],
+            mode_ref_lf_delta_enabled: 0,
+            mode_ref_lf_delta_update: 0,
+            last_ref_lf_deltas: [0; 4],
+            ref_lf_deltas: [0; 4],
+            last_mode_lf_deltas: [0; 4],
+            mode_lf_deltas: [0; 4],
+            mb_to_left_edge: 0,
+            mb_to_right_edge: 0,
+            mb_to_top_edge: 0,
+            mb_to_bottom_edge: 0,
+            subpixel_predict: None,
+            subpixel_predict8x4: None,
+            subpixel_predict8x8: None,
+            subpixel_predict16x16: None,
+            current_bc_idx: 0,
+            corrupted: 0,
+            error_info: vpx_internal_error_info::default(),
+        }
+    }
 }
 
 pub type MACROBLOCKD = macroblockd;
@@ -868,8 +932,8 @@ pub struct DECODETHREAD_DATA {
     pub ptr2: *mut ::core::ffi::c_void,
 }
 
-#[derive(Copy, Clone)]
-#[repr(C)]
+#[derive(Copy, Clone, Default)]
+#[repr(C, align(32))]
 pub struct MB_ROW_DEC {
     pub mbd: MACROBLOCKD,
 }
@@ -930,7 +994,7 @@ pub struct VP8D_COMP {
     pub mt_yleft_col: *mut *mut ::core::ffi::c_uchar,
     pub mt_uleft_col: *mut *mut ::core::ffi::c_uchar,
     pub mt_vleft_col: *mut *mut ::core::ffi::c_uchar,
-    pub mb_row_di: *mut MB_ROW_DEC,
+    pub mb_row_di: Option<Box<[MB_ROW_DEC]>>,
     pub de_thread_data: *mut DECODETHREAD_DATA,
     pub h_decoding_thread: *mut pthread_t,
     pub h_event_start_decoding: *mut semaphore_t,
