@@ -39,11 +39,7 @@ unsafe extern "C" {
     fn vpx_h_predictor_8x8_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
     fn vpx_tm_predictor_16x16_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
     fn vpx_tm_predictor_32x32_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
-
     fn vpx_tm_predictor_8x8_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
-    fn vpx_v_predictor_16x16_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
-    fn vpx_v_predictor_32x32_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
-    fn vpx_v_predictor_8x8_c(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar);
 }
 
 #[unsafe(no_mangle)]
@@ -220,25 +216,8 @@ pub unsafe extern "C" fn vpx_tm_predictor_32x32_neon(dst: *mut c_uchar, stride: 
 }
 
 
-
 #[unsafe(no_mangle)]
 pub unsafe extern "C" fn vpx_tm_predictor_8x8_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
     vpx_tm_predictor_8x8_c(dst, stride, above, left);
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_v_predictor_16x16_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
-    vpx_v_predictor_16x16_c(dst, stride, above, left);
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_v_predictor_32x32_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
-    vpx_v_predictor_32x32_c(dst, stride, above, left);
-}
-
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_v_predictor_8x8_neon(dst: *mut c_uchar, stride: ptrdiff_t, above: *const c_uchar, left: *const c_uchar) {
-    vpx_v_predictor_8x8_c(dst, stride, above, left);
 }
 
