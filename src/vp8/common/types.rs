@@ -767,11 +767,17 @@ impl macroblockd {
     pub fn left_context_mut(&mut self) -> &mut ENTROPY_CONTEXT_PLANES {
         unsafe { &mut *self.left_context }
     }
-    pub fn contexts_mut(&mut self) -> (&mut ENTROPY_CONTEXT_PLANES, &mut ENTROPY_CONTEXT_PLANES) {
-        unsafe { (&mut *self.above_context, &mut *self.left_context) }
+    pub fn contexts_mut(
+        &mut self,
+        above_base: *mut ENTROPY_CONTEXT_PLANES,
+    ) -> (&mut ENTROPY_CONTEXT_PLANES, &mut ENTROPY_CONTEXT_PLANES) {
+        unsafe {
+            (&mut *above_base.add(self.above_context_idx), &mut *self.left_context)
+        }
     }
     pub fn decode_tokens_inputs_mut(
         &mut self,
+        above_base: *mut ENTROPY_CONTEXT_PLANES,
     ) -> (
         &mut ENTROPY_CONTEXT_PLANES,
         &mut ENTROPY_CONTEXT_PLANES,
@@ -780,7 +786,7 @@ impl macroblockd {
     ) {
         unsafe {
             (
-                &mut *self.above_context,
+                &mut *above_base.add(self.above_context_idx),
                 &mut *self.left_context,
                 &mut self.qcoeff,
                 &mut self.eobs,
