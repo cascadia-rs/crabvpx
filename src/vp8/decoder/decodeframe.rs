@@ -120,6 +120,7 @@ unsafe extern "C" {
     fn vp8_decoder_remove_threads(pbi: *mut VP8D_COMP);
 }
 use crate::vp8::common::alloccommon::vp8_setup_version;
+use crate::vp8::common::reconintra4x4::vp8_intra4x4_predict_safe;
 use crate::vp8::decoder::threading::vp8mt_decode_mb_rows;
 use crate::vp8::common::entropymode::vp8_init_mbmode_probs;
 use crate::vp8::common::setupintrarecon::vp8_setup_intra_recon_top_line;
@@ -376,7 +377,9 @@ fn decode_macroblock(
             );
         } else {
             let dst_stride: ::core::ffi::c_int = xd.dst.y_stride;
-            let dst_y_active = unsafe { xd.dst.y_view_mut() };
+            let dst_y_slice = unsafe { xd.dst.y_slice_mut() };
+            let border = xd.dst.border as usize;
+            let y_buffer_offset = border * dst_stride as usize + border;
             if xd.mode_info().mbmi.mb_skip_coeff != 0 {
                 xd.eobs.fill(0);
             }
@@ -392,23 +395,17 @@ fn decode_macroblock(
                 let b_offset = xd.block[i as usize].offset;
                 let b_mode: B_PREDICTION_MODE =
                     xd.mode_info().bmi[i as usize].mode();
-                let left_stride: ::core::ffi::c_int = dst_stride;
-                unsafe {
-                    let dst = xd.dst.y_buffer.offset(b_offset as isize);
-                    let Above = dst.offset(-(dst_stride as isize));
-                    let yleft = dst.offset(-(1 as ::core::ffi::c_int as isize));
-                    let top_left = *Above.offset(-(1 as ::core::ffi::c_int) as isize);
-                    vp8_intra4x4_predict(Above, yleft, left_stride, b_mode, dst, dst_stride, top_left);
-                }
+                let dst_offset = y_buffer_offset + b_offset as usize;
+                vp8_intra4x4_predict_safe(dst_y_slice, dst_offset, dst_stride as usize, b_mode);
                 if xd.eobs[i as usize] != 0 {
                     let block_idx = i as usize;
                     let q_offset = block_idx * 16;
                     let q_sub: &mut [i16; 16] = (&mut xd.qcoeff[q_offset..q_offset + 16]).try_into().unwrap();
                     let dq_ref = &xd.dequant_y1;
                     
-                    let dst_offset = b_offset as usize;
+                    let dst_slice_offset = y_buffer_offset + b_offset as usize;
                     let dst_sub_len = 3 * dst_stride as usize + 4;
-                    let dst_sub_slice = &mut dst_y_active[dst_offset..dst_offset + dst_sub_len];
+                    let dst_sub_slice = &mut dst_y_slice[dst_slice_offset..dst_slice_offset + dst_sub_len];
  
                     if xd.eobs[i as usize] as ::core::ffi::c_int > 1 as ::core::ffi::c_int {
                         vp8_dequant_idct_add_safe(q_sub, dq_ref, dst_sub_slice, dst_stride);

@@ -118,3 +118,35 @@ pub unsafe extern "C" fn vp8_intra4x4_predict(
         &raw mut Left as *mut ::core::ffi::c_uchar,
     );
 }}
+
+pub fn vp8_intra4x4_predict_safe(
+    y_slice: &mut [u8],
+    dst_offset: usize,
+    dst_stride: usize,
+    b_mode: B_PREDICTION_MODE,
+) {
+    let mut Aboveb: [u8; 12] = [0; 12];
+    let above_idx = dst_offset - dst_stride;
+    let top_left = y_slice[above_idx - 1];
+
+    Aboveb[4..12].copy_from_slice(&y_slice[above_idx..above_idx + 8]);
+    Aboveb[3] = top_left;
+
+    let mut Left: [u8; 8] = [0; 8];
+    let yleft_idx = dst_offset - 1;
+    Left[0] = y_slice[yleft_idx];
+    Left[1] = y_slice[yleft_idx + dst_stride];
+    Left[2] = y_slice[yleft_idx + 2 * dst_stride];
+    Left[3] = y_slice[yleft_idx + 3 * dst_stride];
+
+    let dst_ptr = y_slice[dst_offset..].as_mut_ptr();
+
+    unsafe {
+        pred[b_mode as usize].expect("non-null function pointer")(
+            dst_ptr,
+            dst_stride as ptrdiff_t,
+            Aboveb[4..].as_ptr(),
+            Left.as_ptr(),
+        );
+    }
+}

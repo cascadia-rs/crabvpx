@@ -234,7 +234,7 @@ impl yv12_buffer_config {
         core::slice::from_raw_parts(start_ptr, total_size)
     }
 
-    pub unsafe fn y_slice_mut(&mut self) -> &mut [u8] {
+    pub unsafe fn y_slice_mut<'a>(&self) -> &'a mut [u8] {
         let border = self.border as usize;
         let stride = self.y_stride as usize;
         let height = self.y_height as usize;
@@ -254,7 +254,7 @@ impl yv12_buffer_config {
         core::slice::from_raw_parts(start_ptr, total_size)
     }
 
-    pub unsafe fn u_slice_mut(&mut self) -> &mut [u8] {
+    pub unsafe fn u_slice_mut<'a>(&self) -> &'a mut [u8] {
         let border = (self.border / 2) as usize;
         let stride = self.uv_stride as usize;
         let height = self.uv_height as usize;
@@ -274,7 +274,7 @@ impl yv12_buffer_config {
         core::slice::from_raw_parts(start_ptr, total_size)
     }
 
-    pub unsafe fn v_slice_mut(&mut self) -> &mut [u8] {
+    pub unsafe fn v_slice_mut<'a>(&self) -> &'a mut [u8] {
         let border = (self.border / 2) as usize;
         let stride = self.uv_stride as usize;
         let height = self.uv_height as usize;
@@ -406,6 +406,9 @@ impl macroblockd {
     }
     pub fn left_context_mut(&mut self) -> &mut ENTROPY_CONTEXT_PLANES {
         unsafe { &mut *self.left_context }
+    }
+    pub fn contexts_mut(&mut self) -> (&mut ENTROPY_CONTEXT_PLANES, &mut ENTROPY_CONTEXT_PLANES) {
+        unsafe { (&mut *self.above_context, &mut *self.left_context) }
     }
 }
 
