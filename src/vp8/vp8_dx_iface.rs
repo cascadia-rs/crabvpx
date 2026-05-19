@@ -8,7 +8,6 @@ unsafe extern "Rust" {
     fn vpx_internal_error(info: *mut VpxInternalErrorInfo, error: u32, fmt: *const i8);
     fn vp8_build_block_doffsets(x: *mut MACROBLOCKD);
     fn vp8_alloc_frame_buffers(oci: *mut Vp8Common, width: i32, height: i32) -> i32;
-    fn vpx_calloc(num: usize, size: usize) -> *mut c_void;
     fn vpx_free(memblk: *mut c_void);
     fn vp8dx_receive_compressed_data(pbi: *mut Vp8dComp) -> i32;
     fn vp8dx_get_raw_frame(
