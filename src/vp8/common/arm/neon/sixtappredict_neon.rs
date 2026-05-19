@@ -15,7 +15,7 @@ pub struct uint32x2x2_t {
 }
 pub type size_t = __darwin_size_t;
 pub type ptrdiff_t = __darwin_ptrdiff_t;
-static mut vp8_sub_pel_filters: [[int8_t; 8]; 8] = [
+static vp8_sub_pel_filters: [[int8_t; 8]; 8] = [
     [
         0 as ::core::ffi::c_int as int8_t,
         0 as ::core::ffi::c_int as int8_t,
@@ -97,7 +97,7 @@ static mut vp8_sub_pel_filters: [[int8_t; 8]; 8] = [
         0 as ::core::ffi::c_int as int8_t,
     ],
 ];
-static mut abs_filters: [[uint8_t; 8]; 8] = [
+static abs_filters: [[uint8_t; 8]; 8] = [
     [
         0 as ::core::ffi::c_int as uint8_t,
         0 as ::core::ffi::c_int as uint8_t,

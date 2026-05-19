@@ -14,7 +14,7 @@ pub struct uint32x2x2_t {
 }
 pub type size_t = __darwin_size_t;
 pub type ptrdiff_t = __darwin_ptrdiff_t;
-static mut bifilter4_coeff: [[uint8_t; 2]; 8] = [
+static bifilter4_coeff: [[uint8_t; 2]; 8] = [
     [
         128 as ::core::ffi::c_int as uint8_t,
         0 as ::core::ffi::c_int as uint8_t,

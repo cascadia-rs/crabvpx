@@ -92,7 +92,7 @@ unsafe extern "C" {
     
 
 }
-static mut mach_task_self_: mach_port_t = 0;
+static mach_task_self_: mach_port_t = 0;
 use crate::vp8::common::setupintrarecon::vp8_setup_intra_recon_top_line;
 pub use crate::vp8::common::types::*;
 pub type uint32_t = u32;
