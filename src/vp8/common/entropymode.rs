@@ -1443,28 +1443,40 @@ pub static vp8_kf_bmode_prob: [[[vp8_prob; 9]; 10]; 10] = [
         ],
     ],
 ];
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_mv_cont(
-    mut l: *const int_mv,
-    mut a: *const int_mv,
-) -> ::core::ffi::c_int { unsafe {
-    let mut lez: ::core::ffi::c_int = ((*l).as_int == 0 as uint32_t) as ::core::ffi::c_int;
-    let mut aez: ::core::ffi::c_int = ((*a).as_int == 0 as uint32_t) as ::core::ffi::c_int;
-    let mut lea: ::core::ffi::c_int = ((*l).as_int == (*a).as_int) as ::core::ffi::c_int;
+pub fn vp8_mv_cont_safe(
+    l: &int_mv,
+    a: &int_mv,
+) -> i32 {
+    let lez = (l.as_int() == 0) as i32;
+    let aez = (a.as_int() == 0) as i32;
+    let lea = (l.as_int() == a.as_int()) as i32;
     if lea != 0 && lez != 0 {
-        return SUBMVREF_LEFT_ABOVE_ZED as ::core::ffi::c_int;
+        return SUBMVREF_LEFT_ABOVE_ZED as i32;
     }
     if lea != 0 {
-        return SUBMVREF_LEFT_ABOVE_SAME as ::core::ffi::c_int;
+        return SUBMVREF_LEFT_ABOVE_SAME as i32;
     }
     if aez != 0 {
-        return SUBMVREF_ABOVE_ZED as ::core::ffi::c_int;
+        return SUBMVREF_ABOVE_ZED as i32;
     }
     if lez != 0 {
-        return SUBMVREF_LEFT_ZED as ::core::ffi::c_int;
+        return SUBMVREF_LEFT_ZED as i32;
     }
-    return SUBMVREF_NORMAL as ::core::ffi::c_int;
-}}
+    SUBMVREF_NORMAL as i32
+}
+
+#[unsafe(no_mangle)]
+pub extern "C" fn vp8_mv_cont(
+    l: *const int_mv,
+    a: *const int_mv,
+) -> ::core::ffi::c_int {
+    if l.is_null() || a.is_null() {
+        return SUBMVREF_NORMAL as ::core::ffi::c_int;
+    }
+    unsafe {
+        vp8_mv_cont_safe(&*l, &*a) as ::core::ffi::c_int
+    }
+}
 static sub_mv_ref_prob: [vp8_prob; 3] = [
     180 as ::core::ffi::c_int as vp8_prob,
     162 as ::core::ffi::c_int as vp8_prob,
