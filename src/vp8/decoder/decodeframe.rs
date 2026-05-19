@@ -15,7 +15,6 @@ use crate::vp8::common::dequantize::vp8_dequant_idct_add_safe;
 use crate::vp8::common::idctllm::vp8_dc_only_idct_add_safe;
 
 unsafe extern "C" {
-    fn vp8dx_decode_bool(br: *mut BOOL_DECODER, probability: ::core::ffi::c_int) -> ::core::ffi::c_int;
 
     fn vp8_bilinear_predict16x16_neon(
         src_ptr: *mut ::core::ffi::c_uchar,
