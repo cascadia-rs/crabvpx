@@ -1,31 +1,29 @@
 use std::ffi::c_void;
-pub type DarwinSizeT = usize;
-pub type SizeT = DarwinSizeT;
 pub type VpxRbErrorHandler = Option<unsafe fn(*mut c_void) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VpxReadBitBuffer {
     pub bit_buffer: *const u8,
     pub bit_buffer_end: *const u8,
-    pub bit_offset: SizeT,
+    pub bit_offset: usize,
     pub error_handler_data: *mut c_void,
     pub error_handler: VpxRbErrorHandler,
 }
 pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
 pub const NULL: *mut c_void = __DARWIN_NULL;
 #[unsafe(no_mangle)]
-pub unsafe fn vpx_rb_bytes_read(mut rb: *mut VpxReadBitBuffer) -> SizeT {
-    unsafe { (*rb).bit_offset.wrapping_add(7 as SizeT) >> 3 as i32 }
+pub unsafe fn vpx_rb_bytes_read(mut rb: *mut VpxReadBitBuffer) -> usize {
+    unsafe { (*rb).bit_offset.wrapping_add(7 as usize) >> 3 as i32 }
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_rb_read_bit(mut rb: *mut VpxReadBitBuffer) -> i32 {
     unsafe {
-        let off: SizeT = (*rb).bit_offset;
-        let p: SizeT = off >> 3 as i32;
-        let q: i32 = 7 as i32 - (off & 0x7 as SizeT) as i32;
+        let off: usize = (*rb).bit_offset;
+        let p: usize = off >> 3 as i32;
+        let q: i32 = 7 as i32 - (off & 0x7 as usize) as i32;
         if (*rb).bit_buffer.add(p) < (*rb).bit_buffer_end {
             let bit: i32 = *(*rb).bit_buffer.add(p) as i32 >> q & 1 as i32;
-            (*rb).bit_offset = off.wrapping_add(1 as SizeT);
+            (*rb).bit_offset = off.wrapping_add(1 as usize);
             bit
         } else {
             if (*rb).error_handler.is_some() {

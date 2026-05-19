@@ -1,5 +1,3 @@
-pub type Vp8Prob = u8;
-pub type Vp8TreeIndex = i8;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Vp8TokenStruct {
@@ -7,21 +5,15 @@ pub struct Vp8TokenStruct {
     pub len: i32,
 }
 pub type Vp8Token = Vp8TokenStruct;
-pub const vp8_prob_half: Vp8Prob = 128 as Vp8Prob;
-unsafe fn tree2tok(
-    p: *mut Vp8TokenStruct,
-    mut t: *const Vp8TreeIndex,
-    mut i: i32,
-    mut v: i32,
-    mut L: i32,
-) {
+pub const vp8_prob_half: u8 = 128 as u8;
+unsafe fn tree2tok(p: *mut Vp8TokenStruct, mut t: *const i8, mut i: i32, mut v: i32, mut L: i32) {
     unsafe {
         v += v;
         L += 1;
         loop {
             let fresh0 = i;
             i += 1;
-            let j: Vp8TreeIndex = *t.offset(fresh0 as isize);
+            let j: i8 = *t.offset(fresh0 as isize);
             if j as i32 <= 0 as i32 {
                 (*p.offset(-(j as i32) as isize)).value = v;
                 (*p.offset(-(j as i32) as isize)).len = L;
@@ -36,7 +28,7 @@ unsafe fn tree2tok(
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_tokens_from_tree(mut p: *mut Vp8TokenStruct, mut t: *const Vp8TreeIndex) {
+pub unsafe fn vp8_tokens_from_tree(mut p: *mut Vp8TokenStruct, mut t: *const i8) {
     unsafe {
         tree2tok(p, t, 0 as i32, 0 as i32, 0 as i32);
     }
@@ -44,7 +36,7 @@ pub unsafe fn vp8_tokens_from_tree(mut p: *mut Vp8TokenStruct, mut t: *const Vp8
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_tokens_from_tree_offset(
     mut p: *mut Vp8TokenStruct,
-    mut t: *const Vp8TreeIndex,
+    mut t: *const i8,
     mut offset: i32,
 ) {
     unsafe {
@@ -60,7 +52,7 @@ pub unsafe fn vp8_tokens_from_tree_offset(
 unsafe fn branch_counts(
     mut n: i32,
     mut tok: *const Vp8Token,
-    mut tree: *const Vp8TreeIndex,
+    mut tree: *const i8,
     mut branch_ct: *mut [u32; 2],
     mut num_events: *const u32,
 ) {
@@ -81,7 +73,7 @@ unsafe fn branch_counts(
             let mut L: i32 = (*tok.offset(t as isize)).len;
             let enc: i32 = (*tok.offset(t as isize)).value;
             let ct: u32 = *num_events.offset(t as isize);
-            let mut i: Vp8TreeIndex = 0 as Vp8TreeIndex;
+            let mut i: i8 = 0 as i8;
             loop {
                 L -= 1;
                 let b: i32 = enc >> L & 1 as i32;
@@ -104,8 +96,8 @@ unsafe fn branch_counts(
 pub unsafe fn vp8_tree_probs_from_distribution(
     mut n: i32,
     mut tok: *const Vp8Token,
-    mut tree: *const Vp8TreeIndex,
-    mut probs: *mut Vp8Prob,
+    mut tree: *const i8,
+    mut probs: *mut u8,
     mut branch_ct: *mut [u32; 2],
     mut num_events: *const u32,
     mut pfactor: u32,
@@ -133,7 +125,7 @@ pub unsafe fn vp8_tree_probs_from_distribution(
                     if p != 0 { p } else { 1 as u32 }
                 } else {
                     255 as u32
-                }) as Vp8Prob;
+                }) as u8;
             } else {
                 *probs.offset(t as isize) = vp8_prob_half;
             }

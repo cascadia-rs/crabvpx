@@ -1,54 +1,16 @@
+use crate::vpx_scale::generic::yv12config::Yv12BufferConfig;
 use std::ffi::c_void;
-pub type VpxColorSpace = u32;
-pub const VPX_CS_SRGB: VpxColorSpace = 7;
-pub const VPX_CS_RESERVED: VpxColorSpace = 6;
-pub const VPX_CS_BT_2020: VpxColorSpace = 5;
-pub const VPX_CS_SMPTE_240: VpxColorSpace = 4;
-pub const VPX_CS_SMPTE_170: VpxColorSpace = 3;
-pub const VPX_CS_BT_709: VpxColorSpace = 2;
-pub const VPX_CS_BT_601: VpxColorSpace = 1;
-pub const VPX_CS_UNKNOWN: VpxColorSpace = 0;
-pub type VpxColorSpaceT = VpxColorSpace;
-pub type VpxColorRange = u32;
-pub const VPX_CR_FULL_RANGE: VpxColorRange = 1;
-pub const VPX_CR_STUDIO_RANGE: VpxColorRange = 0;
-pub type VpxColorRangeT = VpxColorRange;
-pub type DarwinSizeT = usize;
-pub type SizeT = DarwinSizeT;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct Yv12BufferConfig {
-    pub y_width: i32,
-    pub y_height: i32,
-    pub y_crop_width: i32,
-    pub y_crop_height: i32,
-    pub y_stride: i32,
-    pub uv_width: i32,
-    pub uv_height: i32,
-    pub uv_crop_width: i32,
-    pub uv_crop_height: i32,
-    pub uv_stride: i32,
-    pub alpha_width: i32,
-    pub alpha_height: i32,
-    pub alpha_stride: i32,
-    pub y_buffer: *mut u8,
-    pub u_buffer: *mut u8,
-    pub v_buffer: *mut u8,
-    pub alpha_buffer: *mut u8,
-    pub buffer_alloc: *mut u8,
-    pub buffer_alloc_sz: SizeT,
-    pub border: i32,
-    pub frame_size: SizeT,
-    pub subsampling_x: i32,
-    pub subsampling_y: i32,
-    pub bit_depth: u32,
-    pub color_space: VpxColorSpaceT,
-    pub color_range: VpxColorRangeT,
-    pub render_width: i32,
-    pub render_height: i32,
-    pub corrupted: i32,
-    pub flags: i32,
-}
+pub const VPX_CS_SRGB: u32 = 7;
+pub const VPX_CS_RESERVED: u32 = 6;
+pub const VPX_CS_BT_2020: u32 = 5;
+pub const VPX_CS_SMPTE_240: u32 = 4;
+pub const VPX_CS_SMPTE_170: u32 = 3;
+pub const VPX_CS_BT_709: u32 = 2;
+pub const VPX_CS_BT_601: u32 = 1;
+pub const VPX_CS_UNKNOWN: u32 = 0;
+pub const VPX_CR_FULL_RANGE: u32 = 1;
+pub const VPX_CR_STUDIO_RANGE: u32 = 0;
+
 unsafe fn copy_and_extend_plane(
     mut s: *mut u8,
     mut sp: i32,
@@ -81,14 +43,14 @@ unsafe fn copy_and_extend_plane(
         while i < h {
             core::ptr::write_bytes(
                 dest_ptr1 as *mut c_void as *mut u8,
-                *src_ptr1.offset(0 as isize) as i32 as u8,
-                el as SizeT,
+                *src_ptr1.offset(0 as isize) as u8,
+                el as usize,
             );
             if interleave_step == 1 as i32 {
                 core::ptr::copy_nonoverlapping(
                     src_ptr1 as *const c_void as *const u8,
                     dest_ptr1.offset(el as isize) as *mut c_void as *mut u8,
-                    w as SizeT,
+                    w as usize,
                 );
             } else {
                 j = 0 as i32;
@@ -100,8 +62,8 @@ unsafe fn copy_and_extend_plane(
             }
             core::ptr::write_bytes(
                 dest_ptr2 as *mut c_void as *mut u8,
-                *src_ptr2.offset(0 as isize) as i32 as u8,
-                er as SizeT,
+                *src_ptr2.offset(0 as isize) as u8,
+                er as usize,
             );
             src_ptr1 = src_ptr1.offset(sp as isize);
             src_ptr2 = src_ptr2.offset(sp as isize);
@@ -121,7 +83,7 @@ unsafe fn copy_and_extend_plane(
             core::ptr::copy_nonoverlapping(
                 src_ptr1 as *const c_void as *const u8,
                 dest_ptr1 as *mut c_void as *mut u8,
-                linesize as SizeT,
+                linesize as usize,
             );
             dest_ptr1 = dest_ptr1.offset(dp as isize);
             i += 1;
@@ -131,7 +93,7 @@ unsafe fn copy_and_extend_plane(
             core::ptr::copy_nonoverlapping(
                 src_ptr2 as *const c_void as *const u8,
                 dest_ptr2 as *mut c_void as *mut u8,
-                linesize as SizeT,
+                linesize as usize,
             );
             dest_ptr2 = dest_ptr2.offset(dp as isize);
             i += 1;

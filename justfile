@@ -23,6 +23,14 @@ compare *args:
     @just test {{args}}
     @tools/count_unsafe.sh
 
+# Display progress on removing unsafe blocks
+progress:
+    @tools/count_unsafe.sh
+
+# Display progress on removing unsafe blocks
+safety:
+    @just progress
+
 # Run performance benchmarks with statistical distribution
 bench *args:
     cd harness && cargo run --release --bin benchmark -- --dir ../test_data --benchmark {{args}}

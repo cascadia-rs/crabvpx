@@ -1,25 +1,19 @@
 use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn vpx_memalign(align: SizeT, size: SizeT) -> *mut c_void;
+    fn vpx_memalign(align: usize, size: usize) -> *mut c_void;
     fn vpx_free(memblk: *mut c_void);
 }
-pub type DarwinSizeT = usize;
-pub type VpxColorSpace = u32;
-pub const VPX_CS_SRGB: VpxColorSpace = 7;
-pub const VPX_CS_RESERVED: VpxColorSpace = 6;
-pub const VPX_CS_BT_2020: VpxColorSpace = 5;
-pub const VPX_CS_SMPTE_240: VpxColorSpace = 4;
-pub const VPX_CS_SMPTE_170: VpxColorSpace = 3;
-pub const VPX_CS_BT_709: VpxColorSpace = 2;
-pub const VPX_CS_BT_601: VpxColorSpace = 1;
-pub const VPX_CS_UNKNOWN: VpxColorSpace = 0;
-pub type VpxColorSpaceT = VpxColorSpace;
-pub type VpxColorRange = u32;
-pub const VPX_CR_FULL_RANGE: VpxColorRange = 1;
-pub const VPX_CR_STUDIO_RANGE: VpxColorRange = 0;
-pub type VpxColorRangeT = VpxColorRange;
-pub type SizeT = DarwinSizeT;
-#[derive(Copy, Clone)]
+pub const VPX_CS_SRGB: u32 = 7;
+pub const VPX_CS_RESERVED: u32 = 6;
+pub const VPX_CS_BT_2020: u32 = 5;
+pub const VPX_CS_SMPTE_240: u32 = 4;
+pub const VPX_CS_SMPTE_170: u32 = 3;
+pub const VPX_CS_BT_709: u32 = 2;
+pub const VPX_CS_BT_601: u32 = 1;
+pub const VPX_CS_UNKNOWN: u32 = 0;
+pub const VPX_CR_FULL_RANGE: u32 = 1;
+pub const VPX_CR_STUDIO_RANGE: u32 = 0;
+#[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct Yv12BufferConfig {
     pub y_width: i32,
@@ -40,14 +34,16 @@ pub struct Yv12BufferConfig {
     pub v_buffer: *mut u8,
     pub alpha_buffer: *mut u8,
     pub buffer_alloc: *mut u8,
-    pub buffer_alloc_sz: SizeT,
+    pub buffer_alloc_sz: usize,
+    pub buffer_alloc_base: *mut u8,
+    pub buffer_alloc_cap: usize,
     pub border: i32,
-    pub frame_size: SizeT,
+    pub frame_size: usize,
     pub subsampling_x: i32,
     pub subsampling_y: i32,
     pub bit_depth: u32,
-    pub color_space: VpxColorSpaceT,
-    pub color_range: VpxColorRangeT,
+    pub color_space: u32,
+    pub color_range: u32,
     pub render_width: i32,
     pub render_height: i32,
     pub corrupted: i32,
@@ -59,14 +55,10 @@ pub const NULL: *mut c_void = __DARWIN_NULL;
 pub unsafe fn vp8_yv12_de_alloc_frame_buffer(mut ybf: *mut Yv12BufferConfig) -> i32 {
     unsafe {
         if !ybf.is_null() {
-            if (*ybf).buffer_alloc_sz > 0 as SizeT {
-                vpx_free((*ybf).buffer_alloc as *mut c_void);
+            if (*ybf).buffer_alloc_sz > 0 as usize && !(*ybf).buffer_alloc_base.is_null() {
+                let _ = Vec::from_raw_parts((*ybf).buffer_alloc_base, 0, (*ybf).buffer_alloc_cap);
             }
-            core::ptr::write_bytes(
-                ybf as *mut c_void as *mut u8,
-                0 as i32 as u8,
-                ::core::mem::size_of::<Yv12BufferConfig>() as SizeT,
-            );
+            *ybf = Default::default();
         } else {
             return -(1 as i32);
         }
@@ -90,13 +82,17 @@ pub unsafe fn vp8_yv12_realloc_frame_buffer(
             let mut uv_height: i32 = aligned_height >> 1 as i32;
             let mut uv_stride: i32 = y_stride >> 1 as i32;
             let mut uvplane_size: i32 = (uv_height + border) * uv_stride;
-            let frame_size: SizeT = (yplane_size + 2 as i32 * uvplane_size) as SizeT;
+            let frame_size: usize = (yplane_size + 2 as i32 * uvplane_size) as usize;
             if (*ybf).buffer_alloc.is_null() {
-                (*ybf).buffer_alloc = vpx_memalign(32 as SizeT, frame_size) as *mut u8;
-                if (*ybf).buffer_alloc.is_null() {
-                    (*ybf).buffer_alloc_sz = 0 as SizeT;
-                    return -(1 as i32);
-                }
+                let alloc_size = frame_size + 31;
+                let mut vec = Vec::<u8>::with_capacity(alloc_size);
+                let base_ptr = vec.as_mut_ptr();
+                let cap = vec.capacity();
+                core::mem::forget(vec);
+                let aligned_ptr = ((base_ptr as usize + 31) & !31) as *mut u8;
+                (*ybf).buffer_alloc = aligned_ptr;
+                (*ybf).buffer_alloc_base = base_ptr;
+                (*ybf).buffer_alloc_cap = cap;
                 (*ybf).buffer_alloc_sz = frame_size;
             }
             if (*ybf).buffer_alloc_sz < frame_size {

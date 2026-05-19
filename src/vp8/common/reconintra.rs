@@ -1,54 +1,28 @@
+use crate::vpx_scale::generic::yv12config::Yv12BufferConfig;
 use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn vpx_dc_128_predictor_16x16_c(
-        dst: *mut u8,
-        stride: PtrdiffT,
-        above: *const u8,
-        left: *const u8,
-    );
-    fn vpx_dc_128_predictor_8x8_c(
-        dst: *mut u8,
-        stride: PtrdiffT,
-        above: *const u8,
-        left: *const u8,
-    );
+    fn vpx_dc_128_predictor_16x16_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_dc_128_predictor_8x8_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
     fn vpx_dc_left_predictor_16x16_c(
         dst: *mut u8,
-        stride: PtrdiffT,
+        stride: isize,
         above: *const u8,
         left: *const u8,
     );
-    fn vpx_dc_left_predictor_8x8_c(
-        dst: *mut u8,
-        stride: PtrdiffT,
-        above: *const u8,
-        left: *const u8,
-    );
-    fn vpx_dc_predictor_16x16_c(dst: *mut u8, stride: PtrdiffT, above: *const u8, left: *const u8);
-    fn vpx_dc_predictor_8x8_c(dst: *mut u8, stride: PtrdiffT, above: *const u8, left: *const u8);
-    fn vpx_dc_top_predictor_16x16_c(
-        dst: *mut u8,
-        stride: PtrdiffT,
-        above: *const u8,
-        left: *const u8,
-    );
-    fn vpx_dc_top_predictor_8x8_c(
-        dst: *mut u8,
-        stride: PtrdiffT,
-        above: *const u8,
-        left: *const u8,
-    );
-    fn vpx_h_predictor_16x16_c(dst: *mut u8, stride: PtrdiffT, above: *const u8, left: *const u8);
-    fn vpx_h_predictor_8x8_c(dst: *mut u8, stride: PtrdiffT, above: *const u8, left: *const u8);
-    fn vpx_tm_predictor_16x16_c(dst: *mut u8, stride: PtrdiffT, above: *const u8, left: *const u8);
-    fn vpx_tm_predictor_8x8_c(dst: *mut u8, stride: PtrdiffT, above: *const u8, left: *const u8);
-    fn vpx_v_predictor_16x16_c(dst: *mut u8, stride: PtrdiffT, above: *const u8, left: *const u8);
-    fn vpx_v_predictor_8x8_c(dst: *mut u8, stride: PtrdiffT, above: *const u8, left: *const u8);
+    fn vpx_dc_left_predictor_8x8_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_dc_predictor_16x16_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_dc_predictor_8x8_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_dc_top_predictor_16x16_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_dc_top_predictor_8x8_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_h_predictor_16x16_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_h_predictor_8x8_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_tm_predictor_16x16_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_tm_predictor_8x8_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_v_predictor_16x16_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
+    fn vpx_v_predictor_8x8_c(dst: *mut u8, stride: isize, above: *const u8, left: *const u8);
     fn pthread_once(_: *mut PthreadOnceT, _: Option<unsafe fn() -> ()>) -> i32;
     fn vp8_init_intra4x4_predictors_internal();
 }
-pub type DarwinPtrdiffT = isize;
-pub type DarwinSizeT = usize;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct OpaquePthreadOnceT {
@@ -56,8 +30,6 @@ pub struct OpaquePthreadOnceT {
     pub __opaque: [i8; 8],
 }
 pub type DarwinPthreadOnceT = OpaquePthreadOnceT;
-pub type PtrdiffT = DarwinPtrdiffT;
-pub type SizeT = DarwinSizeT;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Blockd {
@@ -72,7 +44,7 @@ pub struct Blockd {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union BModeInfo {
-    pub as_mode: BPredictionMode,
+    pub as_mode: u32,
     pub mv: IntMv,
 }
 #[derive(Copy, Clone)]
@@ -87,22 +59,21 @@ pub struct MV {
     pub row: i16,
     pub col: i16,
 }
-pub type BPredictionMode = u32;
-pub const B_MODE_COUNT: BPredictionMode = 14;
-pub const NEW4X4: BPredictionMode = 13;
-pub const ZERO4X4: BPredictionMode = 12;
-pub const ABOVE4X4: BPredictionMode = 11;
-pub const LEFT4X4: BPredictionMode = 10;
-pub const B_HU_PRED: BPredictionMode = 9;
-pub const B_HD_PRED: BPredictionMode = 8;
-pub const B_VL_PRED: BPredictionMode = 7;
-pub const B_VR_PRED: BPredictionMode = 6;
-pub const B_RD_PRED: BPredictionMode = 5;
-pub const B_LD_PRED: BPredictionMode = 4;
-pub const B_HE_PRED: BPredictionMode = 3;
-pub const B_VE_PRED: BPredictionMode = 2;
-pub const B_TM_PRED: BPredictionMode = 1;
-pub const B_DC_PRED: BPredictionMode = 0;
+pub const B_MODE_COUNT: u32 = 14;
+pub const NEW4X4: u32 = 13;
+pub const ZERO4X4: u32 = 12;
+pub const ABOVE4X4: u32 = 11;
+pub const LEFT4X4: u32 = 10;
+pub const B_HU_PRED: u32 = 9;
+pub const B_HD_PRED: u32 = 8;
+pub const B_VL_PRED: u32 = 7;
+pub const B_VR_PRED: u32 = 6;
+pub const B_RD_PRED: u32 = 5;
+pub const B_LD_PRED: u32 = 4;
+pub const B_HE_PRED: u32 = 3;
+pub const B_VE_PRED: u32 = 2;
+pub const B_TM_PRED: u32 = 1;
+pub const B_DC_PRED: u32 = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Macroblockd {
@@ -120,7 +91,7 @@ pub struct Macroblockd {
     pub dst: Yv12BufferConfig,
     pub mode_info_context: *mut ModeInfo,
     pub mode_info_stride: i32,
-    pub frame_type: FrameType,
+    pub frame_type: u32,
     pub up_available: bool,
     pub left_available: bool,
     pub recon_above: [*mut u8; 3],
@@ -132,7 +103,7 @@ pub struct Macroblockd {
     pub update_mb_segmentation_map: u8,
     pub update_mb_segmentation_data: u8,
     pub mb_segment_abs_delta: u8,
-    pub mb_segment_tree_probs: [Vp8Prob; 3],
+    pub mb_segment_tree_probs: [u8; 3],
     pub segment_feature_data: [[i8; 4]; 2],
     pub mode_ref_lf_delta_enabled: u8,
     pub mode_ref_lf_delta_update: u8,
@@ -155,38 +126,34 @@ pub struct Macroblockd {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VpxInternalErrorInfo {
-    pub error_code: VpxCodecErrT,
+    pub error_code: u32,
     pub has_detail: bool,
     pub detail: [i8; 80],
     pub setjmp: bool,
     pub jmp: JmpBuf,
 }
 pub type JmpBuf = [i32; 48];
-pub type VpxCodecErrT = u32;
-pub const VPX_CODEC_LIST_END: VpxCodecErrT = 9;
-pub const VPX_CODEC_INVALID_PARAM: VpxCodecErrT = 8;
-pub const VPX_CODEC_CORRUPT_FRAME: VpxCodecErrT = 7;
-pub const VPX_CODEC_UNSUP_FEATURE: VpxCodecErrT = 6;
-pub const VPX_CODEC_UNSUP_BITSTREAM: VpxCodecErrT = 5;
-pub const VPX_CODEC_INCAPABLE: VpxCodecErrT = 4;
-pub const VPX_CODEC_ABI_MISMATCH: VpxCodecErrT = 3;
-pub const VPX_CODEC_MEM_ERROR: VpxCodecErrT = 2;
-pub const VPX_CODEC_ERROR: VpxCodecErrT = 1;
-pub const VPX_CODEC_OK: VpxCodecErrT = 0;
+pub const VPX_CODEC_LIST_END: u32 = 9;
+pub const VPX_CODEC_INVALID_PARAM: u32 = 8;
+pub const VPX_CODEC_CORRUPT_FRAME: u32 = 7;
+pub const VPX_CODEC_UNSUP_FEATURE: u32 = 6;
+pub const VPX_CODEC_UNSUP_BITSTREAM: u32 = 5;
+pub const VPX_CODEC_INCAPABLE: u32 = 4;
+pub const VPX_CODEC_ABI_MISMATCH: u32 = 3;
+pub const VPX_CODEC_MEM_ERROR: u32 = 2;
+pub const VPX_CODEC_ERROR: u32 = 1;
+pub const VPX_CODEC_OK: u32 = 0;
 pub type Vp8SubpixFnT = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -> ()>;
-pub type Vp8Prob = u8;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct EntropyContextPlanes {
-    pub y1: [EntropyContext; 4],
-    pub u: [EntropyContext; 2],
-    pub v: [EntropyContext; 2],
-    pub y2: EntropyContext,
+    pub y1: [i8; 4],
+    pub u: [i8; 2],
+    pub v: [i8; 2],
+    pub y2: i8,
 }
-pub type EntropyContext = i8;
-pub type FrameType = u32;
-pub const INTER_FRAME: FrameType = 1;
-pub const KEY_FRAME: FrameType = 0;
+pub const INTER_FRAME: u32 = 1;
+pub const KEY_FRAME: u32 = 0;
 pub type ModeInfo = Modeinfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -207,70 +174,32 @@ pub struct MbModeInfo {
     pub need_to_clamp_mvs: u8,
     pub segment_id: u8,
 }
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct Yv12BufferConfig {
-    pub y_width: i32,
-    pub y_height: i32,
-    pub y_crop_width: i32,
-    pub y_crop_height: i32,
-    pub y_stride: i32,
-    pub uv_width: i32,
-    pub uv_height: i32,
-    pub uv_crop_width: i32,
-    pub uv_crop_height: i32,
-    pub uv_stride: i32,
-    pub alpha_width: i32,
-    pub alpha_height: i32,
-    pub alpha_stride: i32,
-    pub y_buffer: *mut u8,
-    pub u_buffer: *mut u8,
-    pub v_buffer: *mut u8,
-    pub alpha_buffer: *mut u8,
-    pub buffer_alloc: *mut u8,
-    pub buffer_alloc_sz: SizeT,
-    pub border: i32,
-    pub frame_size: SizeT,
-    pub subsampling_x: i32,
-    pub subsampling_y: i32,
-    pub bit_depth: u32,
-    pub color_space: VpxColorSpaceT,
-    pub color_range: VpxColorRangeT,
-    pub render_width: i32,
-    pub render_height: i32,
-    pub corrupted: i32,
-    pub flags: i32,
-}
-pub type VpxColorRangeT = VpxColorRange;
-pub type VpxColorRange = u32;
-pub const VPX_CR_FULL_RANGE: VpxColorRange = 1;
-pub const VPX_CR_STUDIO_RANGE: VpxColorRange = 0;
-pub type VpxColorSpaceT = VpxColorSpace;
-pub type VpxColorSpace = u32;
-pub const VPX_CS_SRGB: VpxColorSpace = 7;
-pub const VPX_CS_RESERVED: VpxColorSpace = 6;
-pub const VPX_CS_BT_2020: VpxColorSpace = 5;
-pub const VPX_CS_SMPTE_240: VpxColorSpace = 4;
-pub const VPX_CS_SMPTE_170: VpxColorSpace = 3;
-pub const VPX_CS_BT_709: VpxColorSpace = 2;
-pub const VPX_CS_BT_601: VpxColorSpace = 1;
-pub const VPX_CS_UNKNOWN: VpxColorSpace = 0;
+
+pub const VPX_CR_FULL_RANGE: u32 = 1;
+pub const VPX_CR_STUDIO_RANGE: u32 = 0;
+pub const VPX_CS_SRGB: u32 = 7;
+pub const VPX_CS_RESERVED: u32 = 6;
+pub const VPX_CS_BT_2020: u32 = 5;
+pub const VPX_CS_SMPTE_240: u32 = 4;
+pub const VPX_CS_SMPTE_170: u32 = 3;
+pub const VPX_CS_BT_709: u32 = 2;
+pub const VPX_CS_BT_601: u32 = 1;
+pub const VPX_CS_UNKNOWN: u32 = 0;
 pub type BLOCKD = Blockd;
 pub type PthreadOnceT = *mut c_void;
-pub type MbPredictionMode = u32;
-pub const MB_MODE_COUNT: MbPredictionMode = 10;
-pub const SPLITMV: MbPredictionMode = 9;
-pub const NEWMV: MbPredictionMode = 8;
-pub const ZEROMV: MbPredictionMode = 7;
-pub const NEARMV: MbPredictionMode = 6;
-pub const NEARESTMV: MbPredictionMode = 5;
-pub const B_PRED: MbPredictionMode = 4;
-pub const TM_PRED: MbPredictionMode = 3;
-pub const H_PRED: MbPredictionMode = 2;
-pub const V_PRED: MbPredictionMode = 1;
-pub const DC_PRED: MbPredictionMode = 0;
+pub const MB_MODE_COUNT: u32 = 10;
+pub const SPLITMV: u32 = 9;
+pub const NEWMV: u32 = 8;
+pub const ZEROMV: u32 = 7;
+pub const NEARMV: u32 = 6;
+pub const NEARESTMV: u32 = 5;
+pub const B_PRED: u32 = 4;
+pub const TM_PRED: u32 = 3;
+pub const H_PRED: u32 = 2;
+pub const V_PRED: u32 = 1;
+pub const DC_PRED: u32 = 0;
 pub type MACROBLOCKD = Macroblockd;
-pub type IntraPredFn = Option<unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> ()>;
+pub type IntraPredFn = Option<unsafe fn(*mut u8, isize, *const u8, *const u8) -> ()>;
 pub const SIZE_16: C2RustUnnamed = 0;
 pub const SIZE_8: C2RustUnnamed = 1;
 #[allow(non_camel_case_types)]
@@ -289,51 +218,48 @@ static mut pred: [[IntraPredFn; 2]; 4] = [[None; 2]; 4];
 static mut dc_pred: [[[IntraPredFn; 2]; 2]; 2] = [[[None; 2]; 2]; 2];
 unsafe fn vp8_init_intra_predictors_internal() {
     unsafe {
-        pred[V_PRED as usize][SIZE_16 as usize] = Some(
-            vpx_v_predictor_16x16_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
-        pred[H_PRED as usize][SIZE_16 as usize] = Some(
-            vpx_h_predictor_16x16_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
-        pred[TM_PRED as usize][SIZE_16 as usize] = Some(
-            vpx_tm_predictor_16x16_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
+        pred[V_PRED as usize][SIZE_16 as usize] =
+            Some(vpx_v_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
+                as IntraPredFn;
+        pred[H_PRED as usize][SIZE_16 as usize] =
+            Some(vpx_h_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
+                as IntraPredFn;
+        pred[TM_PRED as usize][SIZE_16 as usize] =
+            Some(vpx_tm_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
+                as IntraPredFn;
         dc_pred[0 as usize][0 as usize][SIZE_16 as usize] = Some(
-            vpx_dc_128_predictor_16x16_c
-                as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
+            vpx_dc_128_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
         ) as IntraPredFn;
         dc_pred[0 as usize][1 as usize][SIZE_16 as usize] = Some(
-            vpx_dc_top_predictor_16x16_c
-                as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
+            vpx_dc_top_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
         ) as IntraPredFn;
         dc_pred[1 as usize][0 as usize][SIZE_16 as usize] = Some(
-            vpx_dc_left_predictor_16x16_c
-                as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
+            vpx_dc_left_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
         ) as IntraPredFn;
-        dc_pred[1 as usize][1 as usize][SIZE_16 as usize] = Some(
-            vpx_dc_predictor_16x16_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
+        dc_pred[1 as usize][1 as usize][SIZE_16 as usize] =
+            Some(vpx_dc_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
+                as IntraPredFn;
         pred[V_PRED as usize][SIZE_8 as usize] =
-            Some(vpx_v_predictor_8x8_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> ())
+            Some(vpx_v_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
                 as IntraPredFn;
         pred[H_PRED as usize][SIZE_8 as usize] =
-            Some(vpx_h_predictor_8x8_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> ())
+            Some(vpx_h_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
                 as IntraPredFn;
-        pred[TM_PRED as usize][SIZE_8 as usize] = Some(
-            vpx_tm_predictor_8x8_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
+        pred[TM_PRED as usize][SIZE_8 as usize] =
+            Some(vpx_tm_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
+                as IntraPredFn;
         dc_pred[0 as usize][0 as usize][SIZE_8 as usize] = Some(
-            vpx_dc_128_predictor_8x8_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
+            vpx_dc_128_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
         ) as IntraPredFn;
         dc_pred[0 as usize][1 as usize][SIZE_8 as usize] = Some(
-            vpx_dc_top_predictor_8x8_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
+            vpx_dc_top_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
         ) as IntraPredFn;
         dc_pred[1 as usize][0 as usize][SIZE_8 as usize] = Some(
-            vpx_dc_left_predictor_8x8_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
+            vpx_dc_left_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
         ) as IntraPredFn;
-        dc_pred[1 as usize][1 as usize][SIZE_8 as usize] = Some(
-            vpx_dc_predictor_8x8_c as unsafe fn(*mut u8, PtrdiffT, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
+        dc_pred[1 as usize][1 as usize][SIZE_8 as usize] =
+            Some(vpx_dc_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
+                as IntraPredFn;
         vp8_init_intra4x4_predictors_internal();
     }
 }
@@ -347,7 +273,7 @@ pub unsafe fn vp8_build_intra_predictors_mby_s(
     mut y_stride: i32,
 ) {
     unsafe {
-        let mut mode: MbPredictionMode = (*(*x).mode_info_context).mbmi.mode as MbPredictionMode;
+        let mut mode: u32 = (*(*x).mode_info_context).mbmi.mode as u32;
         let mut yleft_col: [u8; 16] = [0; 16];
         let mut i: i32 = 0;
         let mut fn_0: IntraPredFn = None;
@@ -364,7 +290,7 @@ pub unsafe fn vp8_build_intra_predictors_mby_s(
         }
         fn_0.expect("non-null function pointer")(
             ypred_ptr as *mut u8,
-            y_stride as PtrdiffT,
+            y_stride as isize,
             yabove_row,
             &raw mut yleft_col as *mut u8,
         );
@@ -383,8 +309,7 @@ pub unsafe fn vp8_build_intra_predictors_mbuv_s(
     mut pred_stride: i32,
 ) {
     unsafe {
-        let mut uvmode: MbPredictionMode =
-            (*(*x).mode_info_context).mbmi.uv_mode as MbPredictionMode;
+        let mut uvmode: u32 = (*(*x).mode_info_context).mbmi.uv_mode as u32;
         let mut uleft_col: [u8; 8] = [0; 8];
         let mut vleft_col: [u8; 8] = [0; 8];
         let mut i: i32 = 0;
@@ -403,13 +328,13 @@ pub unsafe fn vp8_build_intra_predictors_mbuv_s(
         }
         fn_0.expect("non-null function pointer")(
             upred_ptr as *mut u8,
-            pred_stride as PtrdiffT,
+            pred_stride as isize,
             uabove_row,
             &raw mut uleft_col as *mut u8,
         );
         fn_0.expect("non-null function pointer")(
             vpred_ptr as *mut u8,
-            pred_stride as PtrdiffT,
+            pred_stride as isize,
             vabove_row,
             &raw mut vleft_col as *mut u8,
         );

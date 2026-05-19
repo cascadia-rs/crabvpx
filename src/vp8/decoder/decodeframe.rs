@@ -1,3 +1,4 @@
+use crate::vpx_scale::generic::yv12config::Yv12BufferConfig;
 use std::ffi::c_void;
 unsafe extern "Rust" {
     fn vp8_bilinear_predict16x16_c(
@@ -100,7 +101,7 @@ unsafe extern "Rust" {
         decrypt_state: *mut c_void,
     ) -> i32;
     fn vp8dx_bool_decoder_fill(br: *mut BoolDecoder);
-    fn vpx_internal_error(info: *mut VpxInternalErrorInfo, error: VpxCodecErrT, fmt: *const i8);
+    fn vpx_internal_error(info: *mut VpxInternalErrorInfo, error: u32, fmt: *const i8);
     fn vp8_loop_filter_frame_init(cm: *mut VP8Common, mbd: *mut Macroblockd, default_filt_lvl: i32);
     fn vp8_loop_filter_row_normal(
         cm: *mut VP8Common,
@@ -120,14 +121,14 @@ unsafe extern "Rust" {
         y_ptr: *mut u8,
     );
     static vp8_default_mv_context: [MvContext; 2];
-    static vp8_coef_update_probs: [[[[Vp8Prob; 11]; 3]; 8]; 4];
+    static vp8_coef_update_probs: [[[[u8; 11]; 3]; 8]; 4];
     fn vp8_default_coef_probs(_: *mut VP8Common);
     static vp8_mb_feature_data_bits: [i32; 2];
     fn vp8_intra4x4_predict(
         above: *mut u8,
         yleft: *mut u8,
         left_stride: i32,
-        b_mode: BPredictionMode,
+        b_mode: u32,
         dst: *mut u8,
         dst_stride: i32,
         top_left: u8,
@@ -182,7 +183,7 @@ pub struct Blockd {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union BModeInfo {
-    pub as_mode: BPredictionMode,
+    pub as_mode: u32,
     pub mv: IntMv,
 }
 #[derive(Copy, Clone)]
@@ -197,22 +198,21 @@ pub struct MV {
     pub row: i16,
     pub col: i16,
 }
-pub type BPredictionMode = u32;
-pub const B_MODE_COUNT: BPredictionMode = 14;
-pub const NEW4X4: BPredictionMode = 13;
-pub const ZERO4X4: BPredictionMode = 12;
-pub const ABOVE4X4: BPredictionMode = 11;
-pub const LEFT4X4: BPredictionMode = 10;
-pub const B_HU_PRED: BPredictionMode = 9;
-pub const B_HD_PRED: BPredictionMode = 8;
-pub const B_VL_PRED: BPredictionMode = 7;
-pub const B_VR_PRED: BPredictionMode = 6;
-pub const B_RD_PRED: BPredictionMode = 5;
-pub const B_LD_PRED: BPredictionMode = 4;
-pub const B_HE_PRED: BPredictionMode = 3;
-pub const B_VE_PRED: BPredictionMode = 2;
-pub const B_TM_PRED: BPredictionMode = 1;
-pub const B_DC_PRED: BPredictionMode = 0;
+pub const B_MODE_COUNT: u32 = 14;
+pub const NEW4X4: u32 = 13;
+pub const ZERO4X4: u32 = 12;
+pub const ABOVE4X4: u32 = 11;
+pub const LEFT4X4: u32 = 10;
+pub const B_HU_PRED: u32 = 9;
+pub const B_HD_PRED: u32 = 8;
+pub const B_VL_PRED: u32 = 7;
+pub const B_VR_PRED: u32 = 6;
+pub const B_RD_PRED: u32 = 5;
+pub const B_LD_PRED: u32 = 4;
+pub const B_HE_PRED: u32 = 3;
+pub const B_VE_PRED: u32 = 2;
+pub const B_TM_PRED: u32 = 1;
+pub const B_DC_PRED: u32 = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Macroblockd {
@@ -230,7 +230,7 @@ pub struct Macroblockd {
     pub dst: Yv12BufferConfig,
     pub mode_info_context: *mut ModeInfo,
     pub mode_info_stride: i32,
-    pub frame_type: FrameType,
+    pub frame_type: u32,
     pub up_available: bool,
     pub left_available: bool,
     pub recon_above: [*mut u8; 3],
@@ -242,7 +242,7 @@ pub struct Macroblockd {
     pub update_mb_segmentation_map: u8,
     pub update_mb_segmentation_data: u8,
     pub mb_segment_abs_delta: u8,
-    pub mb_segment_tree_probs: [Vp8Prob; 3],
+    pub mb_segment_tree_probs: [u8; 3],
     pub segment_feature_data: [[i8; 4]; 2],
     pub mode_ref_lf_delta_enabled: u8,
     pub mode_ref_lf_delta_update: u8,
@@ -265,38 +265,34 @@ pub struct Macroblockd {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VpxInternalErrorInfo {
-    pub error_code: VpxCodecErrT,
+    pub error_code: u32,
     pub has_detail: bool,
     pub detail: [i8; 80],
     pub setjmp: bool,
     pub jmp: JmpBuf,
 }
 pub type JmpBuf = [i32; 48];
-pub type VpxCodecErrT = u32;
-pub const VPX_CODEC_LIST_END: VpxCodecErrT = 9;
-pub const VPX_CODEC_INVALID_PARAM: VpxCodecErrT = 8;
-pub const VPX_CODEC_CORRUPT_FRAME: VpxCodecErrT = 7;
-pub const VPX_CODEC_UNSUP_FEATURE: VpxCodecErrT = 6;
-pub const VPX_CODEC_UNSUP_BITSTREAM: VpxCodecErrT = 5;
-pub const VPX_CODEC_INCAPABLE: VpxCodecErrT = 4;
-pub const VPX_CODEC_ABI_MISMATCH: VpxCodecErrT = 3;
-pub const VPX_CODEC_MEM_ERROR: VpxCodecErrT = 2;
-pub const VPX_CODEC_ERROR: VpxCodecErrT = 1;
-pub const VPX_CODEC_OK: VpxCodecErrT = 0;
+pub const VPX_CODEC_LIST_END: u32 = 9;
+pub const VPX_CODEC_INVALID_PARAM: u32 = 8;
+pub const VPX_CODEC_CORRUPT_FRAME: u32 = 7;
+pub const VPX_CODEC_UNSUP_FEATURE: u32 = 6;
+pub const VPX_CODEC_UNSUP_BITSTREAM: u32 = 5;
+pub const VPX_CODEC_INCAPABLE: u32 = 4;
+pub const VPX_CODEC_ABI_MISMATCH: u32 = 3;
+pub const VPX_CODEC_MEM_ERROR: u32 = 2;
+pub const VPX_CODEC_ERROR: u32 = 1;
+pub const VPX_CODEC_OK: u32 = 0;
 pub type Vp8SubpixFnT = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -> ()>;
-pub type Vp8Prob = u8;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct EntropyContextPlanes {
-    pub y1: [EntropyContext; 4],
-    pub u: [EntropyContext; 2],
-    pub v: [EntropyContext; 2],
-    pub y2: EntropyContext,
+    pub y1: [i8; 4],
+    pub u: [i8; 2],
+    pub v: [i8; 2],
+    pub y2: i8,
 }
-pub type EntropyContext = i8;
-pub type FrameType = u32;
-pub const INTER_FRAME: FrameType = 1;
-pub const KEY_FRAME: FrameType = 0;
+pub const INTER_FRAME: u32 = 1;
+pub const KEY_FRAME: u32 = 0;
 pub type ModeInfo = Modeinfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -317,61 +313,18 @@ pub struct MbModeInfo {
     pub need_to_clamp_mvs: u8,
     pub segment_id: u8,
 }
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct Yv12BufferConfig {
-    pub y_width: i32,
-    pub y_height: i32,
-    pub y_crop_width: i32,
-    pub y_crop_height: i32,
-    pub y_stride: i32,
-    pub uv_width: i32,
-    pub uv_height: i32,
-    pub uv_crop_width: i32,
-    pub uv_crop_height: i32,
-    pub uv_stride: i32,
-    pub alpha_width: i32,
-    pub alpha_height: i32,
-    pub alpha_stride: i32,
-    pub y_buffer: *mut u8,
-    pub u_buffer: *mut u8,
-    pub v_buffer: *mut u8,
-    pub alpha_buffer: *mut u8,
-    pub buffer_alloc: *mut u8,
-    pub buffer_alloc_sz: SizeT,
-    pub border: i32,
-    pub frame_size: SizeT,
-    pub subsampling_x: i32,
-    pub subsampling_y: i32,
-    pub bit_depth: u32,
-    pub color_space: VpxColorSpaceT,
-    pub color_range: VpxColorRangeT,
-    pub render_width: i32,
-    pub render_height: i32,
-    pub corrupted: i32,
-    pub flags: i32,
-}
-pub type VpxColorRangeT = VpxColorRange;
-pub type VpxColorRange = u32;
-pub const VPX_CR_FULL_RANGE: VpxColorRange = 1;
-pub const VPX_CR_STUDIO_RANGE: VpxColorRange = 0;
-pub type VpxColorSpaceT = VpxColorSpace;
-pub type VpxColorSpace = u32;
-pub const VPX_CS_SRGB: VpxColorSpace = 7;
-pub const VPX_CS_RESERVED: VpxColorSpace = 6;
-pub const VPX_CS_BT_2020: VpxColorSpace = 5;
-pub const VPX_CS_SMPTE_240: VpxColorSpace = 4;
-pub const VPX_CS_SMPTE_170: VpxColorSpace = 3;
-pub const VPX_CS_BT_709: VpxColorSpace = 2;
-pub const VPX_CS_BT_601: VpxColorSpace = 1;
-pub const VPX_CS_UNKNOWN: VpxColorSpace = 0;
-pub type SizeT = DarwinSizeT;
-pub type DarwinSizeT = usize;
+
+pub const VPX_CR_FULL_RANGE: u32 = 1;
+pub const VPX_CR_STUDIO_RANGE: u32 = 0;
+pub const VPX_CS_SRGB: u32 = 7;
+pub const VPX_CS_RESERVED: u32 = 6;
+pub const VPX_CS_BT_2020: u32 = 5;
+pub const VPX_CS_SMPTE_240: u32 = 4;
+pub const VPX_CS_SMPTE_170: u32 = 3;
+pub const VPX_CS_BT_709: u32 = 2;
+pub const VPX_CS_BT_601: u32 = 1;
+pub const VPX_CS_UNKNOWN: u32 = 0;
 pub type BLOCKD = Blockd;
-pub type DarwinNaturalT = u32;
-pub type DarwinPtrdiffT = isize;
-pub type DarwinMachPortNameT = DarwinNaturalT;
-pub type DarwinMachPortT = DarwinMachPortNameT;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct DarwinPthreadHandlerRec {
@@ -388,8 +341,6 @@ pub struct OpaquePthreadT {
 }
 pub type DarwinPthreadT = *mut OpaquePthreadT;
 pub type PthreadT = *mut c_void;
-pub type MachPortT = DarwinMachPortT;
-pub type PtrdiffT = DarwinPtrdiffT;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Vp8dComp {
@@ -419,10 +370,10 @@ pub struct Vp8dComp {
     pub h_event_start_decoding: *mut SemaphoreT,
     pub h_event_end_decoding: SemaphoreT,
     pub ready_for_new_data: bool,
-    pub prob_intra: Vp8Prob,
-    pub prob_last: Vp8Prob,
-    pub prob_gf: Vp8Prob,
-    pub prob_skip_false: Vp8Prob,
+    pub prob_intra: u8,
+    pub prob_last: u8,
+    pub prob_gf: u8,
+    pub prob_skip_false: u8,
     pub ec_enabled: bool,
     pub ec_active: bool,
     pub decoded_key_frame: bool,
@@ -476,13 +427,12 @@ pub type BoolDecoder = Vp8Reader;
 pub struct Vp8Reader {
     pub user_buffer_end: *const u8,
     pub user_buffer: *const u8,
-    pub value: Vp8BdValue,
+    pub value: usize,
     pub count: i32,
     pub range: u32,
     pub decrypt_cb: VpxDecryptCb,
     pub decrypt_state: *mut c_void,
 }
-pub type Vp8BdValue = SizeT;
 pub type Vp8Common = VP8Common;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -495,7 +445,7 @@ pub struct VP8Common {
     pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
-    pub clamp_type: ClampType,
+    pub clamp_type: u32,
     pub frame_to_show: *mut Yv12BufferConfig,
     pub yv12_fb: [Yv12BufferConfig; 4],
     pub fb_idx_ref_cnt: [i32; 4],
@@ -504,8 +454,8 @@ pub struct VP8Common {
     pub gld_fb_idx: i32,
     pub alt_fb_idx: i32,
     pub temp_scale_frame: Yv12BufferConfig,
-    pub last_frame_type: FrameType,
-    pub frame_type: FrameType,
+    pub last_frame_type: u32,
+    pub frame_type: u32,
     pub show_frame: i32,
     pub frame_flags: i32,
     pub mbs: i32,
@@ -525,7 +475,7 @@ pub struct VP8Common {
     pub mip: *mut ModeInfo,
     pub mi: *mut ModeInfo,
     pub show_frame_mi: *mut ModeInfo,
-    pub filter_type: LOOPFILTERTYPE,
+    pub filter_type: u32,
     pub lf_info: LoopFilterInfoN,
     pub filter_level: i32,
     pub last_sharpness_level: i32,
@@ -543,29 +493,28 @@ pub struct VP8Common {
     pub fc: FrameContext,
     pub current_video_frame: u32,
     pub version: i32,
-    pub multi_token_partition: TokenPartition,
+    pub multi_token_partition: u32,
     pub processor_core_count: i32,
 }
-pub type TokenPartition = u32;
-pub const EIGHT_PARTITION: TokenPartition = 3;
-pub const FOUR_PARTITION: TokenPartition = 2;
-pub const TWO_PARTITION: TokenPartition = 1;
-pub const ONE_PARTITION: TokenPartition = 0;
+pub const EIGHT_PARTITION: u32 = 3;
+pub const FOUR_PARTITION: u32 = 2;
+pub const TWO_PARTITION: u32 = 1;
+pub const ONE_PARTITION: u32 = 0;
 pub type FrameContext = FrameContexts;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct FrameContexts {
-    pub bmode_prob: [Vp8Prob; 9],
-    pub ymode_prob: [Vp8Prob; 4],
-    pub uv_mode_prob: [Vp8Prob; 3],
-    pub sub_mv_ref_prob: [Vp8Prob; 3],
-    pub coef_probs: [[[[Vp8Prob; 11]; 3]; 8]; 4],
+    pub bmode_prob: [u8; 9],
+    pub ymode_prob: [u8; 4],
+    pub uv_mode_prob: [u8; 3],
+    pub sub_mv_ref_prob: [u8; 3],
+    pub coef_probs: [[[[u8; 11]; 3]; 8]; 4],
     pub mvc: [MvContext; 2],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct MvContext {
-    pub prob: [Vp8Prob; 19],
+    pub prob: [u8; 19],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -578,47 +527,43 @@ pub struct LoopFilterInfoN {
     pub hev_thr_lut: [[u8; 64]; 2],
     pub mode_lf_lut: [u8; 10],
 }
-pub type LOOPFILTERTYPE = u32;
-pub const SIMPLE_LOOPFILTER: LOOPFILTERTYPE = 1;
-pub const NORMAL_LOOPFILTER: LOOPFILTERTYPE = 0;
-pub type ClampType = u32;
-pub const RECON_CLAMP_NOTREQUIRED: ClampType = 1;
-pub const RECON_CLAMP_REQUIRED: ClampType = 0;
-pub type MbPredictionMode = u32;
-pub const MB_MODE_COUNT: MbPredictionMode = 10;
-pub const SPLITMV: MbPredictionMode = 9;
-pub const NEWMV: MbPredictionMode = 8;
-pub const ZEROMV: MbPredictionMode = 7;
-pub const NEARMV: MbPredictionMode = 6;
-pub const NEARESTMV: MbPredictionMode = 5;
-pub const B_PRED: MbPredictionMode = 4;
-pub const TM_PRED: MbPredictionMode = 3;
-pub const H_PRED: MbPredictionMode = 2;
-pub const V_PRED: MbPredictionMode = 1;
-pub const DC_PRED: MbPredictionMode = 0;
+pub const SIMPLE_LOOPFILTER: u32 = 1;
+pub const NORMAL_LOOPFILTER: u32 = 0;
+pub const RECON_CLAMP_NOTREQUIRED: u32 = 1;
+pub const RECON_CLAMP_REQUIRED: u32 = 0;
+pub const MB_MODE_COUNT: u32 = 10;
+pub const SPLITMV: u32 = 9;
+pub const NEWMV: u32 = 8;
+pub const ZEROMV: u32 = 7;
+pub const NEARMV: u32 = 6;
+pub const NEARESTMV: u32 = 5;
+pub const B_PRED: u32 = 4;
+pub const TM_PRED: u32 = 3;
+pub const H_PRED: u32 = 2;
+pub const V_PRED: u32 = 1;
+pub const DC_PRED: u32 = 0;
 #[allow(non_camel_case_types)]
 pub type C2RustUnnamed = u32;
 pub const MB_LVL_MAX: C2RustUnnamed = 2;
 pub const MB_LVL_ALT_LF: C2RustUnnamed = 1;
 pub const MB_LVL_ALT_Q: C2RustUnnamed = 0;
-pub type MvReferenceFrame = u32;
-pub const MAX_REF_FRAMES: MvReferenceFrame = 4;
-pub const ALTREF_FRAME: MvReferenceFrame = 3;
-pub const GOLDEN_FRAME: MvReferenceFrame = 2;
-pub const LAST_FRAME: MvReferenceFrame = 1;
-pub const INTRA_FRAME: MvReferenceFrame = 0;
+pub const MAX_REF_FRAMES: u32 = 4;
+pub const ALTREF_FRAME: u32 = 3;
+pub const GOLDEN_FRAME: u32 = 2;
+pub const LAST_FRAME: u32 = 1;
+pub const INTRA_FRAME: u32 = 0;
 pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
 pub const NULL: *mut c_void = __DARWIN_NULL;
 pub const CHAR_BIT: i32 = 8 as i32;
-pub const vp8_prob_half: Vp8Prob = 128 as Vp8Prob;
-pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<Vp8BdValue>() as i32 * CHAR_BIT;
+pub const vp8_prob_half: u8 = 128 as u8;
+pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<usize>() as i32 * CHAR_BIT;
 pub const VP8_LOTS_OF_BITS: i32 = 0x40000000 as i32;
 unsafe fn vp8dx_decode_bool(mut br: *mut BoolDecoder, mut probability: i32) -> i32 {
     unsafe {
         let mut bit: u32 = 0 as u32;
-        let mut value: Vp8BdValue = 0;
+        let mut value: usize = 0;
         let mut split: u32 = 0;
-        let mut bigsplit: Vp8BdValue = 0;
+        let mut bigsplit: usize = 0;
         let mut count: i32 = 0;
         let mut range: u32 = 0;
         split = (1 as u32).wrapping_add(
@@ -633,7 +578,7 @@ unsafe fn vp8dx_decode_bool(mut br: *mut BoolDecoder, mut probability: i32) -> i
         }
         value = (*br).value;
         count = (*br).count;
-        bigsplit = (split as Vp8BdValue) << (VP8_BD_VALUE_SIZE - 8 as i32);
+        bigsplit = (split as usize) << (VP8_BD_VALUE_SIZE - 8 as i32);
         range = split;
         if value >= bigsplit {
             range = (*br).range.wrapping_sub(split);
@@ -796,7 +741,7 @@ pub unsafe fn vp8_mb_init_dequantizer(mut pbi: *mut Vp8dComp, mut xd: *mut MACRO
 }
 unsafe fn decode_macroblock(mut pbi: *mut Vp8dComp, mut xd: *mut MACROBLOCKD, _mb_idx: u32) {
     unsafe {
-        let mut mode: MbPredictionMode = DC_PRED;
+        let mut mode: u32 = DC_PRED;
         let mut i: i32 = 0;
         if (*(*xd).mode_info_context).mbmi.mb_skip_coeff != 0 {
             vp8_reset_mb_tokens_context(xd);
@@ -805,7 +750,7 @@ unsafe fn decode_macroblock(mut pbi: *mut Vp8dComp, mut xd: *mut MACROBLOCKD, _m
             eobtotal = vp8_decode_mb_tokens(pbi, xd);
             (*(*xd).mode_info_context).mbmi.mb_skip_coeff = (eobtotal == 0 as i32) as u8;
         }
-        mode = (*(*xd).mode_info_context).mbmi.mode as MbPredictionMode;
+        mode = (*(*xd).mode_info_context).mbmi.mode as u32;
         if (*xd).segmentation_enabled != 0 {
             vp8_mb_init_dequantizer(pbi, xd);
         }
@@ -836,8 +781,8 @@ unsafe fn decode_macroblock(mut pbi: *mut Vp8dComp, mut xd: *mut MACROBLOCKD, _m
                 if (*(*xd).mode_info_context).mbmi.mb_skip_coeff != 0 {
                     core::ptr::write_bytes(
                         &raw mut (*xd).eobs as *mut i8 as *mut c_void as *mut u8,
-                        0 as i32 as u8,
-                        25 as SizeT,
+                        0 as u8,
+                        25 as usize,
                     );
                 }
                 intra_prediction_down_copy(xd, (*xd).recon_above[0 as usize].offset(16 as isize));
@@ -846,8 +791,7 @@ unsafe fn decode_macroblock(mut pbi: *mut Vp8dComp, mut xd: *mut MACROBLOCKD, _m
                     let mut b: *mut BLOCKD =
                         (&raw mut (*xd).block as *mut BLOCKD).offset(i as isize) as *mut BLOCKD;
                     let mut dst: *mut u8 = (*xd).dst.y_buffer.offset((*b).offset as isize);
-                    let mut b_mode: BPredictionMode =
-                        (*(*xd).mode_info_context).bmi[i as usize].as_mode;
+                    let mut b_mode: u32 = (*(*xd).mode_info_context).bmi[i as usize].as_mode;
                     let mut Above: *mut u8 = dst.offset(-(dst_stride as isize));
                     let mut yleft: *mut u8 = dst.offset(-(1 as isize));
                     let mut left_stride: i32 = dst_stride;
@@ -876,8 +820,8 @@ unsafe fn decode_macroblock(mut pbi: *mut Vp8dComp, mut xd: *mut MACROBLOCKD, _m
                             );
                             core::ptr::write_bytes(
                                 (*b).qcoeff as *mut c_void as *mut u8,
-                                0 as i32 as u8,
-                                (2 as SizeT).wrapping_mul(::core::mem::size_of::<i16>() as SizeT),
+                                0 as u8,
+                                (2 as usize).wrapping_mul(::core::mem::size_of::<i16>() as usize),
                             );
                         }
                     }
@@ -904,8 +848,8 @@ unsafe fn decode_macroblock(mut pbi: *mut Vp8dComp, mut xd: *mut MACROBLOCKD, _m
                         );
                         core::ptr::write_bytes(
                             (*b_0).qcoeff as *mut c_void as *mut u8,
-                            0 as i32 as u8,
-                            (16 as SizeT).wrapping_mul(::core::mem::size_of::<i16>() as SizeT),
+                            0 as u8,
+                            (16 as usize).wrapping_mul(::core::mem::size_of::<i16>() as usize),
                         );
                     } else {
                         *(*b_0).dqcoeff.offset(0 as isize) = (*(*b_0).qcoeff.offset(0 as isize)
@@ -918,8 +862,8 @@ unsafe fn decode_macroblock(mut pbi: *mut Vp8dComp, mut xd: *mut MACROBLOCKD, _m
                         );
                         core::ptr::write_bytes(
                             (*b_0).qcoeff as *mut c_void as *mut u8,
-                            0 as i32 as u8,
-                            (2 as SizeT).wrapping_mul(::core::mem::size_of::<i16>() as SizeT),
+                            0 as u8,
+                            (2 as usize).wrapping_mul(::core::mem::size_of::<i16>() as usize),
                         );
                     }
                     dqc_0 = &raw mut (*xd).dequant_y1_dc as *mut i16;
@@ -974,7 +918,7 @@ unsafe fn yv12_extend_frame_top_c(mut ybf: *mut Yv12BufferConfig) {
             core::ptr::copy_nonoverlapping(
                 src_ptr1 as *const c_void as *const u8,
                 dest_ptr1 as *mut c_void as *mut u8,
-                plane_stride as SizeT,
+                plane_stride as usize,
             );
             dest_ptr1 = dest_ptr1.offset(plane_stride as isize);
             i += 1;
@@ -988,7 +932,7 @@ unsafe fn yv12_extend_frame_top_c(mut ybf: *mut Yv12BufferConfig) {
             core::ptr::copy_nonoverlapping(
                 src_ptr1 as *const c_void as *const u8,
                 dest_ptr1 as *mut c_void as *mut u8,
-                plane_stride as SizeT,
+                plane_stride as usize,
             );
             dest_ptr1 = dest_ptr1.offset(plane_stride as isize);
             i += 1;
@@ -1000,7 +944,7 @@ unsafe fn yv12_extend_frame_top_c(mut ybf: *mut Yv12BufferConfig) {
             core::ptr::copy_nonoverlapping(
                 src_ptr1 as *const c_void as *const u8,
                 dest_ptr1 as *mut c_void as *mut u8,
-                plane_stride as SizeT,
+                plane_stride as usize,
             );
             dest_ptr1 = dest_ptr1.offset(plane_stride as isize);
             i += 1;
@@ -1029,7 +973,7 @@ unsafe fn yv12_extend_frame_bottom_c(mut ybf: *mut Yv12BufferConfig) {
             core::ptr::copy_nonoverlapping(
                 src_ptr2 as *const c_void as *const u8,
                 dest_ptr2 as *mut c_void as *mut u8,
-                plane_stride as SizeT,
+                plane_stride as usize,
             );
             dest_ptr2 = dest_ptr2.offset(plane_stride as isize);
             i += 1;
@@ -1047,7 +991,7 @@ unsafe fn yv12_extend_frame_bottom_c(mut ybf: *mut Yv12BufferConfig) {
             core::ptr::copy_nonoverlapping(
                 src_ptr2 as *const c_void as *const u8,
                 dest_ptr2 as *mut c_void as *mut u8,
-                plane_stride as SizeT,
+                plane_stride as usize,
             );
             dest_ptr2 = dest_ptr2.offset(plane_stride as isize);
             i += 1;
@@ -1062,7 +1006,7 @@ unsafe fn yv12_extend_frame_bottom_c(mut ybf: *mut Yv12BufferConfig) {
             core::ptr::copy_nonoverlapping(
                 src_ptr2 as *const c_void as *const u8,
                 dest_ptr2 as *mut c_void as *mut u8,
-                plane_stride as SizeT,
+                plane_stride as usize,
             );
             dest_ptr2 = dest_ptr2.offset(plane_stride as isize);
             i += 1;
@@ -1097,13 +1041,13 @@ unsafe fn yv12_extend_frame_left_right_c(
         while i < plane_height {
             core::ptr::write_bytes(
                 dest_ptr1 as *mut c_void as *mut u8,
-                *src_ptr1.offset(0 as isize) as i32 as u8,
-                border as SizeT,
+                *src_ptr1.offset(0 as isize) as u8,
+                border as usize,
             );
             core::ptr::write_bytes(
                 dest_ptr2 as *mut c_void as *mut u8,
-                *src_ptr2.offset(0 as isize) as i32 as u8,
-                border as SizeT,
+                *src_ptr2.offset(0 as isize) as u8,
+                border as usize,
             );
             src_ptr1 = src_ptr1.offset(plane_stride as isize);
             src_ptr2 = src_ptr2.offset(plane_stride as isize);
@@ -1123,13 +1067,13 @@ unsafe fn yv12_extend_frame_left_right_c(
         while i < plane_height {
             core::ptr::write_bytes(
                 dest_ptr1 as *mut c_void as *mut u8,
-                *src_ptr1.offset(0 as isize) as i32 as u8,
-                border as SizeT,
+                *src_ptr1.offset(0 as isize) as u8,
+                border as usize,
             );
             core::ptr::write_bytes(
                 dest_ptr2 as *mut c_void as *mut u8,
-                *src_ptr2.offset(0 as isize) as i32 as u8,
-                border as SizeT,
+                *src_ptr2.offset(0 as isize) as u8,
+                border as usize,
             );
             src_ptr1 = src_ptr1.offset(plane_stride as isize);
             src_ptr2 = src_ptr2.offset(plane_stride as isize);
@@ -1145,13 +1089,13 @@ unsafe fn yv12_extend_frame_left_right_c(
         while i < plane_height {
             core::ptr::write_bytes(
                 dest_ptr1 as *mut c_void as *mut u8,
-                *src_ptr1.offset(0 as isize) as i32 as u8,
-                border as SizeT,
+                *src_ptr1.offset(0 as isize) as u8,
+                border as usize,
             );
             core::ptr::write_bytes(
                 dest_ptr2 as *mut c_void as *mut u8,
-                *src_ptr2.offset(0 as isize) as i32 as u8,
-                border as SizeT,
+                *src_ptr2.offset(0 as isize) as u8,
+                border as usize,
             );
             src_ptr1 = src_ptr1.offset(plane_stride as isize);
             src_ptr2 = src_ptr2.offset(plane_stride as isize);
@@ -1225,8 +1169,8 @@ unsafe fn decode_mb_rows(mut pbi: *mut Vp8dComp) {
             (*xd).above_context = (*pc).above_context;
             core::ptr::write_bytes(
                 (*xd).left_context as *mut c_void as *mut u8,
-                0 as i32 as u8,
-                ::core::mem::size_of::<EntropyContextPlanes>() as SizeT,
+                0 as u8,
+                ::core::mem::size_of::<EntropyContextPlanes>() as usize,
             );
             (*xd).left_available = false;
             (*xd).mb_to_top_edge = -((mb_row * 16 as i32) << 3 as i32);
@@ -1264,8 +1208,7 @@ unsafe fn decode_mb_rows(mut pbi: *mut Vp8dComp) {
                 (*xd).dst.v_buffer =
                     dst_buffer[2 as usize].offset(recon_uvoffset as isize) as *mut u8;
                 if (*(*xd).mode_info_context).mbmi.ref_frame as i32 >= LAST_FRAME as i32 {
-                    let ref_0: MvReferenceFrame =
-                        (*(*xd).mode_info_context).mbmi.ref_frame as MvReferenceFrame;
+                    let ref_0: u32 = (*(*xd).mode_info_context).mbmi.ref_frame as u32;
                     (*xd).pre.y_buffer = ref_buffer[ref_0 as usize][0 as usize]
                         .offset(recon_yoffset as isize)
                         as *mut u8;
@@ -1425,8 +1368,8 @@ unsafe fn read_partition_size(mut pbi: *mut Vp8dComp, mut cx_size: *const u8) ->
             + ((*cx_size.offset(2 as isize) as i32) << 16 as i32)) as u32
     }
 }
-unsafe fn read_is_valid(mut start: *const u8, mut len: SizeT, mut end: *const u8) -> i32 {
-    unsafe { (len != 0 as SizeT && end > start && len <= end.offset_from(start) as SizeT) as i32 }
+unsafe fn read_is_valid(mut start: *const u8, mut len: usize, mut end: *const u8) -> i32 {
+    unsafe { (len != 0 as usize && end > start && len <= end.offset_from(start) as usize) as i32 }
 }
 unsafe fn read_available_partition_size(
     mut pbi: *mut Vp8dComp,
@@ -1441,8 +1384,8 @@ unsafe fn read_available_partition_size(
         let mut pc: *mut Vp8Common = &raw mut (*pbi).common;
         let mut partition_size_ptr: *const u8 = token_part_sizes.offset((i * 3 as i32) as isize);
         let mut partition_size: u32 = 0 as u32;
-        let mut bytes_left: PtrdiffT = fragment_end.offset_from(fragment_start) as PtrdiffT;
-        if bytes_left < 0 as PtrdiffT {
+        let mut bytes_left: isize = fragment_end.offset_from(fragment_start) as isize;
+        if bytes_left < 0 as isize {
             vpx_internal_error(
                 &raw mut (*pc).error,
                 VPX_CODEC_CORRUPT_FRAME,
@@ -1451,7 +1394,7 @@ unsafe fn read_available_partition_size(
             );
         }
         if i < num_part - 1 as i32 {
-            if read_is_valid(partition_size_ptr, 3 as SizeT, first_fragment_end) != 0 {
+            if read_is_valid(partition_size_ptr, 3 as usize, first_fragment_end) != 0 {
                 partition_size = read_partition_size(pbi, partition_size_ptr);
             } else if (*pbi).ec_active {
                 partition_size = bytes_left as u32;
@@ -1465,7 +1408,7 @@ unsafe fn read_available_partition_size(
         } else {
             partition_size = bytes_left as u32;
         }
-        if read_is_valid(fragment_start, partition_size as SizeT, fragment_end) == 0 {
+        if read_is_valid(fragment_start, partition_size as usize, fragment_end) == 0 {
             if (*pbi).ec_active {
                 partition_size = bytes_left as u32;
             } else {
@@ -1488,10 +1431,10 @@ unsafe fn setup_token_decoder(mut pbi: *mut Vp8dComp, mut token_part_sizes: *con
         let mut num_token_partitions: u32 = 0;
         let mut first_fragment_end: *const u8 =
             (*pbi).fragments.ptrs[0 as usize].offset((*pbi).fragments.sizes[0 as usize] as isize);
-        let mut multi_token_partition: TokenPartition = vp8_decode_value(
+        let mut multi_token_partition: u32 = vp8_decode_value(
             (&raw mut (*pbi).mbc as *mut Vp8Reader).offset(8 as isize) as *mut BoolDecoder,
             2 as i32,
-        ) as TokenPartition;
+        ) as u32;
         if vp8dx_bool_error(
             (&raw mut (*pbi).mbc as *mut Vp8Reader).offset(8 as isize) as *mut BoolDecoder
         ) == 0
@@ -1505,10 +1448,10 @@ unsafe fn setup_token_decoder(mut pbi: *mut Vp8dComp, mut token_part_sizes: *con
             let mut fragment_end: *const u8 =
                 (*pbi).fragments.ptrs[fragment_idx as usize].offset(fragment_size as isize);
             if fragment_idx == 0 as u32 {
-                let mut ext_first_part_size: PtrdiffT =
-                    token_part_sizes.offset_from((*pbi).fragments.ptrs[0 as usize]) as PtrdiffT
-                        + (3 as u32).wrapping_mul(num_token_partitions.wrapping_sub(1 as u32))
-                            as PtrdiffT;
+                let mut ext_first_part_size: isize = token_part_sizes
+                    .offset_from((*pbi).fragments.ptrs[0 as usize])
+                    as isize
+                    + (3 as u32).wrapping_mul(num_token_partitions.wrapping_sub(1 as u32)) as isize;
                 if fragment_size < ext_first_part_size as u32 {
                     vpx_internal_error(
                         &raw mut (*pbi).common.error,
@@ -1526,7 +1469,7 @@ unsafe fn setup_token_decoder(mut pbi: *mut Vp8dComp, mut token_part_sizes: *con
                 }
             }
             while fragment_size > 0 as u32 {
-                let mut partition_size: PtrdiffT = read_available_partition_size(
+                let mut partition_size: isize = read_available_partition_size(
                     pbi,
                     token_part_sizes,
                     (*pbi).fragments.ptrs[fragment_idx as usize],
@@ -1534,7 +1477,7 @@ unsafe fn setup_token_decoder(mut pbi: *mut Vp8dComp, mut token_part_sizes: *con
                     fragment_end,
                     fragment_idx.wrapping_sub(1 as u32) as i32,
                     num_token_partitions as i32,
-                ) as PtrdiffT;
+                ) as isize;
                 (*pbi).fragments.sizes[fragment_idx as usize] = partition_size as u32;
                 if fragment_size < partition_size as u32 {
                     vpx_internal_error(
@@ -1589,25 +1532,25 @@ unsafe fn init_frame(mut pbi: *mut Vp8dComp) {
             core::ptr::copy_nonoverlapping(
                 &raw const vp8_default_mv_context as *const MvContext as *const c_void as *const u8,
                 &raw mut (*pc).fc.mvc as *mut MvContext as *mut c_void as *mut u8,
-                ::core::mem::size_of::<[MvContext; 2]>() as SizeT,
+                ::core::mem::size_of::<[MvContext; 2]>() as usize,
             );
             vp8_init_mbmode_probs(pc);
             vp8_default_coef_probs(pc as *mut VP8Common);
             core::ptr::write_bytes(
                 &raw mut (*xd).segment_feature_data as *mut [i8; 4] as *mut c_void as *mut u8,
-                0 as i32 as u8,
-                ::core::mem::size_of::<[[i8; 4]; 2]>() as SizeT,
+                0 as u8,
+                ::core::mem::size_of::<[[i8; 4]; 2]>() as usize,
             );
             (*xd).mb_segment_abs_delta = SEGMENT_DELTADATA as u8;
             core::ptr::write_bytes(
                 &raw mut (*xd).ref_lf_deltas as *mut i8 as *mut c_void as *mut u8,
-                0 as i32 as u8,
-                ::core::mem::size_of::<[i8; 4]>() as SizeT,
+                0 as u8,
+                ::core::mem::size_of::<[i8; 4]>() as usize,
             );
             core::ptr::write_bytes(
                 &raw mut (*xd).mode_lf_deltas as *mut i8 as *mut c_void as *mut u8,
-                0 as i32 as u8,
-                ::core::mem::size_of::<[i8; 4]>() as SizeT,
+                0 as u8,
+                ::core::mem::size_of::<[i8; 4]>() as usize,
             );
             (*pc).refresh_golden_frame = 1 as i32;
             (*pc).refresh_alt_ref_frame = 1 as i32;
@@ -1718,7 +1661,7 @@ pub unsafe fn vp8_decode_frame(mut pbi: *mut Vp8dComp) -> i32 {
                 );
                 clear = &raw mut clear_buffer as *mut u8;
             }
-            (*pc).frame_type = (*clear.offset(0 as isize) as i32 & 1 as i32) as FrameType;
+            (*pc).frame_type = (*clear.offset(0 as isize) as i32 & 1 as i32) as u32;
             (*pc).version = *clear.offset(0 as isize) as i32 >> 1 as i32 & 7 as i32;
             (*pc).show_frame = *clear.offset(0 as isize) as i32 >> 4 as i32 & 1 as i32;
             first_partition_length_in_bytes = (*clear.offset(0 as isize) as i32
@@ -1800,7 +1743,7 @@ pub unsafe fn vp8_decode_frame(mut pbi: *mut Vp8dComp) -> i32 {
         if (*pc).frame_type as u32 == KEY_FRAME as u32 {
             vp8dx_decode_bool(bc as *mut BoolDecoder, vp8_prob_half as i32);
             (*pc).clamp_type =
-                vp8dx_decode_bool(bc as *mut BoolDecoder, vp8_prob_half as i32) as ClampType;
+                vp8dx_decode_bool(bc as *mut BoolDecoder, vp8_prob_half as i32) as u32;
         }
         (*xd).segmentation_enabled =
             vp8dx_decode_bool(bc as *mut BoolDecoder, vp8_prob_half as i32) as u8;
@@ -1814,8 +1757,8 @@ pub unsafe fn vp8_decode_frame(mut pbi: *mut Vp8dComp) -> i32 {
                     vp8dx_decode_bool(bc as *mut BoolDecoder, vp8_prob_half as i32) as u8;
                 core::ptr::write_bytes(
                     &raw mut (*xd).segment_feature_data as *mut [i8; 4] as *mut c_void as *mut u8,
-                    0 as i32 as u8,
-                    ::core::mem::size_of::<[[i8; 4]; 2]>() as SizeT,
+                    0 as u8,
+                    ::core::mem::size_of::<[[i8; 4]; 2]>() as usize,
                 );
                 i = 0 as i32;
                 while i < MB_LVL_MAX as i32 {
@@ -1843,15 +1786,15 @@ pub unsafe fn vp8_decode_frame(mut pbi: *mut Vp8dComp) -> i32 {
             }
             if (*xd).update_mb_segmentation_map != 0 {
                 core::ptr::write_bytes(
-                    &raw mut (*xd).mb_segment_tree_probs as *mut Vp8Prob as *mut c_void as *mut u8,
-                    255 as i32 as u8,
-                    ::core::mem::size_of::<[Vp8Prob; 3]>() as SizeT,
+                    &raw mut (*xd).mb_segment_tree_probs as *mut u8 as *mut c_void as *mut u8,
+                    255 as u8,
+                    ::core::mem::size_of::<[u8; 3]>() as usize,
                 );
                 i = 0 as i32;
                 while i < MB_FEATURE_TREE_PROBS {
                     if vp8dx_decode_bool(bc as *mut BoolDecoder, vp8_prob_half as i32) != 0 {
                         (*xd).mb_segment_tree_probs[i as usize] =
-                            vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as Vp8Prob;
+                            vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as u8;
                     }
                     i += 1;
                 }
@@ -1860,8 +1803,7 @@ pub unsafe fn vp8_decode_frame(mut pbi: *mut Vp8dComp) -> i32 {
             (*xd).update_mb_segmentation_map = 0 as u8;
             (*xd).update_mb_segmentation_data = 0 as u8;
         }
-        (*pc).filter_type =
-            vp8dx_decode_bool(bc as *mut BoolDecoder, vp8_prob_half as i32) as LOOPFILTERTYPE;
+        (*pc).filter_type = vp8dx_decode_bool(bc as *mut BoolDecoder, vp8_prob_half as i32) as u32;
         (*pc).filter_level = vp8_decode_value(bc as *mut BoolDecoder, 6 as i32);
         (*pc).sharpness_level = vp8_decode_value(bc as *mut BoolDecoder, 3 as i32);
         (*xd).mode_ref_lf_delta_update = 0 as u8;
@@ -1949,14 +1891,14 @@ pub unsafe fn vp8_decode_frame(mut pbi: *mut Vp8dComp) -> i32 {
                 while k < PREV_COEF_CONTEXTS {
                     l = 0 as i32;
                     while l < ENTROPY_NODES {
-                        let p: *mut Vp8Prob =
+                        let p: *mut u8 =
                             (&raw mut *(&raw mut *(&raw mut *(&raw mut (*pc).fc.coef_probs
-                                as *mut [[[Vp8Prob; 11]; 3]; 8])
+                                as *mut [[[u8; 11]; 3]; 8])
                                 .offset(i as isize)
-                                as *mut [[Vp8Prob; 11]; 3])
+                                as *mut [[u8; 11]; 3])
                                 .offset(j as isize)
-                                as *mut [Vp8Prob; 11])
-                                .offset(k as isize) as *mut Vp8Prob)
+                                as *mut [u8; 11])
+                                .offset(k as isize) as *mut u8)
                                 .offset(l as isize);
                         if vp8dx_decode_bool(
                             bc as *mut BoolDecoder,
@@ -1964,7 +1906,7 @@ pub unsafe fn vp8_decode_frame(mut pbi: *mut Vp8dComp) -> i32 {
                                 as i32,
                         ) != 0
                         {
-                            *p = vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as Vp8Prob;
+                            *p = vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as u8;
                         }
                         if k > 0 as i32
                             && *p as i32
@@ -1984,15 +1926,15 @@ pub unsafe fn vp8_decode_frame(mut pbi: *mut Vp8dComp) -> i32 {
         }
         core::ptr::write_bytes(
             &raw mut (*xd).qcoeff as *mut i16 as *mut c_void as *mut u8,
-            0 as i32 as u8,
-            ::core::mem::size_of::<[i16; 400]>() as SizeT,
+            0 as u8,
+            ::core::mem::size_of::<[i16; 400]>() as usize,
         );
         vp8_decode_mode_mvs(pbi);
         core::ptr::write_bytes(
             (*pc).above_context as *mut c_void as *mut u8,
-            0 as i32 as u8,
-            (::core::mem::size_of::<EntropyContextPlanes>() as SizeT)
-                .wrapping_mul((*pc).mb_cols as SizeT),
+            0 as u8,
+            (::core::mem::size_of::<EntropyContextPlanes>() as usize)
+                .wrapping_mul((*pc).mb_cols as usize),
         );
         (*pbi).frame_corrupt_residual = 0 as i32;
         if vpx_atomic_load_acquire(&raw mut (*pbi).b_multithreaded_rd) != 0

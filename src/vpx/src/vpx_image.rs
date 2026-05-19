@@ -1,45 +1,37 @@
 use std::ffi::c_void;
 unsafe extern "Rust" {
-    fn calloc(__count: SizeT, __size: SizeT) -> *mut c_void;
+    fn calloc(__count: usize, __size: usize) -> *mut c_void;
     fn free(_: *mut c_void);
-    fn vpx_memalign(align: SizeT, size: SizeT) -> *mut c_void;
+    fn vpx_memalign(align: usize, size: usize) -> *mut c_void;
     fn vpx_free(memblk: *mut c_void);
 }
-pub type DarwinSizeT = usize;
-pub type SizeT = DarwinSizeT;
-pub type VpxImgFmt = u32;
-pub const VPX_IMG_FMT_I44016: VpxImgFmt = 2311;
-pub const VPX_IMG_FMT_I44416: VpxImgFmt = 2310;
-pub const VPX_IMG_FMT_I42216: VpxImgFmt = 2309;
-pub const VPX_IMG_FMT_I42016: VpxImgFmt = 2306;
-pub const VPX_IMG_FMT_NV12: VpxImgFmt = 265;
-pub const VPX_IMG_FMT_I440: VpxImgFmt = 263;
-pub const VPX_IMG_FMT_I444: VpxImgFmt = 262;
-pub const VPX_IMG_FMT_I422: VpxImgFmt = 261;
-pub const VPX_IMG_FMT_I420: VpxImgFmt = 258;
-pub const VPX_IMG_FMT_YV12: VpxImgFmt = 769;
-pub const VPX_IMG_FMT_NONE: VpxImgFmt = 0;
-pub type VpxImgFmtT = VpxImgFmt;
-pub type VpxColorSpace = u32;
-pub const VPX_CS_SRGB: VpxColorSpace = 7;
-pub const VPX_CS_RESERVED: VpxColorSpace = 6;
-pub const VPX_CS_BT_2020: VpxColorSpace = 5;
-pub const VPX_CS_SMPTE_240: VpxColorSpace = 4;
-pub const VPX_CS_SMPTE_170: VpxColorSpace = 3;
-pub const VPX_CS_BT_709: VpxColorSpace = 2;
-pub const VPX_CS_BT_601: VpxColorSpace = 1;
-pub const VPX_CS_UNKNOWN: VpxColorSpace = 0;
-pub type VpxColorSpaceT = VpxColorSpace;
-pub type VpxColorRange = u32;
-pub const VPX_CR_FULL_RANGE: VpxColorRange = 1;
-pub const VPX_CR_STUDIO_RANGE: VpxColorRange = 0;
-pub type VpxColorRangeT = VpxColorRange;
+pub const VPX_IMG_FMT_I44016: u32 = 2311;
+pub const VPX_IMG_FMT_I44416: u32 = 2310;
+pub const VPX_IMG_FMT_I42216: u32 = 2309;
+pub const VPX_IMG_FMT_I42016: u32 = 2306;
+pub const VPX_IMG_FMT_NV12: u32 = 265;
+pub const VPX_IMG_FMT_I440: u32 = 263;
+pub const VPX_IMG_FMT_I444: u32 = 262;
+pub const VPX_IMG_FMT_I422: u32 = 261;
+pub const VPX_IMG_FMT_I420: u32 = 258;
+pub const VPX_IMG_FMT_YV12: u32 = 769;
+pub const VPX_IMG_FMT_NONE: u32 = 0;
+pub const VPX_CS_SRGB: u32 = 7;
+pub const VPX_CS_RESERVED: u32 = 6;
+pub const VPX_CS_BT_2020: u32 = 5;
+pub const VPX_CS_SMPTE_240: u32 = 4;
+pub const VPX_CS_SMPTE_170: u32 = 3;
+pub const VPX_CS_BT_709: u32 = 2;
+pub const VPX_CS_BT_601: u32 = 1;
+pub const VPX_CS_UNKNOWN: u32 = 0;
+pub const VPX_CR_FULL_RANGE: u32 = 1;
+pub const VPX_CR_STUDIO_RANGE: u32 = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VpxImage {
-    pub fmt: VpxImgFmtT,
-    pub cs: VpxColorSpaceT,
-    pub range: VpxColorRangeT,
+    pub fmt: u32,
+    pub cs: u32,
+    pub range: u32,
     pub w: u32,
     pub h: u32,
     pub bit_depth: u32,
@@ -72,7 +64,7 @@ pub const VPX_PLANE_Y: i32 = 0 as i32;
 pub const VPX_PLANE_U: i32 = 1 as i32;
 pub const VPX_PLANE_V: i32 = 2 as i32;
 pub const VPX_PLANE_ALPHA: i32 = 3 as i32;
-fn is_valid_img_fmt(mut fmt: VpxImgFmtT) -> i32 {
+fn is_valid_img_fmt(mut fmt: u32) -> i32 {
     match fmt as u32 {
         769 | 258 | 261 | 262 | 263 | 265 | 2306 | 2309 | 2310 | 2311 => 1 as i32,
         _ => 0 as i32,
@@ -80,7 +72,7 @@ fn is_valid_img_fmt(mut fmt: VpxImgFmtT) -> i32 {
 }
 unsafe fn img_alloc_helper(
     mut img: *mut VpxImageT,
-    mut fmt: VpxImgFmtT,
+    mut fmt: u32,
     mut d_w: u32,
     mut d_h: u32,
     mut buf_align: u32,
@@ -101,8 +93,8 @@ unsafe fn img_alloc_helper(
         if !img.is_null() {
             core::ptr::write_bytes(
                 img as *mut c_void as *mut u8,
-                0 as i32 as u8,
-                ::core::mem::size_of::<VpxImageT>() as SizeT,
+                0 as u8,
+                ::core::mem::size_of::<VpxImageT>() as usize,
             );
         }
         if !(is_valid_img_fmt(fmt) == 0)
@@ -187,7 +179,7 @@ unsafe fn img_alloc_helper(
                             s
                         };
                         if img.is_null() {
-                            img = calloc(1 as SizeT, ::core::mem::size_of::<VpxImageT>() as SizeT)
+                            img = calloc(1 as usize, ::core::mem::size_of::<VpxImageT>() as usize)
                                 as *mut VpxImageT;
                             if img.is_null() {
                                 current_block = 7960401837942226685;
@@ -216,7 +208,7 @@ unsafe fn img_alloc_helper(
                                         current_block = 7960401837942226685;
                                     } else {
                                         (*img).img_data =
-                                            vpx_memalign(buf_align as SizeT, alloc_size as SizeT)
+                                            vpx_memalign(buf_align as usize, alloc_size as usize)
                                                 as *mut u8
                                                 as *mut u8;
                                         (*img).img_data_owner = 1 as i32;
@@ -271,7 +263,7 @@ unsafe fn img_alloc_helper(
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_img_alloc(
     mut img: *mut VpxImageT,
-    mut fmt: VpxImgFmtT,
+    mut fmt: u32,
     mut d_w: u32,
     mut d_h: u32,
     mut align: u32,
@@ -291,7 +283,7 @@ pub unsafe fn vpx_img_alloc(
 #[unsafe(no_mangle)]
 pub unsafe fn vpx_img_wrap(
     mut img: *mut VpxImageT,
-    mut fmt: VpxImgFmtT,
+    mut fmt: u32,
     mut d_w: u32,
     mut d_h: u32,
     mut stride_align: u32,
@@ -337,15 +329,15 @@ pub unsafe fn vpx_img_set_rect(
                             y.wrapping_mul((*img).stride[VPX_PLANE_ALPHA as usize] as u32) as isize,
                         );
                     data = data.add(
-                        ((*img).h as SizeT)
-                            .wrapping_mul((*img).stride[VPX_PLANE_ALPHA as usize] as SizeT),
+                        ((*img).h as usize)
+                            .wrapping_mul((*img).stride[VPX_PLANE_ALPHA as usize] as usize),
                     );
                 }
                 (*img).planes[VPX_PLANE_Y as usize] = data
                     .offset(x.wrapping_mul(bytes_per_sample as u32) as isize)
                     .offset(y.wrapping_mul((*img).stride[VPX_PLANE_Y as usize] as u32) as isize);
                 data = data.add(
-                    ((*img).h as SizeT).wrapping_mul((*img).stride[VPX_PLANE_Y as usize] as SizeT),
+                    ((*img).h as usize).wrapping_mul((*img).stride[VPX_PLANE_Y as usize] as usize),
                 );
                 let mut uv_x: u32 = x >> (*img).x_chroma_shift;
                 let mut uv_y: u32 = y >> (*img).y_chroma_shift;
@@ -362,8 +354,8 @@ pub unsafe fn vpx_img_set_rect(
                             uv_y.wrapping_mul((*img).stride[VPX_PLANE_U as usize] as u32) as isize,
                         );
                     data = data.add(
-                        (((*img).h >> (*img).y_chroma_shift) as SizeT)
-                            .wrapping_mul((*img).stride[VPX_PLANE_U as usize] as SizeT),
+                        (((*img).h >> (*img).y_chroma_shift) as usize)
+                            .wrapping_mul((*img).stride[VPX_PLANE_U as usize] as usize),
                     );
                     (*img).planes[VPX_PLANE_V as usize] = data
                         .offset(uv_x.wrapping_mul(bytes_per_sample as u32) as isize)
@@ -377,8 +369,8 @@ pub unsafe fn vpx_img_set_rect(
                             uv_y.wrapping_mul((*img).stride[VPX_PLANE_V as usize] as u32) as isize,
                         );
                     data = data.add(
-                        (((*img).h >> (*img).y_chroma_shift) as SizeT)
-                            .wrapping_mul((*img).stride[VPX_PLANE_V as usize] as SizeT),
+                        (((*img).h >> (*img).y_chroma_shift) as usize)
+                            .wrapping_mul((*img).stride[VPX_PLANE_V as usize] as usize),
                     );
                     (*img).planes[VPX_PLANE_U as usize] = data
                         .offset(uv_x.wrapping_mul(bytes_per_sample as u32) as isize)

@@ -1,23 +1,20 @@
+use crate::vpx_scale::generic::yv12config::Yv12BufferConfig;
 use std::ffi::c_void;
 unsafe extern "Rust" {
     static vp8_norm: [u8; 256];
     fn vp8dx_bool_decoder_fill(br: *mut BoolDecoder);
     static vp8_mv_update_probs: [MvContext; 2];
-    static vp8_bmode_tree: [Vp8TreeIndex; 0];
-    static vp8_ymode_tree: [Vp8TreeIndex; 0];
-    static vp8_kf_ymode_tree: [Vp8TreeIndex; 0];
-    static vp8_uv_mode_tree: [Vp8TreeIndex; 0];
-    static vp8_small_mvtree: [Vp8TreeIndex; 0];
-    static vp8_kf_bmode_prob: [[[Vp8Prob; 9]; 10]; 10];
-    static vp8_kf_uv_mode_prob: [Vp8Prob; 3];
-    static vp8_kf_ymode_prob: [Vp8Prob; 4];
+    static vp8_bmode_tree: [i8; 0];
+    static vp8_ymode_tree: [i8; 0];
+    static vp8_kf_ymode_tree: [i8; 0];
+    static vp8_uv_mode_tree: [i8; 0];
+    static vp8_small_mvtree: [i8; 0];
+    static vp8_kf_bmode_prob: [[[u8; 9]; 10]; 10];
+    static vp8_kf_uv_mode_prob: [u8; 3];
+    static vp8_kf_ymode_prob: [u8; 4];
     static vp8_mode_contexts: [[i32; 4]; 6];
     static vp8_mbsplit_offset: [[u8; 16]; 4];
 }
-pub type DarwinNaturalT = u32;
-pub type DarwinSizeT = usize;
-pub type DarwinMachPortNameT = DarwinNaturalT;
-pub type DarwinMachPortT = DarwinMachPortNameT;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct DarwinPthreadHandlerRec {
@@ -33,68 +30,28 @@ pub struct OpaquePthreadT {
     pub __opaque: [i8; 8176],
 }
 pub type DarwinPthreadT = *mut OpaquePthreadT;
-pub type SizeT = DarwinSizeT;
 pub type PthreadT = *mut c_void;
-pub type MachPortT = DarwinMachPortT;
-pub type VpxColorSpace = u32;
-pub const VPX_CS_SRGB: VpxColorSpace = 7;
-pub const VPX_CS_RESERVED: VpxColorSpace = 6;
-pub const VPX_CS_BT_2020: VpxColorSpace = 5;
-pub const VPX_CS_SMPTE_240: VpxColorSpace = 4;
-pub const VPX_CS_SMPTE_170: VpxColorSpace = 3;
-pub const VPX_CS_BT_709: VpxColorSpace = 2;
-pub const VPX_CS_BT_601: VpxColorSpace = 1;
-pub const VPX_CS_UNKNOWN: VpxColorSpace = 0;
-pub type VpxColorSpaceT = VpxColorSpace;
-pub type VpxColorRange = u32;
-pub const VPX_CR_FULL_RANGE: VpxColorRange = 1;
-pub const VPX_CR_STUDIO_RANGE: VpxColorRange = 0;
-pub type VpxColorRangeT = VpxColorRange;
-pub type VpxCodecErrT = u32;
-pub const VPX_CODEC_LIST_END: VpxCodecErrT = 9;
-pub const VPX_CODEC_INVALID_PARAM: VpxCodecErrT = 8;
-pub const VPX_CODEC_CORRUPT_FRAME: VpxCodecErrT = 7;
-pub const VPX_CODEC_UNSUP_FEATURE: VpxCodecErrT = 6;
-pub const VPX_CODEC_UNSUP_BITSTREAM: VpxCodecErrT = 5;
-pub const VPX_CODEC_INCAPABLE: VpxCodecErrT = 4;
-pub const VPX_CODEC_ABI_MISMATCH: VpxCodecErrT = 3;
-pub const VPX_CODEC_MEM_ERROR: VpxCodecErrT = 2;
-pub const VPX_CODEC_ERROR: VpxCodecErrT = 1;
-pub const VPX_CODEC_OK: VpxCodecErrT = 0;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct Yv12BufferConfig {
-    pub y_width: i32,
-    pub y_height: i32,
-    pub y_crop_width: i32,
-    pub y_crop_height: i32,
-    pub y_stride: i32,
-    pub uv_width: i32,
-    pub uv_height: i32,
-    pub uv_crop_width: i32,
-    pub uv_crop_height: i32,
-    pub uv_stride: i32,
-    pub alpha_width: i32,
-    pub alpha_height: i32,
-    pub alpha_stride: i32,
-    pub y_buffer: *mut u8,
-    pub u_buffer: *mut u8,
-    pub v_buffer: *mut u8,
-    pub alpha_buffer: *mut u8,
-    pub buffer_alloc: *mut u8,
-    pub buffer_alloc_sz: SizeT,
-    pub border: i32,
-    pub frame_size: SizeT,
-    pub subsampling_x: i32,
-    pub subsampling_y: i32,
-    pub bit_depth: u32,
-    pub color_space: VpxColorSpaceT,
-    pub color_range: VpxColorRangeT,
-    pub render_width: i32,
-    pub render_height: i32,
-    pub corrupted: i32,
-    pub flags: i32,
-}
+pub const VPX_CS_SRGB: u32 = 7;
+pub const VPX_CS_RESERVED: u32 = 6;
+pub const VPX_CS_BT_2020: u32 = 5;
+pub const VPX_CS_SMPTE_240: u32 = 4;
+pub const VPX_CS_SMPTE_170: u32 = 3;
+pub const VPX_CS_BT_709: u32 = 2;
+pub const VPX_CS_BT_601: u32 = 1;
+pub const VPX_CS_UNKNOWN: u32 = 0;
+pub const VPX_CR_FULL_RANGE: u32 = 1;
+pub const VPX_CR_STUDIO_RANGE: u32 = 0;
+pub const VPX_CODEC_LIST_END: u32 = 9;
+pub const VPX_CODEC_INVALID_PARAM: u32 = 8;
+pub const VPX_CODEC_CORRUPT_FRAME: u32 = 7;
+pub const VPX_CODEC_UNSUP_FEATURE: u32 = 6;
+pub const VPX_CODEC_UNSUP_BITSTREAM: u32 = 5;
+pub const VPX_CODEC_INCAPABLE: u32 = 4;
+pub const VPX_CODEC_ABI_MISMATCH: u32 = 3;
+pub const VPX_CODEC_MEM_ERROR: u32 = 2;
+pub const VPX_CODEC_ERROR: u32 = 1;
+pub const VPX_CODEC_OK: u32 = 0;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct Vp8dComp {
@@ -124,10 +81,10 @@ pub struct Vp8dComp {
     pub h_event_start_decoding: *mut SemaphoreT,
     pub h_event_end_decoding: SemaphoreT,
     pub ready_for_new_data: bool,
-    pub prob_intra: Vp8Prob,
-    pub prob_last: Vp8Prob,
-    pub prob_gf: Vp8Prob,
-    pub prob_skip_false: Vp8Prob,
+    pub prob_intra: u8,
+    pub prob_last: u8,
+    pub prob_gf: u8,
+    pub prob_skip_false: u8,
     pub ec_enabled: bool,
     pub ec_active: bool,
     pub decoded_key_frame: bool,
@@ -138,7 +95,6 @@ pub struct Vp8dComp {
     pub restart_threads: bool,
 }
 pub type VpxDecryptCb = Option<unsafe fn(*mut c_void, *const u8, *mut u8, i32) -> ()>;
-pub type Vp8Prob = u8;
 pub type SemaphoreT = *mut c_void;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -170,7 +126,7 @@ pub struct Macroblockd {
     pub dst: Yv12BufferConfig,
     pub mode_info_context: *mut ModeInfo,
     pub mode_info_stride: i32,
-    pub frame_type: FrameType,
+    pub frame_type: u32,
     pub up_available: bool,
     pub left_available: bool,
     pub recon_above: [*mut u8; 3],
@@ -182,7 +138,7 @@ pub struct Macroblockd {
     pub update_mb_segmentation_map: u8,
     pub update_mb_segmentation_data: u8,
     pub mb_segment_abs_delta: u8,
-    pub mb_segment_tree_probs: [Vp8Prob; 3],
+    pub mb_segment_tree_probs: [u8; 3],
     pub segment_feature_data: [[i8; 4]; 2],
     pub mode_ref_lf_delta_enabled: u8,
     pub mode_ref_lf_delta_update: u8,
@@ -205,7 +161,7 @@ pub struct Macroblockd {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VpxInternalErrorInfo {
-    pub error_code: VpxCodecErrT,
+    pub error_code: u32,
     pub has_detail: bool,
     pub detail: [i8; 80],
     pub setjmp: bool,
@@ -216,15 +172,13 @@ pub type Vp8SubpixFnT = Option<unsafe fn(*mut u8, i32, i32, i32, *mut u8, i32) -
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct EntropyContextPlanes {
-    pub y1: [EntropyContext; 4],
-    pub u: [EntropyContext; 2],
-    pub v: [EntropyContext; 2],
-    pub y2: EntropyContext,
+    pub y1: [i8; 4],
+    pub u: [i8; 2],
+    pub v: [i8; 2],
+    pub y2: i8,
 }
-pub type EntropyContext = i8;
-pub type FrameType = u32;
-pub const INTER_FRAME: FrameType = 1;
-pub const KEY_FRAME: FrameType = 0;
+pub const INTER_FRAME: u32 = 1;
+pub const KEY_FRAME: u32 = 0;
 pub type ModeInfo = Modeinfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -235,7 +189,7 @@ pub struct Modeinfo {
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union BModeInfo {
-    pub as_mode: BPredictionMode,
+    pub as_mode: u32,
     pub mv: IntMv,
 }
 #[derive(Copy, Clone)]
@@ -250,22 +204,21 @@ pub struct MV {
     pub row: i16,
     pub col: i16,
 }
-pub type BPredictionMode = u32;
-pub const B_MODE_COUNT: BPredictionMode = 14;
-pub const NEW4X4: BPredictionMode = 13;
-pub const ZERO4X4: BPredictionMode = 12;
-pub const ABOVE4X4: BPredictionMode = 11;
-pub const LEFT4X4: BPredictionMode = 10;
-pub const B_HU_PRED: BPredictionMode = 9;
-pub const B_HD_PRED: BPredictionMode = 8;
-pub const B_VL_PRED: BPredictionMode = 7;
-pub const B_VR_PRED: BPredictionMode = 6;
-pub const B_RD_PRED: BPredictionMode = 5;
-pub const B_LD_PRED: BPredictionMode = 4;
-pub const B_HE_PRED: BPredictionMode = 3;
-pub const B_VE_PRED: BPredictionMode = 2;
-pub const B_TM_PRED: BPredictionMode = 1;
-pub const B_DC_PRED: BPredictionMode = 0;
+pub const B_MODE_COUNT: u32 = 14;
+pub const NEW4X4: u32 = 13;
+pub const ZERO4X4: u32 = 12;
+pub const ABOVE4X4: u32 = 11;
+pub const LEFT4X4: u32 = 10;
+pub const B_HU_PRED: u32 = 9;
+pub const B_HD_PRED: u32 = 8;
+pub const B_VL_PRED: u32 = 7;
+pub const B_VR_PRED: u32 = 6;
+pub const B_RD_PRED: u32 = 5;
+pub const B_LD_PRED: u32 = 4;
+pub const B_HE_PRED: u32 = 3;
+pub const B_VE_PRED: u32 = 2;
+pub const B_TM_PRED: u32 = 1;
+pub const B_DC_PRED: u32 = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct MbModeInfo {
@@ -320,13 +273,12 @@ pub type BoolDecoder = Vp8Reader;
 pub struct Vp8Reader {
     pub user_buffer_end: *const u8,
     pub user_buffer: *const u8,
-    pub value: Vp8BdValue,
+    pub value: usize,
     pub count: i32,
     pub range: u32,
     pub decrypt_cb: VpxDecryptCb,
     pub decrypt_state: *mut c_void,
 }
-pub type Vp8BdValue = SizeT;
 pub type Vp8Common = VP8Common;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -339,7 +291,7 @@ pub struct VP8Common {
     pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
-    pub clamp_type: ClampType,
+    pub clamp_type: u32,
     pub frame_to_show: *mut Yv12BufferConfig,
     pub yv12_fb: [Yv12BufferConfig; 4],
     pub fb_idx_ref_cnt: [i32; 4],
@@ -348,8 +300,8 @@ pub struct VP8Common {
     pub gld_fb_idx: i32,
     pub alt_fb_idx: i32,
     pub temp_scale_frame: Yv12BufferConfig,
-    pub last_frame_type: FrameType,
-    pub frame_type: FrameType,
+    pub last_frame_type: u32,
+    pub frame_type: u32,
     pub show_frame: i32,
     pub frame_flags: i32,
     pub mbs: i32,
@@ -369,7 +321,7 @@ pub struct VP8Common {
     pub mip: *mut ModeInfo,
     pub mi: *mut ModeInfo,
     pub show_frame_mi: *mut ModeInfo,
-    pub filter_type: LOOPFILTERTYPE,
+    pub filter_type: u32,
     pub lf_info: LoopFilterInfoN,
     pub filter_level: i32,
     pub last_sharpness_level: i32,
@@ -387,29 +339,28 @@ pub struct VP8Common {
     pub fc: FrameContext,
     pub current_video_frame: u32,
     pub version: i32,
-    pub multi_token_partition: TokenPartition,
+    pub multi_token_partition: u32,
     pub processor_core_count: i32,
 }
-pub type TokenPartition = u32;
-pub const EIGHT_PARTITION: TokenPartition = 3;
-pub const FOUR_PARTITION: TokenPartition = 2;
-pub const TWO_PARTITION: TokenPartition = 1;
-pub const ONE_PARTITION: TokenPartition = 0;
+pub const EIGHT_PARTITION: u32 = 3;
+pub const FOUR_PARTITION: u32 = 2;
+pub const TWO_PARTITION: u32 = 1;
+pub const ONE_PARTITION: u32 = 0;
 pub type FrameContext = FrameContexts;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct FrameContexts {
-    pub bmode_prob: [Vp8Prob; 9],
-    pub ymode_prob: [Vp8Prob; 4],
-    pub uv_mode_prob: [Vp8Prob; 3],
-    pub sub_mv_ref_prob: [Vp8Prob; 3],
-    pub coef_probs: [[[[Vp8Prob; 11]; 3]; 8]; 4],
+    pub bmode_prob: [u8; 9],
+    pub ymode_prob: [u8; 4],
+    pub uv_mode_prob: [u8; 3],
+    pub sub_mv_ref_prob: [u8; 3],
+    pub coef_probs: [[[[u8; 11]; 3]; 8]; 4],
     pub mvc: [MvContext; 2],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct MvContext {
-    pub prob: [Vp8Prob; 19],
+    pub prob: [u8; 19],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -422,13 +373,10 @@ pub struct LoopFilterInfoN {
     pub hev_thr_lut: [[u8; 64]; 2],
     pub mode_lf_lut: [u8; 10],
 }
-pub type LOOPFILTERTYPE = u32;
-pub const SIMPLE_LOOPFILTER: LOOPFILTERTYPE = 1;
-pub const NORMAL_LOOPFILTER: LOOPFILTERTYPE = 0;
-pub type ClampType = u32;
-pub const RECON_CLAMP_NOTREQUIRED: ClampType = 1;
-pub const RECON_CLAMP_REQUIRED: ClampType = 0;
-pub type Vp8TreeIndex = i8;
+pub const SIMPLE_LOOPFILTER: u32 = 1;
+pub const NORMAL_LOOPFILTER: u32 = 0;
+pub const RECON_CLAMP_NOTREQUIRED: u32 = 1;
+pub const RECON_CLAMP_REQUIRED: u32 = 0;
 #[allow(non_camel_case_types)]
 pub type C2RustUnnamed = u32;
 pub const MVPcount: C2RustUnnamed = 19;
@@ -442,24 +390,22 @@ pub const MVfpvals: C2RustUnnamed = 511;
 pub const mvfp_max: C2RustUnnamed = 255;
 pub const MVvals: C2RustUnnamed = 2047;
 pub const mv_max: C2RustUnnamed = 1023;
-pub type MbPredictionMode = u32;
-pub const MB_MODE_COUNT: MbPredictionMode = 10;
-pub const SPLITMV: MbPredictionMode = 9;
-pub const NEWMV: MbPredictionMode = 8;
-pub const ZEROMV: MbPredictionMode = 7;
-pub const NEARMV: MbPredictionMode = 6;
-pub const NEARESTMV: MbPredictionMode = 5;
-pub const B_PRED: MbPredictionMode = 4;
-pub const TM_PRED: MbPredictionMode = 3;
-pub const H_PRED: MbPredictionMode = 2;
-pub const V_PRED: MbPredictionMode = 1;
-pub const DC_PRED: MbPredictionMode = 0;
-pub type MvReferenceFrame = u32;
-pub const MAX_REF_FRAMES: MvReferenceFrame = 4;
-pub const ALTREF_FRAME: MvReferenceFrame = 3;
-pub const GOLDEN_FRAME: MvReferenceFrame = 2;
-pub const LAST_FRAME: MvReferenceFrame = 1;
-pub const INTRA_FRAME: MvReferenceFrame = 0;
+pub const MB_MODE_COUNT: u32 = 10;
+pub const SPLITMV: u32 = 9;
+pub const NEWMV: u32 = 8;
+pub const ZEROMV: u32 = 7;
+pub const NEARMV: u32 = 6;
+pub const NEARESTMV: u32 = 5;
+pub const B_PRED: u32 = 4;
+pub const TM_PRED: u32 = 3;
+pub const H_PRED: u32 = 2;
+pub const V_PRED: u32 = 1;
+pub const DC_PRED: u32 = 0;
+pub const MAX_REF_FRAMES: u32 = 4;
+pub const ALTREF_FRAME: u32 = 3;
+pub const GOLDEN_FRAME: u32 = 2;
+pub const LAST_FRAME: u32 = 1;
+pub const INTRA_FRAME: u32 = 0;
 pub const CNT_NEAREST: C2RustUnnamed_0 = 1;
 pub const CNT_NEAR: C2RustUnnamed_0 = 2;
 pub const CNT_SPLITMV: C2RustUnnamed_0 = 3;
@@ -467,14 +413,14 @@ pub const CNT_INTRA: C2RustUnnamed_0 = 0;
 #[allow(non_camel_case_types)]
 pub type C2RustUnnamed_0 = u32;
 pub const CHAR_BIT: i32 = 8 as i32;
-pub const vp8_prob_half: Vp8Prob = 128 as Vp8Prob;
-pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<Vp8BdValue>() as i32 * CHAR_BIT;
+pub const vp8_prob_half: u8 = 128 as u8;
+pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<usize>() as i32 * CHAR_BIT;
 unsafe fn vp8dx_decode_bool(mut br: *mut BoolDecoder, mut probability: i32) -> i32 {
     unsafe {
         let mut bit: u32 = 0 as u32;
-        let mut value: Vp8BdValue = 0;
+        let mut value: usize = 0;
         let mut split: u32 = 0;
-        let mut bigsplit: Vp8BdValue = 0;
+        let mut bigsplit: usize = 0;
         let mut count: i32 = 0;
         let mut range: u32 = 0;
         split = (1 as u32).wrapping_add(
@@ -489,7 +435,7 @@ unsafe fn vp8dx_decode_bool(mut br: *mut BoolDecoder, mut probability: i32) -> i
         }
         value = (*br).value;
         count = (*br).count;
-        bigsplit = (split as Vp8BdValue) << (VP8_BD_VALUE_SIZE - 8 as i32);
+        bigsplit = (split as usize) << (VP8_BD_VALUE_SIZE - 8 as i32);
         range = split;
         if value >= bigsplit {
             range = (*br).range.wrapping_sub(split);
@@ -520,9 +466,9 @@ unsafe fn vp8_decode_value(mut br: *mut BoolDecoder, mut bits: i32) -> i32 {
     }
 }
 #[inline]
-unsafe fn vp8_treed_read(r: *mut Vp8Reader, mut t: *const Vp8TreeIndex, p: *const Vp8Prob) -> i32 {
+unsafe fn vp8_treed_read(r: *mut Vp8Reader, mut t: *const i8, p: *const u8) -> i32 {
     unsafe {
-        let mut i: Vp8TreeIndex = 0 as Vp8TreeIndex;
+        let mut i: i8 = 0 as i8;
         loop {
             i = *t.offset(
                 (i as i32
@@ -587,7 +533,7 @@ unsafe fn vp8_check_mv_bounds(
     }
 }
 #[inline]
-unsafe fn left_block_mode(mut cur_mb: *const ModeInfo, mut b: i32) -> BPredictionMode {
+unsafe fn left_block_mode(mut cur_mb: *const ModeInfo, mut b: i32) -> u32 {
     unsafe {
         if b & 3 as i32 == 0 {
             cur_mb = cur_mb.offset(-1);
@@ -612,11 +558,7 @@ unsafe fn left_block_mode(mut cur_mb: *const ModeInfo, mut b: i32) -> BPredictio
     }
 }
 #[inline]
-unsafe fn above_block_mode(
-    mut cur_mb: *const ModeInfo,
-    mut b: i32,
-    mut mi_stride: i32,
-) -> BPredictionMode {
+unsafe fn above_block_mode(mut cur_mb: *const ModeInfo, mut b: i32, mut mi_stride: i32) -> u32 {
     unsafe {
         if b >> 2 as i32 == 0 {
             cur_mb = cur_mb.offset(-(mi_stride as isize));
@@ -640,30 +582,28 @@ unsafe fn above_block_mode(
         .as_mode
     }
 }
-unsafe fn read_bmode(mut bc: *mut Vp8Reader, mut p: *const Vp8Prob) -> BPredictionMode {
+unsafe fn read_bmode(mut bc: *mut Vp8Reader, mut p: *const u8) -> u32 {
     unsafe {
-        let i: i32 = vp8_treed_read(bc, &raw const vp8_bmode_tree as *const Vp8TreeIndex, p) as i32;
-        i as BPredictionMode
+        let i: i32 = vp8_treed_read(bc, &raw const vp8_bmode_tree as *const i8, p) as i32;
+        i as u32
     }
 }
-unsafe fn read_ymode(mut bc: *mut Vp8Reader, mut p: *const Vp8Prob) -> MbPredictionMode {
+unsafe fn read_ymode(mut bc: *mut Vp8Reader, mut p: *const u8) -> u32 {
     unsafe {
-        let i: i32 = vp8_treed_read(bc, &raw const vp8_ymode_tree as *const Vp8TreeIndex, p) as i32;
-        i as MbPredictionMode
+        let i: i32 = vp8_treed_read(bc, &raw const vp8_ymode_tree as *const i8, p) as i32;
+        i as u32
     }
 }
-unsafe fn read_kf_ymode(mut bc: *mut Vp8Reader, mut p: *const Vp8Prob) -> MbPredictionMode {
+unsafe fn read_kf_ymode(mut bc: *mut Vp8Reader, mut p: *const u8) -> u32 {
     unsafe {
-        let i: i32 =
-            vp8_treed_read(bc, &raw const vp8_kf_ymode_tree as *const Vp8TreeIndex, p) as i32;
-        i as MbPredictionMode
+        let i: i32 = vp8_treed_read(bc, &raw const vp8_kf_ymode_tree as *const i8, p) as i32;
+        i as u32
     }
 }
-unsafe fn read_uv_mode(mut bc: *mut Vp8Reader, mut p: *const Vp8Prob) -> MbPredictionMode {
+unsafe fn read_uv_mode(mut bc: *mut Vp8Reader, mut p: *const u8) -> u32 {
     unsafe {
-        let i: i32 =
-            vp8_treed_read(bc, &raw const vp8_uv_mode_tree as *const Vp8TreeIndex, p) as i32;
-        i as MbPredictionMode
+        let i: i32 = vp8_treed_read(bc, &raw const vp8_uv_mode_tree as *const i8, p) as i32;
+        i as u32
     }
 }
 unsafe fn read_kf_modes(mut pbi: *mut Vp8dComp, mut mi: *mut ModeInfo) {
@@ -672,19 +612,18 @@ unsafe fn read_kf_modes(mut pbi: *mut Vp8dComp, mut mi: *mut ModeInfo) {
             (&raw mut (*pbi).mbc as *mut Vp8Reader).offset(8 as isize) as *mut Vp8Reader;
         let mis: i32 = (*pbi).common.mode_info_stride;
         (*mi).mbmi.ref_frame = INTRA_FRAME as u8;
-        (*mi).mbmi.mode = read_kf_ymode(bc, &raw const vp8_kf_ymode_prob as *const Vp8Prob) as u8;
+        (*mi).mbmi.mode = read_kf_ymode(bc, &raw const vp8_kf_ymode_prob as *const u8) as u8;
         if (*mi).mbmi.mode as i32 == B_PRED as i32 {
             let mut i: i32 = 0 as i32;
             (*mi).mbmi.is_4x4 = 1 as u8;
             loop {
-                let A: BPredictionMode = above_block_mode(mi, i, mis) as BPredictionMode;
-                let L: BPredictionMode = left_block_mode(mi, i) as BPredictionMode;
+                let A: u32 = above_block_mode(mi, i, mis) as u32;
+                let L: u32 = left_block_mode(mi, i) as u32;
                 (*mi).bmi[i as usize].as_mode = read_bmode(
                     bc,
-                    &raw const *(&raw const *(&raw const vp8_kf_bmode_prob
-                        as *const [[Vp8Prob; 9]; 10])
-                        .offset(A as isize) as *const [Vp8Prob; 9])
-                        .offset(L as isize) as *const Vp8Prob,
+                    &raw const *(&raw const *(&raw const vp8_kf_bmode_prob as *const [[u8; 9]; 10])
+                        .offset(A as isize) as *const [u8; 9])
+                        .offset(L as isize) as *const u8,
                 );
                 i += 1;
                 if !(i < 16 as i32) {
@@ -692,13 +631,12 @@ unsafe fn read_kf_modes(mut pbi: *mut Vp8dComp, mut mi: *mut ModeInfo) {
                 }
             }
         }
-        (*mi).mbmi.uv_mode =
-            read_uv_mode(bc, &raw const vp8_kf_uv_mode_prob as *const Vp8Prob) as u8;
+        (*mi).mbmi.uv_mode = read_uv_mode(bc, &raw const vp8_kf_uv_mode_prob as *const u8) as u8;
     }
 }
 unsafe fn read_mvcomponent(mut r: *mut Vp8Reader, mut mvc: *const MvContext) -> i32 {
     unsafe {
-        let p: *const Vp8Prob = mvc as *const Vp8Prob;
+        let p: *const u8 = mvc as *const u8;
         let mut x: i32 = 0 as i32;
         if vp8dx_decode_bool(
             r as *mut BoolDecoder,
@@ -738,7 +676,7 @@ unsafe fn read_mvcomponent(mut r: *mut Vp8Reader, mut mvc: *const MvContext) -> 
         } else {
             x = vp8_treed_read(
                 r,
-                &raw const vp8_small_mvtree as *const Vp8TreeIndex,
+                &raw const vp8_small_mvtree as *const i8,
                 p.offset(MVPshort as isize),
             );
         }
@@ -761,22 +699,22 @@ unsafe fn read_mvcontexts(mut bc: *mut Vp8Reader, mut mvc: *mut MvContext) {
     unsafe {
         let mut i: i32 = 0 as i32;
         loop {
-            let mut up: *const Vp8Prob = &raw const (*(&raw const vp8_mv_update_probs
+            let mut up: *const u8 = &raw const (*(&raw const vp8_mv_update_probs
                 as *const MvContext)
                 .offset(i as isize))
-            .prob as *const Vp8Prob;
-            let mut p: *mut Vp8Prob = mvc.offset(i as isize) as *mut Vp8Prob;
-            let pstop: *mut Vp8Prob = p.offset(MVPcount as isize);
+            .prob as *const u8;
+            let mut p: *mut u8 = mvc.offset(i as isize) as *mut u8;
+            let pstop: *mut u8 = p.offset(MVPcount as isize);
             loop {
                 let fresh2 = up;
                 up = up.offset(1);
                 if vp8dx_decode_bool(bc as *mut BoolDecoder, *fresh2 as i32) != 0 {
-                    let x: Vp8Prob = vp8_decode_value(bc as *mut BoolDecoder, 7 as i32) as Vp8Prob;
+                    let x: u8 = vp8_decode_value(bc as *mut BoolDecoder, 7 as i32) as u8;
                     *p = (if x as i32 != 0 {
                         (x as i32) << 1 as i32
                     } else {
                         1 as i32
-                    }) as Vp8Prob;
+                    }) as u8;
                 }
                 p = p.offset(1);
                 if !(p < pstop) {
@@ -816,19 +754,19 @@ unsafe fn mb_mode_mv_init(mut pbi: *mut Vp8dComp) {
         let mvc: *mut MvContext = &raw mut (*pbi).common.fc.mvc as *mut MvContext;
         (*pbi).common.mb_no_coeff_skip =
             vp8dx_decode_bool(bc as *mut BoolDecoder, vp8_prob_half as i32) != 0;
-        (*pbi).prob_skip_false = 0 as Vp8Prob;
+        (*pbi).prob_skip_false = 0 as u8;
         if (*pbi).common.mb_no_coeff_skip {
-            (*pbi).prob_skip_false = vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as Vp8Prob;
+            (*pbi).prob_skip_false = vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as u8;
         }
         if (*pbi).common.frame_type as u32 != KEY_FRAME as u32 {
-            (*pbi).prob_intra = vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as Vp8Prob;
-            (*pbi).prob_last = vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as Vp8Prob;
-            (*pbi).prob_gf = vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as Vp8Prob;
+            (*pbi).prob_intra = vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as u8;
+            (*pbi).prob_last = vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as u8;
+            (*pbi).prob_gf = vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as u8;
             if vp8dx_decode_bool(bc as *mut BoolDecoder, vp8_prob_half as i32) != 0 {
                 let mut i: i32 = 0 as i32;
                 loop {
                     (*pbi).common.fc.ymode_prob[i as usize] =
-                        vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as Vp8Prob;
+                        vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as u8;
                     i += 1;
                     if !(i < 4 as i32) {
                         break;
@@ -839,7 +777,7 @@ unsafe fn mb_mode_mv_init(mut pbi: *mut Vp8dComp) {
                 let mut i_0: i32 = 0 as i32;
                 loop {
                     (*pbi).common.fc.uv_mode_prob[i_0 as usize] =
-                        vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as Vp8Prob;
+                        vp8_decode_value(bc as *mut BoolDecoder, 8 as i32) as u8;
                     i_0 += 1;
                     if !(i_0 < 3 as i32) {
                         break;
@@ -851,25 +789,24 @@ unsafe fn mb_mode_mv_init(mut pbi: *mut Vp8dComp) {
     }
 }
 #[unsafe(no_mangle)]
-pub static mut vp8_sub_mv_ref_prob3: [[Vp8Prob; 3]; 8] = [
-    [147 as Vp8Prob, 136 as Vp8Prob, 18 as Vp8Prob],
-    [223 as Vp8Prob, 1 as Vp8Prob, 34 as Vp8Prob],
-    [106 as Vp8Prob, 145 as Vp8Prob, 1 as Vp8Prob],
-    [208 as Vp8Prob, 1 as Vp8Prob, 1 as Vp8Prob],
-    [179 as Vp8Prob, 121 as Vp8Prob, 1 as Vp8Prob],
-    [223 as Vp8Prob, 1 as Vp8Prob, 34 as Vp8Prob],
-    [179 as Vp8Prob, 121 as Vp8Prob, 1 as Vp8Prob],
-    [208 as Vp8Prob, 1 as Vp8Prob, 1 as Vp8Prob],
+pub static mut vp8_sub_mv_ref_prob3: [[u8; 3]; 8] = [
+    [147 as u8, 136 as u8, 18 as u8],
+    [223 as u8, 1 as u8, 34 as u8],
+    [106 as u8, 145 as u8, 1 as u8],
+    [208 as u8, 1 as u8, 1 as u8],
+    [179 as u8, 121 as u8, 1 as u8],
+    [223 as u8, 1 as u8, 34 as u8],
+    [179 as u8, 121 as u8, 1 as u8],
+    [208 as u8, 1 as u8, 1 as u8],
 ];
-unsafe fn get_sub_mv_ref_prob(left: u32, above: u32) -> *const Vp8Prob {
+unsafe fn get_sub_mv_ref_prob(left: u32, above: u32) -> *const u8 {
     unsafe {
         let mut lez: i32 = (left == 0 as u32) as i32;
         let mut aez: i32 = (above == 0 as u32) as i32;
         let mut lea: i32 = (left == above) as i32;
-        let mut prob: *const Vp8Prob = ::core::ptr::null::<Vp8Prob>();
-        prob = &raw const *(&raw const vp8_sub_mv_ref_prob3 as *const [Vp8Prob; 3])
-            .offset((aez << 2 as i32 | lez << 1 as i32 | lea) as isize)
-            as *const Vp8Prob;
+        let mut prob: *const u8 = ::core::ptr::null::<u8>();
+        prob = &raw const *(&raw const vp8_sub_mv_ref_prob3 as *const [u8; 3])
+            .offset((aez << 2 as i32 | lez << 1 as i32 | lea) as isize) as *const u8;
         prob
     }
 }
@@ -905,7 +842,7 @@ unsafe fn decode_split_mv(
             let mut abovemv: IntMv = IntMv { as_int: 0 };
             let mut blockmv: IntMv = IntMv { as_int: 0 };
             let mut k: i32 = 0;
-            let mut prob: *const Vp8Prob = ::core::ptr::null::<Vp8Prob>();
+            let mut prob: *const u8 = ::core::ptr::null::<u8>();
             k = vp8_mbsplit_offset[s as usize][j as usize] as i32;
             if k & 3 as i32 == 0 {
                 if (*left_mb).mbmi.mode as i32 != SPLITMV as i32 {
@@ -1197,14 +1134,13 @@ unsafe fn read_mb_modes_mv(
             }
         } else {
             (*mbmi).mv.as_int = 0 as u32;
-            (*mbmi).mode =
-                read_ymode(bc, &raw mut (*pbi).common.fc.ymode_prob as *mut Vp8Prob) as u8;
+            (*mbmi).mode = read_ymode(bc, &raw mut (*pbi).common.fc.ymode_prob as *mut u8) as u8;
             if (*mbmi).mode as i32 == B_PRED as i32 {
                 let mut j: i32 = 0 as i32;
                 (*mbmi).is_4x4 = 1 as u8;
                 loop {
                     (*mi).bmi[j as usize].as_mode =
-                        read_bmode(bc, &raw mut (*pbi).common.fc.bmode_prob as *mut Vp8Prob);
+                        read_bmode(bc, &raw mut (*pbi).common.fc.bmode_prob as *mut u8);
                     j += 1;
                     if !(j < 16 as i32) {
                         break;
@@ -1212,7 +1148,7 @@ unsafe fn read_mb_modes_mv(
                 }
             }
             (*mbmi).uv_mode =
-                read_uv_mode(bc, &raw mut (*pbi).common.fc.uv_mode_prob as *mut Vp8Prob) as u8;
+                read_uv_mode(bc, &raw mut (*pbi).common.fc.uv_mode_prob as *mut u8) as u8;
         };
     }
 }

@@ -1,3 +1,4 @@
+use crate::vpx_scale::generic::yv12config::Yv12BufferConfig;
 use std::ffi::c_void;
 unsafe extern "Rust" {
     fn vp8_yv12_alloc_frame_buffer(
@@ -7,16 +8,16 @@ unsafe extern "Rust" {
         border: i32,
     ) -> i32;
     fn vp8_yv12_de_alloc_frame_buffer(ybf: *mut Yv12BufferConfig) -> i32;
-    fn vpx_calloc(num: SizeT, size: SizeT) -> *mut c_void;
+    fn vpx_calloc(num: usize, size: usize) -> *mut c_void;
     fn vpx_free(memblk: *mut c_void);
     fn vp8_init_mbmode_probs(x: *mut Vp8Common);
-    fn vp8_default_bmode_probs(dest: *mut Vp8Prob);
+    fn vp8_default_bmode_probs(dest: *mut u8);
     fn vp8_machine_specific_config(_: *mut VP8Common);
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub union BModeInfo {
-    pub as_mode: BPredictionMode,
+    pub as_mode: u32,
     pub mv: IntMv,
 }
 #[derive(Copy, Clone)]
@@ -31,56 +32,51 @@ pub struct MV {
     pub row: i16,
     pub col: i16,
 }
-pub type BPredictionMode = u32;
-pub const B_MODE_COUNT: BPredictionMode = 14;
-pub const NEW4X4: BPredictionMode = 13;
-pub const ZERO4X4: BPredictionMode = 12;
-pub const ABOVE4X4: BPredictionMode = 11;
-pub const LEFT4X4: BPredictionMode = 10;
-pub const B_HU_PRED: BPredictionMode = 9;
-pub const B_HD_PRED: BPredictionMode = 8;
-pub const B_VL_PRED: BPredictionMode = 7;
-pub const B_VR_PRED: BPredictionMode = 6;
-pub const B_RD_PRED: BPredictionMode = 5;
-pub const B_LD_PRED: BPredictionMode = 4;
-pub const B_HE_PRED: BPredictionMode = 3;
-pub const B_VE_PRED: BPredictionMode = 2;
-pub const B_TM_PRED: BPredictionMode = 1;
-pub const B_DC_PRED: BPredictionMode = 0;
+pub const B_MODE_COUNT: u32 = 14;
+pub const NEW4X4: u32 = 13;
+pub const ZERO4X4: u32 = 12;
+pub const ABOVE4X4: u32 = 11;
+pub const LEFT4X4: u32 = 10;
+pub const B_HU_PRED: u32 = 9;
+pub const B_HD_PRED: u32 = 8;
+pub const B_VL_PRED: u32 = 7;
+pub const B_VR_PRED: u32 = 6;
+pub const B_RD_PRED: u32 = 5;
+pub const B_LD_PRED: u32 = 4;
+pub const B_HE_PRED: u32 = 3;
+pub const B_VE_PRED: u32 = 2;
+pub const B_TM_PRED: u32 = 1;
+pub const B_DC_PRED: u32 = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VpxInternalErrorInfo {
-    pub error_code: VpxCodecErrT,
+    pub error_code: u32,
     pub has_detail: bool,
     pub detail: [i8; 80],
     pub setjmp: bool,
     pub jmp: JmpBuf,
 }
 pub type JmpBuf = [i32; 48];
-pub type VpxCodecErrT = u32;
-pub const VPX_CODEC_LIST_END: VpxCodecErrT = 9;
-pub const VPX_CODEC_INVALID_PARAM: VpxCodecErrT = 8;
-pub const VPX_CODEC_CORRUPT_FRAME: VpxCodecErrT = 7;
-pub const VPX_CODEC_UNSUP_FEATURE: VpxCodecErrT = 6;
-pub const VPX_CODEC_UNSUP_BITSTREAM: VpxCodecErrT = 5;
-pub const VPX_CODEC_INCAPABLE: VpxCodecErrT = 4;
-pub const VPX_CODEC_ABI_MISMATCH: VpxCodecErrT = 3;
-pub const VPX_CODEC_MEM_ERROR: VpxCodecErrT = 2;
-pub const VPX_CODEC_ERROR: VpxCodecErrT = 1;
-pub const VPX_CODEC_OK: VpxCodecErrT = 0;
-pub type Vp8Prob = u8;
+pub const VPX_CODEC_LIST_END: u32 = 9;
+pub const VPX_CODEC_INVALID_PARAM: u32 = 8;
+pub const VPX_CODEC_CORRUPT_FRAME: u32 = 7;
+pub const VPX_CODEC_UNSUP_FEATURE: u32 = 6;
+pub const VPX_CODEC_UNSUP_BITSTREAM: u32 = 5;
+pub const VPX_CODEC_INCAPABLE: u32 = 4;
+pub const VPX_CODEC_ABI_MISMATCH: u32 = 3;
+pub const VPX_CODEC_MEM_ERROR: u32 = 2;
+pub const VPX_CODEC_ERROR: u32 = 1;
+pub const VPX_CODEC_OK: u32 = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct EntropyContextPlanes {
-    pub y1: [EntropyContext; 4],
-    pub u: [EntropyContext; 2],
-    pub v: [EntropyContext; 2],
-    pub y2: EntropyContext,
+    pub y1: [i8; 4],
+    pub u: [i8; 2],
+    pub v: [i8; 2],
+    pub y2: i8,
 }
-pub type EntropyContext = i8;
-pub type FrameType = u32;
-pub const INTER_FRAME: FrameType = 1;
-pub const KEY_FRAME: FrameType = 0;
+pub const INTER_FRAME: u32 = 1;
+pub const KEY_FRAME: u32 = 0;
 pub type ModeInfo = Modeinfo;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -101,59 +97,19 @@ pub struct MbModeInfo {
     pub need_to_clamp_mvs: u8,
     pub segment_id: u8,
 }
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct Yv12BufferConfig {
-    pub y_width: i32,
-    pub y_height: i32,
-    pub y_crop_width: i32,
-    pub y_crop_height: i32,
-    pub y_stride: i32,
-    pub uv_width: i32,
-    pub uv_height: i32,
-    pub uv_crop_width: i32,
-    pub uv_crop_height: i32,
-    pub uv_stride: i32,
-    pub alpha_width: i32,
-    pub alpha_height: i32,
-    pub alpha_stride: i32,
-    pub y_buffer: *mut u8,
-    pub u_buffer: *mut u8,
-    pub v_buffer: *mut u8,
-    pub alpha_buffer: *mut u8,
-    pub buffer_alloc: *mut u8,
-    pub buffer_alloc_sz: SizeT,
-    pub border: i32,
-    pub frame_size: SizeT,
-    pub subsampling_x: i32,
-    pub subsampling_y: i32,
-    pub bit_depth: u32,
-    pub color_space: VpxColorSpaceT,
-    pub color_range: VpxColorRangeT,
-    pub render_width: i32,
-    pub render_height: i32,
-    pub corrupted: i32,
-    pub flags: i32,
-}
-pub type VpxColorRangeT = VpxColorRange;
-pub type VpxColorRange = u32;
-pub const VPX_CR_FULL_RANGE: VpxColorRange = 1;
-pub const VPX_CR_STUDIO_RANGE: VpxColorRange = 0;
-pub type VpxColorSpaceT = VpxColorSpace;
-pub type VpxColorSpace = u32;
-pub const VPX_CS_SRGB: VpxColorSpace = 7;
-pub const VPX_CS_RESERVED: VpxColorSpace = 6;
-pub const VPX_CS_BT_2020: VpxColorSpace = 5;
-pub const VPX_CS_SMPTE_240: VpxColorSpace = 4;
-pub const VPX_CS_SMPTE_170: VpxColorSpace = 3;
-pub const VPX_CS_BT_709: VpxColorSpace = 2;
-pub const VPX_CS_BT_601: VpxColorSpace = 1;
-pub const VPX_CS_UNKNOWN: VpxColorSpace = 0;
-pub type SizeT = DarwinSizeT;
-pub type DarwinSizeT = usize;
-pub type LOOPFILTERTYPE = u32;
-pub const SIMPLE_LOOPFILTER: LOOPFILTERTYPE = 1;
-pub const NORMAL_LOOPFILTER: LOOPFILTERTYPE = 0;
+
+pub const VPX_CR_FULL_RANGE: u32 = 1;
+pub const VPX_CR_STUDIO_RANGE: u32 = 0;
+pub const VPX_CS_SRGB: u32 = 7;
+pub const VPX_CS_RESERVED: u32 = 6;
+pub const VPX_CS_BT_2020: u32 = 5;
+pub const VPX_CS_SMPTE_240: u32 = 4;
+pub const VPX_CS_SMPTE_170: u32 = 3;
+pub const VPX_CS_BT_709: u32 = 2;
+pub const VPX_CS_BT_601: u32 = 1;
+pub const VPX_CS_UNKNOWN: u32 = 0;
+pub const SIMPLE_LOOPFILTER: u32 = 1;
+pub const NORMAL_LOOPFILTER: u32 = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct LoopFilterInfoN {
@@ -176,7 +132,7 @@ pub struct VP8Common {
     pub height: i32,
     pub horiz_scale: i32,
     pub vert_scale: i32,
-    pub clamp_type: ClampType,
+    pub clamp_type: u32,
     pub frame_to_show: *mut Yv12BufferConfig,
     pub yv12_fb: [Yv12BufferConfig; 4],
     pub fb_idx_ref_cnt: [i32; 4],
@@ -185,8 +141,8 @@ pub struct VP8Common {
     pub gld_fb_idx: i32,
     pub alt_fb_idx: i32,
     pub temp_scale_frame: Yv12BufferConfig,
-    pub last_frame_type: FrameType,
-    pub frame_type: FrameType,
+    pub last_frame_type: u32,
+    pub frame_type: u32,
     pub show_frame: i32,
     pub frame_flags: i32,
     pub mbs: i32,
@@ -206,7 +162,7 @@ pub struct VP8Common {
     pub mip: *mut ModeInfo,
     pub mi: *mut ModeInfo,
     pub show_frame_mi: *mut ModeInfo,
-    pub filter_type: LOOPFILTERTYPE,
+    pub filter_type: u32,
     pub lf_info: LoopFilterInfoN,
     pub filter_level: i32,
     pub last_sharpness_level: i32,
@@ -224,33 +180,31 @@ pub struct VP8Common {
     pub fc: FrameContext,
     pub current_video_frame: u32,
     pub version: i32,
-    pub multi_token_partition: TokenPartition,
+    pub multi_token_partition: u32,
     pub processor_core_count: i32,
 }
-pub type TokenPartition = u32;
-pub const EIGHT_PARTITION: TokenPartition = 3;
-pub const FOUR_PARTITION: TokenPartition = 2;
-pub const TWO_PARTITION: TokenPartition = 1;
-pub const ONE_PARTITION: TokenPartition = 0;
+pub const EIGHT_PARTITION: u32 = 3;
+pub const FOUR_PARTITION: u32 = 2;
+pub const TWO_PARTITION: u32 = 1;
+pub const ONE_PARTITION: u32 = 0;
 pub type FrameContext = FrameContexts;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct FrameContexts {
-    pub bmode_prob: [Vp8Prob; 9],
-    pub ymode_prob: [Vp8Prob; 4],
-    pub uv_mode_prob: [Vp8Prob; 3],
-    pub sub_mv_ref_prob: [Vp8Prob; 3],
-    pub coef_probs: [[[[Vp8Prob; 11]; 3]; 8]; 4],
+    pub bmode_prob: [u8; 9],
+    pub ymode_prob: [u8; 4],
+    pub uv_mode_prob: [u8; 3],
+    pub sub_mv_ref_prob: [u8; 3],
+    pub coef_probs: [[[[u8; 11]; 3]; 8]; 4],
     pub mvc: [MvContext; 2],
 }
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct MvContext {
-    pub prob: [Vp8Prob; 19],
+    pub prob: [u8; 19],
 }
-pub type ClampType = u32;
-pub const RECON_CLAMP_NOTREQUIRED: ClampType = 1;
-pub const RECON_CLAMP_REQUIRED: ClampType = 0;
+pub const RECON_CLAMP_NOTREQUIRED: u32 = 1;
+pub const RECON_CLAMP_REQUIRED: u32 = 0;
 pub type Vp8Common = VP8Common;
 pub const __DARWIN_NULL: *mut c_void = ::core::ptr::null_mut::<c_void>();
 pub const NULL: *mut c_void = __DARWIN_NULL;
@@ -270,8 +224,14 @@ pub unsafe fn vp8_de_alloc_frame_buffers(mut oci: *mut Vp8Common) {
             i += 1;
         }
         vp8_yv12_de_alloc_frame_buffer(&raw mut (*oci).temp_scale_frame);
-        vpx_free((*oci).above_context as *mut c_void);
-        vpx_free((*oci).mip as *mut c_void);
+        if !(*oci).above_context.is_null() {
+            let ac_count = (*oci).mb_cols as usize;
+            let _ = Vec::from_raw_parts((*oci).above_context, 0, ac_count);
+        }
+        if !(*oci).mip.is_null() {
+            let mip_count = (((*oci).mb_cols + 1) * ((*oci).mb_rows + 1)) as usize;
+            let _ = Vec::from_raw_parts((*oci).mip, 0, mip_count);
+        }
         (*oci).above_context = ::core::ptr::null_mut::<EntropyContextPlanes>();
         (*oci).mip = ::core::ptr::null_mut::<ModeInfo>();
         (*oci).mi = ::core::ptr::null_mut::<ModeInfo>();
@@ -334,20 +294,24 @@ pub unsafe fn vp8_alloc_frame_buffers(
                 (*oci).mb_cols = width >> 4 as i32;
                 (*oci).mbs = (*oci).mb_rows * (*oci).mb_cols;
                 (*oci).mode_info_stride = (*oci).mb_cols + 1 as i32;
-                (*oci).mip = vpx_calloc(
-                    (((*oci).mb_cols + 1 as i32) * ((*oci).mb_rows + 1 as i32)) as SizeT,
-                    ::core::mem::size_of::<ModeInfo>() as SizeT,
-                ) as *mut ModeInfo;
+
+                let mip_count =
+                    (((*oci).mb_cols + 1 as i32) * ((*oci).mb_rows + 1 as i32)) as usize;
+                let mut mip_vec = Vec::<ModeInfo>::with_capacity(mip_count);
+                mip_vec.resize(mip_count, core::mem::zeroed());
+                (*oci).mip = mip_vec.as_mut_ptr();
+                core::mem::forget(mip_vec);
+
                 if !(*oci).mip.is_null() {
                     (*oci).mi = (*oci)
                         .mip
                         .offset((*oci).mode_info_stride as isize)
                         .offset(1 as isize);
-                    (*oci).above_context = vpx_calloc(
-                        (::core::mem::size_of::<EntropyContextPlanes>() as SizeT)
-                            .wrapping_mul((*oci).mb_cols as SizeT),
-                        1 as SizeT,
-                    ) as *mut EntropyContextPlanes;
+                    let ac_count = (*oci).mb_cols as usize;
+                    let mut ac_vec = Vec::<EntropyContextPlanes>::with_capacity(ac_count);
+                    ac_vec.resize(ac_count, core::mem::zeroed());
+                    (*oci).above_context = ac_vec.as_mut_ptr();
+                    core::mem::forget(ac_vec);
                     if !(*oci).above_context.is_null() {
                         return 0 as i32;
                     }
@@ -400,7 +364,7 @@ pub unsafe fn vp8_create_common(mut oci: *mut Vp8Common) {
     unsafe {
         vp8_machine_specific_config(oci as *mut VP8Common);
         vp8_init_mbmode_probs(oci);
-        vp8_default_bmode_probs(&raw mut (*oci).fc.bmode_prob as *mut Vp8Prob);
+        vp8_default_bmode_probs(&raw mut (*oci).fc.bmode_prob as *mut u8);
         (*oci).mb_no_coeff_skip = true;
         (*oci).no_lpf = false;
         (*oci).filter_type = NORMAL_LOOPFILTER;
@@ -410,8 +374,8 @@ pub unsafe fn vp8_create_common(mut oci: *mut Vp8Common) {
         (*oci).clamp_type = RECON_CLAMP_REQUIRED;
         core::ptr::write_bytes(
             &raw mut (*oci).ref_frame_sign_bias as *mut i32 as *mut c_void as *mut u8,
-            0 as i32 as u8,
-            ::core::mem::size_of::<[i32; 4]>() as SizeT,
+            0 as u8,
+            ::core::mem::size_of::<[i32; 4]>() as usize,
         );
         (*oci).copy_buffer_to_gf = 0 as i32;
         (*oci).copy_buffer_to_arf = 0 as i32;

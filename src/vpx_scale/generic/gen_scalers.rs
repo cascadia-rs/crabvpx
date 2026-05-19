@@ -1,6 +1,4 @@
 use std::ffi::c_void;
-pub type SizeT = DarwinSizeT;
-pub type DarwinSizeT = usize;
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_horizontal_line_5_4_scale_c(
     mut source: *const u8,
@@ -207,7 +205,7 @@ pub unsafe fn vp8_vertical_band_2_1_scale_c(
         core::ptr::copy_nonoverlapping(
             source as *const c_void as *const u8,
             dest as *mut c_void as *mut u8,
-            dest_width as SizeT,
+            dest_width as usize,
         );
     }
 }
