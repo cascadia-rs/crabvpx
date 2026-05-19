@@ -65,13 +65,13 @@ pub mod vpx {
 pub mod vpx_config;
 pub mod vpx_dsp {
     pub mod arm {
-        pub mod intrapred_neon;
+        // pub mod intrapred_neon;
     } // mod arm
-    pub mod bitreader;
-    pub mod bitreader_buffer;
+    // pub mod bitreader;
+    // pub mod bitreader_buffer;
     pub mod intrapred;
-    pub mod prob;
-    pub mod skin_detection;
+    // pub mod prob;
+    // pub mod skin_detection;
     pub mod vpx_dsp_rtcd;
 } // mod vpx_dsp
 pub mod vpx_mem {
