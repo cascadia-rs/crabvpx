@@ -692,23 +692,23 @@ fn mt_decode_mb_rows(
                 
                 let yabove_view = mt_sync.mt_yabove_row.as_ref().unwrap()[mb_row_us];
                 let offset_y = 31 + mb_col_us * 16;
-                let ay = unsafe { yabove_view.as_slice(offset_y, 24) };
+                let ay = yabove_view.as_slice(offset_y, 24);
                 
                 let uabove_view = mt_sync.mt_uabove_row.as_ref().unwrap()[mb_row_us];
                 let offset_u = 15 + mb_col_us * 8;
-                let au = unsafe { uabove_view.as_slice(offset_u, 9) };
+                let au = uabove_view.as_slice(offset_u, 9);
                 
                 let vabove_view = mt_sync.mt_vabove_row.as_ref().unwrap()[mb_row_us];
-                let av = unsafe { vabove_view.as_slice(offset_u, 9) };
+                let av = vabove_view.as_slice(offset_u, 9);
                     
                 let yleft_view = mt_sync.mt_yleft_col.as_ref().unwrap()[mb_row_us];
-                let ly = unsafe { yleft_view.as_slice(0, 16) };
+                let ly = yleft_view.as_slice(0, 16);
                 
                 let uleft_view = mt_sync.mt_uleft_col.as_ref().unwrap()[mb_row_us];
-                let lu = unsafe { uleft_view.as_slice(0, 8) };
+                let lu = uleft_view.as_slice(0, 8);
                 
                 let vleft_view = mt_sync.mt_vleft_col.as_ref().unwrap()[mb_row_us];
-                let lv = unsafe { vleft_view.as_slice(0, 8) };
+                let lv = vleft_view.as_slice(0, 8);
                 
                 (Some(ay), Some(au), Some(av), Some(ly), Some(lu), Some(lv))
             } else {
@@ -773,11 +773,11 @@ fn mt_decode_mb_rows(
                     let dst_ab_v = mt_sync.mt_vabove_row.as_ref().unwrap()[(mb_row + 1) as usize];
                     
                     let offset = 32 + (mb_col * 16) as usize;
-                    unsafe { dst_ab.as_slice_mut(offset, 16) }.copy_from_slice(src_slice);
+                    dst_ab.as_slice_mut(offset, 16).copy_from_slice(src_slice);
                     
                     let offset_uv = 16 + (mb_col * 8) as usize;
-                    unsafe { dst_ab_u.as_slice_mut(offset_uv, 8) }.copy_from_slice(src_slice_u);
-                    unsafe { dst_ab_v.as_slice_mut(offset_uv, 8) }.copy_from_slice(src_slice_v);
+                    dst_ab_u.as_slice_mut(offset_uv, 8).copy_from_slice(src_slice_u);
+                    dst_ab_v.as_slice_mut(offset_uv, 8).copy_from_slice(src_slice_v);
                 }
                 
                 if mb_col != pc.mb_cols - 1 {
@@ -795,14 +795,14 @@ fn mt_decode_mb_rows(
                         let dst_ab_u = mt_sync.mt_uleft_col.as_ref().unwrap()[mb_row as usize];
                         let dst_ab_v = mt_sync.mt_vleft_col.as_ref().unwrap()[mb_row as usize];
                         
-                        let dst_slice = unsafe { dst_ab.as_slice_mut(0, 16) };
+                        let dst_slice = dst_ab.as_slice_mut(0, 16);
                         for i in 0..16 {
                             let src_idx = border * stride + border + i * stride + 15 + recon_yoffset as usize;
                             dst_slice[i] = y_slice[src_idx];
                         }
                         
-                        let dst_slice_u = unsafe { dst_ab_u.as_slice_mut(0, 8) };
-                        let dst_slice_v = unsafe { dst_ab_v.as_slice_mut(0, 8) };
+                        let dst_slice_u = dst_ab_u.as_slice_mut(0, 8);
+                        let dst_slice_v = dst_ab_v.as_slice_mut(0, 8);
                         for i in 0..8 {
                             let src_idx = border_uv * stride_uv + border_uv + i * stride_uv + 7 + recon_uvoffset as usize;
                             dst_slice_u[i] = u_slice[src_idx];
@@ -845,14 +845,14 @@ fn mt_decode_mb_rows(
                                 let v_start_curr = (mb_row as usize) * 8 * uv_stride_us;
                                 (
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(y_start_above, y_len) },
-                                        unsafe { dst_views.1.as_slice_mut(u_start_above, uv_len) },
-                                        unsafe { dst_views.2.as_slice_mut(v_start_above, uv_len) },
+                                        dst_views.0.as_slice_mut(y_start_above, y_len),
+                                        dst_views.1.as_slice_mut(u_start_above, uv_len),
+                                        dst_views.2.as_slice_mut(v_start_above, uv_len),
                                     ),
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(y_start_curr, y_len) },
-                                        unsafe { dst_views.1.as_slice_mut(u_start_curr, uv_len) },
-                                        unsafe { dst_views.2.as_slice_mut(v_start_curr, uv_len) },
+                                        dst_views.0.as_slice_mut(y_start_curr, y_len),
+                                        dst_views.1.as_slice_mut(u_start_curr, uv_len),
+                                        dst_views.2.as_slice_mut(v_start_curr, uv_len),
                                     )
                                 )
                             } else {
@@ -863,9 +863,9 @@ fn mt_decode_mb_rows(
                                 (
                                     (&mut [] as &mut [u8], &mut [] as &mut [u8], &mut [] as &mut [u8]),
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(0, y_len) },
-                                        unsafe { dst_views.1.as_slice_mut(0, uv_len) },
-                                        unsafe { dst_views.2.as_slice_mut(0, uv_len) },
+                                        dst_views.0.as_slice_mut(0, y_len),
+                                        dst_views.1.as_slice_mut(0, uv_len),
+                                        dst_views.2.as_slice_mut(0, uv_len),
                                     )
                                 )
                             };
@@ -968,14 +968,14 @@ fn mt_decode_mb_rows(
                                 let v_start_curr = (mb_row as usize) * 8 * uv_stride_us;
                                 (
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(y_start_above, y_len) },
-                                        unsafe { dst_views.1.as_slice_mut(u_start_above, uv_len) },
-                                        unsafe { dst_views.2.as_slice_mut(v_start_above, uv_len) },
+                                        dst_views.0.as_slice_mut(y_start_above, y_len),
+                                        dst_views.1.as_slice_mut(u_start_above, uv_len),
+                                        dst_views.2.as_slice_mut(v_start_above, uv_len),
                                     ),
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(y_start_curr, y_len) },
-                                        unsafe { dst_views.1.as_slice_mut(u_start_curr, uv_len) },
-                                        unsafe { dst_views.2.as_slice_mut(v_start_curr, uv_len) },
+                                        dst_views.0.as_slice_mut(y_start_curr, y_len),
+                                        dst_views.1.as_slice_mut(u_start_curr, uv_len),
+                                        dst_views.2.as_slice_mut(v_start_curr, uv_len),
                                     )
                                 )
                             } else {
@@ -986,9 +986,9 @@ fn mt_decode_mb_rows(
                                 (
                                     (&mut [] as &mut [u8], &mut [] as &mut [u8], &mut [] as &mut [u8]),
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(0, y_len) },
-                                        unsafe { dst_views.1.as_slice_mut(0, uv_len) },
-                                        unsafe { dst_views.2.as_slice_mut(0, uv_len) },
+                                        dst_views.0.as_slice_mut(0, y_len),
+                                        dst_views.1.as_slice_mut(0, uv_len),
+                                        dst_views.2.as_slice_mut(0, uv_len),
                                     )
                                 )
                             };
@@ -1092,12 +1092,12 @@ fn mt_decode_mb_rows(
                                 let y_start_curr = (mb_row as usize) * 16 * y_stride_us;
                                 (
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(y_start_above, y_len) },
+                                        dst_views.0.as_slice_mut(y_start_above, y_len),
                                         &mut [] as &mut [u8],
                                         &mut [] as &mut [u8]
                                     ),
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(y_start_curr, y_len) },
+                                        dst_views.0.as_slice_mut(y_start_curr, y_len),
                                         &mut [] as &mut [u8],
                                         &mut [] as &mut [u8]
                                     )
@@ -1108,7 +1108,7 @@ fn mt_decode_mb_rows(
                                 (
                                     (&mut [] as &mut [u8], &mut [] as &mut [u8], &mut [] as &mut [u8]),
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(0, y_len) },
+                                        dst_views.0.as_slice_mut(0, y_len),
                                         &mut [] as &mut [u8],
                                         &mut [] as &mut [u8]
                                     )
@@ -1152,12 +1152,12 @@ fn mt_decode_mb_rows(
                                 let y_start_curr = (mb_row as usize) * 16 * y_stride_us;
                                 (
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(y_start_above, y_len) },
+                                        dst_views.0.as_slice_mut(y_start_above, y_len),
                                         &mut [] as &mut [u8],
                                         &mut [] as &mut [u8]
                                     ),
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(y_start_curr, y_len) },
+                                        dst_views.0.as_slice_mut(y_start_curr, y_len),
                                         &mut [] as &mut [u8],
                                         &mut [] as &mut [u8]
                                     )
@@ -1168,7 +1168,7 @@ fn mt_decode_mb_rows(
                                 (
                                     (&mut [] as &mut [u8], &mut [] as &mut [u8], &mut [] as &mut [u8]),
                                     (
-                                        unsafe { dst_views.0.as_slice_mut(0, y_len) },
+                                        dst_views.0.as_slice_mut(0, y_len),
                                         &mut [] as &mut [u8],
                                         &mut [] as &mut [u8]
                                     )
@@ -1223,7 +1223,7 @@ fn mt_decode_mb_rows(
             mb_col += 1;
         }
         
-        unsafe { safe_decoder.update_bool_decoder(&mut *mbc_raw.add(bc_idx)) };
+        safe_decoder.update_bool_decoder(&mut *mbc_raw.add(bc_idx));
         
         if pc.filter_level != 0 {
             if mb_row != pc.mb_rows - 1 {
@@ -1234,15 +1234,15 @@ fn mt_decode_mb_rows(
                 let dst_ab_u = mt_sync.mt_uabove_row.as_ref().unwrap()[(mb_row + 1) as usize];
                 let dst_ab_v = mt_sync.mt_vabove_row.as_ref().unwrap()[(mb_row + 1) as usize];
                 
-                let dst_slice = unsafe { dst_ab.as_slice_mut(0, dst_ab.len()) };
+                let dst_slice = dst_ab.as_slice_mut(0, dst_ab.len());
                 let val = dst_slice[lasty as usize - 1];
                 dst_slice[lasty as usize..lasty as usize + 4].fill(val);
                 
-                let dst_slice_u = unsafe { dst_ab_u.as_slice_mut(0, dst_ab_u.len()) };
+                let dst_slice_u = dst_ab_u.as_slice_mut(0, dst_ab_u.len());
                 let val_u = dst_slice_u[lastuv as usize - 1];
                 dst_slice_u[lastuv as usize..lastuv as usize + 4].fill(val_u);
                 
-                let dst_slice_v = unsafe { dst_ab_v.as_slice_mut(0, dst_ab_v.len()) };
+                let dst_slice_v = dst_ab_v.as_slice_mut(0, dst_ab_v.len());
                 let val_v = dst_slice_v[lastuv as usize - 1];
                 dst_slice_v[lastuv as usize..lastuv as usize + 4].fill(val_v);
             }
@@ -1254,7 +1254,7 @@ fn mt_decode_mb_rows(
             let border = dst_fb.border as usize;
             let mb_row_usize = mb_row as usize;
 
-            let dst_y_slice = unsafe { dst_views.0.as_slice_mut(0, dst_views.0.len()) };
+            let dst_y_slice = dst_views.0.as_slice_mut(0, dst_views.0.len());
             for r in 14..16 {
                 let row_idx = border + mb_row_usize * 16 + r;
                 let row_start = row_idx * y_stride;
@@ -1266,8 +1266,8 @@ fn mt_decode_mb_rows(
             }
 
             let uv_border = border / 2;
-            let dst_u_slice = unsafe { dst_views.1.as_slice_mut(0, dst_views.1.len()) };
-            let dst_v_slice = unsafe { dst_views.2.as_slice_mut(0, dst_views.2.len()) };
+            let dst_u_slice = dst_views.1.as_slice_mut(0, dst_views.1.len());
+            let dst_v_slice = dst_views.2.as_slice_mut(0, dst_views.2.len());
             for r in 6..8 {
                 let row_idx = uv_border + mb_row_usize * 8 + r;
                 let row_start = row_idx * uv_stride;
