@@ -747,24 +747,22 @@ impl Default for macroblockd {
 pub type MACROBLOCKD = macroblockd;
 
 impl macroblockd {
-    pub fn mode_info(&self, mi_base: *const MODE_INFO) -> &MODE_INFO {
-        unsafe { &*mi_base.add(self.mode_info_idx) }
+    pub fn mode_info<'a>(&self, mi_base: &'a [MODE_INFO]) -> &'a MODE_INFO {
+        &mi_base[self.mode_info_idx]
     }
-    pub fn mode_info_mut(&mut self, mi_base: *mut MODE_INFO) -> &mut MODE_INFO {
-        unsafe { &mut *mi_base.add(self.mode_info_idx) }
+    pub fn mode_info_mut<'a>(&mut self, mi_base: &'a mut [MODE_INFO]) -> &'a mut MODE_INFO {
+        &mut mi_base[self.mode_info_idx]
     }
     pub fn contexts_mut<'a>(
         &'a mut self,
-        above_base: *mut ENTROPY_CONTEXT_PLANES,
+        above_base: &'a mut [ENTROPY_CONTEXT_PLANES],
         left: &'a mut ENTROPY_CONTEXT_PLANES,
     ) -> (&'a mut ENTROPY_CONTEXT_PLANES, &'a mut ENTROPY_CONTEXT_PLANES) {
-        unsafe {
-            (&mut *above_base.add(self.above_context_idx), left)
-        }
+        (&mut above_base[self.above_context_idx], left)
     }
     pub fn decode_tokens_inputs_mut<'a>(
         &'a mut self,
-        above_base: *mut ENTROPY_CONTEXT_PLANES,
+        above_base: &'a mut [ENTROPY_CONTEXT_PLANES],
         left: &'a mut ENTROPY_CONTEXT_PLANES,
     ) -> (
         &'a mut ENTROPY_CONTEXT_PLANES,
@@ -772,14 +770,12 @@ impl macroblockd {
         &'a mut [::core::ffi::c_short; 400],
         &'a mut [::core::ffi::c_char; 25],
     ) {
-        unsafe {
-            (
-                &mut *above_base.add(self.above_context_idx),
-                left,
-                &mut self.qcoeff,
-                &mut self.eobs,
-            )
-        }
+        (
+            &mut above_base[self.above_context_idx],
+            left,
+            &mut self.qcoeff,
+            &mut self.eobs,
+        )
     }
 }
 
@@ -1135,17 +1131,17 @@ pub struct frame_buffers {
 }
 
 impl VP8Common {
-    pub fn mip_ptr(&self) -> *mut MODE_INFO {
-        self.mip.as_ref().map_or(core::ptr::null_mut(), |b| b.as_ptr() as *mut _)
+    pub fn mip_slice(&self) -> &[MODE_INFO] {
+        self.mip.as_deref().unwrap_or(&[])
     }
-    pub fn mip_mut_ptr(&mut self) -> *mut MODE_INFO {
-        self.mip.as_mut().map_or(core::ptr::null_mut(), |b| b.as_mut_ptr())
+    pub fn mip_slice_mut(&mut self) -> &mut [MODE_INFO] {
+        self.mip.as_deref_mut().unwrap_or(&mut [])
     }
-    pub fn above_context_ptr(&self) -> *mut ENTROPY_CONTEXT_PLANES {
-        self.above_context.as_ref().map_or(core::ptr::null_mut(), |b| b.as_ptr() as *mut _)
+    pub fn above_context_slice(&self) -> &[ENTROPY_CONTEXT_PLANES] {
+        self.above_context.as_deref().unwrap_or(&[])
     }
-    pub fn above_context_mut_ptr(&mut self) -> *mut ENTROPY_CONTEXT_PLANES {
-        self.above_context.as_mut().map_or(core::ptr::null_mut(), |b| b.as_mut_ptr())
+    pub fn above_context_slice_mut(&mut self) -> &mut [ENTROPY_CONTEXT_PLANES] {
+        self.above_context.as_deref_mut().unwrap_or(&mut [])
     }
 }
 

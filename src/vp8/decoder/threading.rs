@@ -246,7 +246,7 @@ fn setup_decoding_thread_data(
     }
 }
 fn mt_decode_macroblock(
-    common: &VP8_COMMON,
+    common: &mut VP8_COMMON,
     safe_decoder: &mut crate::vp8::decoder::dboolhuff::SafeBoolDecoder,
     xd: &mut MACROBLOCKD,
     mb_idx: ::core::ffi::c_uint,
@@ -260,15 +260,16 @@ fn mt_decode_macroblock(
 ) {
     let mut mode: MB_PREDICTION_MODE = DC_PRED;
     let mut i: ::core::ffi::c_int = 0;
-    let mip = common.mip_ptr();
-    if xd.mode_info(mip).mbmi.mb_skip_coeff != 0 {
-        let is_4x4 = xd.mode_info(mip).mbmi.is_4x4 != 0;
-        let (above, left) = xd.contexts_mut(common.above_context_ptr(), left_context);
+    if xd.mode_info(common.mip_slice()).mbmi.mb_skip_coeff != 0 {
+        let is_4x4 = xd.mode_info(common.mip_slice()).mbmi.is_4x4 != 0;
+        let above_context_slice = common.above_context.as_deref_mut().unwrap();
+        let (above, left) = xd.contexts_mut(above_context_slice, left_context);
         vp8_reset_mb_tokens_context(above, left, is_4x4);
     } else if vp8dx_safe_bool_error(safe_decoder) == 0 {
         let mut eobtotal: ::core::ffi::c_int = 0;
-        let is_4x4 = xd.mode_info(mip).mbmi.is_4x4 != 0;
-        let (above, left, qcoeff, eobs) = xd.decode_tokens_inputs_mut(common.above_context_ptr(), left_context);
+        let is_4x4 = xd.mode_info(common.mip_slice()).mbmi.is_4x4 != 0;
+        let above_context_slice = common.above_context.as_deref_mut().unwrap();
+        let (above, left, qcoeff, eobs) = xd.decode_tokens_inputs_mut(above_context_slice, left_context);
         eobtotal = vp8_decode_mb_tokens(
             safe_decoder,
             &common.fc,
@@ -278,9 +279,10 @@ fn mt_decode_macroblock(
             left,
             is_4x4,
         );
-        xd.mode_info_mut(common.mip_ptr()).mbmi.mb_skip_coeff =
+        xd.mode_info_mut(common.mip_slice_mut()).mbmi.mb_skip_coeff =
             (eobtotal == 0 as ::core::ffi::c_int) as ::core::ffi::c_int as uint8_t;
     }
+    let mip = common.mip_slice();
     mode = xd.mode_info(mip).mbmi.mode as MB_PREDICTION_MODE;
 
     if xd.segmentation_enabled != 0 {
@@ -607,15 +609,12 @@ fn mt_decode_mb_rows(
     xd.mode_info_idx = (pc.mode_info_stride * (start_mb_row + 1) + 1) as usize;
     xd.mode_info_stride = pc.mode_info_stride;
     
-    let mip = pc.mip_ptr();
     mb_row = start_mb_row;
     while mb_row < pc.mb_rows {
         let mut recon_yoffset: ::core::ffi::c_int = 0;
         let mut recon_uvoffset: ::core::ffi::c_int = 0;
         let mut mb_col: ::core::ffi::c_int = 0;
         let mut filter_level: ::core::ffi::c_int = 0;
-        
-        let lfi_n = &pc.lf_info;
         
         last_mb_row = mb_row;
         xd.current_bc_idx = (mb_row % num_part) as usize;
@@ -681,7 +680,7 @@ fn mt_decode_mb_rows(
             xd.dst.u_buffer = &slice_u[uv_offset] as *const u8 as *mut u8;
             xd.dst.v_buffer = &slice_v[uv_offset] as *const u8 as *mut u8;
             
-            let cur_ref_frame = xd.mode_info(mip).mbmi.ref_frame;
+            let cur_ref_frame = xd.mode_info(pc.mip_slice()).mbmi.ref_frame;
             xd.corrupted |= ref_fb_corrupted[cur_ref_frame as usize];
             if xd.corrupted != 0 {
                 let mt_current_mb_col = mt_sync.mt_current_mb_col.as_ref().unwrap();
@@ -768,7 +767,8 @@ fn mt_decode_mb_rows(
             xd.corrupted |= vp8dx_safe_bool_error(&safe_decoder);
             
             if pc.filter_level != 0 {
-                let cur_mbmi = &xd.mode_info(mip).mbmi;
+                let lfi_n = &pc.lf_info;
+                let cur_mbmi = &xd.mode_info(pc.mip_slice()).mbmi;
                 let skip_lf = (cur_mbmi.mode as ::core::ffi::c_int != B_PRED as ::core::ffi::c_int
                     && cur_mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int
                     && cur_mbmi.mb_skip_coeff as ::core::ffi::c_int != 0) as ::core::ffi::c_int;

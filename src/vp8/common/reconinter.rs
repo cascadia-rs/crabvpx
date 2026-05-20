@@ -311,7 +311,7 @@ fn clamp_uvmv_to_umv_border(
 }
 pub fn vp8_build_inter16x16_predictors_mb(
     x: &mut MACROBLOCKD,
-    mip_base: *const MODE_INFO,
+    mip_base: &[MODE_INFO],
 ) {
     let dst_y_stride = x.dst.y_stride;
     let dst_uv_stride = x.dst.uv_stride;
@@ -464,7 +464,7 @@ pub fn vp8_build_inter16x16_predictors_mb(
         vp8_copy_mem8x8_safe(sub_pre_v, pre_uv_stride, sub_dst_v, dst_uv_stride);
     }
 }
-fn build_inter4x4_predictors_mb(x: &mut MACROBLOCKD, mip_base: *const MODE_INFO) {
+fn build_inter4x4_predictors_mb(x: &mut MACROBLOCKD, mip_base: &[MODE_INFO]) {
     let partitioning = x.mode_info(mip_base).mbmi.partitioning;
     let need_to_clamp_mvs = x.mode_info(mip_base).mbmi.need_to_clamp_mvs;
     
@@ -708,7 +708,7 @@ fn build_inter4x4_predictors_mb(x: &mut MACROBLOCKD, mip_base: *const MODE_INFO)
         }
     }
 }
-fn build_4x4uvmvs(x: &mut MACROBLOCKD, mip_base: *const MODE_INFO) {
+fn build_4x4uvmvs(x: &mut MACROBLOCKD, mip_base: &[MODE_INFO]) {
     let mut i: ::core::ffi::c_int = 0;
     let mut j: ::core::ffi::c_int = 0;
     i = 0 as ::core::ffi::c_int;
@@ -786,7 +786,7 @@ fn build_4x4uvmvs(x: &mut MACROBLOCKD, mip_base: *const MODE_INFO) {
         i += 1;
     }
 }
-pub fn vp8_build_inter_predictors_mb(xd: &mut MACROBLOCKD, mip_base: *const MODE_INFO) {
+pub fn vp8_build_inter_predictors_mb(xd: &mut MACROBLOCKD, mip_base: &[MODE_INFO]) {
     if xd.mode_info(mip_base).mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int {
         vp8_build_inter16x16_predictors_mb(xd, mip_base);
     } else {

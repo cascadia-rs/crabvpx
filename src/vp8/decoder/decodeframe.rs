@@ -180,7 +180,7 @@ pub fn vp8_mb_init_dequantizer(
 ) {
     let mut i: ::core::ffi::c_int = 0;
     let mut QIndex: ::core::ffi::c_int = 0;
-    let mbmi = &xd.mode_info(pc.mip_ptr()).mbmi;
+    let mbmi = &xd.mode_info(pc.mip_slice()).mbmi;
     if xd.segmentation_enabled != 0 {
         if xd.mb_segment_abs_delta as ::core::ffi::c_int == SEGMENT_ABSDATA {
             QIndex = xd.segment_feature_data[MB_LVL_ALT_Q as ::core::ffi::c_int as usize]
@@ -222,7 +222,7 @@ pub fn vp8_mb_init_dequantizer(
     }
 }
 fn decode_macroblock(
-    common: &VP8_COMMON,
+    common: &mut VP8_COMMON,
     safe_decoders: &mut [SafeBoolDecoder],
     xd: &mut MACROBLOCKD,
     mb_idx: ::core::ffi::c_uint,
@@ -231,13 +231,12 @@ fn decode_macroblock(
 ) {
     let mut mode: MB_PREDICTION_MODE = DC_PRED;
     let mut i: ::core::ffi::c_int = 0;
-    let mip = common.mip_ptr();
-    if xd.mode_info(mip).mbmi.mb_skip_coeff != 0 {
-        let is_4x4 = xd.mode_info(mip).mbmi.is_4x4 != 0;
+    if xd.mode_info(common.mip_slice()).mbmi.mb_skip_coeff != 0 {
+        let is_4x4 = xd.mode_info(common.mip_slice()).mbmi.is_4x4 != 0;
         vp8_reset_mb_tokens_context(above, left, is_4x4);
     } else if vp8dx_safe_bool_error(&safe_decoders[xd.current_bc_idx]) == 0 {
         let mut eobtotal: ::core::ffi::c_int = 0;
-        let is_4x4 = xd.mode_info(mip).mbmi.is_4x4 != 0;
+        let is_4x4 = xd.mode_info(common.mip_slice()).mbmi.is_4x4 != 0;
         let bc_idx = xd.current_bc_idx;
         let qcoeff = &mut xd.qcoeff;
         let eobs = &mut xd.eobs;
@@ -250,9 +249,10 @@ fn decode_macroblock(
             left,
             is_4x4,
         );
-        xd.mode_info_mut(common.mip_ptr()).mbmi.mb_skip_coeff =
+        xd.mode_info_mut(common.mip_slice_mut()).mbmi.mb_skip_coeff =
             (eobtotal == 0 as ::core::ffi::c_int) as ::core::ffi::c_int as uint8_t;
     }
+    let mip = common.mip_slice();
     mode = xd.mode_info(mip).mbmi.mode as MB_PREDICTION_MODE;
 
     if xd.segmentation_enabled != 0 {
@@ -725,7 +725,7 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
             xd.dst.u_buffer = u_ptr;
             xd.dst.v_buffer = v_ptr;
 
-            let ref_frame = xd.mode_info(pc.mip_ptr()).mbmi.ref_frame;
+            let ref_frame = xd.mode_info(pc.mip_slice()).mbmi.ref_frame;
             
             if ref_frame as ::core::ffi::c_int
                 >= LAST_FRAME as ::core::ffi::c_int
@@ -1104,7 +1104,7 @@ fn init_frame(pbi: &mut VP8D_COMP) {
     pbi.mb.mode_info_idx = (pbi.common.mode_info_stride + 1) as usize;
     pbi.mb.above_context_idx = 0;
     pbi.mb.frame_type = pbi.common.frame_type;
-    let mip = pbi.common.mip_ptr();
+    let mip = pbi.common.mip_slice_mut();
     pbi.mb.mode_info_mut(mip).mbmi.mode = DC_PRED as ::core::ffi::c_int as uint8_t;
     pbi.mb.mode_info_stride = pbi.common.mode_info_stride;
     pbi.mb.corrupted = 0 as ::core::ffi::c_int;
