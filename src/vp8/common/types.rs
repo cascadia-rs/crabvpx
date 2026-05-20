@@ -794,7 +794,7 @@ pub type vpx_decrypt_cb = Option<
 
 pub type VP8_BD_VALUE = size_t;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct vp8_reader {
     pub user_buffer_end: *const ::core::ffi::c_uchar,
@@ -824,20 +824,34 @@ pub struct loop_filter_info_n {
     pub mode_lf_lut: [::core::ffi::c_uchar; 10],
 }
 
+impl Default for loop_filter_info_n {
+    fn default() -> Self {
+        loop_filter_info_n {
+            mblim: [[0; 1]; 64],
+            blim: [[0; 1]; 64],
+            lim: [[0; 1]; 64],
+            hev_thr: [[0; 1]; 4],
+            lvl: [[[0; 4]; 4]; 4],
+            hev_thr_lut: [[0; 64]; 2],
+            mode_lf_lut: [0; 10],
+        }
+    }
+}
+
 pub type TOKEN_PARTITION = ::core::ffi::c_uint;
 pub const EIGHT_PARTITION: TOKEN_PARTITION = 3;
 pub const FOUR_PARTITION: TOKEN_PARTITION = 2;
 pub const TWO_PARTITION: TOKEN_PARTITION = 1;
 pub const ONE_PARTITION: TOKEN_PARTITION = 0;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct mv_context {
     pub prob: [vp8_prob; 19],
 }
 pub type MV_CONTEXT = mv_context;
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct frame_contexts {
     pub bmode_prob: [vp8_prob; 9],
@@ -917,6 +931,71 @@ pub struct VP8Common {
 }
 pub type VP8_COMMON = VP8Common;
 
+impl Default for VP8Common {
+    fn default() -> Self {
+        VP8Common {
+            error: vpx_internal_error_info::default(),
+            Y1dequant: [[0; 2]; 128],
+            Y2dequant: [[0; 2]; 128],
+            UVdequant: [[0; 2]; 128],
+            Width: 0,
+            Height: 0,
+            horiz_scale: 0,
+            vert_scale: 0,
+            clamp_type: 0,
+            frame_to_show_idx: None,
+            yv12_fb: [YV12_BUFFER_CONFIG::default(); 4],
+            fb_idx_ref_cnt: [0; 4],
+            new_fb_idx: 0,
+            lst_fb_idx: 0,
+            gld_fb_idx: 0,
+            alt_fb_idx: 0,
+            temp_scale_frame: YV12_BUFFER_CONFIG::default(),
+            last_frame_type: 0,
+            frame_type: 0,
+            show_frame: 0,
+            frame_flags: 0,
+            MBs: 0,
+            mb_rows: 0,
+            mb_cols: 0,
+            mode_info_stride: 0,
+            mb_no_coeff_skip: 0,
+            no_lpf: 0,
+            use_bilinear_mc_filter: 0,
+            full_pixel: 0,
+            base_qindex: 0,
+            y1dc_delta_q: 0,
+            y2dc_delta_q: 0,
+            y2ac_delta_q: 0,
+            uvdc_delta_q: 0,
+            uvac_delta_q: 0,
+            mip: None,
+            mi: core::ptr::null_mut(),
+            show_frame_mi: core::ptr::null_mut(),
+            filter_type: 0,
+            lf_info: loop_filter_info_n::default(),
+            filter_level: 0,
+            last_sharpness_level: 0,
+            sharpness_level: 0,
+            refresh_last_frame: 0,
+            refresh_golden_frame: 0,
+            refresh_alt_ref_frame: 0,
+            copy_buffer_to_gf: 0,
+            copy_buffer_to_arf: 0,
+            refresh_entropy_probs: 0,
+            ref_frame_sign_bias: [0; 4],
+            above_context: None,
+            left_context: ENTROPY_CONTEXT_PLANES::default(),
+            lfc: FRAME_CONTEXT::default(),
+            fc: FRAME_CONTEXT::default(),
+            current_video_frame: 0,
+            version: 0,
+            multi_token_partition: 0,
+            processor_core_count: 0,
+        }
+    }
+}
+
 
 
 #[derive(Copy, Clone)]
@@ -939,6 +1018,14 @@ pub struct vpx_atomic_int {
     pub value: core::sync::atomic::AtomicI32,
 }
 
+impl Default for vpx_atomic_int {
+    fn default() -> Self {
+        vpx_atomic_int {
+            value: core::sync::atomic::AtomicI32::new(0),
+        }
+    }
+}
+
 impl Clone for vpx_atomic_int {
     fn clone(&self) -> Self {
         vpx_atomic_int {
@@ -947,7 +1034,7 @@ impl Clone for vpx_atomic_int {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct FRAGMENT_DATA {
     pub enabled: ::core::ffi::c_int,
@@ -972,7 +1059,7 @@ impl FRAGMENT_DATA {
     }
 }
 
-#[derive(Copy, Clone)]
+#[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct VP8D_CONFIG {
     pub Width: ::core::ffi::c_int,
@@ -983,6 +1070,7 @@ pub struct VP8D_CONFIG {
     pub error_concealment: ::core::ffi::c_int,
 }
 
+#[derive(Default)]
 #[repr(C)]
 pub struct VP8D_MT_SYNC {
     pub sync_range: ::core::ffi::c_int,
@@ -998,6 +1086,7 @@ pub struct VP8D_MT_SYNC {
     pub h_event_end_decoding: Option<std::sync::Arc<crate::thread_shim::Semaphore>>,
 }
 
+#[derive(Default)]
 #[repr(C)]
 pub struct VP8D_COMP {
     pub mb: MACROBLOCKD,

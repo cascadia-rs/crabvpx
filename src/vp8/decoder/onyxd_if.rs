@@ -81,8 +81,8 @@ fn remove_decompressor(mut pbi: Box<VP8D_COMP>) {
     vp8_remove_common(&mut pbi.common);
 }
 fn create_decompressor() -> Option<Box<VP8D_COMP>> {
-    let pbi = match Box::<VP8D_COMP>::try_new_zeroed() {
-        Ok(b) => unsafe { b.assume_init() },
+    let pbi = match Box::try_new(VP8D_COMP::default()) {
+        Ok(b) => b,
         Err(_) => return None,
     };
     
