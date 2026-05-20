@@ -70,8 +70,6 @@ pub fn vp8_de_alloc_frame_buffers(oci: &mut VP8_COMMON) {
     
     oci.above_context = None;
     oci.mip = None;
-    oci.mi = ::core::ptr::null_mut::<MODE_INFO>();
-    oci.show_frame_mi = ::core::ptr::null_mut::<MODE_INFO>();
     oci.frame_to_show_idx = None;
 }
 
@@ -136,8 +134,6 @@ pub fn vp8_alloc_frame_buffers(
                 let mip_box = vec![MODE_INFO::default(); mip_count].into_boxed_slice();
                 oci.mip = Some(mip_box);
                 if oci.mip.is_some() {
-                    let offset = (oci.mode_info_stride + 1) as usize;
-                    oci.mi = &raw mut oci.mip.as_mut().unwrap()[offset];
                     let above_context_count = oci.mb_cols as usize;
                     let above_context_box = vec![ENTROPY_CONTEXT_PLANES::default(); above_context_count].into_boxed_slice();
                     oci.above_context = Some(above_context_box);

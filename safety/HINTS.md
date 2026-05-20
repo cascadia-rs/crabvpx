@@ -2,6 +2,14 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Eliminated Dead Raw Pointers `mi` and `show_frame_mi` from `VP8Common` (types.rs, alloccommon.rs, onyxd_if.rs)**:
+  - Audited `VP8Common` struct in `src/vp8/common/types.rs` and identified `mi` and `show_frame_mi` raw pointer fields as completely dead (only assigned to, never read).
+  - Completely removed `mi` and `show_frame_mi` fields from `VP8Common` struct and its `Default` implementation.
+  - Removed their initialization and assignments in `src/vp8/common/alloccommon.rs` and `src/vp8/decoder/onyxd_if.rs`.
+  - This successfully made `VP8Common` **100% safe Rust** (containing no direct raw pointer fields at all!).
+  - Verified 100% bit-identical correctness across all 1160 differential test frames.
+  - Unsafe block count remains stable at 123 (as these were safe assignments/initializations of raw pointers, but it significantly reduces raw pointer surface area).
+
 * **Safe Decoder Instance Creation & Destruction (onyxd_if.rs, vp8_dx_iface.rs)**:
   - Refactored `vp8_create_decoder_instances` and `vp8_remove_decoder_instances` in `src/vp8/decoder/onyxd_if.rs` to be safe Rust functions.
   - Removed obsolete C-export attributes `#[unsafe(no_mangle)]` and `unsafe extern "C"` FFI signatures.

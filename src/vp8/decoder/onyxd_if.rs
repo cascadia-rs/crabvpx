@@ -339,7 +339,6 @@ pub fn vp8dx_receive_compressed_data_safe(
     } else {
         if pbi.common.show_frame != 0 {
             pbi.common.current_video_frame = pbi.common.current_video_frame.wrapping_add(1);
-            pbi.common.show_frame_mi = pbi.common.mi;
         }
         pbi.ready_for_new_data = 0;
     }
