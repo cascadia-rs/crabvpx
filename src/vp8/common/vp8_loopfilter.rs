@@ -92,7 +92,6 @@ fn lf_init_lut(lfi: &mut loop_filter_info_n) {
     lfi.mode_lf_lut[NEWMV as ::core::ffi::c_int as usize] = 2 as ::core::ffi::c_uchar;
     lfi.mode_lf_lut[SPLITMV as ::core::ffi::c_int as usize] = 3 as ::core::ffi::c_uchar;
 }
-#[unsafe(no_mangle)]
 pub fn vp8_loop_filter_update_sharpness(
     lfi: &mut loop_filter_info_n,
     sharpness_lvl: ::core::ffi::c_int,
@@ -128,7 +127,6 @@ pub fn vp8_loop_filter_init(cm: &mut VP8_COMMON) {
         cm.lf_info.hev_thr[i] = [i as u8; 1];
     }
 }
-#[unsafe(no_mangle)]
 pub fn vp8_loop_filter_frame_init(
     cm: &mut VP8_COMMON,
     mbd: &MACROBLOCKD,
@@ -742,54 +740,3 @@ pub fn vp8_loop_filter_partial_frame_safe(
     }
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn vp8_loop_filter_frame(
-    mut cm: *mut VP8_COMMON,
-    mut mbd: *mut MACROBLOCKD,
-    mut frame_type: ::core::ffi::c_int,
-) {
-    if cm.is_null() || mbd.is_null() {
-        return;
-    }
-    unsafe {
-        vp8_loop_filter_frame_safe(
-            &mut *cm,
-            &*mbd,
-            frame_type as FRAME_TYPE,
-        );
-    }
-}
-#[unsafe(no_mangle)]
-pub extern "C" fn vp8_loop_filter_frame_yonly(
-    mut cm: *mut VP8_COMMON,
-    mut mbd: *mut MACROBLOCKD,
-    mut default_filt_lvl: ::core::ffi::c_int,
-) {
-    if cm.is_null() || mbd.is_null() {
-        return;
-    }
-    unsafe {
-        vp8_loop_filter_frame_yonly_safe(
-            &mut *cm,
-            &*mbd,
-            default_filt_lvl,
-        );
-    }
-}
-#[unsafe(no_mangle)]
-pub extern "C" fn vp8_loop_filter_partial_frame(
-    mut cm: *mut VP8_COMMON,
-    mut mbd: *mut MACROBLOCKD,
-    mut default_filt_lvl: ::core::ffi::c_int,
-) {
-    if cm.is_null() || mbd.is_null() {
-        return;
-    }
-    unsafe {
-        vp8_loop_filter_partial_frame_safe(
-            &mut *cm,
-            &*mbd,
-            default_filt_lvl,
-        );
-    }
-}

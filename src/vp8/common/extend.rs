@@ -175,19 +175,6 @@ pub fn vp8_copy_and_extend_frame_safe(
     }
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn vp8_copy_and_extend_frame(
-    src: *mut YV12_BUFFER_CONFIG,
-    dst: *mut YV12_BUFFER_CONFIG,
-) {
-    if src.is_null() || dst.is_null() {
-        return;
-    }
-    unsafe {
-        vp8_copy_and_extend_frame_safe(&*src, &mut *dst);
-    }
-}
-
 pub fn vp8_copy_and_extend_frame_with_rect_safe(
     src: &YV12_BUFFER_CONFIG,
     dst: &mut YV12_BUFFER_CONFIG,
@@ -322,23 +309,6 @@ pub fn vp8_copy_and_extend_frame_with_rect_safe(
     }
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn vp8_copy_and_extend_frame_with_rect(
-    src: *mut YV12_BUFFER_CONFIG,
-    dst: *mut YV12_BUFFER_CONFIG,
-    srcy: ::core::ffi::c_int,
-    srcx: ::core::ffi::c_int,
-    srch: ::core::ffi::c_int,
-    srcw: ::core::ffi::c_int,
-) {
-    if src.is_null() || dst.is_null() {
-        return;
-    }
-    unsafe {
-        vp8_copy_and_extend_frame_with_rect_safe(&*src, &mut *dst, srcy, srcx, srch, srcw);
-    }
-}
-#[unsafe(no_mangle)]
 pub fn vp8_extend_mb_row(
     ybf: &mut YV12_BUFFER_CONFIG,
     mb_row: i32,

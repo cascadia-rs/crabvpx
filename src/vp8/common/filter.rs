@@ -1,7 +1,6 @@
 pub const VP8_FILTER_WEIGHT: ::core::ffi::c_int = 128 as ::core::ffi::c_int;
 pub const VP8_FILTER_SHIFT: ::core::ffi::c_int = 7 as ::core::ffi::c_int;
 
-#[unsafe(no_mangle)]
 pub static vp8_bilinear_filters: [[::core::ffi::c_short; 2]; 8] = [
     [
         128 as ::core::ffi::c_int as ::core::ffi::c_short,
@@ -37,7 +36,6 @@ pub static vp8_bilinear_filters: [[::core::ffi::c_short; 2]; 8] = [
     ],
 ];
 
-#[unsafe(no_mangle)]
 pub static vp8_sub_pel_filters: [[::core::ffi::c_short; 6]; 8] = [
     [
         0 as ::core::ffi::c_int as ::core::ffi::c_short,

@@ -151,8 +151,7 @@ pub fn vp8_build_intra_predictors_mbuv_safe(
         }
     }
 }
-#[unsafe(no_mangle)]
-pub extern "C" fn vp8_init_intra_predictors() {}
+pub fn vp8_init_intra_predictors() {}
 
 pub fn intra_prediction_down_copy(
     dst_stride: usize,

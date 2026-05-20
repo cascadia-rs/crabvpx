@@ -2,6 +2,13 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **FFI Wrapper and Attribute Cleanup in Common Modules (extend.rs, vp8_loopfilter.rs, filter.rs, reconintra.rs)**:
+  - Completely eliminated unused FFI wrappers `vp8_copy_and_extend_frame` and `vp8_copy_and_extend_frame_with_rect` from `src/vp8/common/extend.rs`.
+  - Completely eliminated unused FFI wrappers `vp8_loop_filter_frame`, `vp8_loop_filter_frame_yonly`, and `vp8_loop_filter_partial_frame` from `src/vp8/common/vp8_loopfilter.rs`.
+  - Removed obsolete `#[unsafe(no_mangle)]` attributes from internal-only functions `vp8_loop_filter_update_sharpness`, `vp8_loop_filter_frame_init`, and `vp8_extend_mb_row`.
+  - Removed obsolete `#[unsafe(no_mangle)]` from internal static tables `vp8_bilinear_filters` and `vp8_sub_pel_filters` in `src/vp8/common/filter.rs`.
+  - Removed obsolete `#[unsafe(no_mangle)]` and `extern "C"` FFI boundary from `vp8_init_intra_predictors` in `src/vp8/common/reconintra.rs`.
+  - This successfully reduced the remaining unsafe count from 439 to 423 (16 unsafe keywords removed) while keeping 100% bit-identical correctness across all 1160 test frames.
 * **Safe Pointer Offset Elimination in Frame Buffer Reallocation (yv12config.rs)**:
   - Refactored `vp8_yv12_realloc_frame_buffer_safe` in `src/vpx_scale/generic/yv12config.rs` to eliminate an `unsafe` block.
   - Replaced unsafe raw pointer `offset` arithmetic with safe `usize` casts for calculating `y_buffer`, `u_buffer`, and `v_buffer` addresses.
@@ -114,5 +121,6 @@ See remaining_refactoring_work_items.md for an overview of particular unsafe blo
    - [x] Unit 7: Refactor multithreaded loop filtering in `threading.rs` to assign each thread a strictly disjoint mutable slice of the frame, proving to the borrow checker that parallel loop filtering is 100% race-free. (Completed!)
 2. **Future Safety Milestones**:
    - [x] **Modernize `BOOL_DECODER` (`src/vp8/decoder/dboolhuff.rs`)**: Eliminate residual raw pointer arithmetic (`user_buffer` additions) inside `SafeBoolDecoder` and fully leverage slice boundaries. (Completed!)
-   - **Address remaining `unsafe` blocks in `src/vp8/common/vp8_loopfilter.rs` and `extend.rs`** by replacing FFI boundary styles with native safe Rust patterns where possible (excluding assembly RTCD paths).
+   - [x] **Address remaining `unsafe` blocks in `src/vp8/common/vp8_loopfilter.rs` and `extend.rs`** by replacing FFI boundary styles with native safe Rust patterns where possible (excluding assembly RTCD paths). (Completed! Unused FFI wrappers were deleted, and internal functions were cleaned of `#[unsafe(no_mangle)]` and `extern "C"`).
+   - **Audit other FFI wrappers in `src/vp8/decoder/dboolhuff.rs`** (`vp8dx_start_decode` and `vp8dx_bool_decoder_fill`) to see if they can also be deprecated/removed or if they are required for external ABI linkage.
 
