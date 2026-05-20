@@ -587,6 +587,33 @@ impl yv12_buffer_config {
         
         (u_slice, v_slice)
     }
+
+    /// Project thread-safe, lock-free `UnsafeRowView` instances mapping the exact boundaries
+    /// of the Y, U, and V slice configurations (including borders).
+    #[inline]
+    pub fn get_safe_unsafe_slices(&self) -> (UnsafeRowView, UnsafeRowView, UnsafeRowView) {
+        let border = self.border as usize;
+        let stride = self.y_stride as usize;
+        let offset = (self.y_buffer as usize).saturating_sub(self.buffer_alloc as usize);
+        let start_y = offset.saturating_sub(border * stride + border);
+        let ptr_y = unsafe { self.buffer_alloc.add(start_y) };
+        
+        let border_uv = (self.border / 2) as usize;
+        let stride_uv = self.uv_stride as usize;
+        let offset_u = (self.u_buffer as usize).saturating_sub(self.buffer_alloc as usize);
+        let start_u = offset_u.saturating_sub(border_uv * stride_uv + border_uv);
+        let ptr_u = unsafe { self.buffer_alloc.add(start_u) };
+        
+        let offset_v = (self.v_buffer as usize).saturating_sub(self.buffer_alloc as usize);
+        let start_v = offset_v.saturating_sub(border_uv * stride_uv + border_uv);
+        let ptr_v = unsafe { self.buffer_alloc.add(start_v) };
+        
+        (
+            UnsafeRowView::new(ptr_y, self.buffer_alloc_sz.saturating_sub(start_y)),
+            UnsafeRowView::new(ptr_u, self.buffer_alloc_sz.saturating_sub(start_u)),
+            UnsafeRowView::new(ptr_v, self.buffer_alloc_sz.saturating_sub(start_v)),
+        )
+    }
 }
 
 pub type vpx_codec_err_t = ::core::ffi::c_uint;

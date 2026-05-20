@@ -2,6 +2,14 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Sliced Destination Frame Buffer Safely (Milestone 3 - Unit 6 & 7) (types.rs, threading.rs)**:
+  - Implemented `get_safe_unsafe_slices` on `YV12_BUFFER_CONFIG` in `src/vp8/common/types.rs` to project thread-safe, lock-free `UnsafeRowView` slices aligned perfectly to the Y, U, and V allocation base boundaries.
+  - Refactored `mt_decode_mb_rows` and `mt_decode_macroblock` signatures in `src/vp8/decoder/threading.rs` to receive a read-only `common: &VP8_COMMON` reference, eliminating concurrent mutable borrowing conflicts on the root state.
+  - Passed token partition readers via raw pointer (`mbc_raw: *mut vp8_reader`) to bypass compiler exclusivity checks, safely offsetting and dereferencing them at row boundaries.
+  - Passed raw pointers to above contexts and macroblock mode info slices mutably, safely wrapping them into narrow, local slice scopes inside `mt_decode_macroblock`.
+  - Inlined row reconstruction border initializations (`setup_intra_recon_left`) and frame boundary expansions (`vp8_extend_mb_row`) directly inside `threading.rs` using disjoint `UnsafeRowView::as_slice_mut` projections, completely eliminating mutable FFI and state queries.
+  - Confirmed that all 1160 differential test frames continue to pass perfectly with 100% bit-identical execution.
+
 * **Transitioned Row & Left Sync Buffers to UnsafeRowView (Milestone 2 - Unit 3, 4, & 5) (types.rs, threading.rs)**:
   - Refactored `VP8D_MT_SYNC` in `src/vp8/common/types.rs` to hold thread-safe `UnsafeRowView` slices for above/left rows (`mt_yabove_row`, `mt_uabove_row`, etc.) instead of monolithic `Option<AlignedBox>` buffers.
   - Retained heap memory ownership securely in newly introduced `mt_yabove_row_allocs` etc. fields on `VP8D_MT_SYNC` to guarantee leak-free dynamic lifecycle management matching the frame buffer allocation pattern.
