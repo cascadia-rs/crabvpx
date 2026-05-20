@@ -81,31 +81,37 @@ fn initialize_dec() {
 fn remove_decompressor(mut pbi: Box<VP8D_COMP>) {
     vp8_remove_common(&mut pbi.common);
 }
-unsafe extern "C" fn create_decompressor(mut oxcf: *mut VP8D_CONFIG) -> *mut VP8D_COMP { unsafe {
-    let mut pbi: *mut VP8D_COMP = match Box::<VP8D_COMP>::try_new_zeroed() {
-        Ok(b) => Box::into_raw(b.assume_init()),
-        Err(_) => return ::core::ptr::null_mut::<VP8D_COMP>(),
+fn create_decompressor() -> Option<Box<VP8D_COMP>> {
+    let pbi = match Box::<VP8D_COMP>::try_new_zeroed() {
+        Ok(b) => unsafe { b.assume_init() },
+        Err(_) => return None,
     };
-    if setjmp(&raw mut (*pbi).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
-        (*pbi).common.error.setjmp = 0 as ::core::ffi::c_int;
-        remove_decompressor(Box::from_raw(pbi));
-        return ::core::ptr::null_mut::<VP8D_COMP>();
+    
+    let mut pbi = std::mem::ManuallyDrop::new(pbi);
+    let pbi_mut = &mut *pbi;
+    
+    unsafe {
+        if setjmp(&raw mut pbi_mut.common.error.jmp as *mut ::core::ffi::c_int) != 0 {
+            let mut pbi_box = std::mem::ManuallyDrop::into_inner(pbi);
+            pbi_box.common.error.setjmp = 0;
+            return None;
+        }
+        pbi_mut.common.error.setjmp = 1;
+        vp8_create_common(&mut pbi_mut.common);
+        pbi_mut.common.current_video_frame = 0;
+        pbi_mut.ready_for_new_data = 1;
+        vp8cx_init_de_quantizer(pbi_mut);
+        vp8_loop_filter_init(&mut pbi_mut.common);
+        pbi_mut.common.error.setjmp = 0;
+        pbi_mut.ec_enabled = 0;
+        pbi_mut.ec_active = 0;
+        pbi_mut.decoded_key_frame = 0;
+        pbi_mut.independent_partitions = 0;
+        vp8_setup_block_dptrs(&mut pbi_mut.mb);
     }
-    (*pbi).common.error.setjmp = 1 as ::core::ffi::c_int;
-    vp8_create_common(&mut (*pbi).common);
-    (*pbi).common.current_video_frame = 0 as ::core::ffi::c_uint;
-    (*pbi).ready_for_new_data = 1 as ::core::ffi::c_int;
-    vp8cx_init_de_quantizer(&mut *pbi);
-    vp8_loop_filter_init(&mut (*pbi).common);
-    (*pbi).common.error.setjmp = 0 as ::core::ffi::c_int;
-    (*pbi).ec_enabled = 0 as ::core::ffi::c_int;
-    (*pbi).ec_active = 0 as ::core::ffi::c_int;
-    (*pbi).decoded_key_frame = 0 as ::core::ffi::c_int;
-    (*pbi).independent_partitions = 0 as ::core::ffi::c_int;
-    vp8_setup_block_dptrs(&mut (*pbi).mb);
     INIT.call_once(initialize_dec);
-    return pbi as *mut VP8D_COMP;
-}}
+    Some(std::mem::ManuallyDrop::into_inner(pbi))
+}
 pub fn vp8dx_get_reference(
     pbi: &mut VP8D_COMP,
     ref_frame_flag: vpx_ref_frame_type,
@@ -407,40 +413,26 @@ pub unsafe extern "C" fn vp8_create_decoder_instances(
     mut fb: *mut frame_buffers,
     mut oxcf: *mut VP8D_CONFIG,
 ) -> ::core::ffi::c_int { unsafe {
-    (*fb).pbi[0 as ::core::ffi::c_int as usize] = create_decompressor(oxcf);
-    if (*fb).pbi[0 as ::core::ffi::c_int as usize].is_null() {
-        return VPX_CODEC_ERROR as ::core::ffi::c_int;
-    }
-    if setjmp(
-        &raw mut (**(&raw mut (*fb).pbi as *mut *mut VP8D_COMP)
-            .offset(0 as ::core::ffi::c_int as isize))
-        .common
-        .error
-        .jmp as *mut ::core::ffi::c_int,
-    ) != 0
-    {
-        (*(*fb).pbi[0 as ::core::ffi::c_int as usize])
-            .common
-            .error
-            .setjmp = 0 as ::core::ffi::c_int;
+    let pbi = match create_decompressor() {
+        Some(p) => p,
+        None => return VPX_CODEC_ERROR as ::core::ffi::c_int,
+    };
+    (*fb).pbi[0] = Box::into_raw(pbi);
+    let pbi_raw = (*fb).pbi[0];
+    if setjmp(&raw mut (*pbi_raw).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
+        (*pbi_raw).common.error.setjmp = 0;
         vp8_remove_decoder_instances(fb);
         memset(
             &raw mut (*fb).pbi as *mut ::core::ffi::c_void,
-            0 as ::core::ffi::c_int,
+            0,
             ::core::mem::size_of::<[*mut VP8D_COMP; 32]>() as size_t,
         );
         return VPX_CODEC_ERROR as ::core::ffi::c_int;
     }
-    (*(*fb).pbi[0 as ::core::ffi::c_int as usize])
-        .common
-        .error
-        .setjmp = 1 as ::core::ffi::c_int;
-    (*(*fb).pbi[0 as ::core::ffi::c_int as usize]).max_threads = (*oxcf).max_threads;
-    vp8_decoder_create_threads((*fb).pbi[0 as ::core::ffi::c_int as usize]);
-    (*(*fb).pbi[0 as ::core::ffi::c_int as usize])
-        .common
-        .error
-        .setjmp = 0 as ::core::ffi::c_int;
+    (*pbi_raw).common.error.setjmp = 1;
+    (*pbi_raw).max_threads = (*oxcf).max_threads;
+    vp8_decoder_create_threads(pbi_raw);
+    (*pbi_raw).common.error.setjmp = 0;
     return VPX_CODEC_OK as ::core::ffi::c_int;
 }}
 #[unsafe(no_mangle)]
