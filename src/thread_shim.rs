@@ -4,65 +4,37 @@ use std::thread::{self, JoinHandle};
 use std::collections::HashMap;
 
 pub type pthread_t = *mut c_void;
-pub type semaphore_t = *mut c_void;
+
 
 // Opaque struct for semaphore
-struct Semaphore {
+pub struct Semaphore {
     mutex: Mutex<u32>,
     cond: Condvar,
 }
 
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_semaphore_create(
-    task: u32,
-    sem: *mut semaphore_t,
-    policy: i32,
-    value: i32,
-) -> i32 {
-    let semaphore = Box::new(Semaphore {
-        mutex: Mutex::new(value as u32),
-        cond: Condvar::new(),
-    });
-    *sem = Box::into_raw(semaphore) as *mut c_void;
-    0 // SUCCESS
+impl Semaphore {
+    pub fn new(value: u32) -> Self {
+        Semaphore {
+            mutex: Mutex::new(value),
+            cond: Condvar::new(),
+        }
+    }
+
+    pub fn wait(&self) {
+        let mut count = self.mutex.lock().unwrap();
+        while *count == 0 {
+            count = self.cond.wait(count).unwrap();
+        }
+        *count -= 1;
+    }
+
+    pub fn signal(&self) {
+        let mut count = self.mutex.lock().unwrap();
+        *count += 1;
+        self.cond.notify_one();
+    }
 }
 
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_semaphore_destroy(
-    task: u32,
-    sem: semaphore_t,
-) -> i32 {
-    if !sem.is_null() {
-        let _ = Box::from_raw(sem as *mut Semaphore);
-    }
-    0
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_semaphore_wait(sem: semaphore_t) -> i32 {
-    if sem.is_null() {
-        return -1;
-    }
-    let semaphore = &*(sem as *const Semaphore);
-    let mut count = semaphore.mutex.lock().unwrap();
-    while *count == 0 {
-        count = semaphore.cond.wait(count).unwrap();
-    }
-    *count -= 1;
-    0
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vp8_semaphore_signal(sem: semaphore_t) -> i32 {
-    if sem.is_null() {
-        return -1;
-    }
-    let semaphore = &*(sem as *const Semaphore);
-    let mut count = semaphore.mutex.lock().unwrap();
-    *count += 1;
-    semaphore.cond.notify_one();
-    0
-}
 
 struct ThreadHandle {
     handle: Option<JoinHandle<usize>>,
