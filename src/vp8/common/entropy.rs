@@ -1,7 +1,7 @@
 
 
 pub type vp8_tree_index = ::core::ffi::c_schar;
-pub type vp8_tree_p = *const vp8_tree_index;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vp8_token_struct {
@@ -54,15 +54,7 @@ pub type FRAME_TYPE = ::core::ffi::c_uint;
 pub const INTER_FRAME: FRAME_TYPE = 1;
 pub const KEY_FRAME: FRAME_TYPE = 0;
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct vp8_extra_bit_struct {
-    pub tree: vp8_tree_p,
-    pub prob: *const vp8_prob,
-    pub Len: ::core::ffi::c_int,
-    pub base_val: ::core::ffi::c_int,
-}
-unsafe impl Sync for vp8_extra_bit_struct {}
+
 pub const ZERO_TOKEN: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
 pub const ONE_TOKEN: ::core::ffi::c_int = 1 as ::core::ffi::c_int;
 pub const TWO_TOKEN: ::core::ffi::c_int = 2 as ::core::ffi::c_int;
@@ -1917,81 +1909,7 @@ pub static cat6: [vp8_tree_index; 22] = [
     0 as ::core::ffi::c_int as vp8_tree_index,
     0 as ::core::ffi::c_int as vp8_tree_index,
 ];
-pub static vp8_extra_bits: [vp8_extra_bit_struct; 12] = [
-        vp8_extra_bit_struct {
-            tree: ::core::ptr::null::<vp8_tree_index>(),
-            prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as ::core::ffi::c_int,
-            base_val: 0 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: ::core::ptr::null::<vp8_tree_index>(),
-            prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as ::core::ffi::c_int,
-            base_val: 1 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: ::core::ptr::null::<vp8_tree_index>(),
-            prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as ::core::ffi::c_int,
-            base_val: 2 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: ::core::ptr::null::<vp8_tree_index>(),
-            prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as ::core::ffi::c_int,
-            base_val: 3 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: ::core::ptr::null::<vp8_tree_index>(),
-            prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as ::core::ffi::c_int,
-            base_val: 4 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: &raw const cat1 as vp8_tree_p,
-            prob: &raw const Pcat1 as *const vp8_prob,
-            Len: 1 as ::core::ffi::c_int,
-            base_val: 5 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: &raw const cat2 as vp8_tree_p,
-            prob: &raw const Pcat2 as *const vp8_prob,
-            Len: 2 as ::core::ffi::c_int,
-            base_val: 7 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: &raw const cat3 as vp8_tree_p,
-            prob: &raw const Pcat3 as *const vp8_prob,
-            Len: 3 as ::core::ffi::c_int,
-            base_val: 11 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: &raw const cat4 as vp8_tree_p,
-            prob: &raw const Pcat4 as *const vp8_prob,
-            Len: 4 as ::core::ffi::c_int,
-            base_val: 19 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: &raw const cat5 as vp8_tree_p,
-            prob: &raw const Pcat5 as *const vp8_prob,
-            Len: 5 as ::core::ffi::c_int,
-            base_val: 35 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: &raw const cat6 as vp8_tree_p,
-            prob: &raw const Pcat6 as *const vp8_prob,
-            Len: 11 as ::core::ffi::c_int,
-            base_val: 67 as ::core::ffi::c_int,
-        },
-        vp8_extra_bit_struct {
-            tree: ::core::ptr::null::<vp8_tree_index>(),
-            prob: ::core::ptr::null::<vp8_prob>(),
-            Len: 0 as ::core::ffi::c_int,
-            base_val: 0 as ::core::ffi::c_int,
-        },
-    ]
-;
+
 static default_coef_probs: [[[[vp8_prob; 11]; 3]; 8]; 4] = [
     [
         [

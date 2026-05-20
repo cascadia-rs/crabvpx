@@ -2,6 +2,11 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Dead Code & Unsafe Sync Impl Removal in Entropy (entropy.rs)**:
+  - Identified `vp8_extra_bits` array and `vp8_extra_bit_struct` as completely unused dead code in the decoder (entropy decoding of categories is fully inlined/optimized in `detokenize.rs` using local tables).
+  - Completely removed `vp8_extra_bits` static array, `vp8_extra_bit_struct` definition, `vp8_tree_p` type definition, and the `unsafe impl Sync for vp8_extra_bit_struct` from `src/vp8/common/entropy.rs`.
+  - This successfully eliminated **1 unsafe keyword** globally, reducing the remaining unsafe count from 362 to 361.
+  - Verified 100% bit-identical correctness across all 1160 test frames.
 * **Obsolete #[unsafe(no_mangle)] Removal in Entropy (entropy.rs)**:
   - Removed 11 obsolete `#[unsafe(no_mangle)]` attributes from static tables, probability arrays, and trees in `src/vp8/common/entropy.rs`.
   - Since CrabVPX is built as a Rust library and these tables are only accessed internally via standard Rust imports, these FFI export attributes were completely obsolete.
@@ -179,4 +184,5 @@ See remaining_refactoring_work_items.md for an overview of particular unsafe blo
    - [x] **Remove obsolete `#[unsafe(no_mangle)]` from `vp8_default_mv_context` in `src/vp8/common/entropymv.rs`**: This static table is only used internally in `decodeframe.rs` and can have its `#[unsafe(no_mangle)]` attribute removed safely to reduce unsafe keyword count. (Completed!)
    - [x] **Audit `blockd.rs` for dead code**: `vp8_block2left` and `vp8_block2above` in `src/vp8/common/blockd.rs` appear to be encoder-only and completely unused in CrabVPX. They can likely be removed entirely to clean up the codebase and remove 2 more unsafe keywords. (Completed!)
    - **Audit other FFI wrappers in `src/vp8/decoder/dboolhuff.rs`** (`vp8dx_start_decode` and `vp8dx_bool_decoder_fill`) to see if they can also be deprecated/removed or if they are required for external ABI linkage.
+    - **Audit other dead tables in `src/vp8/common/entropy.rs`**: `vp8_coef_encodings` also appears to be completely unused in the decoder and can be removed to clean up the codebase. (Already successfully removed `vp8_extra_bits`, `vp8_extra_bit_struct`, and `vp8_tree_p` in this turn!).
 
