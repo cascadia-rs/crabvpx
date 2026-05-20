@@ -1184,7 +1184,7 @@ impl UnsafeRowView {
     /// The caller must ensure via atomic synchronization that no other thread is mutably
     /// accessing this subsegment concurrently.
     #[inline]
-    pub unsafe fn as_slice(&self, offset: usize, len: usize) -> &[u8] {
+    pub unsafe fn as_slice<'a>(&self, offset: usize, len: usize) -> &'a [u8] {
         assert!(offset + len <= self.len, "UnsafeRowView::as_slice out of bounds: offset={}, len={}, total={}", offset, len, self.len);
         std::slice::from_raw_parts(self.ptr.add(offset), len)
     }
@@ -1195,7 +1195,7 @@ impl UnsafeRowView {
     /// The caller must ensure via atomic synchronization that no other thread is mutably
     /// or immutably accessing this subsegment concurrently.
     #[inline]
-    pub unsafe fn as_slice_mut(&self, offset: usize, len: usize) -> &mut [u8] {
+    pub unsafe fn as_slice_mut<'a>(&self, offset: usize, len: usize) -> &'a mut [u8] {
         assert!(offset + len <= self.len, "UnsafeRowView::as_slice_mut out of bounds: offset={}, len={}, total={}", offset, len, self.len);
         std::slice::from_raw_parts_mut(self.ptr.add(offset), len)
     }
@@ -1206,12 +1206,18 @@ impl UnsafeRowView {
 pub struct VP8D_MT_SYNC {
     pub sync_range: ::core::ffi::c_int,
     pub mt_current_mb_col: Option<Box<[vpx_atomic_int]>>,
-    pub mt_yabove_row: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
-    pub mt_uabove_row: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
-    pub mt_vabove_row: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
-    pub mt_yleft_col: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
-    pub mt_uleft_col: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
-    pub mt_vleft_col: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_yabove_row: Option<Box<[UnsafeRowView]>>,
+    pub mt_uabove_row: Option<Box<[UnsafeRowView]>>,
+    pub mt_vabove_row: Option<Box<[UnsafeRowView]>>,
+    pub mt_yleft_col: Option<Box<[UnsafeRowView]>>,
+    pub mt_uleft_col: Option<Box<[UnsafeRowView]>>,
+    pub mt_vleft_col: Option<Box<[UnsafeRowView]>>,
+    pub mt_yabove_row_allocs: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_uabove_row_allocs: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_vabove_row_allocs: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_yleft_col_allocs: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_uleft_col_allocs: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
+    pub mt_vleft_col_allocs: Option<Box<[Option<crate::vpx_mem::vpx_mem::AlignedBox>]>>,
     pub h_decoding_thread: Option<Box<[Option<std::thread::JoinHandle<()>>]>>,
     pub h_event_start_decoding: Option<Box<[std::sync::Arc<crate::thread_shim::Semaphore>]>>,
     pub h_event_end_decoding: Option<std::sync::Arc<crate::thread_shim::Semaphore>>,

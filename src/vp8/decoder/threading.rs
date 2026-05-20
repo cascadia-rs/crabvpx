@@ -650,16 +650,25 @@ fn mt_decode_mb_rows(
                 let mb_row_us = mb_row as usize;
                 let mb_col_us = mb_col as usize;
                 
-                let ay = &mt_sync.mt_yabove_row.as_ref().unwrap()[mb_row_us].as_ref().unwrap().as_slice()
-                    [31 + mb_col_us * 16 .. 31 + mb_col_us * 16 + 24];
-                let au = &mt_sync.mt_uabove_row.as_ref().unwrap()[mb_row_us].as_ref().unwrap().as_slice()
-                    [15 + mb_col_us * 8 .. 15 + mb_col_us * 8 + 9];
-                let av = &mt_sync.mt_vabove_row.as_ref().unwrap()[mb_row_us].as_ref().unwrap().as_slice()
-                    [15 + mb_col_us * 8 .. 15 + mb_col_us * 8 + 9];
+                let yabove_view = mt_sync.mt_yabove_row.as_ref().unwrap()[mb_row_us];
+                let offset_y = 31 + mb_col_us * 16;
+                let ay = unsafe { yabove_view.as_slice(offset_y, 24) };
+                
+                let uabove_view = mt_sync.mt_uabove_row.as_ref().unwrap()[mb_row_us];
+                let offset_u = 15 + mb_col_us * 8;
+                let au = unsafe { uabove_view.as_slice(offset_u, 9) };
+                
+                let vabove_view = mt_sync.mt_vabove_row.as_ref().unwrap()[mb_row_us];
+                let av = unsafe { vabove_view.as_slice(offset_u, 9) };
                     
-                let ly = &mt_sync.mt_yleft_col.as_ref().unwrap()[mb_row_us].as_ref().unwrap().as_slice()[0..16];
-                let lu = &mt_sync.mt_uleft_col.as_ref().unwrap()[mb_row_us].as_ref().unwrap().as_slice()[0..8];
-                let lv = &mt_sync.mt_vleft_col.as_ref().unwrap()[mb_row_us].as_ref().unwrap().as_slice()[0..8];
+                let yleft_view = mt_sync.mt_yleft_col.as_ref().unwrap()[mb_row_us];
+                let ly = unsafe { yleft_view.as_slice(0, 16) };
+                
+                let uleft_view = mt_sync.mt_uleft_col.as_ref().unwrap()[mb_row_us];
+                let lu = unsafe { uleft_view.as_slice(0, 8) };
+                
+                let vleft_view = mt_sync.mt_vleft_col.as_ref().unwrap()[mb_row_us];
+                let lv = unsafe { vleft_view.as_slice(0, 8) };
                 
                 (Some(ay), Some(au), Some(av), Some(ly), Some(lu), Some(lv))
             } else {
@@ -702,21 +711,21 @@ fn mt_decode_mb_rows(
                     let dst_fb = &pc.yv12_fb[xd.dst_fb_idx];
                     let src_slice = &dst_fb.y_slice_safe()[src_idx..src_idx + 16];
                     
-                    let dst_ab = mt_sync.mt_yabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
+                    let dst_ab = mt_sync.mt_yabove_row.as_ref().unwrap()[(mb_row + 1) as usize];
                     let border_uv = (xd.dst_border / 2) as usize;
                     let stride_uv = xd.dst_uv_stride as usize;
                     let src_idx_u = (border_uv + 7) * stride_uv + border_uv + recon_uvoffset as usize;
                     let src_slice_u = &dst_fb.u_slice_safe()[src_idx_u..src_idx_u + 8];
                     let src_slice_v = &dst_fb.v_slice_safe()[src_idx_u..src_idx_u + 8];
-                    let dst_ab_u = mt_sync.mt_uabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
-                    let dst_ab_v = mt_sync.mt_vabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
+                    let dst_ab_u = mt_sync.mt_uabove_row.as_ref().unwrap()[(mb_row + 1) as usize];
+                    let dst_ab_v = mt_sync.mt_vabove_row.as_ref().unwrap()[(mb_row + 1) as usize];
                     
                     let offset = 32 + (mb_col * 16) as usize;
-                    dst_ab.as_slice_mut()[offset..offset + 16].copy_from_slice(src_slice);
+                    unsafe { dst_ab.as_slice_mut(offset, 16) }.copy_from_slice(src_slice);
                     
                     let offset_uv = 16 + (mb_col * 8) as usize;
-                    dst_ab_u.as_slice_mut()[offset_uv..offset_uv + 8].copy_from_slice(src_slice_u);
-                    dst_ab_v.as_slice_mut()[offset_uv..offset_uv + 8].copy_from_slice(src_slice_v);
+                    unsafe { dst_ab_u.as_slice_mut(offset_uv, 8) }.copy_from_slice(src_slice_u);
+                    unsafe { dst_ab_v.as_slice_mut(offset_uv, 8) }.copy_from_slice(src_slice_v);
                 }
                 
                 if mb_col != pc.mb_cols - 1 {
@@ -726,22 +735,22 @@ fn mt_decode_mb_rows(
                         let stride = xd.dst_y_stride as usize;
                         let dst_fb = &pc.yv12_fb[xd.dst_fb_idx];
                         let y_slice = dst_fb.y_slice_safe();
-                        let dst_ab = mt_sync.mt_yleft_col.as_mut().unwrap()[mb_row as usize].as_mut().unwrap();
+                        let dst_ab = mt_sync.mt_yleft_col.as_ref().unwrap()[mb_row as usize];
                         let border_uv = (xd.dst_border / 2) as usize;
                         let stride_uv = xd.dst_uv_stride as usize;
                         let u_slice = dst_fb.u_slice_safe();
                         let v_slice = dst_fb.v_slice_safe();
-                        let dst_ab_u = mt_sync.mt_uleft_col.as_mut().unwrap()[mb_row as usize].as_mut().unwrap();
-                        let dst_ab_v = mt_sync.mt_vleft_col.as_mut().unwrap()[mb_row as usize].as_mut().unwrap();
+                        let dst_ab_u = mt_sync.mt_uleft_col.as_ref().unwrap()[mb_row as usize];
+                        let dst_ab_v = mt_sync.mt_vleft_col.as_ref().unwrap()[mb_row as usize];
                         
-                        let dst_slice = dst_ab.as_slice_mut();
+                        let dst_slice = unsafe { dst_ab.as_slice_mut(0, 16) };
                         for i in 0..16 {
                             let src_idx = border * stride + border + i * stride + 15 + recon_yoffset as usize;
                             dst_slice[i] = y_slice[src_idx];
                         }
                         
-                        let dst_slice_u = dst_ab_u.as_slice_mut();
-                        let dst_slice_v = dst_ab_v.as_slice_mut();
+                        let dst_slice_u = unsafe { dst_ab_u.as_slice_mut(0, 8) };
+                        let dst_slice_v = unsafe { dst_ab_v.as_slice_mut(0, 8) };
                         for i in 0..8 {
                             let src_idx = border_uv * stride_uv + border_uv + i * stride_uv + 7 + recon_uvoffset as usize;
                             dst_slice_u[i] = u_slice[src_idx];
@@ -1047,19 +1056,19 @@ fn mt_decode_mb_rows(
                 let mut lasty = pc.yv12_fb[lst_fb_idx].y_width + VP8BORDERINPIXELS;
                 let mut lastuv = (pc.yv12_fb[lst_fb_idx].y_width >> 1) + (VP8BORDERINPIXELS >> 1);
                 
-                let dst_ab = mt_sync.mt_yabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
-                let dst_ab_u = mt_sync.mt_uabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
-                let dst_ab_v = mt_sync.mt_vabove_row.as_mut().unwrap()[(mb_row + 1) as usize].as_mut().unwrap();
+                let dst_ab = mt_sync.mt_yabove_row.as_ref().unwrap()[(mb_row + 1) as usize];
+                let dst_ab_u = mt_sync.mt_uabove_row.as_ref().unwrap()[(mb_row + 1) as usize];
+                let dst_ab_v = mt_sync.mt_vabove_row.as_ref().unwrap()[(mb_row + 1) as usize];
                 
-                let dst_slice = dst_ab.as_slice_mut();
+                let dst_slice = unsafe { dst_ab.as_slice_mut(0, dst_ab.len()) };
                 let val = dst_slice[lasty as usize - 1];
                 dst_slice[lasty as usize..lasty as usize + 4].fill(val);
                 
-                let dst_slice_u = dst_ab_u.as_slice_mut();
+                let dst_slice_u = unsafe { dst_ab_u.as_slice_mut(0, dst_ab_u.len()) };
                 let val_u = dst_slice_u[lastuv as usize - 1];
                 dst_slice_u[lastuv as usize..lastuv as usize + 4].fill(val_u);
                 
-                let dst_slice_v = dst_ab_v.as_slice_mut();
+                let dst_slice_v = unsafe { dst_ab_v.as_slice_mut(0, dst_ab_v.len()) };
                 let val_v = dst_slice_v[lastuv as usize - 1];
                 dst_slice_v[lastuv as usize..lastuv as usize + 4].fill(val_v);
             }
@@ -1194,6 +1203,12 @@ pub fn vp8mt_de_alloc_temp_buffers(
     pbi.mt_sync.mt_yleft_col = None;
     pbi.mt_sync.mt_uleft_col = None;
     pbi.mt_sync.mt_vleft_col = None;
+    pbi.mt_sync.mt_yabove_row_allocs = None;
+    pbi.mt_sync.mt_uabove_row_allocs = None;
+    pbi.mt_sync.mt_vabove_row_allocs = None;
+    pbi.mt_sync.mt_yleft_col_allocs = None;
+    pbi.mt_sync.mt_uleft_col_allocs = None;
+    pbi.mt_sync.mt_vleft_col_allocs = None;
 }
 pub fn vp8mt_alloc_temp_buffers(
     pbi: &mut VP8D_COMP,
@@ -1225,7 +1240,8 @@ pub fn vp8mt_alloc_temp_buffers(
         pbi.mt_sync.mt_current_mb_col = Some(current_mb_col_vec.into_boxed_slice());
         
         // mt_yabove_row
-        let mut yabove = Vec::with_capacity(mb_rows_usize);
+        let mut yabove_allocs = Vec::with_capacity(mb_rows_usize);
+        let mut yabove_views = Vec::with_capacity(mb_rows_usize);
         for _ in 0..mb_rows_usize {
             let size = (width + ((32 as ::core::ffi::c_int) << 1 as ::core::ffi::c_int)) as usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(16, size);
@@ -1235,13 +1251,16 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
+                yabove_views.push(UnsafeRowView::new(b.as_ptr(), size));
             }
-            yabove.push(ab);
+            yabove_allocs.push(ab);
         }
-        pbi.mt_sync.mt_yabove_row = Some(yabove.into_boxed_slice());
+        pbi.mt_sync.mt_yabove_row = Some(yabove_views.into_boxed_slice());
+        pbi.mt_sync.mt_yabove_row_allocs = Some(yabove_allocs.into_boxed_slice());
         
         // mt_uabove_row
-        let mut uabove = Vec::with_capacity(mb_rows_usize);
+        let mut uabove_allocs = Vec::with_capacity(mb_rows_usize);
+        let mut uabove_views = Vec::with_capacity(mb_rows_usize);
         for _ in 0..mb_rows_usize {
             let size = (uv_width + 32 as ::core::ffi::c_int) as usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(16, size);
@@ -1251,13 +1270,16 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
+                uabove_views.push(UnsafeRowView::new(b.as_ptr(), size));
             }
-            uabove.push(ab);
+            uabove_allocs.push(ab);
         }
-        pbi.mt_sync.mt_uabove_row = Some(uabove.into_boxed_slice());
+        pbi.mt_sync.mt_uabove_row = Some(uabove_views.into_boxed_slice());
+        pbi.mt_sync.mt_uabove_row_allocs = Some(uabove_allocs.into_boxed_slice());
         
         // mt_vabove_row
-        let mut vabove = Vec::with_capacity(mb_rows_usize);
+        let mut vabove_allocs = Vec::with_capacity(mb_rows_usize);
+        let mut vabove_views = Vec::with_capacity(mb_rows_usize);
         for _ in 0..mb_rows_usize {
             let size = (uv_width + 32 as ::core::ffi::c_int) as usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(16, size);
@@ -1267,13 +1289,16 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
+                vabove_views.push(UnsafeRowView::new(b.as_ptr(), size));
             }
-            vabove.push(ab);
+            vabove_allocs.push(ab);
         }
-        pbi.mt_sync.mt_vabove_row = Some(vabove.into_boxed_slice());
+        pbi.mt_sync.mt_vabove_row = Some(vabove_views.into_boxed_slice());
+        pbi.mt_sync.mt_vabove_row_allocs = Some(vabove_allocs.into_boxed_slice());
         
         // mt_yleft_col
-        let mut yleft = Vec::with_capacity(mb_rows_usize);
+        let mut yleft_allocs = Vec::with_capacity(mb_rows_usize);
+        let mut yleft_views = Vec::with_capacity(mb_rows_usize);
         for _ in 0..mb_rows_usize {
             let size = 16usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(32, size);
@@ -1283,13 +1308,16 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
+                yleft_views.push(UnsafeRowView::new(b.as_ptr(), size));
             }
-            yleft.push(ab);
+            yleft_allocs.push(ab);
         }
-        pbi.mt_sync.mt_yleft_col = Some(yleft.into_boxed_slice());
+        pbi.mt_sync.mt_yleft_col = Some(yleft_views.into_boxed_slice());
+        pbi.mt_sync.mt_yleft_col_allocs = Some(yleft_allocs.into_boxed_slice());
         
         // mt_uleft_col
-        let mut uleft = Vec::with_capacity(mb_rows_usize);
+        let mut uleft_allocs = Vec::with_capacity(mb_rows_usize);
+        let mut uleft_views = Vec::with_capacity(mb_rows_usize);
         for _ in 0..mb_rows_usize {
             let size = 8usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(32, size);
@@ -1299,13 +1327,16 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
+                uleft_views.push(UnsafeRowView::new(b.as_ptr(), size));
             }
-            uleft.push(ab);
+            uleft_allocs.push(ab);
         }
-        pbi.mt_sync.mt_uleft_col = Some(uleft.into_boxed_slice());
+        pbi.mt_sync.mt_uleft_col = Some(uleft_views.into_boxed_slice());
+        pbi.mt_sync.mt_uleft_col_allocs = Some(uleft_allocs.into_boxed_slice());
         
         // mt_vleft_col
-        let mut vleft = Vec::with_capacity(mb_rows_usize);
+        let mut vleft_allocs = Vec::with_capacity(mb_rows_usize);
+        let mut vleft_views = Vec::with_capacity(mb_rows_usize);
         for _ in 0..mb_rows_usize {
             let size = 8usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(32, size);
@@ -1315,10 +1346,12 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
+                vleft_views.push(UnsafeRowView::new(b.as_ptr(), size));
             }
-            vleft.push(ab);
+            vleft_allocs.push(ab);
         }
-        pbi.mt_sync.mt_vleft_col = Some(vleft.into_boxed_slice());
+        pbi.mt_sync.mt_vleft_col = Some(vleft_views.into_boxed_slice());
+        pbi.mt_sync.mt_vleft_col_allocs = Some(vleft_allocs.into_boxed_slice());
     }
 }
 pub fn vp8_decoder_remove_threads(pbi: &mut VP8D_COMP) {
@@ -1364,35 +1397,35 @@ pub fn vp8mt_decode_mb_rows(
     let mut filter_branch = false;
     
     if filter_level != 0 {
-        let yabove_ab = pbi.mt_sync.mt_yabove_row.as_mut().unwrap()[0].as_mut().unwrap();
+        let yabove_ab = pbi.mt_sync.mt_yabove_row.as_ref().unwrap()[0];
         let len = (y_width + 5) as usize;
-        let uabove_ab = pbi.mt_sync.mt_uabove_row.as_mut().unwrap()[0].as_mut().unwrap();
+        let uabove_ab = pbi.mt_sync.mt_uabove_row.as_ref().unwrap()[0];
         let len_uv = ((y_width >> 1) + 5) as usize;
-        let vabove_ab = pbi.mt_sync.mt_vabove_row.as_mut().unwrap()[0].as_mut().unwrap();
+        let vabove_ab = pbi.mt_sync.mt_vabove_row.as_ref().unwrap()[0];
         
-        yabove_ab.as_slice_mut()[31..31+len].fill(127);
-        uabove_ab.as_slice_mut()[15..15+len_uv].fill(127);
-        vabove_ab.as_slice_mut()[15..15+len_uv].fill(127);
+        unsafe { yabove_ab.as_slice_mut(31, len) }.fill(127);
+        unsafe { uabove_ab.as_slice_mut(15, len_uv) }.fill(127);
+        unsafe { vabove_ab.as_slice_mut(15, len_uv) }.fill(127);
         
         j = 1;
         while j < pc_ref.mb_rows {
-            let yabove_ab = pbi.mt_sync.mt_yabove_row.as_mut().unwrap()[j as usize].as_mut().unwrap();
-            let uabove_ab = pbi.mt_sync.mt_uabove_row.as_mut().unwrap()[j as usize].as_mut().unwrap();
-            let vabove_ab = pbi.mt_sync.mt_vabove_row.as_mut().unwrap()[j as usize].as_mut().unwrap();
-            yabove_ab.as_slice_mut()[31] = 129;
-            uabove_ab.as_slice_mut()[15] = 129;
-            vabove_ab.as_slice_mut()[15] = 129;
+            let yabove_ab = pbi.mt_sync.mt_yabove_row.as_ref().unwrap()[j as usize];
+            let uabove_ab = pbi.mt_sync.mt_uabove_row.as_ref().unwrap()[j as usize];
+            let vabove_ab = pbi.mt_sync.mt_vabove_row.as_ref().unwrap()[j as usize];
+            unsafe { yabove_ab.as_slice_mut(31, 1)[0] = 129; }
+            unsafe { uabove_ab.as_slice_mut(15, 1)[0] = 129; }
+            unsafe { vabove_ab.as_slice_mut(15, 1)[0] = 129; }
             j += 1;
         }
         
         j = 0;
         while j < pc_ref.mb_rows {
-            let yleft_ab = pbi.mt_sync.mt_yleft_col.as_mut().unwrap()[j as usize].as_mut().unwrap();
-            let uleft_ab = pbi.mt_sync.mt_uleft_col.as_mut().unwrap()[j as usize].as_mut().unwrap();
-            let vleft_ab = pbi.mt_sync.mt_vleft_col.as_mut().unwrap()[j as usize].as_mut().unwrap();
-            yleft_ab.as_slice_mut()[..16].fill(129);
-            uleft_ab.as_slice_mut()[..8].fill(129);
-            vleft_ab.as_slice_mut()[..8].fill(129);
+            let yleft_ab = pbi.mt_sync.mt_yleft_col.as_ref().unwrap()[j as usize];
+            let uleft_ab = pbi.mt_sync.mt_uleft_col.as_ref().unwrap()[j as usize];
+            let vleft_ab = pbi.mt_sync.mt_vleft_col.as_ref().unwrap()[j as usize];
+            unsafe { yleft_ab.as_slice_mut(0, 16) }.fill(129);
+            unsafe { uleft_ab.as_slice_mut(0, 8) }.fill(129);
+            unsafe { vleft_ab.as_slice_mut(0, 8) }.fill(129);
             j += 1;
         }
         filter_branch = true;

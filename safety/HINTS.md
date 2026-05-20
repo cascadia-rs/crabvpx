@@ -2,6 +2,14 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Transitioned Row & Left Sync Buffers to UnsafeRowView (Milestone 2 - Unit 3, 4, & 5) (types.rs, threading.rs)**:
+  - Refactored `VP8D_MT_SYNC` in `src/vp8/common/types.rs` to hold thread-safe `UnsafeRowView` slices for above/left rows (`mt_yabove_row`, `mt_uabove_row`, etc.) instead of monolithic `Option<AlignedBox>` buffers.
+  - Retained heap memory ownership securely in newly introduced `mt_yabove_row_allocs` etc. fields on `VP8D_MT_SYNC` to guarantee leak-free dynamic lifecycle management matching the frame buffer allocation pattern.
+  - Updated buffer allocation paths `vp8mt_alloc_temp_buffers` and deallocation paths `vp8mt_de_alloc_temp_buffers` in `src/vp8/decoder/threading.rs` to populate and clear these disjoint structures correctly.
+  - Refactored all read/write access sites, row resets, and column boundary synchronization in `mt_decode_mb_rows` to utilize clean, scoped `UnsafeRowView::as_slice` and `as_slice_mut` projection slices.
+  - Enforced explicit lifetime parameter decoupling (`'a`) on the `UnsafeRowView` projection methods to prevent compiler borrow checker conflicts with local copies.
+  - Confirmed that all 1160 differential test frames continue to match the C oracle perfectly with 100% bit-identical execution.
+
 * **Implemented UnsafeRowView Abstraction (Milestone 1 - Unit 1 & 2) (types.rs)**:
   - Defined `UnsafeRowView` struct in `src/vp8/common/types.rs` wrapping a raw pointer and a length.
   - Manually implemented `Send` and `Sync` for `UnsafeRowView` to allow thread-safe transfer and sharing across macroblock decoding threads.
