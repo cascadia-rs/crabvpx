@@ -851,7 +851,7 @@ pub type VP8_BD_VALUE = size_t;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vp8_reader {
-    pub user_buffer: *const [u8],
+    pub offset: usize,
     pub value: VP8_BD_VALUE,
     pub count: ::core::ffi::c_int,
     pub range: ::core::ffi::c_uint,
@@ -862,7 +862,7 @@ pub struct vp8_reader {
 impl Default for vp8_reader {
     fn default() -> Self {
         Self {
-            user_buffer: core::ptr::slice_from_raw_parts(core::ptr::null(), 0),
+            offset: 0,
             value: 0,
             count: 0,
             range: 0,

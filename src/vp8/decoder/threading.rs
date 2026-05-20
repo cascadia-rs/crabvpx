@@ -545,6 +545,7 @@ fn mt_decode_mb_rows(
     xd: &mut MACROBLOCKD,
     start_mb_row: ::core::ffi::c_int,
     decoding_thread_count: ::core::ffi::c_uint,
+    fragments: FRAGMENT_DATA,
 ) {
     let mut mb_row: ::core::ffi::c_int = 0;
     let pc = common;
@@ -605,8 +606,8 @@ fn mt_decode_mb_rows(
         last_mb_row = mb_row;
         xd.current_bc_idx = (mb_row % num_part) as usize;
         let bc_idx = xd.current_bc_idx;
-        
-        let mut safe_decoder = crate::vp8::decoder::dboolhuff::SafeBoolDecoder::from_bool_decoder(&mbc[bc_idx]);
+        let slice = fragments.get_slice(bc_idx + 1).unwrap_or(&[]);
+        let mut safe_decoder = crate::vp8::decoder::dboolhuff::SafeBoolDecoder::from_bool_decoder(&mbc[bc_idx], slice);
         
         let mt_current_mb_col = mt_sync.mt_current_mb_col.as_ref().unwrap();
         let last_row_current_mb_col: &vpx_atomic_int = if mb_row > 0 {
@@ -1077,8 +1078,9 @@ fn thread_decoding_proc(data: DECODETHREAD_DATA) {
         } else {
             xd.error_info.setjmp = 1;
             let decoding_thread_count = pbi.decoding_thread_count;
+            let fragments = pbi.fragments;
             let (common, mbc, mt_sync) = pbi.split_mt_mut();
-            mt_decode_mb_rows(common, mbc, mt_sync, xd, ithread + 1, decoding_thread_count);
+            mt_decode_mb_rows(common, mbc, mt_sync, xd, ithread + 1, decoding_thread_count, fragments);
             xd.error_info.setjmp = 0;
         }
     }
@@ -1420,10 +1422,11 @@ pub fn vp8mt_decode_mb_rows(
     xd.error_info.setjmp = 1;
     
     let decoding_thread_count = pbi.decoding_thread_count;
+    let fragments = pbi.fragments;
     let common = &mut pbi.common;
     let mbc = &mut pbi.mbc;
     
-    mt_decode_mb_rows(common, mbc, mt_sync, xd, 0, decoding_thread_count);
+    mt_decode_mb_rows(common, mbc, mt_sync, xd, 0, decoding_thread_count, fragments);
     
     xd.error_info.setjmp = 0;
     

@@ -2,6 +2,16 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Safe Boolean Decoder Buffer & Offset-Based Tracking (dboolhuff.rs, types.rs, decodeframe.rs, threading.rs)**:
+  - Refactored `BOOL_DECODER` (alias `vp8_reader`) in `src/vp8/common/types.rs` to completely eliminate the `user_buffer: *const [u8]` raw pointer.
+  - Introduced `offset: usize` field in `vp8_reader` to track the current reading position safely without needing raw pointers.
+  - Refactored `SafeBoolDecoder::from_bool_decoder` in `src/vp8/decoder/dboolhuff.rs` to accept the partition slice as a safe Rust reference `&'a [u8]`, eliminating the `unsafe` block that reconstructed the slice from the raw pointer!
+  - Updated `SafeBoolDecoder::update_bool_decoder` to write back the new `offset` to the `BOOL_DECODER` rather than mutating a raw pointer.
+  - Propagated these changes to single-threaded decoding in `src/vp8/decoder/decodeframe.rs` and multithreaded decoding in `src/vp8/decoder/threading.rs`.
+  - Obtained the appropriate partition slices dynamically from `pbi.fragments` (which is updated per-frame via FFI and already has a safe `get_slice` helper).
+  - This successfully eliminated **1 unsafe block** globally, reducing the remaining unsafe count from 137 to 136.
+  - Verified 100% bit-identical correctness across all 1160 differential test frames.
+
 * **Safe Frame Buffer Deallocation & 100% Safe yv12config.rs (yv12config.rs, types.rs, alloccommon.rs)**:
   - Refactored `YV12_BUFFER_CONFIG` memory lifecycle to use Rust's standard ownership model.
   - Added `yv12_fb_allocs: [Option<AlignedBox>; 4]` and `temp_scale_frame_alloc: Option<AlignedBox>` to `VP8Common` in `src/vp8/common/types.rs` to serve as the single source of truth for frame buffer ownership.

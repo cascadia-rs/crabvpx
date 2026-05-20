@@ -638,11 +638,16 @@ fn yv12_extend_frame_left_right(
     }
 }
 fn decode_mb_rows(pbi: &mut VP8D_COMP) {
+    let fragments = pbi.fragments;
     let (xd, pc, mbc) = pbi.split_mut();
     let num_active_partitions = (1 as ::core::ffi::c_int) << pc.multi_token_partition as ::core::ffi::c_uint;
     let mut safe_decoders: Vec<SafeBoolDecoder> = mbc[0..num_active_partitions as usize]
         .iter()
-        .map(|bc| SafeBoolDecoder::from_bool_decoder(bc))
+        .enumerate()
+        .map(|(i, bc)| {
+            let slice = fragments.get_slice(i + 1).unwrap_or(&[]);
+            SafeBoolDecoder::from_bool_decoder(bc, slice)
+        })
         .collect();
     let mut ibc: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     let mut num_part: ::core::ffi::c_int = num_active_partitions;
@@ -1191,8 +1196,12 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
     
     init_frame(pbi);
     let size = data_slice.len() - data_idx;
+    let active_data = if size != 0 {
+        &data_slice[data_idx .. data_idx + size]
+    } else {
+        &[]
+    };
     if size != 0 {
-        let active_data = &data_slice[data_idx .. data_idx + size];
         crate::vp8::decoder::dboolhuff::vp8dx_start_decode_safe(
             &mut pbi.mbc[8],
             active_data,
@@ -1201,7 +1210,7 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         );
     }
     
-    let mut safe_decoder = SafeBoolDecoder::from_bool_decoder(&pbi.mbc[8]);
+    let mut safe_decoder = SafeBoolDecoder::from_bool_decoder(&pbi.mbc[8], active_data);
 
     
     if pbi.common.frame_type as ::core::ffi::c_uint
