@@ -1156,7 +1156,6 @@ pub fn vp8_decoder_create_threads(pbi: &mut VP8D_COMP) {
         }
     }
 }
-#[unsafe(no_mangle)]
 pub fn vp8mt_de_alloc_temp_buffers(
     pbi: &mut VP8D_COMP,
     _mb_rows: ::core::ffi::c_int,
@@ -1169,7 +1168,6 @@ pub fn vp8mt_de_alloc_temp_buffers(
     pbi.mt_sync.mt_uleft_col = None;
     pbi.mt_sync.mt_vleft_col = None;
 }
-#[unsafe(no_mangle)]
 pub fn vp8mt_alloc_temp_buffers(
     pbi: &mut VP8D_COMP,
     mut width: ::core::ffi::c_int,

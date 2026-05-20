@@ -9,8 +9,6 @@ unsafe extern "C" {
         __c: ::core::ffi::c_int,
         __len: size_t,
     ) -> *mut ::core::ffi::c_void;
-    fn vpx_dsp_rtcd();
-    fn vpx_scale_rtcd();
     fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
 
 
@@ -19,16 +17,15 @@ unsafe extern "C" {
         oxcf: *mut VP8D_CONFIG,
     ) -> ::core::ffi::c_int;
     fn vp8_remove_decoder_instances(fb: *mut frame_buffers) -> ::core::ffi::c_int;
-    fn vp8mt_alloc_temp_buffers(
-        pbi: *mut VP8D_COMP,
-        width: ::core::ffi::c_int,
-        prev_mb_rows: ::core::ffi::c_int,
-    );
-    fn vp8mt_de_alloc_temp_buffers(pbi: *mut VP8D_COMP, mb_rows: ::core::ffi::c_int);
 }
 use crate::vp8::decoder::onyxd_if::vp8dx_receive_compressed_data_safe;
-use crate::vp8::decoder::threading::{vp8_decoder_create_threads, vp8_decoder_remove_threads};
+use crate::vp8::decoder::threading::{
+    vp8_decoder_create_threads, vp8_decoder_remove_threads, vp8mt_alloc_temp_buffers,
+    vp8mt_de_alloc_temp_buffers,
+};
 use crate::vp8::common::rtcd::vp8_rtcd;
+use crate::vpx_dsp::vpx_dsp_rtcd::vpx_dsp_rtcd;
+use crate::vpx_scale::vpx_scale_rtcd::vpx_scale_rtcd;
 pub type int64_t = i64;
 pub type size_t = usize;
 pub type uint8_t = u8;
@@ -895,7 +892,7 @@ unsafe extern "C" fn vp8_decode(
         (*pbi_0).max_threads = (*ctx).cfg.threads as ::core::ffi::c_int;
         vp8_decoder_create_threads(&mut *pbi_0);
         if vpx_atomic_load_acquire(&(*pbi_0).b_multithreaded_rd) != 0 {
-            vp8mt_alloc_temp_buffers(pbi_0, (*pc).Width, (*pc).mb_rows);
+            vp8mt_alloc_temp_buffers(&mut *pbi_0, (*pc).Width, (*pc).mb_rows);
         }
         (*ctx).restart_threads = 0 as ::core::ffi::c_int;
         (*pbi_0).common.error.setjmp = 0 as ::core::ffi::c_int;
@@ -969,7 +966,7 @@ unsafe extern "C" fn vp8_decode(
                 (*pc_0).error.trigger(VPX_CODEC_CORRUPT_FRAME, "Invalid frame height");
             }
             if vpx_atomic_load_acquire(&(*pbi_1).b_multithreaded_rd) != 0 {
-                vp8mt_de_alloc_temp_buffers(pbi_1, (*pc_0).mb_rows);
+                vp8mt_de_alloc_temp_buffers(&mut *pbi_1, (*pc_0).mb_rows);
             }
             if vp8_alloc_frame_buffers(&mut *pc_0, (*pc_0).Width, (*pc_0).Height) != 0 {
                 (*pc_0).error.trigger(VPX_CODEC_MEM_ERROR, "Failed to allocate frame buffers");
@@ -996,7 +993,7 @@ unsafe extern "C" fn vp8_decode(
             }
             vp8_build_block_doffsets(&mut (*pbi_1).mb);
             if vpx_atomic_load_acquire(&(*pbi_1).b_multithreaded_rd) != 0 {
-                vp8mt_alloc_temp_buffers(pbi_1, (*pc_0).Width, 0 as ::core::ffi::c_int);
+                vp8mt_alloc_temp_buffers(&mut *pbi_1, (*pc_0).Width, 0 as ::core::ffi::c_int);
             }
             (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
             (*pbi_1).common.fb_idx_ref_cnt[0 as ::core::ffi::c_int as usize] =

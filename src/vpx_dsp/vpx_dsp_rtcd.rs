@@ -8,7 +8,6 @@ fn setup_rtcd_internal() {
     let mut _flags: ::core::ffi::c_int = arm_cpu_caps();
 }
 
-#[unsafe(no_mangle)]
-pub extern "C" fn vpx_dsp_rtcd() {
+pub fn vpx_dsp_rtcd() {
     INIT.call_once(setup_rtcd_internal);
 }

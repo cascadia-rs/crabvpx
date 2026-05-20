@@ -2,6 +2,14 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Safe Threading Temp Buffers & RTCD no_mangle Elimination (threading.rs, vp8_dx_iface.rs, vpx_dsp_rtcd.rs, vpx_scale_rtcd.rs)**:
+  - Refactored `vp8mt_alloc_temp_buffers` and `vp8mt_de_alloc_temp_buffers` in `src/vp8/decoder/threading.rs` to remove obsolete `#[unsafe(no_mangle)]` attributes.
+  - Refactored `vpx_dsp_rtcd` in `src/vpx_dsp/vpx_dsp_rtcd.rs` and `vpx_scale_rtcd` in `src/vpx_scale/vpx_scale_rtcd.rs` to be safe, standard Rust functions, removing `#[unsafe(no_mangle)]` and `pub extern "C"`.
+  - Updated `src/vp8/vp8_dx_iface.rs` to import these functions safely and removed their FFI declarations from the `unsafe extern "C"` block.
+  - Updated call sites in `vp8_dx_iface.rs` to pass safe mutable references `&mut *pbi` instead of raw pointers.
+  - This successfully eliminated **4 unsafe occurrences/keywords** globally, reducing the remaining unsafe count from 129 to 125.
+  - Verified 100% bit-identical correctness across all 1160 differential test frames.
+
 * **Safe RTCD Setup & no_mangle Elimination (rtcd.rs, vp8_dx_iface.rs)**:
   - Refactored `vp8_rtcd` in `src/vp8/common/rtcd.rs` to be a safe, standard Rust function, removing the obsolete C FFI export attributes `#[unsafe(no_mangle)]` and `extern "C"`.
   - This RTCD initialization function is only called internally within our Rust modules, so maintaining dynamic FFI linkage was completely unnecessary.
