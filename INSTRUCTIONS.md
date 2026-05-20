@@ -8,6 +8,7 @@ This project is strictly governed by TDD. You will not write the entire decoder 
 
 **Your Job** is to improve the decoder by removing one memory-unsafe block.  Once you have done this, stop.  If you uncover other bugs along the way, you may try to fix them or document them in an md file.  What you want to avoid is trying to fix every unsafe block after the one you start on; that's a rabbit hole since there are so many.  Remember that we will eventually must fix them all, so don't take hacky shortcuts that make it harder later on.  Make measurable progress, and stop.  When choosing something to fix, try to fix the "bigger" problems first.  We will, eventually, want actual neon intrinsics so we will have some unsafe wrappers there anyway.  Focus, instead, on high-level unsafeness around (for example) the top-level decoder interfaces.  Be careful not to simply code-golf things around without making meaningful progress.
 
+**IMPORTANT** There are several "SAFETY" comments near unsafe blocks.  These unsafe blocks SHOULD NOT BE REMOVED; they are to allow multithreaded performance!
 **IMPORTANT** NO HACKS!  We want a general-purpose decoder when we're doing; do  not hardcode things that are only specific to our test case!
 
 ## Current State
