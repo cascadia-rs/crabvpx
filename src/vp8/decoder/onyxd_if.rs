@@ -89,25 +89,24 @@ fn create_decompressor() -> Option<Box<VP8D_COMP>> {
     let mut pbi = std::mem::ManuallyDrop::new(pbi);
     let pbi_mut = &mut *pbi;
     
-    unsafe {
-        if setjmp(&raw mut pbi_mut.common.error.jmp as *mut ::core::ffi::c_int) != 0 {
-            let mut pbi_box = std::mem::ManuallyDrop::into_inner(pbi);
-            pbi_box.common.error.setjmp = 0;
-            return None;
-        }
-        pbi_mut.common.error.setjmp = 1;
-        vp8_create_common(&mut pbi_mut.common);
-        pbi_mut.common.current_video_frame = 0;
-        pbi_mut.ready_for_new_data = 1;
-        vp8cx_init_de_quantizer(pbi_mut);
-        vp8_loop_filter_init(&mut pbi_mut.common);
-        pbi_mut.common.error.setjmp = 0;
-        pbi_mut.ec_enabled = 0;
-        pbi_mut.ec_active = 0;
-        pbi_mut.decoded_key_frame = 0;
-        pbi_mut.independent_partitions = 0;
-        vp8_setup_block_dptrs(&mut pbi_mut.mb);
+    let setjmp_val = unsafe { setjmp(&raw mut pbi_mut.common.error.jmp as *mut ::core::ffi::c_int) };
+    if setjmp_val != 0 {
+        let mut pbi_box = std::mem::ManuallyDrop::into_inner(pbi);
+        pbi_box.common.error.setjmp = 0;
+        return None;
     }
+    pbi_mut.common.error.setjmp = 1;
+    vp8_create_common(&mut pbi_mut.common);
+    pbi_mut.common.current_video_frame = 0;
+    pbi_mut.ready_for_new_data = 1;
+    vp8cx_init_de_quantizer(pbi_mut);
+    vp8_loop_filter_init(&mut pbi_mut.common);
+    pbi_mut.common.error.setjmp = 0;
+    pbi_mut.ec_enabled = 0;
+    pbi_mut.ec_active = 0;
+    pbi_mut.decoded_key_frame = 0;
+    pbi_mut.independent_partitions = 0;
+    vp8_setup_block_dptrs(&mut pbi_mut.mb);
     INIT.call_once(initialize_dec);
     Some(std::mem::ManuallyDrop::into_inner(pbi))
 }
