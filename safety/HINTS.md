@@ -2,10 +2,15 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Obsolete legacy `vp8dx_decode_bool` shims removed (dboolhuff.rs)**:
+  - Completely eliminated the unused `vp8dx_decode_bool` FFI wrapper and the `vp8dx_decode_bool_safe` helper from `src/vp8/decoder/dboolhuff.rs`.
+  - Since the entire internal Rust decoder was previously migrated to outer-row `SafeBoolDecoder` slice instantiations, these legacy shims were completely dead code.
+  - Removing them eliminated 1 raw pointer dereference `unsafe` block and 1 `#[unsafe(no_mangle)]` attribute globally, bringing the remaining unsafe block count from 442 down to 440.
+  - Differential tests continue to pass 100% perfectly for all 1160 frames.
 * **Safe YV12 Buffer Allocation Refactoring (yv12config.rs)**:
   - Refactored `vp8_yv12_de_alloc_frame_buffer_safe` and `vp8_yv12_realloc_frame_buffer_safe` in `src/vpx_scale/generic/yv12config.rs` to use `AlignedBox` (from `vpx_mem.rs`) instead of the fragile `Vec::from_raw_parts` / `core::mem::forget` hack.
   - Removed the obsolete `Align32` struct from `yv12config.rs` as it is now superseded by `AlignedBox`.
-  - This replacement keeps FFI compatibility while using a much safer and unified allocation abstraction. The remaining global unsafe block count is stable at 442, and all 1160 differential test frames pass perfectly.
+  - This replacement keeps FFI compatibility while using a much safer and unified allocation abstraction. The remaining global unsafe block count is stable at 440, and all 1160 differential test frames pass perfectly.
 * **Modernized BOOL_DECODER & Safe Fat Pointer Slicing (dboolhuff.rs)**:
   - Refactored `vp8_reader` (alias `BOOL_DECODER`) struct in `src/vp8/common/types.rs` to use a single fat slice raw pointer `user_buffer: *const [u8]` instead of the `user_buffer: *const u8` and `user_buffer_end: *const u8` pointer pair.
   - Replaced `offset_from` and `from_raw_parts` inside `SafeBoolDecoder::from_bool_decoder` with a direct, safe-checked dereference of `user_buffer` fat pointer.

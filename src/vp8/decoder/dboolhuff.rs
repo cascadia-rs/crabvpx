@@ -179,28 +179,3 @@ impl<'a> SafeBoolDecoder<'a> {
         z
     }
 }
-
-pub fn vp8dx_decode_bool_safe(
-    br: &mut BOOL_DECODER,
-    probability: i32,
-) -> i32 {
-    let mut safe_decoder = SafeBoolDecoder::from_bool_decoder(br);
-    let bit = safe_decoder.read_bool(probability);
-    safe_decoder.update_bool_decoder(br);
-    bit
-}
-
-#[unsafe(no_mangle)]
-pub extern "C" fn vp8dx_decode_bool(
-    br: *mut BOOL_DECODER,
-    probability: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
-    if br.is_null() {
-        return 0;
-    }
-    // SAFETY: br is not null.
-    let br_ref = unsafe { &mut *br };
-    vp8dx_decode_bool_safe(br_ref, probability)
-}
-
-
