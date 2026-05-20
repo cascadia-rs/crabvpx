@@ -1608,36 +1608,40 @@ pub fn vp8mt_decode_mb_rows(
     let mut filter_branch = false;
     
     if filter_level != 0 {
-        let yabove_ab = pbi.mt_sync.mt_yabove_row.as_ref().unwrap()[0];
-        let len = (y_width + 5) as usize;
-        let uabove_ab = pbi.mt_sync.mt_uabove_row.as_ref().unwrap()[0];
-        let len_uv = ((y_width >> 1) + 5) as usize;
-        let vabove_ab = pbi.mt_sync.mt_vabove_row.as_ref().unwrap()[0];
-        
-        unsafe { yabove_ab.as_slice_mut(31, len) }.fill(127);
-        unsafe { uabove_ab.as_slice_mut(15, len_uv) }.fill(127);
-        unsafe { vabove_ab.as_slice_mut(15, len_uv) }.fill(127);
-        
-        j = 1;
-        while j < pc_ref.mb_rows {
-            let yabove_ab = pbi.mt_sync.mt_yabove_row.as_ref().unwrap()[j as usize];
-            let uabove_ab = pbi.mt_sync.mt_uabove_row.as_ref().unwrap()[j as usize];
-            let vabove_ab = pbi.mt_sync.mt_vabove_row.as_ref().unwrap()[j as usize];
-            unsafe { yabove_ab.as_slice_mut(31, 1)[0] = 129; }
-            unsafe { uabove_ab.as_slice_mut(15, 1)[0] = 129; }
-            unsafe { vabove_ab.as_slice_mut(15, 1)[0] = 129; }
-            j += 1;
-        }
-        
-        j = 0;
-        while j < pc_ref.mb_rows {
-            let yleft_ab = pbi.mt_sync.mt_yleft_col.as_ref().unwrap()[j as usize];
-            let uleft_ab = pbi.mt_sync.mt_uleft_col.as_ref().unwrap()[j as usize];
-            let vleft_ab = pbi.mt_sync.mt_vleft_col.as_ref().unwrap()[j as usize];
-            unsafe { yleft_ab.as_slice_mut(0, 16) }.fill(129);
-            unsafe { uleft_ab.as_slice_mut(0, 8) }.fill(129);
-            unsafe { vleft_ab.as_slice_mut(0, 8) }.fill(129);
-            j += 1;
+        // SAFETY: This setup phase is strictly single-threaded before worker threads are signaled.
+        // We can safely project mutable slices from the row synchronizers.
+        unsafe {
+            let yabove_ab = pbi.mt_sync.mt_yabove_row.as_ref().unwrap()[0];
+            let len = (y_width + 5) as usize;
+            let uabove_ab = pbi.mt_sync.mt_uabove_row.as_ref().unwrap()[0];
+            let len_uv = ((y_width >> 1) + 5) as usize;
+            let vabove_ab = pbi.mt_sync.mt_vabove_row.as_ref().unwrap()[0];
+
+            yabove_ab.as_slice_mut(31, len).fill(127);
+            uabove_ab.as_slice_mut(15, len_uv).fill(127);
+            vabove_ab.as_slice_mut(15, len_uv).fill(127);
+
+            j = 1;
+            while j < pc_ref.mb_rows {
+                let yabove_ab = pbi.mt_sync.mt_yabove_row.as_ref().unwrap()[j as usize];
+                let uabove_ab = pbi.mt_sync.mt_uabove_row.as_ref().unwrap()[j as usize];
+                let vabove_ab = pbi.mt_sync.mt_vabove_row.as_ref().unwrap()[j as usize];
+                yabove_ab.as_slice_mut(31, 1)[0] = 129;
+                uabove_ab.as_slice_mut(15, 1)[0] = 129;
+                vabove_ab.as_slice_mut(15, 1)[0] = 129;
+                j += 1;
+            }
+
+            j = 0;
+            while j < pc_ref.mb_rows {
+                let yleft_ab = pbi.mt_sync.mt_yleft_col.as_ref().unwrap()[j as usize];
+                let uleft_ab = pbi.mt_sync.mt_uleft_col.as_ref().unwrap()[j as usize];
+                let vleft_ab = pbi.mt_sync.mt_vleft_col.as_ref().unwrap()[j as usize];
+                yleft_ab.as_slice_mut(0, 16).fill(129);
+                uleft_ab.as_slice_mut(0, 8).fill(129);
+                vleft_ab.as_slice_mut(0, 8).fill(129);
+                j += 1;
+            }
         }
         filter_branch = true;
     }
