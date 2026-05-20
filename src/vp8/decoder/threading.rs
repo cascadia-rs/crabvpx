@@ -1330,7 +1330,7 @@ fn thread_decoding_proc(
         }
     }
 }
-pub fn vp8_decoder_create_threads(pbi: &mut VP8D_COMP) {
+pub fn vp8_decoder_create_threads(pbi: &mut VP8D_COMP) -> Result<(), &'static str> {
     let pbi_raw = SendPtr(pbi as *const VP8D_COMP);
     let mut core_count: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     let mut ithread: ::core::ffi::c_uint = 0;
@@ -1396,12 +1396,10 @@ pub fn vp8_decoder_create_threads(pbi: &mut VP8D_COMP) {
             if pbi.allocated_decoding_thread_count == 0 as ::core::ffi::c_int {
                 pbi.mt_sync.h_event_end_decoding = None;
             }
-            pbi.common.error.trigger(
-                VPX_CODEC_MEM_ERROR,
-                "Failed to create threads",
-            );
+            return Err("Failed to create threads");
         }
     }
+    Ok(())
 }
 pub fn vp8mt_de_alloc_temp_buffers(
     pbi: &mut VP8D_COMP,

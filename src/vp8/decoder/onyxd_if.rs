@@ -4,9 +4,7 @@ use std::sync::Once;
 use crate::vpx_dsp::vpx_dsp_rtcd::vpx_dsp_rtcd;
 use crate::vp8::common::reconintra::vp8_init_intra_predictors;
 
-unsafe extern "C" {
-    fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
-}
+// setjmp import removed
 use crate::vp8::decoder::threading::{vp8_decoder_create_threads, vp8_decoder_remove_threads};
 pub use crate::vp8::common::alloccommon::{vp8_create_common, vp8_remove_common};
 pub use crate::vp8::common::types::*;
@@ -388,17 +386,23 @@ pub fn vp8_create_decoder_instances(
         None => return VPX_CODEC_ERROR as ::core::ffi::c_int,
     };
     pbi.max_threads = oxcf.max_threads;
-    let setjmp_val = unsafe { setjmp(&raw mut pbi.common.error.jmp as *mut ::core::ffi::c_int) };
-    if setjmp_val != 0 {
-        pbi.common.error.setjmp = 0;
+    
+    if let Err(detail) = vp8_decoder_create_threads(&mut pbi) {
+        pbi.common.error.error_code = VPX_CODEC_MEM_ERROR;
+        pbi.common.error.has_detail = 1;
+        let bytes = detail.as_bytes();
+        let len = std::cmp::min(bytes.len(), pbi.common.error.detail.len() - 1);
+        for i in 0..len {
+            pbi.common.error.detail[i] = bytes[i] as ::core::ffi::c_char;
+        }
+        pbi.common.error.detail[len] = 0;
+        
         vp8_decoder_remove_threads(&mut pbi);
         remove_decompressor(pbi);
         fb.pbi = [::core::ptr::null_mut(); 32];
         return VPX_CODEC_ERROR as ::core::ffi::c_int;
     }
-    pbi.common.error.setjmp = 1;
-    vp8_decoder_create_threads(&mut pbi);
-    pbi.common.error.setjmp = 0;
+    
     fb.pbi[0] = Box::into_raw(pbi);
     return VPX_CODEC_OK as ::core::ffi::c_int;
 }

@@ -2,6 +2,11 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Removed Obsolete setjmp FFI Error Handling in Thread Creation (onyxd_if.rs & threading.rs)**:
+  - Refactored `vp8_decoder_create_threads` in `src/vp8/decoder/threading.rs` to return an idiomatic safe Rust `Result<(), &'static str>` instead of calling `.error.trigger` which would trigger a `longjmp` call.
+  - Removed the `setjmp` FFI import declaration and the `unsafe { setjmp(...) }` block from `vp8_create_decoder_instances` in `src/vp8/decoder/onyxd_if.rs`, replacing it with clean safe Rust error checking using the returned `Result`.
+  - This successfully eliminated **2 unsafe blocks/keywords** globally, reducing the remaining unsafe count from 143 to 141!
+  - Verified that compilation compiles perfectly and all 1160 differential test frames continue to pass with 100% bit-identical correctness.
 * **Consolidated Redundant Unsafe Blocks in Setup Phase of Multithreaded Row Decoding (threading.rs)**:
   - Audited the setup phase of `vp8mt_decode_mb_rows` and identified that since this setup phase is strictly single-threaded and runs before any worker threads are signaled, it is 100% safe from concurrent race conditions.
   - Wrapped the entire single-threaded initialization block inside a single `unsafe` block annotated with a strict SAFETY comment.
