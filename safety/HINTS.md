@@ -2,6 +2,12 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Cleaned up Unused Transpiled ARM Rust Files (src/vp8/common/arm/)**:
+  - Audited and completely removed 14 unused transpiled Rust files in `src/vp8/common/arm/` (and its `neon` subdirectory).
+  - These files were not included in the module tree (`src/lib.rs`) and thus not compiled. The decoder instead compiles the C versions of these NEON helpers directly via `build.rs`.
+  - Removing these dead files successfully eliminated **8 unsafe keywords/blocks** that were bloating the unsafe tracker metrics, reducing the remaining unsafe count from 146 to 138.
+  - Verified that compilation and 100% bit-identical differential tests (`compare.py`) continue to pass successfully.
+
 * **Removed Obsolete FFI Attributes in arm_cpu_caps (aarch64_cpudetect.rs)**:
   - Removed obsolete `#[unsafe(no_mangle)]` and `extern "C"` from `arm_cpu_caps` in `src/vpx_ports/aarch64_cpudetect.rs`.
   - This function is only called internally from Rust (`rtcd.rs`, `vpx_dsp_rtcd.rs`, `vpx_scale_rtcd.rs`) via standard Rust imports, so FFI linkage was completely unnecessary.
@@ -238,5 +244,5 @@ See remaining_refactoring_work_items.md for an overview of particular unsafe blo
    - **Audit other dead tables in `src/vp8/common/entropy.rs`**: `vp8_coef_encodings` is confirmed completely unused in the decoder and ready to be removed.
    - [x] **Audit `yv12config.rs` for unused FFI wrappers**: Identified and removed three unused C-ABI wrappers (`vp8_yv12_de_alloc_frame_buffer`, `vp8_yv12_realloc_frame_buffer`, `vp8_yv12_alloc_frame_buffer`), eliminating 3 unsafe keywords. (Completed!)
     - [x] **Remove obsolete `#[unsafe(no_mangle)]` from `arm_cpu_caps` in `src/vpx_ports/aarch64_cpudetect.rs`**: Removed the attribute and `extern "C"` to eliminate 1 unsafe keyword globally, as it is only called internally from Rust. (Completed!)
-    - **Clean up unused transpiled Rust files in `src/vp8/common/arm/`**: There are 14 `.rs` files in `src/vp8/common/arm/` (and subdirectories) that are not declared in `src/lib.rs` and thus not compiled. They contain many `unsafe` keywords that bloat the `unsafe` count. They should be audited and deleted if indeed redundant (since we compile the C versions directly via `build.rs`).
+    - [x] **Clean up unused transpiled Rust files in `src/vp8/common/arm/`**: Identified and completely removed 14 unused transpiled Rust files in `src/vp8/common/arm/` and its `neon` subdirectory. This successfully eliminated **8 unsafe keywords/blocks** globally, reducing the remaining unsafe count to 138, as these files are redundant (we compile the C versions directly via `build.rs`). (Completed!)
 
