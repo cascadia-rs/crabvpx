@@ -956,6 +956,22 @@ pub struct FRAGMENT_DATA {
     pub sizes: [::core::ffi::c_uint; 9],
 }
 
+impl FRAGMENT_DATA {
+    pub fn get_slice(&self, idx: usize) -> Option<&[u8]> {
+        if idx >= 9 || idx >= self.count as usize {
+            return None;
+        }
+        let ptr = self.ptrs[idx];
+        let size = self.sizes[idx] as usize;
+        if ptr.is_null() {
+            return Some(&[]);
+        }
+        unsafe {
+            Some(core::slice::from_raw_parts(ptr, size))
+        }
+    }
+}
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VP8D_CONFIG {

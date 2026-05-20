@@ -1379,42 +1379,41 @@ pub fn vp8mt_decode_mb_rows(
 
     let h_event_start_decoding = pbi.mt_sync.h_event_start_decoding.as_ref().unwrap();
 
-    unsafe {
+    i = 0;
+    while i < pbi.decoding_thread_count {
+        h_event_start_decoding[i as usize].signal();
+        i = i.wrapping_add(1);
+    }
+    
+    let xd = &mut pbi.mb;
+    let mt_sync = &mut pbi.mt_sync;
+    
+    let setjmp_res = unsafe { setjmp(&raw mut xd.error_info.jmp as *mut ::core::ffi::c_int) };
+    if setjmp_res != 0 {
+        xd.error_info.setjmp = 0;
+        xd.corrupted = 1;
         i = 0;
         while i < pbi.decoding_thread_count {
-            h_event_start_decoding[i as usize].signal();
+            mt_sync.h_event_end_decoding.as_ref().unwrap().wait();
             i = i.wrapping_add(1);
         }
-        
-        let xd = &mut pbi.mb;
-        let setjmp_res = setjmp(&raw mut xd.error_info.jmp as *mut ::core::ffi::c_int);
-        if setjmp_res != 0 {
-            xd.error_info.setjmp = 0;
-            xd.corrupted = 1;
-            i = 0;
-            while i < pbi.decoding_thread_count {
-                pbi.mt_sync.h_event_end_decoding.as_ref().unwrap().wait();
-                i = i.wrapping_add(1);
-            }
-            return -1;
-        }
-        
-        xd.error_info.setjmp = 1;
-        
-        let decoding_thread_count = pbi.decoding_thread_count;
-        let common = &mut pbi.common;
-        let mbc = &mut pbi.mbc;
-        let mt_sync = &mut pbi.mt_sync;
-        
-        mt_decode_mb_rows(common, mbc, mt_sync, xd, 0, decoding_thread_count);
-        
-        xd.error_info.setjmp = 0;
-        
-        i = 0;
-        while i < pbi.decoding_thread_count.wrapping_add(1) {
-            pbi.mt_sync.h_event_end_decoding.as_ref().unwrap().wait();
-            i = i.wrapping_add(1);
-        }
+        return -1;
+    }
+    
+    xd.error_info.setjmp = 1;
+    
+    let decoding_thread_count = pbi.decoding_thread_count;
+    let common = &mut pbi.common;
+    let mbc = &mut pbi.mbc;
+    
+    mt_decode_mb_rows(common, mbc, mt_sync, xd, 0, decoding_thread_count);
+    
+    xd.error_info.setjmp = 0;
+    
+    i = 0;
+    while i < pbi.decoding_thread_count.wrapping_add(1) {
+        mt_sync.h_event_end_decoding.as_ref().unwrap().wait();
+        i = i.wrapping_add(1);
     }
     
     0}

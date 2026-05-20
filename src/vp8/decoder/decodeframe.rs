@@ -968,23 +968,25 @@ fn setup_token_decoder(
 
     let mut fragment_idx = 0;
     
-    let orig_count = pbi.fragments.count as usize;
-    let orig_ptrs = pbi.fragments.ptrs;
-    let orig_sizes = pbi.fragments.sizes;
+    let fragments = pbi.fragments;
+    let orig_count = fragments.count as usize;
 
     let mut target_partition_idx = 0;
 
     while fragment_idx < orig_count && target_partition_idx < num_token_partitions + 1 {
-        let fragment_ptr = orig_ptrs[fragment_idx];
-        let fragment_size = orig_sizes[fragment_idx] as usize;
-        
-        if fragment_ptr.is_null() || fragment_size == 0 {
-            fragment_idx += 1;
-            continue;
-        }
-        
-        // SAFETY: We assume the original pointers and sizes passed from FFI/caller are valid.
-        let mut current_remaining = unsafe { core::slice::from_raw_parts(fragment_ptr, fragment_size) };
+        let mut current_remaining = match fragments.get_slice(fragment_idx) {
+            Some(slice) => {
+                if slice.is_empty() {
+                    fragment_idx += 1;
+                    continue;
+                }
+                slice
+            }
+            None => {
+                fragment_idx += 1;
+                continue;
+            }
+        };
         
         if fragment_idx == 0 {
             let ext_first_part_size = first_partition_length + 3 * (num_token_partitions - 1);
@@ -1112,16 +1114,8 @@ fn init_frame(pbi: &mut VP8D_COMP) {
     }
 }
 pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
-    let data: *const ::core::ffi::c_uchar = pbi.fragments.ptrs[0];
-    let data_sz: ::core::ffi::c_uint = pbi.fragments.sizes[0];
-    
-    let data_slice = unsafe {
-        if data.is_null() || data_sz == 0 {
-            &[]
-        } else {
-            core::slice::from_raw_parts(data, data_sz as usize)
-        }
-    };
+    let fragments = pbi.fragments;
+    let data_slice = fragments.get_slice(0).unwrap_or(&[]);
     
     let mut data_idx = 0;
     let mut first_partition_length_in_bytes: ::core::ffi::c_int = 0;
