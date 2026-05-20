@@ -367,8 +367,7 @@ fn mb_mode_mv_init(pbi: &mut VP8D_COMP, safe_decoder: &mut SafeBoolDecoder) {
         read_mvcontexts(safe_decoder, mvc);
     }
 }
-#[unsafe(no_mangle)]
-pub static vp8_sub_mv_ref_prob3: [[vp8_prob; 3]; 8] = [
+static vp8_sub_mv_ref_prob3: [[vp8_prob; 3]; 8] = [
     [
         147 as ::core::ffi::c_int as vp8_prob,
         136 as ::core::ffi::c_int as vp8_prob,

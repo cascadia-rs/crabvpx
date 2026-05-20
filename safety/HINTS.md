@@ -2,6 +2,11 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Obsolete #[unsafe(no_mangle)] Removal in Mode MVs (decodemv.rs)**:
+  - Removed obsolete `#[unsafe(no_mangle)]` and `pub` attributes from the static table `vp8_sub_mv_ref_prob3` in `src/vp8/decoder/decodemv.rs`.
+  - Since this table is only accessed internally via standard Rust imports (in `decodemv.rs` itself), the FFI export attribute and public visibility were completely obsolete.
+  - This successfully eliminated **1 unsafe keyword** globally, reducing the remaining unsafe count from 361 to 360.
+  - Verified 100% bit-identical correctness across all 1160 test frames.
 * **Dead Code & Unsafe Sync Impl Removal in Entropy (entropy.rs)**:
   - Identified `vp8_extra_bits` array and `vp8_extra_bit_struct` as completely unused dead code in the decoder (entropy decoding of categories is fully inlined/optimized in `detokenize.rs` using local tables).
   - Completely removed `vp8_extra_bits` static array, `vp8_extra_bit_struct` definition, `vp8_tree_p` type definition, and the `unsafe impl Sync for vp8_extra_bit_struct` from `src/vp8/common/entropy.rs`.
