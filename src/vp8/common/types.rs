@@ -1069,14 +1069,7 @@ impl Default for VP8Common {
 
 
 
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct DECODETHREAD_DATA {
-    pub ithread: ::core::ffi::c_int,
-    pub ptr1: *mut ::core::ffi::c_void,
-    pub ptr2: *mut ::core::ffi::c_void,
-}
-unsafe impl Send for DECODETHREAD_DATA {}
+
 
 #[derive(Copy, Clone, Default)]
 #[repr(C, align(32))]
@@ -1173,7 +1166,6 @@ pub struct VP8D_COMP {
     pub mt_baseline_filter_level: [::core::ffi::c_int; 4],
     pub mt_sync: VP8D_MT_SYNC,
     pub mb_row_di: Option<Box<[MB_ROW_DEC]>>,
-    pub de_thread_data: Option<Box<[DECODETHREAD_DATA]>>,
     pub ready_for_new_data: ::core::ffi::c_int,
     pub prob_intra: vp8_prob,
     pub prob_last: vp8_prob,

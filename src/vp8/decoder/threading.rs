@@ -1059,10 +1059,9 @@ fn mt_decode_mb_rows(
         }
     }
 }
-fn thread_decoding_proc(data: DECODETHREAD_DATA) {
-    let ithread = data.ithread;
-    let pbi = unsafe { &mut *(data.ptr1 as *mut VP8D_COMP) };
-    let mbrd = unsafe { &mut *(data.ptr2 as *mut MB_ROW_DEC) };
+fn thread_decoding_proc(ithread: i32, pbi_addr: usize, mbrd_addr: usize) {
+    let pbi = unsafe { &mut *(pbi_addr as *mut VP8D_COMP) };
+    let mbrd = unsafe { &mut *(mbrd_addr as *mut MB_ROW_DEC) };
     
     while vpx_atomic_load_acquire(&pbi.b_multithreaded_rd) != 0 {
         let start_decoding_sem = &pbi.mt_sync.h_event_start_decoding.as_ref().unwrap()[ithread as usize];
@@ -1086,7 +1085,7 @@ fn thread_decoding_proc(data: DECODETHREAD_DATA) {
     }
 }
 pub fn vp8_decoder_create_threads(pbi: &mut VP8D_COMP) {
-    let pbi_raw_ptr = pbi as *mut VP8D_COMP as *mut ::core::ffi::c_void;
+    let pbi_addr = pbi as *mut VP8D_COMP as usize;
     let mut core_count: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     let mut ithread: ::core::ffi::c_uint = 0;
     vpx_atomic_init(&pbi.b_multithreaded_rd, 0 as ::core::ffi::c_int);
@@ -1120,24 +1119,19 @@ pub fn vp8_decoder_create_threads(pbi: &mut VP8D_COMP) {
         let mb_row_di_vec = vec![MB_ROW_DEC::default(); count];
         pbi.mb_row_di = Some(mb_row_di_vec.into_boxed_slice());
         
-        pbi.de_thread_data = Some(vec![DECODETHREAD_DATA { ithread: 0, ptr1: core::ptr::null_mut(), ptr2: core::ptr::null_mut() }; count].into_boxed_slice());
-        
         let h_decoding_thread = pbi.mt_sync.h_decoding_thread.as_mut().unwrap();
-        let de_thread_data = pbi.de_thread_data.as_mut().unwrap();
         let mb_row_di = pbi.mb_row_di.as_mut().unwrap();
         
         ithread = 0 as ::core::ffi::c_uint;
         while ithread < pbi.decoding_thread_count {
             vp8_setup_block_dptrs(&mut mb_row_di[ithread as usize].mbd);
             
-            de_thread_data[ithread as usize].ithread = ithread as ::core::ffi::c_int;
-            de_thread_data[ithread as usize].ptr1 = pbi_raw_ptr;
-            de_thread_data[ithread as usize].ptr2 = &mut mb_row_di[ithread as usize] as *mut MB_ROW_DEC as *mut ::core::ffi::c_void;
+            let mbrd_addr = &mut mb_row_di[ithread as usize] as *mut MB_ROW_DEC as usize;
+            let ithread_i32 = ithread as i32;
             
-            let data = de_thread_data[ithread as usize];
             let builder = std::thread::Builder::new();
             match builder.spawn(move || {
-                thread_decoding_proc(data);
+                thread_decoding_proc(ithread_i32, pbi_addr, mbrd_addr);
             }) {
                 Ok(handle) => {
                     h_decoding_thread[ithread as usize] = Some(handle);
@@ -1321,7 +1315,6 @@ pub fn vp8_decoder_remove_threads(pbi: &mut VP8D_COMP) {
         pbi.mt_sync.h_event_start_decoding = None;
         pbi.mt_sync.h_event_end_decoding = None;
         pbi.mb_row_di = None;
-        pbi.de_thread_data = None;
         
         let mb_rows = pbi.common.mb_rows;
         vp8mt_de_alloc_temp_buffers(pbi, mb_rows);

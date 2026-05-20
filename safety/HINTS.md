@@ -2,6 +2,13 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Safe Threading Data Flow & DECODETHREAD_DATA Elimination (threading.rs, types.rs)**:
+  - Completely eliminated `DECODETHREAD_DATA` struct and its associated `unsafe impl Send` from `src/vp8/common/types.rs`.
+  - Removed `de_thread_data` field from `VP8D_COMP` struct, simplifying its layout and removing non-repr(C) field.
+  - Refactored `vp8_decoder_create_threads` and `thread_decoding_proc` in `src/vp8/decoder/threading.rs` to pass thread parameters via `usize` addresses directly in the closure, bypassing the need for a dedicated data struct.
+  - This simplified the multithreading data flow, cleaned up dead code, and successfully eliminated **1 unsafe keyword** (the `unsafe impl Send` for `DECODETHREAD_DATA`), reducing the remaining unsafe count from 131 to 130.
+  - Verified 100% bit-identical correctness across all 1160 differential test frames.
+
 * **100% Safe Aligned Box Allocation (vpx_mem.rs)**:
   - Completely eliminated all residual raw pointer allocations and `unsafe` blocks in `src/vpx_mem/vpx_mem.rs`.
   - Replaced the layout-based `alloc` and `dealloc` with a standard safe `Vec<u8>` allocation of size `size + align` and calculated the aligned offset in pure safe Rust.
