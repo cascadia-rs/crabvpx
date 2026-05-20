@@ -123,11 +123,8 @@ impl<'a> SafeBoolDecoder<'a> {
 
         let mut current_slice = &self.buffer[self.offset..];
         let mut decrypted = [0u8; 9];
-        if let Some(cb) = self.decrypt_cb {
+        if vpx_decrypt_safe(self.decrypt_cb, self.decrypt_state, current_slice, &mut decrypted) {
             let n = core::cmp::min(9, bytes_left);
-            unsafe {
-                cb(self.decrypt_state, current_slice.as_ptr(), decrypted.as_mut_ptr(), n as i32);
-            }
             current_slice = &decrypted[..n];
         }
 

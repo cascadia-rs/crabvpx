@@ -900,15 +900,7 @@ fn read_partition_size(
 ) -> ::core::ffi::c_uint {
     let mut temp: [::core::ffi::c_uchar; 3] = [0; 3];
     let mut data_slice = cx_size;
-    if let Some(decrypt_cb) = pbi.decrypt_cb {
-        unsafe {
-            decrypt_cb(
-                pbi.decrypt_state,
-                cx_size.as_ptr(),
-                temp.as_mut_ptr(),
-                3 as ::core::ffi::c_int,
-            );
-        }
+    if vpx_decrypt_safe(pbi.decrypt_cb, pbi.decrypt_state, cx_size, &mut temp) {
         data_slice = &temp;
     }
     (data_slice[0] as ::core::ffi::c_int
@@ -1153,16 +1145,8 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         pbi.common.show_frame = 1 as ::core::ffi::c_int;
         first_partition_length_in_bytes = 0 as ::core::ffi::c_int;
     } else {
-        if pbi.decrypt_cb.is_some() {
+        if vpx_decrypt_safe(pbi.decrypt_cb, pbi.decrypt_state, data_slice, &mut clear_buffer) {
             let n = std::cmp::min(10, data_slice.len());
-            unsafe {
-                pbi.decrypt_cb.expect("non-null function pointer")(
-                    pbi.decrypt_state,
-                    data_slice.as_ptr(),
-                    clear_buffer.as_mut_ptr(),
-                    n as i32,
-                );
-            }
             clear_slice = &clear_buffer[..n];
             is_decrypted = true;
         }

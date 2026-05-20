@@ -715,6 +715,25 @@ pub type vpx_decrypt_cb = Option<
     ) -> (),
 >;
 
+pub fn vpx_decrypt_safe(
+    decrypt_cb: vpx_decrypt_cb,
+    decrypt_state: *mut ::core::ffi::c_void,
+    input: &[u8],
+    output: &mut [u8],
+) -> bool {
+    if let Some(cb) = decrypt_cb {
+        let len = std::cmp::min(input.len(), output.len());
+        if len > 0 {
+            unsafe {
+                cb(decrypt_state, input.as_ptr(), output.as_mut_ptr(), len as i32);
+            }
+            return true;
+        }
+    }
+    false
+}
+
+
 pub type VP8_BD_VALUE = size_t;
 
 #[derive(Copy, Clone, Default)]

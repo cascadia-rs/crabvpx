@@ -2,6 +2,10 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Safe Decryption FFI Wrapper**:
+  - Created `vpx_decrypt_safe` in `src/vp8/common/types.rs` to safely wrap the FFI decryption callback (`vpx_decrypt_cb`).
+  - Refactored call sites in `src/vp8/decoder/dboolhuff.rs` (inside `SafeBoolDecoder::fill`) and `src/vp8/decoder/decodeframe.rs` (inside `read_partition_size` and `decode_frame`) to use this safe wrapper.
+  - This successfully eliminated **3 unsafe blocks** from `dboolhuff.rs` and `decodeframe.rs`, while adding **1 unsafe block** inside the new helper in `types.rs`, resulting in a net reduction of **2 unsafe blocks** globally (remaining count: 445). All 1160 differential test frames pass perfectly.
 * **Dead FFI Predictor Cleanup & Unsafe Reduction**:
   - Identified that the transpiled C reference predictors (`vp8_sixtap_predict..._c` and `vp8_bilinear_predict..._c`) in `src/vp8/common/filter.rs` were completely unused in our Rust implementation.
   - Our Rust implementation uses `filter_block2d_sixtap_safe` and `filter_block2d_bil_safe` directly via safe wrappers in `safe_predict.rs` (on non-aarch64), or uses NEON assembly (on aarch64), completely bypassing these transpiled C versions.
