@@ -1863,17 +1863,17 @@ static Pcat6: [vp8_prob; 11] = [
     130 as ::core::ffi::c_int as vp8_prob,
     129 as ::core::ffi::c_int as vp8_prob,
 ];
-static cat1: [vp8_tree_index; 2] = [
+pub static cat1: [vp8_tree_index; 2] = [
     0 as ::core::ffi::c_int as vp8_tree_index,
     0 as ::core::ffi::c_int as vp8_tree_index,
 ];
-static cat2: [vp8_tree_index; 4] = [
+pub static cat2: [vp8_tree_index; 4] = [
     2 as ::core::ffi::c_int as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     0 as ::core::ffi::c_int as vp8_tree_index,
     0 as ::core::ffi::c_int as vp8_tree_index,
 ];
-static cat3: [vp8_tree_index; 6] = [
+pub static cat3: [vp8_tree_index; 6] = [
     2 as ::core::ffi::c_int as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     4 as ::core::ffi::c_int as vp8_tree_index,
@@ -1881,7 +1881,7 @@ static cat3: [vp8_tree_index; 6] = [
     0 as ::core::ffi::c_int as vp8_tree_index,
     0 as ::core::ffi::c_int as vp8_tree_index,
 ];
-static cat4: [vp8_tree_index; 8] = [
+pub static cat4: [vp8_tree_index; 8] = [
     2 as ::core::ffi::c_int as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     4 as ::core::ffi::c_int as vp8_tree_index,
@@ -1891,7 +1891,7 @@ static cat4: [vp8_tree_index; 8] = [
     0 as ::core::ffi::c_int as vp8_tree_index,
     0 as ::core::ffi::c_int as vp8_tree_index,
 ];
-static cat5: [vp8_tree_index; 10] = [
+pub static cat5: [vp8_tree_index; 10] = [
     2 as ::core::ffi::c_int as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     4 as ::core::ffi::c_int as vp8_tree_index,
@@ -1903,7 +1903,7 @@ static cat5: [vp8_tree_index; 10] = [
     0 as ::core::ffi::c_int as vp8_tree_index,
     0 as ::core::ffi::c_int as vp8_tree_index,
 ];
-static cat6: [vp8_tree_index; 22] = [
+pub static cat6: [vp8_tree_index; 22] = [
     2 as ::core::ffi::c_int as vp8_tree_index,
     2 as ::core::ffi::c_int as vp8_tree_index,
     4 as ::core::ffi::c_int as vp8_tree_index,

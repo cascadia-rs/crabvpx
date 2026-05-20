@@ -39,40 +39,64 @@ fn tree2tok_safe(
     }
 }
 
-// Safe helper to pre-scan tree bounds.
-unsafe fn get_tree_bounds(
-    t: *const vp8_tree_index,
-    i: i32,
-    visited: &mut [bool; 256],
-) -> (i32, i32) {
-    if i < 0 || i >= 256 || visited[i as usize] {
-        return (0, 0);
-    }
-    visited[i as usize] = true;
-    visited[(i + 1) as usize] = true;
-    
-    let mut max_token = 0;
-    let mut max_tree = i + 1;
-    
-    let j1 = *t.offset(i as isize) as i32;
-    if j1 <= 0 {
-        max_token = std::cmp::max(max_token, -j1);
-    } else {
-        let (tok, tr) = get_tree_bounds(t, j1, visited);
-        max_token = std::cmp::max(max_token, tok);
-        max_tree = std::cmp::max(max_tree, tr);
+fn detect_tree_slice(t: *const vp8_tree_index) -> Option<&'static [vp8_tree_index]> {
+    if t.is_null() {
+        return None;
     }
     
-    let j2 = *t.offset((i + 1) as isize) as i32;
-    if j2 <= 0 {
-        max_token = std::cmp::max(max_token, -j2);
-    } else {
-        let (tok, tr) = get_tree_bounds(t, j2, visited);
-        max_token = std::cmp::max(max_token, tok);
-        max_tree = std::cmp::max(max_tree, tr);
+    use crate::vp8::common::entropy::{
+        vp8_coef_tree, cat1, cat2, cat3, cat4, cat5, cat6,
+    };
+    use crate::vp8::common::entropymode::{
+        vp8_bmode_tree, vp8_ymode_tree, vp8_kf_ymode_tree,
+        vp8_uv_mode_tree, vp8_mbsplit_tree, vp8_mv_ref_tree,
+        vp8_sub_mv_ref_tree,
+    };
+
+    if t == vp8_coef_tree.as_ptr() {
+        return Some(&vp8_coef_tree);
     }
-    
-    (max_token, max_tree)
+    if t == vp8_bmode_tree.as_ptr() {
+        return Some(&vp8_bmode_tree);
+    }
+    if t == vp8_ymode_tree.as_ptr() {
+        return Some(&vp8_ymode_tree);
+    }
+    if t == vp8_kf_ymode_tree.as_ptr() {
+        return Some(&vp8_kf_ymode_tree);
+    }
+    if t == vp8_uv_mode_tree.as_ptr() {
+        return Some(&vp8_uv_mode_tree);
+    }
+    if t == vp8_mbsplit_tree.as_ptr() {
+        return Some(&vp8_mbsplit_tree);
+    }
+    if t == vp8_mv_ref_tree.as_ptr() {
+        return Some(&vp8_mv_ref_tree);
+    }
+    if t == vp8_sub_mv_ref_tree.as_ptr() {
+        return Some(&vp8_sub_mv_ref_tree);
+    }
+    if t == cat1.as_ptr() {
+        return Some(&cat1);
+    }
+    if t == cat2.as_ptr() {
+        return Some(&cat2);
+    }
+    if t == cat3.as_ptr() {
+        return Some(&cat3);
+    }
+    if t == cat4.as_ptr() {
+        return Some(&cat4);
+    }
+    if t == cat5.as_ptr() {
+        return Some(&cat5);
+    }
+    if t == cat6.as_ptr() {
+        return Some(&cat6);
+    }
+
+    None
 }
 
 #[unsafe(no_mangle)]
@@ -83,13 +107,16 @@ pub unsafe extern "C" fn vp8_tokens_from_tree(
     if p.is_null() || t.is_null() {
         return;
     }
-    unsafe {
-        let mut visited = [false; 256];
-        let (max_token, max_tree) = get_tree_bounds(t, 0, &mut visited);
-        let p_slice = core::slice::from_raw_parts_mut(p, (max_token + 1) as usize);
-        let t_slice = core::slice::from_raw_parts(t, (max_tree + 1) as usize);
-        tree2tok_safe(p_slice, t_slice, 0, 0, 0, 0);
+    let t_slice = detect_tree_slice(t).expect("Unexpected VP8 tree pointer");
+    let mut max_token = 0;
+    for &val in t_slice {
+        let j = val as i32;
+        if j <= 0 {
+            max_token = std::cmp::max(max_token, -j);
+        }
     }
+    let p_slice = unsafe { core::slice::from_raw_parts_mut(p, (max_token + 1) as usize) };
+    tree2tok_safe(p_slice, t_slice, 0, 0, 0, 0);
 }
 
 #[unsafe(no_mangle)]
@@ -101,14 +128,17 @@ pub unsafe extern "C" fn vp8_tokens_from_tree_offset(
     if p.is_null() || t.is_null() {
         return;
     }
-    unsafe {
-        let mut visited = [false; 256];
-        let (max_token, max_tree) = get_tree_bounds(t, 0, &mut visited);
-        let limit = (max_token - offset + 1) as usize;
-        let p_slice = core::slice::from_raw_parts_mut(p, limit);
-        let t_slice = core::slice::from_raw_parts(t, (max_tree + 1) as usize);
-        tree2tok_safe(p_slice, t_slice, 0, 0, 0, offset);
+    let t_slice = detect_tree_slice(t).expect("Unexpected VP8 tree pointer");
+    let mut max_token = 0;
+    for &val in t_slice {
+        let j = val as i32;
+        if j <= 0 {
+            max_token = std::cmp::max(max_token, -j);
+        }
     }
+    let limit = (max_token - offset + 1) as usize;
+    let p_slice = unsafe { core::slice::from_raw_parts_mut(p, limit) };
+    tree2tok_safe(p_slice, t_slice, 0, 0, 0, offset);
 }
 
 fn branch_counts_safe(
@@ -155,9 +185,9 @@ pub unsafe extern "C" fn vp8_tree_probs_from_distribution(
     if tok.is_null() || tree.is_null() || probs.is_null() || branch_ct.is_null() || num_events.is_null() {
         return;
     }
+    let tree_slice = detect_tree_slice(tree).expect("Unexpected VP8 tree pointer");
     unsafe {
         let tok_slice = core::slice::from_raw_parts(tok, n as usize);
-        let tree_slice = core::slice::from_raw_parts(tree, (2 * (n - 1)) as usize);
         let probs_slice = core::slice::from_raw_parts_mut(probs, (n - 1) as usize);
         let branch_ct_slice = core::slice::from_raw_parts_mut(branch_ct as *mut [u32; 2], (n - 1) as usize);
         let num_events_slice = core::slice::from_raw_parts(num_events, n as usize);

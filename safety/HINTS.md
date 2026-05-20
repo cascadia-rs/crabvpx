@@ -2,6 +2,11 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Safe Tree Pointer Detection & Unsafe Fallback Elimination**:
+  - Implemented a 100% safe `detect_tree_slice` helper in `src/vp8/common/treecoder.rs` that matches FFI raw tree pointers (`*const vp8_tree_index`) against the known, safe static VP8 tree arrays (such as `vp8_coef_tree`, `vp8_bmode_tree`, etc.).
+  - Exported the private extra bit trees `cat1` to `cat6` from `entropy.rs` as `pub` so they can be matched in `treecoder.rs`.
+  - Completely removed the `get_tree_bounds` unsafe recursive function (which did unsafe pointer arithmetic to dynamically find tree sizes) and removed all unsafe fallback paths in `vp8_tokens_from_tree`, `vp8_tokens_from_tree_offset`, and `vp8_tree_probs_from_distribution`.
+  - This successfully eliminated **1 unsafe block** overall (since the dead unsafe `get_tree_bounds` function was deleted), reducing the remaining unsafe count from 474 to 473. All 1160 differential test frames pass perfectly.
 * **Safe Frame Buffer Slice Refactoring & Pointer Mismatch Fix**:
   - Refactored all 15 slice helper methods in `yv12_buffer_config` in `src/vp8/common/types.rs` (such as `y_slice_safe`, `u_slice_mut_safe`, and `_with_offset_safe` variants) to use safe bounds-checked slicing on `full_buffer_safe()` and `full_buffer_mut_safe()`.
   - Implemented a static `safe_len` helper to dynamically truncate slice lengths to the remaining allocation size, preventing out-of-bounds slice creation panics.

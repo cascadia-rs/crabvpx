@@ -46,8 +46,8 @@ Sub-pixel prediction algorithms currently compute tap offsets by executing unsaf
 Hardware assembly intrinsics must be fully isolated behind safe boundary contracts.
 
 #### Work Units:
-* **[ ] Unit 8 (`simd_shim.rs`):** Refactor public wrappers around NEON shims to take safe Rust slices. Enforce exact length pre-conditions (`assert!(slice.len() >= 16)`) prior to internal unsafe vector executions.
-* **[ ] Unit 9 (`simd_shim.rs`):** Eliminate dead or duplicate C-fallback shims that have already been fully superseded by native Rust safe replacements.
+* **[x] Unit 8 (`simd_shim.rs`):** Refactor public wrappers around NEON shims to take safe Rust slices. Enforce exact length pre-conditions (`assert!(slice.len() >= 16)`) prior to internal unsafe vector executions.
+* **[x] Unit 9 (`simd_shim.rs`):** Eliminate dead or duplicate C-fallback shims that have already been fully superseded by native Rust safe replacements.
 
 ---
 
