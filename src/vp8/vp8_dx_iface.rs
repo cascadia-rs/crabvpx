@@ -1607,3 +1607,68 @@ unsafe extern "C" fn run_static_initializers() { unsafe {
 #[cfg_attr(target_os = "windows", link_section = ".CRT$XIB")]
 #[cfg_attr(target_os = "macos", unsafe(link_section = "__DATA,__mod_init_func"))]
 static INIT_ARRAY: [unsafe extern "C" fn(); 1] = [run_static_initializers];
+
+pub struct Vp8DecoderInstance {
+    priv_0: *mut vpx_codec_alg_priv_t,
+}
+
+impl Vp8DecoderInstance {
+    pub fn new(threads: u32) -> Result<Self, String> {
+        unsafe {
+            vp8_rtcd();
+            vpx_dsp_rtcd();
+            vpx_scale_rtcd();
+            let priv_0 = vpx_calloc(
+                1 as size_t,
+                ::core::mem::size_of::<vpx_codec_alg_priv_t>() as size_t,
+            ) as *mut vpx_codec_alg_priv_t;
+            if priv_0.is_null() {
+                return Err("Failed to allocate decoder context".to_string());
+            }
+            (*priv_0).cfg.threads = threads;
+            (*priv_0).si.sz = ::core::mem::size_of::<vp8_stream_info_t>() as ::core::ffi::c_uint;
+            (*priv_0).decrypt_cb = None;
+            (*priv_0).decrypt_state = NULL;
+            (*priv_0).fragments.count = 0 as ::core::ffi::c_uint;
+            (*priv_0).fragments.enabled = 0 as ::core::ffi::c_int;
+            Ok(Self { priv_0 })
+        }
+    }
+
+    pub fn decode(&mut self, data: &[u8]) -> Result<(), String> {
+        unsafe {
+            let res = vp8_decode(
+                self.priv_0,
+                data.as_ptr(),
+                data.len() as ::core::ffi::c_uint,
+                ::core::ptr::null_mut(),
+            );
+            if res == VPX_CODEC_OK {
+                Ok(())
+            } else {
+                Err(format!("decode failed: {}", res))
+            }
+        }
+    }
+
+    pub fn get_frame(&mut self) -> Option<*const vpx_image_t> {
+        unsafe {
+            let mut iter: vpx_codec_iter_t = ::core::ptr::null();
+            let img = vp8_get_frame(self.priv_0, &raw mut iter);
+            if img.is_null() {
+                None
+            } else {
+                Some(img as *const vpx_image_t)
+            }
+        }
+    }
+}
+
+impl Drop for Vp8DecoderInstance {
+    fn drop(&mut self) {
+        unsafe {
+            vp8_destroy(self.priv_0);
+        }
+    }
+}
+
