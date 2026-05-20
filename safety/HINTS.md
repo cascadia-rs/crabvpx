@@ -2,6 +2,16 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Unnecessary Unsafe Removal in Build Config (vpx_config.rs)**:
+  - Removed unnecessary `unsafe` keyword from `vpx_codec_build_config` function signature. The function only returns a pointer to a static slice and does not perform any unsafe operations.
+  - This successfully eliminated **1 unsafe keyword** globally, reducing the remaining unsafe count from 339 to 338.
+  - Verified 100% bit-identical correctness across all 1160 test frames.
+
+* **Dead Entropy Table Removal (entropy.rs)**:
+  - Identified and removed the completely unused `vp8_coef_encodings` static array from `src/vp8/common/entropy.rs`.
+  - This array was legacy encoder-only code and not referenced anywhere in the decoder or test harness.
+  - Verified 100% bit-identical correctness across all 1160 test frames.
+
 * **Unused FFI Loop Filter Wrappers Removal (loopfilter_filters.rs)**:
   - Identified and removed 8 unused legacy C-ABI FFI wrappers (`vp8_loop_filter_simple_horizontal_edge_c`, `vp8_loop_filter_simple_vertical_edge_c`, `vp8_loop_filter_mbh_c`, `vp8_loop_filter_mbv_c`, `vp8_loop_filter_bh_c`, `vp8_loop_filter_bhs_c`, `vp8_loop_filter_bv_c`, `vp8_loop_filter_bvs_c`) from `src/vp8/common/loopfilter_filters.rs`.
   - These wrappers were only used for C compatibility which is no longer needed as the entire decoder uses native safe Rust dispatch or direct NEON assembly calls on `aarch64`.

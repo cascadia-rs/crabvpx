@@ -1759,56 +1759,7 @@ pub static vp8_coef_tree: [vp8_tree_index; 22] = [
     -DCT_VAL_CATEGORY5 as vp8_tree_index,
     -DCT_VAL_CATEGORY6 as vp8_tree_index,
 ];
-pub static vp8_coef_encodings: [vp8_token; 12] = [
-    vp8_token_struct {
-        value: 2 as ::core::ffi::c_int,
-        Len: 2 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 6 as ::core::ffi::c_int,
-        Len: 3 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 28 as ::core::ffi::c_int,
-        Len: 5 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 58 as ::core::ffi::c_int,
-        Len: 6 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 59 as ::core::ffi::c_int,
-        Len: 6 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 60 as ::core::ffi::c_int,
-        Len: 6 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 61 as ::core::ffi::c_int,
-        Len: 6 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 124 as ::core::ffi::c_int,
-        Len: 7 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 125 as ::core::ffi::c_int,
-        Len: 7 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 126 as ::core::ffi::c_int,
-        Len: 7 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 127 as ::core::ffi::c_int,
-        Len: 7 as ::core::ffi::c_int,
-    },
-    vp8_token_struct {
-        value: 0 as ::core::ffi::c_int,
-        Len: 1 as ::core::ffi::c_int,
-    },
-];
+
 static Pcat1: [vp8_prob; 1] = [159 as ::core::ffi::c_int as vp8_prob];
 static Pcat2: [vp8_prob; 2] = [
     165 as ::core::ffi::c_int as vp8_prob,
