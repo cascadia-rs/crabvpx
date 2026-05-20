@@ -14,9 +14,7 @@ use crate::vp8::common::reconintra4x4::vp8_intra4x4_predict_safe;
 #[cfg(target_arch = "aarch64")]
 use crate::simd_shim::*;
 
-unsafe extern "C" {
-    fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
-}
+// setjmp FFI removed
 
 use crate::vp8::common::setupintrarecon::vp8_setup_intra_recon_top_line;
 pub use crate::vp8::common::types::*;
@@ -501,7 +499,7 @@ fn mt_decode_mb_rows(
     start_mb_row: ::core::ffi::c_int,
     decoding_thread_count: ::core::ffi::c_uint,
     fragments: FRAGMENT_DATA,
-) {
+) -> Result<(), vpx_codec_err_t> {
     let mut mb_row: ::core::ffi::c_int = 0;
     let pc = common;
     let nsync: ::core::ffi::c_int = mt_sync.sync_range;
@@ -663,10 +661,7 @@ fn mt_decode_mb_rows(
                     vpx_atomic_store_release(cur_col, pc.mb_cols + nsync);
                     mb_row = (mb_row as u32).wrapping_add(decoding_thread_count.wrapping_add(1)) as i32;
                 }
-                xd.error_info.trigger(
-                    VPX_CODEC_CORRUPT_FRAME,
-                    "Corrupted reference frame",
-                );
+                return Err(VPX_CODEC_CORRUPT_FRAME);
             }
             
             if cur_ref_frame as ::core::ffi::c_int >= LAST_FRAME as ::core::ffi::c_int {
@@ -1318,6 +1313,7 @@ fn mt_decode_mb_rows(
             end_sem.signal();
         }
     }
+    Ok(())
 }
 fn thread_decoding_proc(
     ithread: i32,
@@ -1334,19 +1330,16 @@ fn thread_decoding_proc(
         }
         let mut mbrd_guard = mbrd.lock().unwrap();
         let xd = &mut mbrd_guard.mbd;
-        let setjmp_val = unsafe { setjmp(&raw mut xd.error_info.jmp as *mut ::core::ffi::c_int) };
-        if setjmp_val != 0 {
-            xd.error_info.setjmp = 0;
+        
+        let decoding_thread_count = pbi.decoding_thread_count;
+        let fragments = pbi.fragments;
+        let common = &pbi.common;
+        let mbc_raw = pbi.mbc.as_ptr() as *mut vp8_reader;
+        let mt_sync = &pbi.mt_sync;
+        
+        if let Err(err_code) = mt_decode_mb_rows(common, mbc_raw, mt_sync, xd, ithread + 1, decoding_thread_count, fragments) {
+            xd.error_info.error_code = err_code;
             pbi.mt_sync.h_event_end_decoding.as_ref().unwrap().signal();
-        } else {
-            xd.error_info.setjmp = 1;
-            let decoding_thread_count = pbi.decoding_thread_count;
-            let fragments = pbi.fragments;
-            let common = &pbi.common;
-            let mbc_raw = pbi.mbc.as_ptr() as *mut vp8_reader;
-            let mt_sync = &pbi.mt_sync;
-            mt_decode_mb_rows(common, mbc_raw, mt_sync, xd, ithread + 1, decoding_thread_count, fragments);
-            xd.error_info.setjmp = 0;
         }
     }
 }
@@ -1686,9 +1679,13 @@ pub fn vp8mt_decode_mb_rows(
     let xd = &mut pbi.mb;
     let mt_sync = &mut pbi.mt_sync;
     
-    let setjmp_res = unsafe { setjmp(&raw mut xd.error_info.jmp as *mut ::core::ffi::c_int) };
-    if setjmp_res != 0 {
-        xd.error_info.setjmp = 0;
+    let decoding_thread_count = pbi.decoding_thread_count;
+    let fragments = pbi.fragments;
+    let common = &pbi.common;
+    let mbc_raw = pbi.mbc.as_mut_ptr();
+    
+    if let Err(err_code) = mt_decode_mb_rows(common, mbc_raw, mt_sync, xd, 0, decoding_thread_count, fragments) {
+        xd.error_info.error_code = err_code;
         xd.corrupted = 1;
         i = 0;
         while i < pbi.decoding_thread_count {
@@ -1697,17 +1694,6 @@ pub fn vp8mt_decode_mb_rows(
         }
         return -1;
     }
-    
-    xd.error_info.setjmp = 1;
-    
-    let decoding_thread_count = pbi.decoding_thread_count;
-    let fragments = pbi.fragments;
-    let common = &pbi.common;
-    let mbc_raw = pbi.mbc.as_mut_ptr();
-    
-    mt_decode_mb_rows(common, mbc_raw, mt_sync, xd, 0, decoding_thread_count, fragments);
-    
-    xd.error_info.setjmp = 0;
     
     i = 0;
     while i < pbi.decoding_thread_count.wrapping_add(1) {

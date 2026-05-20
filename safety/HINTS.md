@@ -2,6 +2,12 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Removed setjmp/longjmp FFI Error Handling in Multithreaded Row Decoding (threading.rs)**:
+  - Refactored `mt_decode_mb_rows` in `src/vp8/decoder/threading.rs` to return an idiomatic safe Rust `Result<(), vpx_codec_err_t>` instead of calling `.error_info.trigger` (which triggered a `longjmp` call).
+  - Removed the `setjmp` FFI import declaration and two `unsafe { setjmp(...) }` blocks (one in `thread_decoding_proc` and one in `vp8mt_decode_mb_rows` in `src/vp8/decoder/threading.rs`), replacing them with clean safe Rust error checking using the returned `Result`.
+  - This successfully eliminated **3 unsafe blocks/keywords** globally, reducing the remaining unsafe count from 136 to 133!
+  - Verified that all 1160 differential test frames continue to pass perfectly with 100% bit-identical correctness.
+
 * **Isolated Unsafe Raw Pointer Box Reclamation in Decoder Destruction (onyxd_if.rs)**:
   - Refactored `vp8_remove_decoder_instances` in `src/vp8/decoder/onyxd_if.rs` to minimize the scope of the `unsafe` block.
   - Reclaimed exclusive `Box<VP8D_COMP>` ownership from the raw pointer stored in `fb.pbi[0]` via a single-line isolated `unsafe { Box::from_raw(pbi) }` call.
