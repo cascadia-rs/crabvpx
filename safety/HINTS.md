@@ -2,6 +2,10 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Dead Code and FFI Cleanup in Entropy Mode (entropymode.rs)**:
+  - Completely eliminated the unused FFI wrapper `vp8_mv_cont` and its internal helper `vp8_mv_cont_safe` from `src/vp8/common/entropymode.rs`.
+  - This successfully eliminated **1 unsafe block** and **1 unsafe attribute** globally, reducing the remaining unsafe count from 421 to 419.
+  - Verified 100% bit-identical correctness across all 1160 test frames.
 * **Test Harness and Unnecessary Attribute Cleanup (findnearmv.rs, alloccommon.rs, bool_decoder_test.rs)**:
   - Fixed `tests/bool_decoder_test.rs` to compile with modernized `BOOL_DECODER` by using `BOOL_DECODER::default()`.
   - Removed unnecessary `unsafe` block around `vp8dx_start_decode` call in `tests/bool_decoder_test.rs`.
@@ -129,4 +133,5 @@ See remaining_refactoring_work_items.md for an overview of particular unsafe blo
    - [x] **Modernize `BOOL_DECODER` (`src/vp8/decoder/dboolhuff.rs`)**: Eliminate residual raw pointer arithmetic (`user_buffer` additions) inside `SafeBoolDecoder` and fully leverage slice boundaries. (Completed!)
    - [x] **Address remaining `unsafe` blocks in `src/vp8/common/vp8_loopfilter.rs` and `extend.rs`** by replacing FFI boundary styles with native safe Rust patterns where possible (excluding assembly RTCD paths). (Completed! Unused FFI wrappers were deleted, and internal functions were cleaned of `#[unsafe(no_mangle)]` and `extern "C"`).
    - **Audit other FFI wrappers in `src/vp8/decoder/dboolhuff.rs`** (`vp8dx_start_decode` and `vp8dx_bool_decoder_fill`) to see if they can also be deprecated/removed or if they are required for external ABI linkage.
+   - **Remove obsolete `#[unsafe(no_mangle)]` from static tables in `entropymode.rs`**: Many static probability tables in `src/vp8/common/entropymode.rs` still have `#[unsafe(no_mangle)]` but are only used internally via safe Rust imports. These can be safely cleaned up to further reduce the unsafe keyword count.
 
