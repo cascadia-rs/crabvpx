@@ -1,4 +1,4 @@
-use crate::vpx::src::vpx_decoder::vpx_image_t;
+use crate::vp8::vp8_dx_iface::vpx_image_t;
 use crate::vp8::vp8_dx_iface::Vp8DecoderInstance;
 
 /// A safe wrapper around the decoded image planes.

@@ -13,14 +13,8 @@ unsafe extern "C" {
     fn vpx_dsp_rtcd();
     fn vpx_scale_rtcd();
     fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
-    fn vpx_internal_error(
-        info: *mut vpx_internal_error_info,
-        error: vpx_codec_err_t,
-        fmt: *const ::core::ffi::c_char,
-        ...
-    );
-    fn vpx_calloc(num: size_t, size: size_t) -> *mut ::core::ffi::c_void;
-    fn vpx_free(memblk: *mut ::core::ffi::c_void);
+
+
     fn vp8_create_decoder_instances(
         fb: *mut frame_buffers,
         oxcf: *mut VP8D_CONFIG,
@@ -605,13 +599,8 @@ fn vpx_atomic_load_acquire(
     atomic.value.load(core::sync::atomic::Ordering::Acquire)
 }
 unsafe extern "C" fn vp8_init_ctx(mut ctx: *mut vpx_codec_ctx_t) -> ::core::ffi::c_int { unsafe {
-    let mut priv_0: *mut vpx_codec_alg_priv_t = vpx_calloc(
-        1 as size_t,
-        ::core::mem::size_of::<vpx_codec_alg_priv_t>() as size_t,
-    ) as *mut vpx_codec_alg_priv_t;
-    if priv_0.is_null() {
-        return 1 as ::core::ffi::c_int;
-    }
+    let mut priv_box = Box::new(std::mem::zeroed::<vpx_codec_alg_priv_t>());
+    let mut priv_0 = Box::into_raw(priv_box);
     (*ctx).priv_0 = priv_0 as *mut vpx_codec_priv_t;
     (*(*ctx).priv_0).init_flags = (*ctx).init_flags;
     (*priv_0).si.sz = ::core::mem::size_of::<vp8_stream_info_t>() as ::core::ffi::c_uint;
@@ -645,8 +634,10 @@ unsafe extern "C" fn vp8_init(
     return res;
 }}
 unsafe extern "C" fn vp8_destroy(mut ctx: *mut vpx_codec_alg_priv_t) -> vpx_codec_err_t { unsafe {
-    vp8_remove_decoder_instances(&raw mut (*ctx).yv12_frame_buffers);
-    vpx_free(ctx as *mut ::core::ffi::c_void);
+    if !ctx.is_null() {
+        vp8_remove_decoder_instances(&raw mut (*ctx).yv12_frame_buffers);
+        let _ = Box::from_raw(ctx);
+    }
     return VPX_CODEC_OK;
 }}
 unsafe extern "C" fn vp8_peek_si_internal(
@@ -883,12 +874,7 @@ unsafe extern "C" fn vp8_decode(
         let mut pbi: *mut VP8D_COMP =
             (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
         ::core::ptr::write_volatile(&mut res as *mut vpx_codec_err_t, VPX_CODEC_CORRUPT_FRAME);
-        vpx_internal_error(
-            &raw mut (*pbi).common.error,
-            res,
-            b"Keyframe / intra-only frame required to reset decoder state\0" as *const u8
-                as *const ::core::ffi::c_char,
-        );
+        (*pbi).common.error.trigger(res, "Keyframe / intra-only frame required to reset decoder state");
     }
     if (*ctx).si.h != h || (*ctx).si.w != w {
         ::core::ptr::write_volatile(
@@ -976,30 +962,17 @@ unsafe extern "C" fn vp8_decode(
             (*pbi_1).common.error.setjmp = 1 as ::core::ffi::c_int;
             if (*pc_0).Width <= 0 as ::core::ffi::c_int {
                 (*pc_0).Width = w as ::core::ffi::c_int;
-                vpx_internal_error(
-                    &raw mut (*pc_0).error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    b"Invalid frame width\0" as *const u8 as *const ::core::ffi::c_char,
-                );
+                (*pc_0).error.trigger(VPX_CODEC_CORRUPT_FRAME, "Invalid frame width");
             }
             if (*pc_0).Height <= 0 as ::core::ffi::c_int {
                 (*pc_0).Height = h as ::core::ffi::c_int;
-                vpx_internal_error(
-                    &raw mut (*pc_0).error,
-                    VPX_CODEC_CORRUPT_FRAME,
-                    b"Invalid frame height\0" as *const u8 as *const ::core::ffi::c_char,
-                );
+                (*pc_0).error.trigger(VPX_CODEC_CORRUPT_FRAME, "Invalid frame height");
             }
             if vpx_atomic_load_acquire(&(*pbi_1).b_multithreaded_rd) != 0 {
                 vp8mt_de_alloc_temp_buffers(pbi_1, (*pc_0).mb_rows);
             }
             if vp8_alloc_frame_buffers(&mut *pc_0, (*pc_0).Width, (*pc_0).Height) != 0 {
-                vpx_internal_error(
-                    &raw mut (*pc_0).error,
-                    VPX_CODEC_MEM_ERROR,
-                    b"Failed to allocate frame buffers\0" as *const u8
-                        as *const ::core::ffi::c_char,
-                );
+                (*pc_0).error.trigger(VPX_CODEC_MEM_ERROR, "Failed to allocate frame buffers");
             }
             let lst_fb_idx = (*pc_0).lst_fb_idx as usize;
             let new_fb_idx = (*pc_0).new_fb_idx as usize;
@@ -1608,13 +1581,8 @@ impl Vp8DecoderInstance {
             vp8_rtcd();
             vpx_dsp_rtcd();
             vpx_scale_rtcd();
-            let priv_0 = vpx_calloc(
-                1 as size_t,
-                ::core::mem::size_of::<vpx_codec_alg_priv_t>() as size_t,
-            ) as *mut vpx_codec_alg_priv_t;
-            if priv_0.is_null() {
-                return Err("Failed to allocate decoder context".to_string());
-            }
+            let priv_box = Box::new(std::mem::zeroed::<vpx_codec_alg_priv_t>());
+            let priv_0 = Box::into_raw(priv_box);
             (*priv_0).cfg.threads = threads;
             (*priv_0).si.sz = ::core::mem::size_of::<vp8_stream_info_t>() as ::core::ffi::c_uint;
             (*priv_0).decrypt_cb = None;
@@ -1657,7 +1625,10 @@ impl Vp8DecoderInstance {
 impl Drop for Vp8DecoderInstance {
     fn drop(&mut self) {
         unsafe {
-            vp8_destroy(self.priv_0);
+            if !self.priv_0.is_null() {
+                vp8_remove_decoder_instances(&raw mut (*self.priv_0).yv12_frame_buffers);
+                let _ = Box::from_raw(self.priv_0);
+            }
         }
     }
 }

@@ -57,10 +57,10 @@ pub mod vp8 {
 } // mod vp8
 pub mod vpx {
     pub mod src {
-        pub mod vpx_codec;
-        pub mod vpx_decoder;
-        pub mod vpx_encoder;
-        pub mod vpx_image;
+        // pub mod vpx_codec;
+        // pub mod vpx_decoder;
+        // pub mod vpx_encoder;
+        // pub mod vpx_image;
     } // mod src
 } // mod vpx
 pub mod vpx_config;

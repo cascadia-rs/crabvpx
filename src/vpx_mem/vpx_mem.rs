@@ -2,7 +2,7 @@ use std::alloc::{alloc, dealloc, Layout};
 use core::ptr::NonNull;
 
 pub type size_t = usize;
-pub const NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut();
+
 pub const DEFAULT_ALIGNMENT: usize = 32;
 
 #[repr(C)]
@@ -85,38 +85,4 @@ impl Drop for AlignedBox {
     }
 }
 
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_memalign(
-    align: size_t,
-    size: size_t,
-) -> *mut ::core::ffi::c_void {
-    match AlignedBox::new(align, size) {
-        Some(b) => b.into_raw() as *mut ::core::ffi::c_void,
-        None => NULL,
-    }
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_malloc(size: size_t) -> *mut ::core::ffi::c_void {
-    vpx_memalign(DEFAULT_ALIGNMENT, size)
-}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_calloc(num: size_t, size: size_t) -> *mut ::core::ffi::c_void { unsafe {
-    let total = num.wrapping_mul(size);
-    let ptr = vpx_malloc(total);
-    if !ptr.is_null() {
-        core::ptr::write_bytes(ptr as *mut u8, 0, total);
-    }
-    ptr
-}}
-
-#[unsafe(no_mangle)]
-pub unsafe extern "C" fn vpx_free(memblk: *mut ::core::ffi::c_void) {
-    if !memblk.is_null() {
-        unsafe {
-            let _ = AlignedBox::from_raw(memblk as *mut u8);
-        }
-    }
-}
 
