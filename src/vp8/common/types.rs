@@ -848,16 +848,28 @@ pub fn vpx_decrypt_safe(
 
 pub type VP8_BD_VALUE = size_t;
 
-#[derive(Copy, Clone, Default)]
+#[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vp8_reader {
-    pub user_buffer_end: *const ::core::ffi::c_uchar,
-    pub user_buffer: *const ::core::ffi::c_uchar,
+    pub user_buffer: *const [u8],
     pub value: VP8_BD_VALUE,
     pub count: ::core::ffi::c_int,
     pub range: ::core::ffi::c_uint,
     pub decrypt_cb: vpx_decrypt_cb,
     pub decrypt_state: *mut ::core::ffi::c_void,
+}
+
+impl Default for vp8_reader {
+    fn default() -> Self {
+        Self {
+            user_buffer: core::ptr::slice_from_raw_parts(core::ptr::null(), 0),
+            value: 0,
+            count: 0,
+            range: 0,
+            decrypt_cb: None,
+            decrypt_state: core::ptr::null_mut(),
+        }
+    }
 }
 
 pub type BOOL_DECODER = vp8_reader;

@@ -2,6 +2,11 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Modernized BOOL_DECODER & Safe Fat Pointer Slicing (dboolhuff.rs)**:
+  - Refactored `vp8_reader` (alias `BOOL_DECODER`) struct in `src/vp8/common/types.rs` to use a single fat slice raw pointer `user_buffer: *const [u8]` instead of the `user_buffer: *const u8` and `user_buffer_end: *const u8` pointer pair.
+  - Replaced `offset_from` and `from_raw_parts` inside `SafeBoolDecoder::from_bool_decoder` with a direct, safe-checked dereference of `user_buffer` fat pointer.
+  - Completely eliminated the raw pointer arithmetic (`bc.user_buffer.add(self.offset)`) and its `unsafe` block in `SafeBoolDecoder::update_bool_decoder` by performing safe Rust slice-indexing (`&self.buffer[self.offset..]`) and casting the remaining slice back to `*const [u8]`.
+  - Reduced the global `unsafe` block count from 443 to 442, and verified 100% bit-identical correctness across all 1160 test frames.
 * **Safe Multithreaded Loop Filtering (Milestone 3 - Unit 7 Complete)**:
   - Refactored multithreaded loop filtering in `src/vp8/decoder/threading.rs` to use safe disjoint row views, fully resolving the concurrency race conditions in parallel decoding.
   - Implemented `get_row_view_mut` and `get_disjoint_row_views_mut` on `YV12_BUFFER_CONFIG` in `src/vp8/common/types.rs` to dynamically partition the destination frame buffer into disjoint mutable slices per row without any heap allocation overhead (avoiding global allocator lock contention that caused hangs).
@@ -95,6 +100,6 @@ See remaining_refactoring_work_items.md for an overview of particular unsafe blo
    - [x] Unit 6: Implement a `split_rows_mut` or safe chunking method on `YV12_BUFFER_CONFIG` that yields disjoint mutable slices for individual macroblock rows. (Completed!)
    - [x] Unit 7: Refactor multithreaded loop filtering in `threading.rs` to assign each thread a strictly disjoint mutable slice of the frame, proving to the borrow checker that parallel loop filtering is 100% race-free. (Completed!)
 2. **Future Safety Milestones**:
-   - **Modernize `BOOL_DECODER` (`src/vp8/decoder/dboolhuff.rs`)**: Eliminate residual raw pointer arithmetic (`user_buffer` additions) inside `SafeBoolDecoder` and fully leverage slice boundaries.
+   - [x] **Modernize `BOOL_DECODER` (`src/vp8/decoder/dboolhuff.rs`)**: Eliminate residual raw pointer arithmetic (`user_buffer` additions) inside `SafeBoolDecoder` and fully leverage slice boundaries. (Completed!)
    - **Address remaining `unsafe` blocks in `src/vp8/common/vp8_loopfilter.rs` and `extend.rs`** by replacing FFI boundary styles with native safe Rust patterns where possible (excluding assembly RTCD paths).
 

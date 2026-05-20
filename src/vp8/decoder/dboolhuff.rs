@@ -11,8 +11,7 @@ pub fn vp8dx_start_decode_safe(
     decrypt_cb: vpx_decrypt_cb,
     decrypt_state: *mut ::core::ffi::c_void,
 ) {
-    br.user_buffer = source.as_ptr();
-    br.user_buffer_end = source.as_ptr_range().end;
+    br.user_buffer = source as *const [u8];
     br.value = 0 as VP8_BD_VALUE;
     br.count = -8;
     br.range = 255;
@@ -88,11 +87,10 @@ impl<'a> SafeBoolDecoder<'a> {
 
     pub fn from_bool_decoder(bc: &BOOL_DECODER) -> Self {
         let slice = unsafe {
-            let len = bc.user_buffer_end.offset_from(bc.user_buffer) as usize;
-            if len == 0 {
+            if bc.user_buffer.is_null() {
                 &[]
             } else {
-                core::slice::from_raw_parts(bc.user_buffer, len)
+                &*bc.user_buffer
             }
         };
         Self {
@@ -107,7 +105,8 @@ impl<'a> SafeBoolDecoder<'a> {
     }
 
     pub fn update_bool_decoder(&self, bc: &mut BOOL_DECODER) {
-        bc.user_buffer = unsafe { bc.user_buffer.add(self.offset) };
+        let remaining_slice = &self.buffer[self.offset..];
+        bc.user_buffer = remaining_slice as *const [u8];
         bc.value = self.value;
         bc.count = self.count;
         bc.range = self.range;
