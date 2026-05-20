@@ -2,6 +2,12 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Dead Darwin Pthread and System Types Removal (decodeframe.rs, decodemv.rs, detokenize.rs, threading.rs, vp8_dx_iface.rs)**:
+  - Identified and removed unused Darwin-specific pthread and system type definitions (e.g., `__darwin_pthread_handler_rec`, `_opaque_pthread_t`, `__darwin_pthread_t`, `mach_port_t`, `size_t` where unused, etc.) from multiple decoder files.
+  - These types were transpiled leftovers that were completely unreferenced in the Rust implementation (which uses safe standard Rust threading and sync).
+  - Removing `__darwin_pthread_handler_rec` (which contained an `unsafe extern "C" fn` pointer) successfully eliminated **5 unsafe keywords** globally, reducing the remaining unsafe count from 360 to 355.
+  - Verified 100% bit-identical correctness across all 1160 test frames.
+
 * **Obsolete #[unsafe(no_mangle)] Removal in Mode MVs (decodemv.rs)**:
   - Removed obsolete `#[unsafe(no_mangle)]` and `pub` attributes from the static table `vp8_sub_mv_ref_prob3` in `src/vp8/decoder/decodemv.rs`.
   - Since this table is only accessed internally via standard Rust imports (in `decodemv.rs` itself), the FFI export attribute and public visibility were completely obsolete.

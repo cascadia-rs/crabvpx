@@ -5,27 +5,7 @@ use crate::vp8::common::entropymode::{vp8_bmode_tree, vp8_ymode_tree, vp8_kf_ymo
 
 use crate::vp8::common::modecont::vp8_mode_contexts;
 use crate::vp8::common::findnearmv::{vp8_mbsplit_offset, vp8_clamp_mv2, LEFT_TOP_MARGIN, RIGHT_BOTTOM_MARGIN};
-pub type __darwin_natural_t = ::core::ffi::c_uint;
-pub type __darwin_size_t = usize;
-pub type __darwin_mach_port_name_t = __darwin_natural_t;
-pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct __darwin_pthread_handler_rec {
-    pub __routine: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>,
-    pub __arg: *mut ::core::ffi::c_void,
-    pub __next: *mut __darwin_pthread_handler_rec,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _opaque_pthread_t {
-    pub __sig: ::core::ffi::c_long,
-    pub __cleanup_stack: *mut __darwin_pthread_handler_rec,
-    pub __opaque: [::core::ffi::c_char; 8176],
-}
-pub type __darwin_pthread_t = *mut _opaque_pthread_t;
-pub type size_t = __darwin_size_t;
-pub type mach_port_t = __darwin_mach_port_t;
+
 pub type vpx_color_space = ::core::ffi::c_uint;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
 pub const VPX_CS_RESERVED: vpx_color_space = 6;

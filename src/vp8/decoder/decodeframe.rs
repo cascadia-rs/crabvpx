@@ -38,29 +38,7 @@ pub const VPX_CS_SMPTE_170: vpx_color_space = 3;
 pub const VPX_CS_BT_709: vpx_color_space = 2;
 pub const VPX_CS_BT_601: vpx_color_space = 1;
 pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
-pub type size_t = __darwin_size_t;
-pub type __darwin_size_t = usize;
-pub type __darwin_natural_t = ::core::ffi::c_uint;
-pub type __darwin_ptrdiff_t = isize;
-pub type __darwin_mach_port_name_t = __darwin_natural_t;
-pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct __darwin_pthread_handler_rec {
-    pub __routine: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>,
-    pub __arg: *mut ::core::ffi::c_void,
-    pub __next: *mut __darwin_pthread_handler_rec,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _opaque_pthread_t {
-    pub __sig: ::core::ffi::c_long,
-    pub __cleanup_stack: *mut __darwin_pthread_handler_rec,
-    pub __opaque: [::core::ffi::c_char; 8176],
-}
-pub type __darwin_pthread_t = *mut _opaque_pthread_t;
-pub type mach_port_t = __darwin_mach_port_t;
-pub type ptrdiff_t = __darwin_ptrdiff_t;
+
 pub type C2RustUnnamed = ::core::ffi::c_uint;
 pub const MB_LVL_MAX: C2RustUnnamed = 2;
 pub const MB_LVL_ALT_LF: C2RustUnnamed = 1;

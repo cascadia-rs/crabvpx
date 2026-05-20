@@ -71,7 +71,7 @@ unsafe extern "C" {
 unsafe extern "C" {
     fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
 }
-static mach_task_self_: mach_port_t = 0;
+
 use crate::vp8::common::setupintrarecon::vp8_setup_intra_recon_top_line;
 pub use crate::vp8::common::types::*;
 pub type uint32_t = u32;
@@ -91,8 +91,7 @@ pub const VPX_CS_SMPTE_170: vpx_color_space = 3;
 pub const VPX_CS_BT_709: vpx_color_space = 2;
 pub const VPX_CS_BT_601: vpx_color_space = 1;
 pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
-pub type size_t = __darwin_size_t;
-pub type __darwin_size_t = usize;
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info {
@@ -101,43 +100,14 @@ pub struct loop_filter_info {
     pub lim: *const ::core::ffi::c_uchar,
     pub hev_thr: *const ::core::ffi::c_uchar,
 }
-pub type __darwin_natural_t = ::core::ffi::c_uint;
-pub type __darwin_mach_port_name_t = __darwin_natural_t;
-pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct __darwin_pthread_handler_rec {
-    pub __routine: Option<unsafe extern "C" fn(*mut ::core::ffi::c_void) -> ()>,
-    pub __arg: *mut ::core::ffi::c_void,
-    pub __next: *mut __darwin_pthread_handler_rec,
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _opaque_pthread_attr_t {
-    pub __sig: ::core::ffi::c_long,
-    pub __opaque: [::core::ffi::c_char; 56],
-}
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct _opaque_pthread_t {
-    pub __sig: ::core::ffi::c_long,
-    pub __cleanup_stack: *mut __darwin_pthread_handler_rec,
-    pub __opaque: [::core::ffi::c_char; 8176],
-}
-pub type __darwin_pthread_attr_t = _opaque_pthread_attr_t;
-pub type __darwin_pthread_t = *mut _opaque_pthread_t;
-pub type pthread_attr_t = __darwin_pthread_attr_t;
-pub type mach_port_t = __darwin_mach_port_t;
+
 pub type MV_REFERENCE_FRAME = ::core::ffi::c_uint;
 pub const MAX_REF_FRAMES: MV_REFERENCE_FRAME = 4;
 pub const ALTREF_FRAME: MV_REFERENCE_FRAME = 3;
 pub const GOLDEN_FRAME: MV_REFERENCE_FRAME = 2;
 pub const LAST_FRAME: MV_REFERENCE_FRAME = 1;
 pub const INTRA_FRAME: MV_REFERENCE_FRAME = 0;
-pub type kern_return_t = ::core::ffi::c_int;
-pub type task_t = mach_port_t;
-pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
-pub const THREAD_EXIT_SUCCESS: *mut ::core::ffi::c_void = NULL;
+
 pub const CHAR_BIT: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
 pub const VP8BORDERINPIXELS: ::core::ffi::c_int = 32 as ::core::ffi::c_int;
 pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
@@ -1466,6 +1436,4 @@ pub fn vp8mt_decode_mb_rows(
     }
     
     0}
-pub const __ATOMIC_ACQUIRE: ::core::ffi::c_int = 2 as ::core::ffi::c_int;
-pub const __ATOMIC_RELEASE: ::core::ffi::c_int = 3 as ::core::ffi::c_int;
-pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
+
