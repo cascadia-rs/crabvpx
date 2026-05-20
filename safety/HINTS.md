@@ -2,6 +2,11 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Obsolete #[unsafe(no_mangle)] Removal in Entropy MV (entropymv.rs)**:
+  - Removed obsolete `#[unsafe(no_mangle)]` attribute from the static table `vp8_default_mv_context` in `src/vp8/common/entropymv.rs`.
+  - Since this table is only accessed internally via safe Rust imports (in `decodeframe.rs`), the FFI export attribute was completely obsolete.
+  - This successfully eliminated **1 unsafe keyword** globally, reducing the remaining unsafe count from 379 to 378.
+  - Verified 100% bit-identical correctness across all 1160 test frames.
 * **Obsolete #[unsafe(no_mangle)] Removal in Mode Contexts (modecont.rs)**:
   - Removed obsolete `#[unsafe(no_mangle)]` attribute from the static table `vp8_mode_contexts` in `src/vp8/common/modecont.rs`.
   - Since this table is only accessed internally via safe Rust imports (in `findnearmv.rs` and `decodemv.rs`), the FFI export attribute was completely obsolete.
@@ -153,7 +158,7 @@ See remaining_refactoring_work_items.md for an overview of particular unsafe blo
 2. **Future Safety Milestones**:
    - [x] **Modernize `BOOL_DECODER` (`src/vp8/decoder/dboolhuff.rs`)**: Eliminate residual raw pointer arithmetic (`user_buffer` additions) inside `SafeBoolDecoder` and fully leverage slice boundaries. (Completed!)
    - [x] **Address remaining `unsafe` blocks in `src/vp8/common/vp8_loopfilter.rs` and `extend.rs`** by replacing FFI boundary styles with native safe Rust patterns where possible (excluding assembly RTCD paths). (Completed! Unused FFI wrappers were deleted, and internal functions were cleaned of `#[unsafe(no_mangle)]` and `extern "C"`).
-   - **Remove obsolete `#[unsafe(no_mangle)]` from `vp8_default_mv_context` in `src/vp8/common/entropymv.rs`**: This static table is only used internally in `decodeframe.rs` and can have its `#[unsafe(no_mangle)]` attribute removed safely to reduce unsafe keyword count.
+   - [x] **Remove obsolete `#[unsafe(no_mangle)]` from `vp8_default_mv_context` in `src/vp8/common/entropymv.rs`**: This static table is only used internally in `decodeframe.rs` and can have its `#[unsafe(no_mangle)]` attribute removed safely to reduce unsafe keyword count. (Completed!)
    - **Audit `blockd.rs` for dead code**: `vp8_block2left` and `vp8_block2above` in `src/vp8/common/blockd.rs` appear to be encoder-only and completely unused in CrabVPX. They can likely be removed entirely to clean up the codebase and remove 2 more unsafe keywords.
    - **Audit other FFI wrappers in `src/vp8/decoder/dboolhuff.rs`** (`vp8dx_start_decode` and `vp8dx_bool_decoder_fill`) to see if they can also be deprecated/removed or if they are required for external ABI linkage.
 
