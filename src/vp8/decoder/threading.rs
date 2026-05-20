@@ -604,19 +604,19 @@ fn mt_decode_mb_rows(
             let uv_stride = dst_fb.uv_stride as usize;
             let mb_row_usize = mb_row as usize;
 
-            let dst_y_slice = unsafe { dst_views.0.as_slice_mut(0, dst_views.0.len()) };
+            let dst_y_slice = dst_views.0.as_slice_mut(0, dst_views.0.len());
             let y_base = (y_border + mb_row_usize * 16) * y_stride + y_border - 1;
             for i in 0..16 {
                 dst_y_slice[y_base + i * y_stride] = 129;
             }
 
-            let dst_u_slice = unsafe { dst_views.1.as_slice_mut(0, dst_views.1.len()) };
+            let dst_u_slice = dst_views.1.as_slice_mut(0, dst_views.1.len());
             let u_base = (uv_border + mb_row_usize * 8) * uv_stride + uv_border - 1;
             for i in 0..8 {
                 dst_u_slice[u_base + i * uv_stride] = 129;
             }
 
-            let dst_v_slice = unsafe { dst_views.2.as_slice_mut(0, dst_views.2.len()) };
+            let dst_v_slice = dst_views.2.as_slice_mut(0, dst_views.2.len());
             let v_base = (uv_border + mb_row_usize * 8) * uv_stride + uv_border - 1;
             for i in 0..8 {
                 dst_v_slice[v_base + i * uv_stride] = 129;

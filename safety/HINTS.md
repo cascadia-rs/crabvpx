@@ -2,6 +2,13 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Removed Redundant Unsafe Blocks in Multithreaded Row Decoding (threading.rs)**:
+  - Identified that the entire body of the main row decoding loop in `mt_decode_mb_rows` is wrapped in a giant `unsafe` block (concurrency safety guaranteed by atomic spinlocks).
+  - This made several inner `unsafe` blocks redundant.
+  - Successfully removed 3 redundant `unsafe` blocks around `as_slice_mut` projections for `dst_y_slice`, `dst_u_slice`, and `dst_v_slice` (lines 607, 613, 619).
+  - This cleaned up the code and reduced the remaining global unsafe count from 197 to 194.
+  - Verified that compilation and all 1160 differential test frames continue to pass successfully with 100% bit-identical correctness.
+
 * **Safe Image Planes Access in Top-Level API (api.rs)**:
   - Refactored `Image` struct in `src/api.rs` to hold safe slices (`y_plane`, `u_plane`, `v_plane`, `alpha_plane`) and strides/dimensions directly, instead of holding a raw reference `&'a vpx_image_t` which contained raw pointers.
   - This made `Image` completely safe Rust with 100% safe public methods (including `plane()`, `width()`, `height()`, and `md5()`), eliminating the internal `unsafe` block from `Image::plane`.
