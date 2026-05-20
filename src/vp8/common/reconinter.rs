@@ -79,23 +79,25 @@ pub fn vp8_copy_mem8x4_safe(
 fn call_subpixel_predict(
     sppf: vp8_subpix_fn_t,
     src: &[u8],
+    src_offset: usize,
     src_stride: i32,
     xoffset: i32,
     yoffset: i32,
     dst: &mut [u8],
+    dst_offset: usize,
     dst_stride: i32,
 ) {
     if let Some(f) = sppf {
-        unsafe {
-            f(
-                src.as_ptr() as *mut u8,
-                src_stride,
-                xoffset,
-                yoffset,
-                dst.as_mut_ptr(),
-                dst_stride,
-            );
-        }
+        f(
+            src,
+            src_offset,
+            src_stride,
+            xoffset,
+            yoffset,
+            dst,
+            dst_offset,
+            dst_stride,
+        );
     }
 }
 
@@ -123,15 +125,15 @@ fn build_inter_predictors4b_safe(
     let dst_idx = dst_offset;
     
     if row & 7 != 0 || col & 7 != 0 {
-        let sub_pre = &pre_slice[pre_idx..];
-        let sub_dst = &mut dst_slice[dst_idx..];
         call_subpixel_predict(
             sppf,
-            sub_pre,
+            pre_slice,
+            pre_idx,
             pre_stride,
             col & 7,
             row & 7,
-            sub_dst,
+            dst_slice,
+            dst_idx,
             dst_stride,
         );
     } else {
@@ -169,15 +171,15 @@ fn build_inter_predictors2b_safe(
     let dst_idx = dst_offset;
     
     if row & 7 != 0 || col & 7 != 0 {
-        let sub_pre = &pre_slice[pre_idx..];
-        let sub_dst = &mut dst_slice[dst_idx..];
         call_subpixel_predict(
             sppf,
-            sub_pre,
+            pre_slice,
+            pre_idx,
             pre_stride,
             col & 7,
             row & 7,
-            sub_dst,
+            dst_slice,
+            dst_idx,
             dst_stride,
         );
     } else {
@@ -215,15 +217,15 @@ fn build_inter_predictors_b_safe(
     let dst_idx = dst_offset;
     
     if row & 7 != 0 || col & 7 != 0 {
-        let sub_pre = &pre_slice[pre_idx..];
-        let sub_dst = &mut dst_slice[dst_idx..];
         call_subpixel_predict(
             sppf,
-            sub_pre,
+            pre_slice,
+            pre_idx,
             pre_stride,
             col & 7,
             row & 7,
-            sub_dst,
+            dst_slice,
+            dst_idx,
             dst_stride,
         );
     } else {
@@ -363,15 +365,15 @@ pub fn vp8_build_inter16x16_predictors_mb(
     let pre_y_offset = (pre_y_active_offset as i32 + mv_row_offset + mv_col_offset) as usize;
 
     if _16x16mv.as_int() & 0x70007 as uint32_t != 0 {
-        let sub_pre = &pre_y_slice[pre_y_offset..];
-        let sub_dst = &mut dst_y_slice[dst_y_active_offset..];
         call_subpixel_predict(
             subpixel_predict16x16,
-            sub_pre,
+            &pre_y_slice,
+            pre_y_offset,
             pre_y_stride,
             _16x16mv.as_mv().col as ::core::ffi::c_int & 7,
             _16x16mv.as_mv().row as ::core::ffi::c_int & 7,
-            sub_dst,
+            &mut dst_y_slice,
+            dst_y_active_offset,
             dst_y_stride,
         );
     } else {
@@ -427,26 +429,26 @@ pub fn vp8_build_inter16x16_predictors_mb(
     let pre_uv_offset = (pre_uv_active_offset as i32 + uv_row_offset + uv_col_offset) as usize;
 
     if _16x16mv.as_int() & 0x70007 as uint32_t != 0 {
-        let sub_pre_u = &pre_u_slice[pre_uv_offset..];
-        let sub_dst_u = &mut dst_u_slice[dst_uv_active_offset..];
         call_subpixel_predict(
             subpixel_predict8x8,
-            sub_pre_u,
+            &pre_u_slice,
+            pre_uv_offset,
             pre_uv_stride,
             _16x16mv.as_mv().col as ::core::ffi::c_int & 7,
             _16x16mv.as_mv().row as ::core::ffi::c_int & 7,
-            sub_dst_u,
+            &mut dst_u_slice,
+            dst_uv_active_offset,
             dst_uv_stride,
         );
-        let sub_pre_v = &pre_v_slice[pre_uv_offset..];
-        let sub_dst_v = &mut dst_v_slice[dst_uv_active_offset..];
         call_subpixel_predict(
             subpixel_predict8x8,
-            sub_pre_v,
+            &pre_v_slice,
+            pre_uv_offset,
             pre_uv_stride,
             _16x16mv.as_mv().col as ::core::ffi::c_int & 7,
             _16x16mv.as_mv().row as ::core::ffi::c_int & 7,
-            sub_dst_v,
+            &mut dst_v_slice,
+            dst_uv_active_offset,
             dst_uv_stride,
         );
     } else {

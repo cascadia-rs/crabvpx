@@ -13,80 +13,7 @@ use crate::vp8::common::idctllm::vp8_short_inv_walsh4x4_safe;
 use crate::vp8::common::idct_blk::{vp8_dequant_idct_add_y_block_safe, vp8_dequant_idct_add_uv_block_safe};
 use crate::vp8::common::dequantize::vp8_dequant_idct_add_safe;
 use crate::vp8::common::idctllm::vp8_dc_only_idct_add_safe;
-
-unsafe extern "C" {
-
-    fn vp8_bilinear_predict16x16_neon(
-        src_ptr: *mut ::core::ffi::c_uchar,
-        src_pixels_per_line: ::core::ffi::c_int,
-        xoffset: ::core::ffi::c_int,
-        yoffset: ::core::ffi::c_int,
-        dst_ptr: *mut ::core::ffi::c_uchar,
-        dst_pitch: ::core::ffi::c_int,
-    );
-    fn vp8_bilinear_predict4x4_neon(
-        src_ptr: *mut ::core::ffi::c_uchar,
-        src_pixels_per_line: ::core::ffi::c_int,
-        xoffset: ::core::ffi::c_int,
-        yoffset: ::core::ffi::c_int,
-        dst_ptr: *mut ::core::ffi::c_uchar,
-        dst_pitch: ::core::ffi::c_int,
-    );
-    fn vp8_bilinear_predict8x4_neon(
-        src_ptr: *mut ::core::ffi::c_uchar,
-        src_pixels_per_line: ::core::ffi::c_int,
-        xoffset: ::core::ffi::c_int,
-        yoffset: ::core::ffi::c_int,
-        dst_ptr: *mut ::core::ffi::c_uchar,
-        dst_pitch: ::core::ffi::c_int,
-    );
-    fn vp8_bilinear_predict8x8_neon(
-        src_ptr: *mut ::core::ffi::c_uchar,
-        src_pixels_per_line: ::core::ffi::c_int,
-        xoffset: ::core::ffi::c_int,
-        yoffset: ::core::ffi::c_int,
-        dst_ptr: *mut ::core::ffi::c_uchar,
-        dst_pitch: ::core::ffi::c_int,
-    );
-
-    fn vp8_sixtap_predict16x16_neon(
-        src_ptr: *mut ::core::ffi::c_uchar,
-        src_pixels_per_line: ::core::ffi::c_int,
-        xoffset: ::core::ffi::c_int,
-        yoffset: ::core::ffi::c_int,
-        dst_ptr: *mut ::core::ffi::c_uchar,
-        dst_pitch: ::core::ffi::c_int,
-    );
-    fn vp8_sixtap_predict4x4_neon(
-        src_ptr: *mut ::core::ffi::c_uchar,
-        src_pixels_per_line: ::core::ffi::c_int,
-        xoffset: ::core::ffi::c_int,
-        yoffset: ::core::ffi::c_int,
-        dst_ptr: *mut ::core::ffi::c_uchar,
-        dst_pitch: ::core::ffi::c_int,
-    );
-    fn vp8_sixtap_predict8x4_neon(
-        src_ptr: *mut ::core::ffi::c_uchar,
-        src_pixels_per_line: ::core::ffi::c_int,
-        xoffset: ::core::ffi::c_int,
-        yoffset: ::core::ffi::c_int,
-        dst_ptr: *mut ::core::ffi::c_uchar,
-        dst_pitch: ::core::ffi::c_int,
-    );
-    fn vp8_sixtap_predict8x8_neon(
-        src_ptr: *mut ::core::ffi::c_uchar,
-        src_pixels_per_line: ::core::ffi::c_int,
-        xoffset: ::core::ffi::c_int,
-        yoffset: ::core::ffi::c_int,
-        dst_ptr: *mut ::core::ffi::c_uchar,
-        dst_pitch: ::core::ffi::c_int,
-    );
-
-
-
-
-
-}
+use crate::vp8::common::safe_predict::*;
 use crate::vp8::decoder::threading::vp8_decoder_remove_threads;
 use crate::vp8::common::alloccommon::vp8_setup_version;
 use crate::vp8::common::reconintra4x4::vp8_intra4x4_predict_safe;
@@ -1158,15 +1085,15 @@ fn init_frame(pbi: &mut VP8D_COMP) {
             0 as ::core::ffi::c_int;
     } else {
         if pbi.common.use_bilinear_mc_filter == 0 {
-            pbi.mb.subpixel_predict = Some(vp8_sixtap_predict4x4_neon);
-            pbi.mb.subpixel_predict8x4 = Some(vp8_sixtap_predict8x4_neon);
-            pbi.mb.subpixel_predict8x8 = Some(vp8_sixtap_predict8x8_neon);
-            pbi.mb.subpixel_predict16x16 = Some(vp8_sixtap_predict16x16_neon);
+            pbi.mb.subpixel_predict = Some(safe_vp8_sixtap_predict4x4_neon);
+            pbi.mb.subpixel_predict8x4 = Some(safe_vp8_sixtap_predict8x4_neon);
+            pbi.mb.subpixel_predict8x8 = Some(safe_vp8_sixtap_predict8x8_neon);
+            pbi.mb.subpixel_predict16x16 = Some(safe_vp8_sixtap_predict16x16_neon);
         } else {
-            pbi.mb.subpixel_predict = Some(vp8_bilinear_predict4x4_neon);
-            pbi.mb.subpixel_predict8x4 = Some(vp8_bilinear_predict8x4_neon);
-            pbi.mb.subpixel_predict8x8 = Some(vp8_bilinear_predict8x8_neon);
-            pbi.mb.subpixel_predict16x16 = Some(vp8_bilinear_predict16x16_neon);
+            pbi.mb.subpixel_predict = Some(safe_vp8_bilinear_predict4x4_neon);
+            pbi.mb.subpixel_predict8x4 = Some(safe_vp8_bilinear_predict8x4_neon);
+            pbi.mb.subpixel_predict8x8 = Some(safe_vp8_bilinear_predict8x8_neon);
+            pbi.mb.subpixel_predict16x16 = Some(safe_vp8_bilinear_predict16x16_neon);
         }
         if pbi.decoded_key_frame != 0 && pbi.ec_enabled != 0 && pbi.ec_active == 0 {
             pbi.ec_active = 1 as ::core::ffi::c_int;

@@ -636,13 +636,15 @@ pub const INTER_FRAME: FRAME_TYPE = 1;
 pub const KEY_FRAME: FRAME_TYPE = 0;
 
 pub type vp8_subpix_fn_t = Option<
-    unsafe extern "C" fn(
-        *mut ::core::ffi::c_uchar,
-        ::core::ffi::c_int,
-        ::core::ffi::c_int,
-        ::core::ffi::c_int,
-        *mut ::core::ffi::c_uchar,
-        ::core::ffi::c_int,
+    fn(
+        src: &[u8],
+        src_offset: usize,
+        src_stride: ::core::ffi::c_int,
+        xoffset: ::core::ffi::c_int,
+        yoffset: ::core::ffi::c_int,
+        dst: &mut [u8],
+        dst_offset: usize,
+        dst_stride: ::core::ffi::c_int,
     ) -> (),
 >;
 

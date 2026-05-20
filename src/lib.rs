@@ -43,6 +43,7 @@ pub mod vp8 {
         pub mod treecoder;
         pub mod types;
         pub mod vp8_loopfilter;
+        pub mod safe_predict;
     } // mod common
     pub mod decoder {
         pub mod dboolhuff;
