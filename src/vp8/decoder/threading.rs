@@ -1626,40 +1626,35 @@ pub fn vp8mt_decode_mb_rows(
     let mut filter_branch = false;
     
     if filter_level != 0 {
-        // SAFETY: This setup phase is strictly single-threaded before worker threads are signaled.
-        // We can safely project mutable slices from the row synchronizers.
-        unsafe {
-            let yabove_ab = pbi.mt_sync.mt_yabove_row.as_ref().unwrap()[0];
-            let len = (y_width + 5) as usize;
-            let uabove_ab = pbi.mt_sync.mt_uabove_row.as_ref().unwrap()[0];
-            let len_uv = ((y_width >> 1) + 5) as usize;
-            let vabove_ab = pbi.mt_sync.mt_vabove_row.as_ref().unwrap()[0];
+        let mt_sync = &mut pbi.mt_sync;
+        let yabove_allocs = mt_sync.mt_yabove_row_allocs.as_mut().unwrap();
+        let uabove_allocs = mt_sync.mt_uabove_row_allocs.as_mut().unwrap();
+        let vabove_allocs = mt_sync.mt_vabove_row_allocs.as_mut().unwrap();
+        let yleft_allocs = mt_sync.mt_yleft_col_allocs.as_mut().unwrap();
+        let uleft_allocs = mt_sync.mt_uleft_col_allocs.as_mut().unwrap();
+        let vleft_allocs = mt_sync.mt_vleft_col_allocs.as_mut().unwrap();
 
-            yabove_ab.as_slice_mut(31, len).fill(127);
-            uabove_ab.as_slice_mut(15, len_uv).fill(127);
-            vabove_ab.as_slice_mut(15, len_uv).fill(127);
+        let len = (y_width + 5) as usize;
+        let len_uv = ((y_width >> 1) + 5) as usize;
 
-            j = 1;
-            while j < pc_ref.mb_rows {
-                let yabove_ab = pbi.mt_sync.mt_yabove_row.as_ref().unwrap()[j as usize];
-                let uabove_ab = pbi.mt_sync.mt_uabove_row.as_ref().unwrap()[j as usize];
-                let vabove_ab = pbi.mt_sync.mt_vabove_row.as_ref().unwrap()[j as usize];
-                yabove_ab.as_slice_mut(31, 1)[0] = 129;
-                uabove_ab.as_slice_mut(15, 1)[0] = 129;
-                vabove_ab.as_slice_mut(15, 1)[0] = 129;
-                j += 1;
-            }
+        yabove_allocs[0].as_mut().unwrap().as_slice_mut()[31 .. 31 + len].fill(127);
+        uabove_allocs[0].as_mut().unwrap().as_slice_mut()[15 .. 15 + len_uv].fill(127);
+        vabove_allocs[0].as_mut().unwrap().as_slice_mut()[15 .. 15 + len_uv].fill(127);
 
-            j = 0;
-            while j < pc_ref.mb_rows {
-                let yleft_ab = pbi.mt_sync.mt_yleft_col.as_ref().unwrap()[j as usize];
-                let uleft_ab = pbi.mt_sync.mt_uleft_col.as_ref().unwrap()[j as usize];
-                let vleft_ab = pbi.mt_sync.mt_vleft_col.as_ref().unwrap()[j as usize];
-                yleft_ab.as_slice_mut(0, 16).fill(129);
-                uleft_ab.as_slice_mut(0, 8).fill(129);
-                vleft_ab.as_slice_mut(0, 8).fill(129);
-                j += 1;
-            }
+        j = 1;
+        while j < pc_ref.mb_rows {
+            yabove_allocs[j as usize].as_mut().unwrap().as_slice_mut()[31] = 129;
+            uabove_allocs[j as usize].as_mut().unwrap().as_slice_mut()[15] = 129;
+            vabove_allocs[j as usize].as_mut().unwrap().as_slice_mut()[15] = 129;
+            j += 1;
+        }
+
+        j = 0;
+        while j < pc_ref.mb_rows {
+            yleft_allocs[j as usize].as_mut().unwrap().as_slice_mut()[0 .. 16].fill(129);
+            uleft_allocs[j as usize].as_mut().unwrap().as_slice_mut()[0 .. 8].fill(129);
+            vleft_allocs[j as usize].as_mut().unwrap().as_slice_mut()[0 .. 8].fill(129);
+            j += 1;
         }
         filter_branch = true;
     }

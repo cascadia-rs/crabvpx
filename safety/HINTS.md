@@ -2,6 +2,13 @@
 
 See remaining_refactoring_work_items.md for an overview of particular unsafe blocks.
 ## Current Status (May 2026)
+* **Safe Row Buffer Initialization in Multithreaded Row Decoding (threading.rs)**:
+  - Refactored the single-threaded setup phase in `vp8mt_decode_mb_rows` in `src/vp8/decoder/threading.rs` to completely eliminate its internal `unsafe` block.
+  - Bypassed `UnsafeRowView` raw pointer slice projections by accessing `mt_yabove_row_allocs` etc. directly, which hold safe, owned `AlignedBox` buffers.
+  - Implemented safe, bounds-checked slicing (`as_slice_mut()[start .. start + len]`) on the underlying `AlignedBox` buffers in safe Rust.
+  - This successfully eliminated **1 unsafe block** globally, reducing the remaining unsafe count from 137 to 136!
+  - Verified that all 1160 differential test frames continue to pass successfully with 100% bit-identical correctness.
+
 * **100% Safe Top-Level API and Safe Frame Buffer Slicing (api.rs, vp8_dx_iface.rs, types.rs)**:
   - Refactored the top-level `Decoder::get_frame` in `src/api.rs` to be **100% safe Rust**, completely eliminating its internal `unsafe` block.
   - Implemented a safe, immutable `views(&self) -> (&[u8], &[u8], &[u8])` method on `YV12_BUFFER_CONFIG` in `src/vp8/common/types.rs` to project safe, bounds-checked Y, U, and V active plane slices without relying on mutable FFI projections.
