@@ -1,7 +1,7 @@
 pub const VP8_FILTER_WEIGHT: i32 = 128 as i32;
 pub const VP8_FILTER_SHIFT: i32 = 7 as i32;
 #[unsafe(no_mangle)]
-pub static mut vp8_bilinear_filters: [[i16; 2]; 8] = [
+pub static vp8_bilinear_filters: [[i16; 2]; 8] = [
     [128 as i16, 0 as i16],
     [112 as i16, 16 as i16],
     [96 as i16, 32 as i16],
@@ -12,7 +12,7 @@ pub static mut vp8_bilinear_filters: [[i16; 2]; 8] = [
     [16 as i16, 112 as i16],
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_sub_pel_filters: [[i16; 6]; 8] = [
+pub static vp8_sub_pel_filters: [[i16; 6]; 8] = [
     [0 as i16, 0 as i16, 128 as i16, 0 as i16, 0 as i16, 0 as i16],
     [
         0 as i16,

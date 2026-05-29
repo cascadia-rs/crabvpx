@@ -212,7 +212,7 @@ unsafe fn vp8_clamp_mv2(mut mv: *mut IntMv, mut xd: *const MACROBLOCKD) {
     }
 }
 #[unsafe(no_mangle)]
-pub static mut vp8_mbsplit_offset: [[u8; 16]; 4] = [
+pub static vp8_mbsplit_offset: [[u8; 16]; 4] = [
     [
         0 as u8, 8 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
         0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,

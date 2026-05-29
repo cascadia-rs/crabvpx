@@ -44,6 +44,7 @@ pub mod vp8 {
         pub mod rtcd;
         pub mod setupintrarecon;
         pub mod swapyv12buffer;
+        pub mod tables;
         pub mod treecoder;
         pub mod vp8_loopfilter;
     } // mod common
@@ -72,6 +73,7 @@ pub mod vpx_dsp {
     pub mod intrapred;
     pub mod prob;
     pub mod skin_detection;
+    pub mod tables;
     pub mod vpx_dsp_rtcd;
 } // mod vpx_dsp
 pub mod vpx_mem {

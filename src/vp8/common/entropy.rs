@@ -104,6 +104,8 @@ pub struct Vp8ExtraBitStruct {
     pub len: i32,
     pub base_val: i32,
 }
+unsafe impl Sync for Vp8ExtraBitStruct {}
+unsafe impl Send for Vp8ExtraBitStruct {}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VP8Common {
@@ -202,20 +204,13 @@ pub const NORMAL_LOOPFILTER: u32 = 0;
 pub const RECON_CLAMP_NOTREQUIRED: u32 = 1;
 pub const RECON_CLAMP_REQUIRED: u32 = 0;
 pub type Vp8Common = VP8Common;
-pub const ZERO_TOKEN: i32 = 0 as i32;
-pub const ONE_TOKEN: i32 = 1 as i32;
-pub const TWO_TOKEN: i32 = 2 as i32;
-pub const THREE_TOKEN: i32 = 3 as i32;
-pub const FOUR_TOKEN: i32 = 4 as i32;
-pub const DCT_VAL_CATEGORY1: i32 = 5 as i32;
-pub const DCT_VAL_CATEGORY2: i32 = 6 as i32;
-pub const DCT_VAL_CATEGORY3: i32 = 7 as i32;
-pub const DCT_VAL_CATEGORY4: i32 = 8 as i32;
-pub const DCT_VAL_CATEGORY5: i32 = 9 as i32;
-pub const DCT_VAL_CATEGORY6: i32 = 10 as i32;
-pub const DCT_EOB_TOKEN: i32 = 11 as i32;
+pub use crate::vp8::common::tables::{
+    DCT_EOB_TOKEN, DCT_VAL_CATEGORY1, DCT_VAL_CATEGORY2, DCT_VAL_CATEGORY3, DCT_VAL_CATEGORY4,
+    DCT_VAL_CATEGORY5, DCT_VAL_CATEGORY6, ONE_TOKEN, THREE_TOKEN, TWO_TOKEN, ZERO_TOKEN,
+};
+pub const FOUR_TOKEN: i32 = crate::vp8::common::tables::FOUR_TOKEN;
 #[unsafe(no_mangle)]
-pub static mut vp8_coef_update_probs: [[[[u8; 11]; 3]; 8]; 4] = [
+pub static vp8_coef_update_probs: [[[[u8; 11]; 3]; 8]; 4] = [
     [
         [
             [
@@ -673,101 +668,11 @@ pub static mut vp8_coef_update_probs: [[[[u8; 11]; 3]; 8]; 4] = [
         ],
     ],
 ];
-#[unsafe(no_mangle)]
-pub static mut vp8_norm: [u8; 256] = [
-    0 as u8, 7 as u8, 6 as u8, 6 as u8, 5 as u8, 5 as u8, 5 as u8, 5 as u8, 4 as u8, 4 as u8,
-    4 as u8, 4 as u8, 4 as u8, 4 as u8, 4 as u8, 4 as u8, 3 as u8, 3 as u8, 3 as u8, 3 as u8,
-    3 as u8, 3 as u8, 3 as u8, 3 as u8, 3 as u8, 3 as u8, 3 as u8, 3 as u8, 3 as u8, 3 as u8,
-    3 as u8, 3 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8,
-    2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8,
-    2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8,
-    2 as u8, 2 as u8, 2 as u8, 2 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8,
-    1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8,
-    1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8,
-    1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8,
-    1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8,
-    1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8,
-    1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 1 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-    0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8, 0 as u8,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_coef_bands: [u8; 16] = [
-    0 as u8, 1 as u8, 2 as u8, 3 as u8, 6 as u8, 4 as u8, 5 as u8, 6 as u8, 6 as u8, 6 as u8,
-    6 as u8, 6 as u8, 6 as u8, 6 as u8, 6 as u8, 7 as u8,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_prev_token_class: [u8; 12] = [
-    0 as u8, 1 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8, 2 as u8,
-    2 as u8, 0 as u8,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_default_zig_zag1d: [i32; 16] = [
-    0 as i32, 1 as i32, 4 as i32, 8 as i32, 5 as i32, 2 as i32, 3 as i32, 6 as i32, 9 as i32,
-    12 as i32, 13 as i32, 10 as i32, 7 as i32, 11 as i32, 14 as i32, 15 as i32,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_default_inv_zig_zag: [i16; 16] = [
-    1 as i16, 2 as i16, 6 as i16, 7 as i16, 3 as i16, 5 as i16, 8 as i16, 13 as i16, 4 as i16,
-    9 as i16, 12 as i16, 14 as i16, 10 as i16, 11 as i16, 15 as i16, 16 as i16,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_default_zig_zag_mask: [i16; 16] = [
-    1 as i16,
-    2 as i16,
-    32 as i16,
-    64 as i16,
-    4 as i16,
-    16 as i16,
-    128 as i16,
-    4096 as i16,
-    8 as i16,
-    256 as i16,
-    2048 as i16,
-    8192 as i16,
-    512 as i16,
-    1024 as i16,
-    16384 as i16,
-    -(32768 as i32) as i16,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_mb_feature_data_bits: [i32; 2] = [7 as i32, 6 as i32];
-#[unsafe(no_mangle)]
-pub static mut vp8_coef_tree: [i8; 22] = [
-    -DCT_EOB_TOKEN as i8,
-    2 as i8,
-    -ZERO_TOKEN as i8,
-    4 as i8,
-    -ONE_TOKEN as i8,
-    6 as i8,
-    8 as i8,
-    12 as i8,
-    -TWO_TOKEN as i8,
-    10 as i8,
-    -THREE_TOKEN as i8,
-    -FOUR_TOKEN as i8,
-    14 as i8,
-    16 as i8,
-    -DCT_VAL_CATEGORY1 as i8,
-    -DCT_VAL_CATEGORY2 as i8,
-    18 as i8,
-    20 as i8,
-    -DCT_VAL_CATEGORY3 as i8,
-    -DCT_VAL_CATEGORY4 as i8,
-    -DCT_VAL_CATEGORY5 as i8,
-    -DCT_VAL_CATEGORY6 as i8,
-];
+pub use crate::vp8::common::tables::{
+    vp8_coef_bands, vp8_coef_tree, vp8_default_inv_zig_zag, vp8_default_zig_zag_mask,
+    vp8_default_zig_zag1d, vp8_mb_feature_data_bits, vp8_prev_token_class,
+};
+pub use crate::vpx_dsp::tables::VPX_NORM as vp8_norm;
 #[unsafe(no_mangle)]
 pub static mut vp8_coef_encodings: [Vp8Token; 12] = [
     Vp8TokenStruct {
@@ -819,31 +724,31 @@ pub static mut vp8_coef_encodings: [Vp8Token; 12] = [
         len: 1 as i32,
     },
 ];
-static mut Pcat1: [u8; 1] = [159 as u8];
-static mut Pcat2: [u8; 2] = [165 as u8, 145 as u8];
-static mut Pcat3: [u8; 3] = [173 as u8, 148 as u8, 140 as u8];
-static mut Pcat4: [u8; 4] = [176 as u8, 155 as u8, 140 as u8, 135 as u8];
-static mut Pcat5: [u8; 5] = [180 as u8, 157 as u8, 141 as u8, 134 as u8, 130 as u8];
-static mut Pcat6: [u8; 11] = [
+static Pcat1: [u8; 1] = [159 as u8];
+static Pcat2: [u8; 2] = [165 as u8, 145 as u8];
+static Pcat3: [u8; 3] = [173 as u8, 148 as u8, 140 as u8];
+static Pcat4: [u8; 4] = [176 as u8, 155 as u8, 140 as u8, 135 as u8];
+static Pcat5: [u8; 5] = [180 as u8, 157 as u8, 141 as u8, 134 as u8, 130 as u8];
+static Pcat6: [u8; 11] = [
     254 as u8, 254 as u8, 243 as u8, 230 as u8, 196 as u8, 177 as u8, 153 as u8, 140 as u8,
     133 as u8, 130 as u8, 129 as u8,
 ];
-static mut cat1: [i8; 2] = [0 as i8, 0 as i8];
-static mut cat2: [i8; 4] = [2 as i8, 2 as i8, 0 as i8, 0 as i8];
-static mut cat3: [i8; 6] = [2 as i8, 2 as i8, 4 as i8, 4 as i8, 0 as i8, 0 as i8];
-static mut cat4: [i8; 8] = [
+static cat1: [i8; 2] = [0 as i8, 0 as i8];
+static cat2: [i8; 4] = [2 as i8, 2 as i8, 0 as i8, 0 as i8];
+static cat3: [i8; 6] = [2 as i8, 2 as i8, 4 as i8, 4 as i8, 0 as i8, 0 as i8];
+static cat4: [i8; 8] = [
     2 as i8, 2 as i8, 4 as i8, 4 as i8, 6 as i8, 6 as i8, 0 as i8, 0 as i8,
 ];
-static mut cat5: [i8; 10] = [
+static cat5: [i8; 10] = [
     2 as i8, 2 as i8, 4 as i8, 4 as i8, 6 as i8, 6 as i8, 8 as i8, 8 as i8, 0 as i8, 0 as i8,
 ];
-static mut cat6: [i8; 22] = [
+static cat6: [i8; 22] = [
     2 as i8, 2 as i8, 4 as i8, 4 as i8, 6 as i8, 6 as i8, 8 as i8, 8 as i8, 10 as i8, 10 as i8,
     12 as i8, 12 as i8, 14 as i8, 14 as i8, 16 as i8, 16 as i8, 18 as i8, 18 as i8, 20 as i8,
     20 as i8, 0 as i8, 0 as i8,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_extra_bits: [Vp8ExtraBitStruct; 12] = {
+pub static vp8_extra_bits: [Vp8ExtraBitStruct; 12] = {
     [
         Vp8ExtraBitStruct {
             tree: ::core::ptr::null::<i8>(),
@@ -919,7 +824,7 @@ pub static mut vp8_extra_bits: [Vp8ExtraBitStruct; 12] = {
         },
     ]
 };
-static mut default_coef_probs: [[[[u8; 11]; 3]; 8]; 4] = [
+static default_coef_probs: [[[[u8; 11]; 3]; 8]; 4] = [
     [
         [
             [

@@ -9,8 +9,8 @@ pub struct Int16x8x2T {
 pub struct Int32x4x2T {
     pub val: [int32x4_t; 2],
 }
-static mut cospi8sqrt2minus1: i16 = 20091 as i16;
-static mut sinpi8sqrt2: i16 = 17734 as i16;
+static cospi8sqrt2minus1: i16 = 20091 as i16;
+static sinpi8sqrt2: i16 = 17734 as i16;
 #[unsafe(no_mangle)]
 pub fn vp8_dequant_idct_add_y_block_neon(
     mut q: *mut i16,

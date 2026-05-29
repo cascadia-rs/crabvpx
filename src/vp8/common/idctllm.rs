@@ -1,5 +1,5 @@
-static mut cospi8sqrt2minus1: i32 = 20091 as i32;
-static mut sinpi8sqrt2: i32 = 35468 as i32;
+static cospi8sqrt2minus1: i32 = 20091 as i32;
+static sinpi8sqrt2: i32 = 35468 as i32;
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_short_idct4x4llm_c(
     mut input: *mut i16,

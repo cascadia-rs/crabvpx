@@ -1,7 +1,5 @@
+use crate::vpx_dsp::tables::VPX_NORM;
 use std::ffi::c_void;
-unsafe extern "Rust" {
-    static vpx_norm: [u8; 256];
-}
 pub type VpxDecryptCb = Option<unsafe fn(*mut c_void, *const u8, *mut u8, i32) -> ()>;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -43,7 +41,7 @@ unsafe fn vpx_read(mut r: *mut VpxReader, mut prob: i32) -> i32 {
             value = value.wrapping_sub(bigsplit);
             bit = 1 as u32;
         }
-        let shift: u8 = vpx_norm[range as usize];
+        let shift: u8 = VPX_NORM[range as usize];
         range <<= shift as i32;
         value <<= shift as i32;
         count -= shift as i32;

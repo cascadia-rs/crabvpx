@@ -1,20 +1,18 @@
+use crate::vpx_dsp::tables::VPX_NORM as vp8_norm;
 use crate::vpx_scale::generic::yv12config::Yv12BufferConfig;
 use std::ffi::c_void;
 unsafe extern "Rust" {
-    static vp8_norm: [u8; 256];
     fn vp8dx_bool_decoder_fill(br: *mut BoolDecoder);
     static vp8_mv_update_probs: [MvContext; 2];
-    static vp8_bmode_tree: [i8; 0];
-    static vp8_ymode_tree: [i8; 0];
-    static vp8_kf_ymode_tree: [i8; 0];
-    static vp8_uv_mode_tree: [i8; 0];
-    static vp8_small_mvtree: [i8; 0];
     static vp8_kf_bmode_prob: [[[u8; 9]; 10]; 10];
     static vp8_kf_uv_mode_prob: [u8; 3];
     static vp8_kf_ymode_prob: [u8; 4];
     static vp8_mode_contexts: [[i32; 4]; 6];
     static vp8_mbsplit_offset: [[u8; 16]; 4];
 }
+pub use crate::vp8::common::entropymode::{
+    vp8_bmode_tree, vp8_kf_ymode_tree, vp8_small_mvtree, vp8_uv_mode_tree, vp8_ymode_tree,
+};
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct DarwinPthreadHandlerRec {
@@ -722,8 +720,8 @@ unsafe fn read_mvcontexts(mut bc: *mut Vp8Reader, mut mvc: *mut MvContext) {
         }
     }
 }
-static mut mbsplit_fill_count: [u8; 4] = [8 as u8, 8 as u8, 4 as u8, 1 as u8];
-static mut mbsplit_fill_offset: [[u8; 16]; 4] = [
+static mbsplit_fill_count: [u8; 4] = [8 as u8, 8 as u8, 4 as u8, 1 as u8];
+static mbsplit_fill_offset: [[u8; 16]; 4] = [
     [
         0 as u8, 1 as u8, 2 as u8, 3 as u8, 4 as u8, 5 as u8, 6 as u8, 7 as u8, 8 as u8, 9 as u8,
         10 as u8, 11 as u8, 12 as u8, 13 as u8, 14 as u8, 15 as u8,
@@ -783,7 +781,7 @@ unsafe fn mb_mode_mv_init(mut pbi: *mut Vp8dComp) {
     }
 }
 #[unsafe(no_mangle)]
-pub static mut vp8_sub_mv_ref_prob3: [[u8; 3]; 8] = [
+pub static vp8_sub_mv_ref_prob3: [[u8; 3]; 8] = [
     [147 as u8, 136 as u8, 18 as u8],
     [223 as u8, 1 as u8, 34 as u8],
     [106 as u8, 145 as u8, 1 as u8],

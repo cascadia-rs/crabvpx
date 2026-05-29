@@ -237,6 +237,8 @@ pub struct VpxCodecEncIface {
     pub mr_get_mem_loc: VpxCodecEncMrGetMemLocFnT,
     pub mr_free_mem_loc: VpxCodecEncMrFreeMemLocFnT,
 }
+unsafe impl Sync for VpxCodecEncIface {}
+unsafe impl Send for VpxCodecEncIface {}
 pub type VpxCodecEncMrFreeMemLocFnT = Option<unsafe fn(*mut c_void) -> ()>;
 pub type VpxCodecEncMrGetMemLocFnT =
     Option<unsafe fn(*const VpxCodecEncCfgT, *mut *mut c_void) -> u32>;
@@ -675,6 +677,8 @@ pub struct VpxCodecEncCfgMap {
     pub usage: i32,
     pub cfg: VpxCodecEncCfgT,
 }
+unsafe impl Sync for VpxCodecEncCfgMap {}
+unsafe impl Send for VpxCodecEncCfgMap {}
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VpxCodecDecIface {
@@ -1565,7 +1569,7 @@ unsafe fn vp8_set_decryptor(mut ctx: *mut VpxCodecAlgPrivT, mut data: *mut c_voi
         VPX_CODEC_OK
     }
 }
-static mut vp8_ctf_maps: [VpxCodecCtrlFnMapT; 9] = {
+static vp8_ctf_maps: [VpxCodecCtrlFnMapT; 9] = {
     [
         VpxCodecCtrlFnMap {
             ctrl_id: VP8_SET_REFERENCE as i32,
@@ -1611,23 +1615,43 @@ static mut vp8_ctf_maps: [VpxCodecCtrlFnMapT; 9] = {
         },
     ]
 };
+#[repr(transparent)]
+pub struct SyncVpxCodecIface(pub VpxCodecIfaceT);
+unsafe impl Sync for SyncVpxCodecIface {}
 #[unsafe(no_mangle)]
-pub static mut vpx_codec_vp8_dx_algo: VpxCodecIfaceT = VpxCodecIface {
-    name: ::core::ptr::null::<i8>(),
-    abi_version: 0,
-    caps: 0,
-    init: None,
-    destroy: None,
-    ctrl_maps: ::core::ptr::null::<VpxCodecCtrlFnMapT>(),
+pub static vpx_codec_vp8_dx_algo: SyncVpxCodecIface = SyncVpxCodecIface(VpxCodecIface {
+    name: b"WebM Project VP8 Decoder v1.16.0-122-ge9efe034e\0" as *const u8 as *const i8,
+    abi_version: VPX_CODEC_INTERNAL_ABI_VERSION,
+    caps: (VPX_CODEC_CAP_DECODER
+        | (if CONFIG_POSTPROC != 0 {
+            VPX_CODEC_CAP_POSTPROC
+        } else {
+            0 as i32
+        })
+        | (if CONFIG_ERROR_CONCEALMENT != 0 {
+            VPX_CODEC_CAP_ERROR_CONCEALMENT
+        } else {
+            0 as i32
+        })
+        | VPX_CODEC_CAP_INPUT_FRAGMENTS) as i64,
+    init: Some(vp8_init as unsafe fn(*mut VpxCodecCtxT, *mut VpxCodecPrivEncMrCfgT) -> u32),
+    destroy: Some(vp8_destroy as unsafe fn(*mut VpxCodecAlgPrivT) -> u32),
+    ctrl_maps: &raw const vp8_ctf_maps as *const VpxCodecCtrlFnMapT,
     dec: VpxCodecDecIface {
-        peek_si: None,
-        get_si: None,
-        decode: None,
-        get_frame: None,
+        peek_si: Some(vp8_peek_si as unsafe fn(*const u8, u32, *mut VpxCodecStreamInfoT) -> u32),
+        get_si: Some(
+            vp8_get_si as unsafe fn(*mut VpxCodecAlgPrivT, *mut VpxCodecStreamInfoT) -> u32,
+        ),
+        decode: Some(
+            vp8_decode as unsafe fn(*mut VpxCodecAlgPrivT, *const u8, u32, *mut c_void) -> u32,
+        ),
+        get_frame: Some(
+            vp8_get_frame as unsafe fn(*mut VpxCodecAlgPrivT, *mut VpxCodecIterT) -> *mut VpxImageT,
+        ),
         set_fb_fn: None,
     },
     enc: VpxCodecEncIface {
-        cfg_map_count: 0,
+        cfg_map_count: 0 as i32,
         cfg_maps: ::core::ptr::null::<VpxCodecEncCfgMapT>(),
         encode: None,
         get_cx_data: None,
@@ -1637,66 +1661,10 @@ pub static mut vpx_codec_vp8_dx_algo: VpxCodecIfaceT = VpxCodecIface {
         mr_get_mem_loc: None,
         mr_free_mem_loc: None,
     },
-};
+});
 #[unsafe(no_mangle)]
 pub fn vpx_codec_vp8_dx() -> *const VpxCodecIfaceT {
-    &raw const vpx_codec_vp8_dx_algo
+    &raw const vpx_codec_vp8_dx_algo.0
 }
 pub const __ATOMIC_ACQUIRE: i32 = 2 as i32;
 pub const NULL: *mut c_void = __DARWIN_NULL;
-unsafe fn run_static_initializers() {
-    unsafe {
-        vpx_codec_vp8_dx_algo = VpxCodecIface {
-            name: b"WebM Project VP8 Decoder v1.16.0-122-ge9efe034e\0" as *const u8 as *const i8,
-            abi_version: VPX_CODEC_INTERNAL_ABI_VERSION,
-            caps: (VPX_CODEC_CAP_DECODER
-                | (if CONFIG_POSTPROC != 0 {
-                    VPX_CODEC_CAP_POSTPROC
-                } else {
-                    0 as i32
-                })
-                | (if CONFIG_ERROR_CONCEALMENT != 0 {
-                    VPX_CODEC_CAP_ERROR_CONCEALMENT
-                } else {
-                    0 as i32
-                })
-                | VPX_CODEC_CAP_INPUT_FRAGMENTS) as i64,
-            init: Some(vp8_init as unsafe fn(*mut VpxCodecCtxT, *mut VpxCodecPrivEncMrCfgT) -> u32),
-            destroy: Some(vp8_destroy as unsafe fn(*mut VpxCodecAlgPrivT) -> u32),
-            ctrl_maps: &raw const vp8_ctf_maps as *const VpxCodecCtrlFnMapT,
-            dec: VpxCodecDecIface {
-                peek_si: Some(
-                    vp8_peek_si as unsafe fn(*const u8, u32, *mut VpxCodecStreamInfoT) -> u32,
-                ),
-                get_si: Some(
-                    vp8_get_si as unsafe fn(*mut VpxCodecAlgPrivT, *mut VpxCodecStreamInfoT) -> u32,
-                ),
-                decode: Some(
-                    vp8_decode
-                        as unsafe fn(*mut VpxCodecAlgPrivT, *const u8, u32, *mut c_void) -> u32,
-                ),
-                get_frame: Some(
-                    vp8_get_frame
-                        as unsafe fn(*mut VpxCodecAlgPrivT, *mut VpxCodecIterT) -> *mut VpxImageT,
-                ),
-                set_fb_fn: None,
-            },
-            enc: VpxCodecEncIface {
-                cfg_map_count: 0 as i32,
-                cfg_maps: ::core::ptr::null::<VpxCodecEncCfgMapT>(),
-                encode: None,
-                get_cx_data: None,
-                cfg_set: None,
-                get_glob_hdrs: None,
-                get_preview: None,
-                mr_get_mem_loc: None,
-                mr_free_mem_loc: None,
-            },
-        };
-    }
-}
-#[used]
-#[cfg_attr(target_os = "linux", unsafe(link_section = ".init_array"))]
-#[cfg_attr(target_os = "windows", unsafe(link_section = ".CRT$XCU"))]
-#[cfg_attr(target_os = "macos", unsafe(link_section = "__DATA,__mod_init_func"))]
-static INIT_ARRAY: [unsafe fn(); 1] = [run_static_initializers];

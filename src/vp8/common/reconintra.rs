@@ -208,52 +208,33 @@ unsafe fn once(mut func: Option<unsafe fn() -> ()>) {
         }
     }
 }
-static mut pred: [[IntraPredFn; 2]; 4] = [[None; 2]; 4];
-static mut dc_pred: [[[IntraPredFn; 2]; 2]; 2] = [[[None; 2]; 2]; 2];
+static pred: [[IntraPredFn; 2]; 4] = [
+    [None, None],
+    [Some(vpx_v_predictor_16x16_c), Some(vpx_v_predictor_8x8_c)],
+    [Some(vpx_h_predictor_16x16_c), Some(vpx_h_predictor_8x8_c)],
+    [Some(vpx_tm_predictor_16x16_c), Some(vpx_tm_predictor_8x8_c)],
+];
+static dc_pred: [[[IntraPredFn; 2]; 2]; 2] = [
+    [
+        [
+            Some(vpx_dc_128_predictor_16x16_c),
+            Some(vpx_dc_128_predictor_8x8_c),
+        ],
+        [
+            Some(vpx_dc_top_predictor_16x16_c),
+            Some(vpx_dc_top_predictor_8x8_c),
+        ],
+    ],
+    [
+        [
+            Some(vpx_dc_left_predictor_16x16_c),
+            Some(vpx_dc_left_predictor_8x8_c),
+        ],
+        [Some(vpx_dc_predictor_16x16_c), Some(vpx_dc_predictor_8x8_c)],
+    ],
+];
 unsafe fn vp8_init_intra_predictors_internal() {
     unsafe {
-        pred[V_PRED as usize][SIZE_16 as usize] =
-            Some(vpx_v_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
-                as IntraPredFn;
-        pred[H_PRED as usize][SIZE_16 as usize] =
-            Some(vpx_h_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
-                as IntraPredFn;
-        pred[TM_PRED as usize][SIZE_16 as usize] =
-            Some(vpx_tm_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
-                as IntraPredFn;
-        dc_pred[0 as usize][0 as usize][SIZE_16 as usize] = Some(
-            vpx_dc_128_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
-        dc_pred[0 as usize][1 as usize][SIZE_16 as usize] = Some(
-            vpx_dc_top_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
-        dc_pred[1 as usize][0 as usize][SIZE_16 as usize] = Some(
-            vpx_dc_left_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
-        dc_pred[1 as usize][1 as usize][SIZE_16 as usize] =
-            Some(vpx_dc_predictor_16x16_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
-                as IntraPredFn;
-        pred[V_PRED as usize][SIZE_8 as usize] =
-            Some(vpx_v_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
-                as IntraPredFn;
-        pred[H_PRED as usize][SIZE_8 as usize] =
-            Some(vpx_h_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
-                as IntraPredFn;
-        pred[TM_PRED as usize][SIZE_8 as usize] =
-            Some(vpx_tm_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
-                as IntraPredFn;
-        dc_pred[0 as usize][0 as usize][SIZE_8 as usize] = Some(
-            vpx_dc_128_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
-        dc_pred[0 as usize][1 as usize][SIZE_8 as usize] = Some(
-            vpx_dc_top_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
-        dc_pred[1 as usize][0 as usize][SIZE_8 as usize] = Some(
-            vpx_dc_left_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> (),
-        ) as IntraPredFn;
-        dc_pred[1 as usize][1 as usize][SIZE_8 as usize] =
-            Some(vpx_dc_predictor_8x8_c as unsafe fn(*mut u8, isize, *const u8, *const u8) -> ())
-                as IntraPredFn;
         vp8_init_intra4x4_predictors_internal();
     }
 }

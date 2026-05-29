@@ -1,3 +1,4 @@
+use crate::vpx_dsp::tables::VPX_NORM as vp8_norm;
 use crate::vpx_scale::generic::yv12config::Yv12BufferConfig;
 use std::ffi::c_void;
 unsafe extern "Rust" {
@@ -92,7 +93,6 @@ unsafe extern "Rust" {
         dst_pitch: i32,
     );
     fn vp8_yv12_extend_frame_borders_c(ybf: *mut Yv12BufferConfig);
-    static vp8_norm: [u8; 256];
     fn vp8dx_start_decode(
         br: *mut BoolDecoder,
         source: *const u8,

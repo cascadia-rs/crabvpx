@@ -1,5 +1,5 @@
 #[unsafe(no_mangle)]
-pub static mut vp8_mode_contexts: [[i32; 4]; 6] = [
+pub static vp8_mode_contexts: [[i32; 4]; 6] = [
     [7 as i32, 1 as i32, 1 as i32, 143 as i32],
     [14 as i32, 18 as i32, 14 as i32, 107 as i32],
     [135 as i32, 64 as i32, 57 as i32, 68 as i32],

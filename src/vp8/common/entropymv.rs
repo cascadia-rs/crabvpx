@@ -4,7 +4,7 @@ pub struct MvContext {
     pub prob: [u8; 19],
 }
 #[unsafe(no_mangle)]
-pub static mut vp8_mv_update_probs: [MvContext; 2] = [
+pub static vp8_mv_update_probs: [MvContext; 2] = [
     MvContext {
         prob: [
             237 as u8, 246 as u8, 253 as u8, 253 as u8, 254 as u8, 254 as u8, 254 as u8, 254 as u8,
@@ -21,7 +21,7 @@ pub static mut vp8_mv_update_probs: [MvContext; 2] = [
     },
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_default_mv_context: [MvContext; 2] = [
+pub static vp8_default_mv_context: [MvContext; 2] = [
     MvContext {
         prob: [
             162 as u8, 128 as u8, 225 as u8, 146 as u8, 172 as u8, 147 as u8, 214 as u8, 39 as u8,

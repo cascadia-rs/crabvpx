@@ -18,21 +18,11 @@ pub struct MV {
     pub row: i16,
     pub col: i16,
 }
-pub const B_MODE_COUNT: u32 = 14;
-pub const NEW4X4: u32 = 13;
-pub const ZERO4X4: u32 = 12;
-pub const ABOVE4X4: u32 = 11;
-pub const LEFT4X4: u32 = 10;
-pub const B_HU_PRED: u32 = 9;
-pub const B_HD_PRED: u32 = 8;
-pub const B_VL_PRED: u32 = 7;
-pub const B_VR_PRED: u32 = 6;
-pub const B_RD_PRED: u32 = 5;
-pub const B_LD_PRED: u32 = 4;
-pub const B_HE_PRED: u32 = 3;
-pub const B_VE_PRED: u32 = 2;
-pub const B_TM_PRED: u32 = 1;
-pub const B_DC_PRED: u32 = 0;
+pub use crate::vp8::common::tables::{
+    ABOVE4X4, B_DC_PRED, B_HD_PRED, B_HE_PRED, B_HU_PRED, B_LD_PRED, B_MODE_COUNT, B_PRED,
+    B_RD_PRED, B_TM_PRED, B_VE_PRED, B_VL_PRED, B_VR_PRED, DC_PRED, H_PRED, LEFT4X4, NEARESTMV,
+    NEARMV, NEW4X4, NEWMV, SPLITMV, TM_PRED, V_PRED, ZERO4X4, ZEROMV,
+};
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct VpxInternalErrorInfo {
@@ -192,18 +182,8 @@ pub struct Vp8TokenStruct {
     pub len: i32,
 }
 #[allow(non_camel_case_types)]
-pub type C2RustUnnamed = u32;
-pub const MB_MODE_COUNT: C2RustUnnamed = 10;
-pub const SPLITMV: C2RustUnnamed = 9;
-pub const NEWMV: C2RustUnnamed = 8;
-pub const ZEROMV: C2RustUnnamed = 7;
-pub const NEARMV: C2RustUnnamed = 6;
-pub const NEARESTMV: C2RustUnnamed = 5;
-pub const B_PRED: C2RustUnnamed = 4;
-pub const TM_PRED: C2RustUnnamed = 3;
-pub const H_PRED: C2RustUnnamed = 2;
-pub const V_PRED: C2RustUnnamed = 1;
-pub const DC_PRED: C2RustUnnamed = 0;
+pub type C2RustUnnamed = i32;
+pub use crate::vp8::common::tables::MB_MODE_COUNT;
 pub type Vp8Common = VP8Common;
 #[allow(non_camel_case_types)]
 pub type C2RustUnnamed_0 = u32;
@@ -214,7 +194,7 @@ pub const SUBMVREF_LEFT_ZED: C2RustUnnamed_0 = 1;
 pub const SUBMVREF_NORMAL: C2RustUnnamed_0 = 0;
 pub type Vp8Mbsplit = [i32; 16];
 #[unsafe(no_mangle)]
-pub static mut vp8_bmode_encodings: [Vp8TokenStruct; 10] = [
+pub static vp8_bmode_encodings: [Vp8TokenStruct; 10] = [
     Vp8TokenStruct {
         value: 0 as i32,
         len: 1 as i32,
@@ -257,7 +237,7 @@ pub static mut vp8_bmode_encodings: [Vp8TokenStruct; 10] = [
     },
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_ymode_encodings: [Vp8TokenStruct; 5] = [
+pub static vp8_ymode_encodings: [Vp8TokenStruct; 5] = [
     Vp8TokenStruct {
         value: 0 as i32,
         len: 1 as i32,
@@ -280,7 +260,7 @@ pub static mut vp8_ymode_encodings: [Vp8TokenStruct; 5] = [
     },
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_kf_ymode_encodings: [Vp8TokenStruct; 5] = [
+pub static vp8_kf_ymode_encodings: [Vp8TokenStruct; 5] = [
     Vp8TokenStruct {
         value: 4 as i32,
         len: 3 as i32,
@@ -303,7 +283,7 @@ pub static mut vp8_kf_ymode_encodings: [Vp8TokenStruct; 5] = [
     },
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_uv_mode_encodings: [Vp8TokenStruct; 4] = [
+pub static vp8_uv_mode_encodings: [Vp8TokenStruct; 4] = [
     Vp8TokenStruct {
         value: 0 as i32,
         len: 1 as i32,
@@ -322,7 +302,7 @@ pub static mut vp8_uv_mode_encodings: [Vp8TokenStruct; 4] = [
     },
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_mbsplit_encodings: [Vp8TokenStruct; 4] = [
+pub static vp8_mbsplit_encodings: [Vp8TokenStruct; 4] = [
     Vp8TokenStruct {
         value: 6 as i32,
         len: 3 as i32,
@@ -341,7 +321,7 @@ pub static mut vp8_mbsplit_encodings: [Vp8TokenStruct; 4] = [
     },
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_mv_ref_encoding_array: [Vp8TokenStruct; 5] = [
+pub static vp8_mv_ref_encoding_array: [Vp8TokenStruct; 5] = [
     Vp8TokenStruct {
         value: 2 as i32,
         len: 2 as i32,
@@ -364,7 +344,7 @@ pub static mut vp8_mv_ref_encoding_array: [Vp8TokenStruct; 5] = [
     },
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_sub_mv_ref_encoding_array: [Vp8TokenStruct; 4] = [
+pub static vp8_sub_mv_ref_encoding_array: [Vp8TokenStruct; 4] = [
     Vp8TokenStruct {
         value: 0 as i32,
         len: 1 as i32,
@@ -383,7 +363,7 @@ pub static mut vp8_sub_mv_ref_encoding_array: [Vp8TokenStruct; 4] = [
     },
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_small_mvencodings: [Vp8TokenStruct; 8] = [
+pub static vp8_small_mvencodings: [Vp8TokenStruct; 8] = [
     Vp8TokenStruct {
         value: 0 as i32,
         len: 3 as i32,
@@ -418,19 +398,19 @@ pub static mut vp8_small_mvencodings: [Vp8TokenStruct; 8] = [
     },
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_ymode_prob: [u8; 4] = [112 as u8, 86 as u8, 140 as u8, 37 as u8];
+pub static vp8_ymode_prob: [u8; 4] = [112 as u8, 86 as u8, 140 as u8, 37 as u8];
 #[unsafe(no_mangle)]
-pub static mut vp8_kf_ymode_prob: [u8; 4] = [145 as u8, 156 as u8, 163 as u8, 128 as u8];
+pub static vp8_kf_ymode_prob: [u8; 4] = [145 as u8, 156 as u8, 163 as u8, 128 as u8];
 #[unsafe(no_mangle)]
-pub static mut vp8_uv_mode_prob: [u8; 3] = [162 as u8, 101 as u8, 204 as u8];
+pub static vp8_uv_mode_prob: [u8; 3] = [162 as u8, 101 as u8, 204 as u8];
 #[unsafe(no_mangle)]
-pub static mut vp8_kf_uv_mode_prob: [u8; 3] = [142 as u8, 114 as u8, 183 as u8];
+pub static vp8_kf_uv_mode_prob: [u8; 3] = [142 as u8, 114 as u8, 183 as u8];
 #[unsafe(no_mangle)]
-pub static mut vp8_bmode_prob: [u8; 9] = [
+pub static vp8_bmode_prob: [u8; 9] = [
     120 as u8, 90 as u8, 79 as u8, 133 as u8, 87 as u8, 85 as u8, 80 as u8, 111 as u8, 151 as u8,
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_kf_bmode_prob: [[[u8; 9]; 10]; 10] = [
+pub static vp8_kf_bmode_prob: [[[u8; 9]; 10]; 10] = [
     [
         [
             231 as u8, 120 as u8, 48 as u8, 89 as u8, 115 as u8, 113 as u8, 120 as u8, 152 as u8,
@@ -871,9 +851,9 @@ pub unsafe fn vp8_mv_cont(mut l: *const IntMv, mut a: *const IntMv) -> i32 {
         SUBMVREF_NORMAL as i32
     }
 }
-static mut sub_mv_ref_prob: [u8; 3] = [180 as u8, 162 as u8, 25 as u8];
+static sub_mv_ref_prob: [u8; 3] = [180 as u8, 162 as u8, 25 as u8];
 #[unsafe(no_mangle)]
-pub static mut vp8_sub_mv_ref_prob2: [[u8; 3]; 5] = [
+pub static vp8_sub_mv_ref_prob2: [[u8; 3]; 5] = [
     [147 as u8, 136 as u8, 18 as u8],
     [106 as u8, 145 as u8, 1 as u8],
     [179 as u8, 121 as u8, 1 as u8],
@@ -881,7 +861,7 @@ pub static mut vp8_sub_mv_ref_prob2: [[u8; 3]; 5] = [
     [208 as u8, 1 as u8, 1 as u8],
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_mbsplits: [Vp8Mbsplit; 4] = [
+pub static vp8_mbsplits: [Vp8Mbsplit; 4] = [
     [
         0 as i32, 0 as i32, 0 as i32, 0 as i32, 0 as i32, 0 as i32, 0 as i32, 0 as i32, 1 as i32,
         1 as i32, 1 as i32, 1 as i32, 1 as i32, 1 as i32, 1 as i32, 1 as i32,
@@ -900,107 +880,13 @@ pub static mut vp8_mbsplits: [Vp8Mbsplit; 4] = [
     ],
 ];
 #[unsafe(no_mangle)]
-pub static mut vp8_mbsplit_count: [i32; 4] = [2 as i32, 2 as i32, 4 as i32, 16 as i32];
+pub static vp8_mbsplit_count: [i32; 4] = [2 as i32, 2 as i32, 4 as i32, 16 as i32];
 #[unsafe(no_mangle)]
-pub static mut vp8_mbsplit_probs: [u8; 3] = [110 as u8, 111 as u8, 150 as u8];
-#[unsafe(no_mangle)]
-pub static mut vp8_bmode_tree: [i8; 18] = [
-    -(B_DC_PRED as i32) as i8,
-    2 as i8,
-    -(B_TM_PRED as i32) as i8,
-    4 as i8,
-    -(B_VE_PRED as i32) as i8,
-    6 as i8,
-    8 as i8,
-    12 as i8,
-    -(B_HE_PRED as i32) as i8,
-    10 as i8,
-    -(B_RD_PRED as i32) as i8,
-    -(B_VR_PRED as i32) as i8,
-    -(B_LD_PRED as i32) as i8,
-    14 as i8,
-    -(B_VL_PRED as i32) as i8,
-    16 as i8,
-    -(B_HD_PRED as i32) as i8,
-    -(B_HU_PRED as i32) as i8,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_ymode_tree: [i8; 8] = [
-    -(DC_PRED as i32) as i8,
-    2 as i8,
-    4 as i8,
-    6 as i8,
-    -(V_PRED as i32) as i8,
-    -(H_PRED as i32) as i8,
-    -(TM_PRED as i32) as i8,
-    -(B_PRED as i32) as i8,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_kf_ymode_tree: [i8; 8] = [
-    -(B_PRED as i32) as i8,
-    2 as i8,
-    4 as i8,
-    6 as i8,
-    -(DC_PRED as i32) as i8,
-    -(V_PRED as i32) as i8,
-    -(H_PRED as i32) as i8,
-    -(TM_PRED as i32) as i8,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_uv_mode_tree: [i8; 6] = [
-    -(DC_PRED as i32) as i8,
-    2 as i8,
-    -(V_PRED as i32) as i8,
-    4 as i8,
-    -(H_PRED as i32) as i8,
-    -(TM_PRED as i32) as i8,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_mbsplit_tree: [i8; 6] = [
-    -(3 as i32) as i8,
-    2 as i8,
-    -(2 as i32) as i8,
-    4 as i8,
-    -(0 as i32) as i8,
-    -(1 as i32) as i8,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_mv_ref_tree: [i8; 8] = [
-    -(ZEROMV as i32) as i8,
-    2 as i8,
-    -(NEARESTMV as i32) as i8,
-    4 as i8,
-    -(NEARMV as i32) as i8,
-    6 as i8,
-    -(NEWMV as i32) as i8,
-    -(SPLITMV as i32) as i8,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_sub_mv_ref_tree: [i8; 6] = [
-    -(LEFT4X4 as i32) as i8,
-    2 as i8,
-    -(ABOVE4X4 as i32) as i8,
-    4 as i8,
-    -(ZERO4X4 as i32) as i8,
-    -(NEW4X4 as i32) as i8,
-];
-#[unsafe(no_mangle)]
-pub static mut vp8_small_mvtree: [i8; 14] = [
-    2 as i8,
-    8 as i8,
-    4 as i8,
-    6 as i8,
-    -(0 as i32) as i8,
-    -(1 as i32) as i8,
-    -(2 as i32) as i8,
-    -(3 as i32) as i8,
-    10 as i8,
-    12 as i8,
-    -(4 as i32) as i8,
-    -(5 as i32) as i8,
-    -(6 as i32) as i8,
-    -(7 as i32) as i8,
-];
+pub static vp8_mbsplit_probs: [u8; 3] = [110 as u8, 111 as u8, 150 as u8];
+pub use crate::vp8::common::tables::{
+    vp8_bmode_tree, vp8_kf_ymode_tree, vp8_mbsplit_tree, vp8_mv_ref_tree, vp8_small_mvtree,
+    vp8_sub_mv_ref_tree, vp8_uv_mode_tree, vp8_ymode_tree,
+};
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_init_mbmode_probs(mut x: *mut Vp8Common) {
     unsafe {

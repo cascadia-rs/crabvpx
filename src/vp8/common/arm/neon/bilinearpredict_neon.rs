@@ -11,7 +11,7 @@ pub struct Uint32x2x2T {
 fn uint32_to_mem(mut buf: *mut u8, mut a: u32) {
     core::ptr::copy_nonoverlapping(&raw mut a as *const c_void as *const u8, buf as *mut c_void as *mut u8, 4 as usize);
 }
-static mut bifilter4_coeff: [[u8; 2]; 8] = [
+static bifilter4_coeff: [[u8; 2]; 8] = [
     [
         128 as u8,
         0 as u8,

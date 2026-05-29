@@ -421,12 +421,8 @@ unsafe fn once(mut func: Option<unsafe fn() -> ()>) {
 }
 unsafe fn initialize_dec() {
     unsafe {
-        static mut init_done: i32 = 0 as i32;
-        if init_done == 0 {
-            vpx_dsp_rtcd();
-            vp8_init_intra_predictors();
-            ::core::ptr::write_volatile(&raw mut init_done as *mut i32, 1 as i32);
-        }
+        vpx_dsp_rtcd();
+        vp8_init_intra_predictors();
     }
 }
 unsafe fn remove_decompressor(mut pbi: *mut Vp8dComp) {

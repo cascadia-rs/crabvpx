@@ -1,7 +1,7 @@
+use crate::vpx_dsp::tables::VPX_NORM as vp8_norm;
 use crate::vpx_scale::generic::yv12config::Yv12BufferConfig;
 use std::ffi::c_void;
 unsafe extern "Rust" {
-    static vp8_norm: [u8; 256];
     fn vp8dx_bool_decoder_fill(br: *mut BoolDecoder);
 }
 pub use crate::vpx::src::vpx_image::{
@@ -422,28 +422,30 @@ pub unsafe fn vp8_reset_mb_tokens_context(mut x: *mut MACROBLOCKD) {
         }
     }
 }
-static mut kBands: [u8; 17] = [
+static kBands: [u8; 17] = [
     0 as u8, 1 as u8, 2 as u8, 3 as u8, 6 as u8, 4 as u8, 5 as u8, 6 as u8, 6 as u8, 6 as u8,
     6 as u8, 6 as u8, 6 as u8, 6 as u8, 6 as u8, 7 as u8, 0 as u8,
 ];
-static mut kCat3: [u8; 4] = [173 as u8, 148 as u8, 140 as u8, 0 as u8];
-static mut kCat4: [u8; 5] = [176 as u8, 155 as u8, 140 as u8, 135 as u8, 0 as u8];
-static mut kCat5: [u8; 6] = [
+static kCat3: [u8; 4] = [173 as u8, 148 as u8, 140 as u8, 0 as u8];
+static kCat4: [u8; 5] = [176 as u8, 155 as u8, 140 as u8, 135 as u8, 0 as u8];
+static kCat5: [u8; 6] = [
     180 as u8, 157 as u8, 141 as u8, 134 as u8, 130 as u8, 0 as u8,
 ];
-static mut kCat6: [u8; 12] = [
+static kCat6: [u8; 12] = [
     254 as u8, 254 as u8, 243 as u8, 230 as u8, 196 as u8, 177 as u8, 153 as u8, 140 as u8,
     133 as u8, 130 as u8, 129 as u8, 0 as u8,
 ];
-static mut kCat3456: [*const u8; 4] = {
+struct SyncPtr(*const u8);
+unsafe impl Sync for SyncPtr {}
+static kCat3456: [SyncPtr; 4] = {
     [
-        &raw const kCat3 as *const u8,
-        &raw const kCat4 as *const u8,
-        &raw const kCat5 as *const u8,
-        &raw const kCat6 as *const u8,
+        SyncPtr(&raw const kCat3 as *const u8),
+        SyncPtr(&raw const kCat4 as *const u8),
+        SyncPtr(&raw const kCat5 as *const u8),
+        SyncPtr(&raw const kCat6 as *const u8),
     ]
 };
-static mut kZigzag: [u8; 16] = [
+static kZigzag: [u8; 16] = [
     0 as u8, 1 as u8, 4 as u8, 8 as u8, 5 as u8, 2 as u8, 3 as u8, 6 as u8, 9 as u8, 12 as u8,
     13 as u8, 10 as u8, 7 as u8, 11 as u8, 14 as u8, 15 as u8,
 ];
@@ -520,7 +522,7 @@ unsafe fn get_coeffs(
                                 as i32;
                         let cat: i32 = 2 as i32 * bit1 + bit0;
                         v = 0 as i32;
-                        tab = kCat3456[cat as usize];
+                        tab = kCat3456[cat as usize].0;
                         while *tab != 0 {
                             v += v + vp8dx_decode_bool(br, *tab as i32);
                             tab = tab.offset(1);
