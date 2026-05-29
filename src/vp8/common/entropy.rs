@@ -674,7 +674,7 @@ pub use crate::vp8::common::tables::{
 };
 pub use crate::vpx_dsp::tables::VPX_NORM as vp8_norm;
 #[unsafe(no_mangle)]
-pub static mut vp8_coef_encodings: [Vp8Token; 12] = [
+pub static vp8_coef_encodings: [Vp8Token; 12] = [
     Vp8TokenStruct {
         value: 2 as i32,
         len: 2 as i32,

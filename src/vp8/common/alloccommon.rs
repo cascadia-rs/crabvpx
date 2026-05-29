@@ -204,116 +204,136 @@ pub const NULL: *mut c_void = __DARWIN_NULL;
 pub const VP8BORDERINPIXELS: i32 = 32 as i32;
 pub const NUM_YV12_BUFFERS: i32 = 4 as i32;
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_de_alloc_frame_buffers(mut oci: *mut Vp8Common) {
-    unsafe {
-        let mut i: i32 = 0;
-        i = 0 as i32;
-        while i < NUM_YV12_BUFFERS {
+pub unsafe fn vp8_de_alloc_frame_buffers(oci_ptr: *mut Vp8Common) {
+    if oci_ptr.is_null() {
+        return;
+    }
+    let oci = unsafe { &mut *oci_ptr };
+    let mut i: i32 = 0;
+    while i < NUM_YV12_BUFFERS {
+        unsafe {
             vp8_yv12_de_alloc_frame_buffer(
-                (&raw mut (*oci).yv12_fb as *mut Yv12BufferConfig).offset(i as isize)
+                (&raw mut oci.yv12_fb as *mut Yv12BufferConfig).offset(i as isize)
                     as *mut Yv12BufferConfig,
             );
-            (*oci).fb_idx_ref_cnt[i as usize] = 0 as i32;
-            i += 1;
         }
-        vp8_yv12_de_alloc_frame_buffer(&raw mut (*oci).temp_scale_frame);
-        if !(*oci).above_context.is_null() {
-            let ac_count = (*oci).mb_cols as usize;
-            let _ = Vec::from_raw_parts((*oci).above_context, 0, ac_count);
-        }
-        if !(*oci).mip.is_null() {
-            let mip_count = (((*oci).mb_cols + 1) * ((*oci).mb_rows + 1)) as usize;
-            let _ = Vec::from_raw_parts((*oci).mip, 0, mip_count);
-        }
-        (*oci).above_context = ::core::ptr::null_mut::<EntropyContextPlanes>();
-        (*oci).mip = ::core::ptr::null_mut::<ModeInfo>();
-        (*oci).mi = ::core::ptr::null_mut::<ModeInfo>();
-        (*oci).show_frame_mi = ::core::ptr::null_mut::<ModeInfo>();
-        (*oci).frame_to_show = ::core::ptr::null_mut::<Yv12BufferConfig>();
+        oci.fb_idx_ref_cnt[i as usize] = 0 as i32;
+        i += 1;
     }
+    unsafe {
+        vp8_yv12_de_alloc_frame_buffer(&raw mut oci.temp_scale_frame);
+    }
+    if !oci.above_context.is_null() {
+        let ac_count = oci.mb_cols as usize;
+        unsafe {
+            let _ = Vec::from_raw_parts(oci.above_context, 0, ac_count);
+        }
+    }
+    if !oci.mip.is_null() {
+        let mip_count = ((oci.mb_cols + 1) * (oci.mb_rows + 1)) as usize;
+        unsafe {
+            let _ = Vec::from_raw_parts(oci.mip, 0, mip_count);
+        }
+    }
+    oci.above_context = ::core::ptr::null_mut::<EntropyContextPlanes>();
+    oci.mip = ::core::ptr::null_mut::<ModeInfo>();
+    oci.mi = ::core::ptr::null_mut::<ModeInfo>();
+    oci.show_frame_mi = ::core::ptr::null_mut::<ModeInfo>();
+    oci.frame_to_show = ::core::ptr::null_mut::<Yv12BufferConfig>();
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_alloc_frame_buffers(
-    mut oci: *mut Vp8Common,
+    oci_ptr: *mut Vp8Common,
     mut width: i32,
     mut height: i32,
 ) -> i32 {
+    if oci_ptr.is_null() {
+        return 1 as i32;
+    }
+    let oci = unsafe { &mut *oci_ptr };
+    let mut current_block: u64;
+    let mut i: i32 = 0;
     unsafe {
-        let mut current_block: u64;
-        let mut i: i32 = 0;
-        vp8_de_alloc_frame_buffers(oci);
-        if width & 0xf as i32 != 0 as i32 {
-            width += 16 as i32 - (width & 0xf as i32);
+        vp8_de_alloc_frame_buffers(oci_ptr);
+    }
+    if width & 0xf as i32 != 0 as i32 {
+        width += 16 as i32 - (width & 0xf as i32);
+    }
+    if height & 0xf as i32 != 0 as i32 {
+        height += 16 as i32 - (height & 0xf as i32);
+    }
+    i = 0 as i32;
+    loop {
+        if !(i < NUM_YV12_BUFFERS) {
+            current_block = 10886091980245723256;
+            break;
         }
-        if height & 0xf as i32 != 0 as i32 {
-            height += 16 as i32 - (height & 0xf as i32);
-        }
-        i = 0 as i32;
-        loop {
-            if !(i < NUM_YV12_BUFFERS) {
-                current_block = 10886091980245723256;
-                break;
-            }
-            if vp8_yv12_alloc_frame_buffer(
-                (&raw mut (*oci).yv12_fb as *mut Yv12BufferConfig).offset(i as isize)
+        let alloc_res = unsafe {
+            vp8_yv12_alloc_frame_buffer(
+                (&raw mut oci.yv12_fb as *mut Yv12BufferConfig).offset(i as isize)
                     as *mut Yv12BufferConfig,
                 width,
                 height,
                 VP8BORDERINPIXELS,
-            ) < 0 as i32
-            {
-                current_block = 15863795849835083362;
-                break;
-            }
-            i += 1;
+            )
+        };
+        if alloc_res < 0 as i32 {
+            current_block = 15863795849835083362;
+            break;
         }
-        if current_block == 10886091980245723256 {
-            (*oci).new_fb_idx = 0 as i32;
-            (*oci).lst_fb_idx = 1 as i32;
-            (*oci).gld_fb_idx = 2 as i32;
-            (*oci).alt_fb_idx = 3 as i32;
-            (*oci).fb_idx_ref_cnt[0 as usize] = 1 as i32;
-            (*oci).fb_idx_ref_cnt[1 as usize] = 1 as i32;
-            (*oci).fb_idx_ref_cnt[2 as usize] = 1 as i32;
-            (*oci).fb_idx_ref_cnt[3 as usize] = 1 as i32;
-            if !(vp8_yv12_alloc_frame_buffer(
-                &raw mut (*oci).temp_scale_frame,
+        i += 1;
+    }
+    if current_block == 10886091980245723256 {
+        oci.new_fb_idx = 0 as i32;
+        oci.lst_fb_idx = 1 as i32;
+        oci.gld_fb_idx = 2 as i32;
+        oci.alt_fb_idx = 3 as i32;
+        oci.fb_idx_ref_cnt[0 as usize] = 1 as i32;
+        oci.fb_idx_ref_cnt[1 as usize] = 1 as i32;
+        oci.fb_idx_ref_cnt[2 as usize] = 1 as i32;
+        oci.fb_idx_ref_cnt[3 as usize] = 1 as i32;
+        let scale_alloc_res = unsafe {
+            vp8_yv12_alloc_frame_buffer(
+                &raw mut oci.temp_scale_frame,
                 width,
                 16 as i32,
                 VP8BORDERINPIXELS,
-            ) < 0 as i32)
-            {
-                (*oci).mb_rows = height >> 4 as i32;
-                (*oci).mb_cols = width >> 4 as i32;
-                (*oci).mbs = (*oci).mb_rows * (*oci).mb_cols;
-                (*oci).mode_info_stride = (*oci).mb_cols + 1 as i32;
+            )
+        };
+        if !(scale_alloc_res < 0 as i32) {
+            oci.mb_rows = height >> 4 as i32;
+            oci.mb_cols = width >> 4 as i32;
+            oci.mbs = oci.mb_rows * oci.mb_cols;
+            oci.mode_info_stride = oci.mb_cols + 1 as i32;
 
-                let mip_count =
-                    (((*oci).mb_cols + 1 as i32) * ((*oci).mb_rows + 1 as i32)) as usize;
-                let mut mip_vec = Vec::<ModeInfo>::with_capacity(mip_count);
-                mip_vec.resize(mip_count, core::mem::zeroed());
-                (*oci).mip = mip_vec.as_mut_ptr();
-                core::mem::forget(mip_vec);
+            let mip_count = ((oci.mb_cols + 1 as i32) * (oci.mb_rows + 1 as i32)) as usize;
+            let mut mip_vec = Vec::<ModeInfo>::with_capacity(mip_count);
+            mip_vec.resize(mip_count, unsafe { core::mem::zeroed() });
+            oci.mip = mip_vec.as_mut_ptr();
+            core::mem::forget(mip_vec);
 
-                if !(*oci).mip.is_null() {
-                    (*oci).mi = (*oci)
+            if !oci.mip.is_null() {
+                unsafe {
+                    oci.mi = oci
                         .mip
-                        .offset((*oci).mode_info_stride as isize)
+                        .offset(oci.mode_info_stride as isize)
                         .offset(1 as isize);
-                    let ac_count = (*oci).mb_cols as usize;
-                    let mut ac_vec = Vec::<EntropyContextPlanes>::with_capacity(ac_count);
-                    ac_vec.resize(ac_count, core::mem::zeroed());
-                    (*oci).above_context = ac_vec.as_mut_ptr();
-                    core::mem::forget(ac_vec);
-                    if !(*oci).above_context.is_null() {
-                        return 0 as i32;
-                    }
+                }
+                let ac_count = oci.mb_cols as usize;
+                let mut ac_vec = Vec::<EntropyContextPlanes>::with_capacity(ac_count);
+                ac_vec.resize(ac_count, unsafe { core::mem::zeroed() });
+                oci.above_context = ac_vec.as_mut_ptr();
+                core::mem::forget(ac_vec);
+                if !oci.above_context.is_null() {
+                    return 0 as i32;
                 }
             }
         }
-        vp8_de_alloc_frame_buffers(oci);
-        1 as i32
     }
+    unsafe {
+        vp8_de_alloc_frame_buffers(oci_ptr);
+    }
+    1 as i32
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_setup_version(mut cm: *mut Vp8Common) {
@@ -353,30 +373,36 @@ pub unsafe fn vp8_setup_version(mut cm: *mut Vp8Common) {
     }
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_create_common(mut oci: *mut Vp8Common) {
+pub unsafe fn vp8_create_common(oci_ptr: *mut Vp8Common) {
+    if oci_ptr.is_null() {
+        return;
+    }
+    let oci = unsafe { &mut *oci_ptr };
     unsafe {
-        vp8_machine_specific_config(oci as *mut VP8Common);
-        vp8_init_mbmode_probs(oci);
-        vp8_default_bmode_probs(&raw mut (*oci).fc.bmode_prob as *mut u8);
-        (*oci).mb_no_coeff_skip = true;
-        (*oci).no_lpf = false;
-        (*oci).filter_type = NORMAL_LOOPFILTER;
-        (*oci).use_bilinear_mc_filter = false;
-        (*oci).full_pixel = false;
-        (*oci).multi_token_partition = ONE_PARTITION;
-        (*oci).clamp_type = RECON_CLAMP_REQUIRED;
+        vp8_machine_specific_config(oci_ptr as *mut VP8Common);
+        vp8_init_mbmode_probs(oci_ptr);
+        vp8_default_bmode_probs(&raw mut oci.fc.bmode_prob as *mut u8);
+    }
+    oci.mb_no_coeff_skip = true;
+    oci.no_lpf = false;
+    oci.filter_type = NORMAL_LOOPFILTER;
+    oci.use_bilinear_mc_filter = false;
+    oci.full_pixel = false;
+    oci.multi_token_partition = ONE_PARTITION;
+    oci.clamp_type = RECON_CLAMP_REQUIRED;
+    unsafe {
         core::ptr::write_bytes(
-            &raw mut (*oci).ref_frame_sign_bias as *mut i32 as *mut c_void as *mut u8,
+            &raw mut oci.ref_frame_sign_bias as *mut i32 as *mut c_void as *mut u8,
             0 as u8,
             ::core::mem::size_of::<[i32; 4]>() as usize,
         );
-        (*oci).copy_buffer_to_gf = 0 as i32;
-        (*oci).copy_buffer_to_arf = 0 as i32;
     }
+    oci.copy_buffer_to_gf = 0 as i32;
+    oci.copy_buffer_to_arf = 0 as i32;
 }
 #[unsafe(no_mangle)]
-pub unsafe fn vp8_remove_common(mut oci: *mut Vp8Common) {
+pub unsafe fn vp8_remove_common(oci_ptr: *mut Vp8Common) {
     unsafe {
-        vp8_de_alloc_frame_buffers(oci);
+        vp8_de_alloc_frame_buffers(oci_ptr);
     }
 }
