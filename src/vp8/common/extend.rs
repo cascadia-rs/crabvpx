@@ -96,44 +96,53 @@ unsafe fn copy_and_extend_plane(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_copy_and_extend_frame(
-    mut src: *mut Yv12BufferConfig,
-    mut dst: *mut Yv12BufferConfig,
+    src_ptr: *mut Yv12BufferConfig,
+    dst_ptr: *mut Yv12BufferConfig,
 ) {
+    if src_ptr.is_null() || dst_ptr.is_null() {
+        return;
+    }
+    let src = unsafe { &mut *src_ptr };
+    let dst = unsafe { &mut *dst_ptr };
+
+    let mut et: i32 = dst.border;
+    let mut el: i32 = dst.border;
+    let mut eb: i32 = dst.border + dst.y_height - src.y_height;
+    let mut er: i32 = dst.border + dst.y_width - src.y_width;
+    let chroma_step: i32 = unsafe {
+        if src.v_buffer.offset_from(src.u_buffer) as i64 == 1 as i64 {
+            2 as i32
+        } else {
+            1 as i32
+        }
+    };
     unsafe {
-        let mut et: i32 = (*dst).border;
-        let mut el: i32 = (*dst).border;
-        let mut eb: i32 = (*dst).border + (*dst).y_height - (*src).y_height;
-        let mut er: i32 = (*dst).border + (*dst).y_width - (*src).y_width;
-        let mut chroma_step: i32 =
-            if (*src).v_buffer.offset_from((*src).u_buffer) as i64 == 1 as i64 {
-                2 as i32
-            } else {
-                1 as i32
-            };
         copy_and_extend_plane(
-            (*src).y_buffer as *mut u8,
-            (*src).y_stride,
-            (*dst).y_buffer as *mut u8,
-            (*dst).y_stride,
-            (*src).y_height,
-            (*src).y_width,
+            src.y_buffer as *mut u8,
+            src.y_stride,
+            dst.y_buffer as *mut u8,
+            dst.y_stride,
+            src.y_height,
+            src.y_width,
             et,
             el,
             eb,
             er,
             1 as i32,
         );
-        et = (*dst).border >> 1 as i32;
-        el = (*dst).border >> 1 as i32;
-        eb = ((*dst).border >> 1 as i32) + (*dst).uv_height - (*src).uv_height;
-        er = ((*dst).border >> 1 as i32) + (*dst).uv_width - (*src).uv_width;
+    }
+    et = dst.border >> 1 as i32;
+    el = dst.border >> 1 as i32;
+    eb = (dst.border >> 1 as i32) + dst.uv_height - src.uv_height;
+    er = (dst.border >> 1 as i32) + dst.uv_width - src.uv_width;
+    unsafe {
         copy_and_extend_plane(
-            (*src).u_buffer as *mut u8,
-            (*src).uv_stride,
-            (*dst).u_buffer as *mut u8,
-            (*dst).uv_stride,
-            (*src).uv_height,
-            (*src).uv_width,
+            src.u_buffer as *mut u8,
+            src.uv_stride,
+            dst.u_buffer as *mut u8,
+            dst.uv_stride,
+            src.uv_height,
+            src.uv_width,
             et,
             el,
             eb,
@@ -141,12 +150,12 @@ pub unsafe fn vp8_copy_and_extend_frame(
             chroma_step,
         );
         copy_and_extend_plane(
-            (*src).v_buffer as *mut u8,
-            (*src).uv_stride,
-            (*dst).v_buffer as *mut u8,
-            (*dst).uv_stride,
-            (*src).uv_height,
-            (*src).uv_width,
+            src.v_buffer as *mut u8,
+            src.uv_stride,
+            dst.v_buffer as *mut u8,
+            dst.uv_stride,
+            src.uv_height,
+            src.uv_width,
             et,
             el,
             eb,
@@ -157,45 +166,52 @@ pub unsafe fn vp8_copy_and_extend_frame(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_copy_and_extend_frame_with_rect(
-    mut src: *mut Yv12BufferConfig,
-    mut dst: *mut Yv12BufferConfig,
+    src_ptr: *mut Yv12BufferConfig,
+    dst_ptr: *mut Yv12BufferConfig,
     mut srcy: i32,
     mut srcx: i32,
     mut srch: i32,
     mut srcw: i32,
 ) {
+    if src_ptr.is_null() || dst_ptr.is_null() {
+        return;
+    }
+    let src = unsafe { &mut *src_ptr };
+    let dst = unsafe { &mut *dst_ptr };
+
+    let mut et: i32 = dst.border;
+    let mut el: i32 = dst.border;
+    let mut eb: i32 = dst.border + dst.y_height - src.y_height;
+    let mut er: i32 = dst.border + dst.y_width - src.y_width;
+    let src_y_offset: i32 = srcy * src.y_stride + srcx;
+    let dst_y_offset: i32 = srcy * dst.y_stride + srcx;
+    let src_uv_offset: i32 = ((srcy * src.uv_stride) >> 1 as i32) + (srcx >> 1 as i32);
+    let dst_uv_offset: i32 = ((srcy * dst.uv_stride) >> 1 as i32) + (srcx >> 1 as i32);
+    let chroma_step: i32 = unsafe {
+        if src.v_buffer.offset_from(src.u_buffer) as i64 == 1 as i64 {
+            2 as i32
+        } else {
+            1 as i32
+        }
+    };
+    if srcy != 0 {
+        et = 0 as i32;
+    }
+    if srcx != 0 {
+        el = 0 as i32;
+    }
+    if srcy + srch != src.y_height {
+        eb = 0 as i32;
+    }
+    if srcx + srcw != src.y_width {
+        er = 0 as i32;
+    }
     unsafe {
-        let mut et: i32 = (*dst).border;
-        let mut el: i32 = (*dst).border;
-        let mut eb: i32 = (*dst).border + (*dst).y_height - (*src).y_height;
-        let mut er: i32 = (*dst).border + (*dst).y_width - (*src).y_width;
-        let mut src_y_offset: i32 = srcy * (*src).y_stride + srcx;
-        let mut dst_y_offset: i32 = srcy * (*dst).y_stride + srcx;
-        let mut src_uv_offset: i32 = ((srcy * (*src).uv_stride) >> 1 as i32) + (srcx >> 1 as i32);
-        let mut dst_uv_offset: i32 = ((srcy * (*dst).uv_stride) >> 1 as i32) + (srcx >> 1 as i32);
-        let mut chroma_step: i32 =
-            if (*src).v_buffer.offset_from((*src).u_buffer) as i64 == 1 as i64 {
-                2 as i32
-            } else {
-                1 as i32
-            };
-        if srcy != 0 {
-            et = 0 as i32;
-        }
-        if srcx != 0 {
-            el = 0 as i32;
-        }
-        if srcy + srch != (*src).y_height {
-            eb = 0 as i32;
-        }
-        if srcx + srcw != (*src).y_width {
-            er = 0 as i32;
-        }
         copy_and_extend_plane(
-            (*src).y_buffer.offset(src_y_offset as isize),
-            (*src).y_stride,
-            (*dst).y_buffer.offset(dst_y_offset as isize),
-            (*dst).y_stride,
+            src.y_buffer.offset(src_y_offset as isize),
+            src.y_stride,
+            dst.y_buffer.offset(dst_y_offset as isize),
+            dst.y_stride,
             srch,
             srcw,
             et,
@@ -204,17 +220,19 @@ pub unsafe fn vp8_copy_and_extend_frame_with_rect(
             er,
             1 as i32,
         );
-        et = (et + 1 as i32) >> 1 as i32;
-        el = (el + 1 as i32) >> 1 as i32;
-        eb = (eb + 1 as i32) >> 1 as i32;
-        er = (er + 1 as i32) >> 1 as i32;
-        srch = (srch + 1 as i32) >> 1 as i32;
-        srcw = (srcw + 1 as i32) >> 1 as i32;
+    }
+    et = (et + 1 as i32) >> 1 as i32;
+    el = (el + 1 as i32) >> 1 as i32;
+    eb = (eb + 1 as i32) >> 1 as i32;
+    er = (er + 1 as i32) >> 1 as i32;
+    srch = (srch + 1 as i32) >> 1 as i32;
+    srcw = (srcw + 1 as i32) >> 1 as i32;
+    unsafe {
         copy_and_extend_plane(
-            (*src).u_buffer.offset(src_uv_offset as isize),
-            (*src).uv_stride,
-            (*dst).u_buffer.offset(dst_uv_offset as isize),
-            (*dst).uv_stride,
+            src.u_buffer.offset(src_uv_offset as isize),
+            src.uv_stride,
+            dst.u_buffer.offset(dst_uv_offset as isize),
+            dst.uv_stride,
             srch,
             srcw,
             et,
@@ -224,10 +242,10 @@ pub unsafe fn vp8_copy_and_extend_frame_with_rect(
             chroma_step,
         );
         copy_and_extend_plane(
-            (*src).v_buffer.offset(src_uv_offset as isize),
-            (*src).uv_stride,
-            (*dst).v_buffer.offset(dst_uv_offset as isize),
-            (*dst).uv_stride,
+            src.v_buffer.offset(src_uv_offset as isize),
+            src.uv_stride,
+            dst.v_buffer.offset(dst_uv_offset as isize),
+            dst.uv_stride,
             srch,
             srcw,
             et,
@@ -240,32 +258,42 @@ pub unsafe fn vp8_copy_and_extend_frame_with_rect(
 }
 #[unsafe(no_mangle)]
 pub unsafe fn vp8_extend_mb_row(
-    mut ybf: *mut Yv12BufferConfig,
+    ybf_ptr: *mut Yv12BufferConfig,
     mut yptr: *mut u8,
     mut uptr: *mut u8,
     mut vptr: *mut u8,
 ) {
+    if ybf_ptr.is_null() {
+        return;
+    }
+    let ybf = unsafe { &mut *ybf_ptr };
+    let mut i: i32 = 0;
     unsafe {
-        let mut i: i32 = 0;
-        yptr = yptr.offset(((*ybf).y_stride * 14 as i32) as isize);
-        uptr = uptr.offset(((*ybf).uv_stride * 6 as i32) as isize);
-        vptr = vptr.offset(((*ybf).uv_stride * 6 as i32) as isize);
-        i = 0 as i32;
-        while i < 4 as i32 {
+        yptr = yptr.offset((ybf.y_stride * 14 as i32) as isize);
+        uptr = uptr.offset((ybf.uv_stride * 6 as i32) as isize);
+        vptr = vptr.offset((ybf.uv_stride * 6 as i32) as isize);
+    }
+    i = 0 as i32;
+    while i < 4 as i32 {
+        unsafe {
             *yptr.offset(i as isize) = *yptr.offset(-(1 as i32) as isize);
             *uptr.offset(i as isize) = *uptr.offset(-(1 as i32) as isize);
             *vptr.offset(i as isize) = *vptr.offset(-(1 as i32) as isize);
-            i += 1;
         }
-        yptr = yptr.offset((*ybf).y_stride as isize);
-        uptr = uptr.offset((*ybf).uv_stride as isize);
-        vptr = vptr.offset((*ybf).uv_stride as isize);
-        i = 0 as i32;
-        while i < 4 as i32 {
+        i += 1;
+    }
+    unsafe {
+        yptr = yptr.offset(ybf.y_stride as isize);
+        uptr = uptr.offset(ybf.uv_stride as isize);
+        vptr = vptr.offset(ybf.uv_stride as isize);
+    }
+    i = 0 as i32;
+    while i < 4 as i32 {
+        unsafe {
             *yptr.offset(i as isize) = *yptr.offset(-(1 as i32) as isize);
             *uptr.offset(i as isize) = *uptr.offset(-(1 as i32) as isize);
             *vptr.offset(i as isize) = *vptr.offset(-(1 as i32) as isize);
-            i += 1;
         }
+        i += 1;
     }
 }
