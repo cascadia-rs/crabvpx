@@ -1,0 +1,12 @@
+# OSS-Fuzz project config for crabvpx.
+# Copied into the OSS-Fuzz repo as projects/crabvpx/project.yaml.
+homepage: "https://github.com/ubercodec/crabvpx"
+language: rust
+main_repo: "https://github.com/ubercodec/crabvpx"
+primary_contact: "bayles.jordan@gmail.com"
+fuzzing_engines:
+  - libfuzzer
+sanitizers:
+  - address
+  - memory
+  - undefined

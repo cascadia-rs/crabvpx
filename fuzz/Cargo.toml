@@ -1,0 +1,36 @@
+[package]
+name = "crabvpx-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+
+[dependencies.crabvpx]
+path = ".."
+
+# Detach the fuzz crate from the parent so `cargo build` at the repo root never
+# pulls in libfuzzer (which requires nightly + the sanitizer runtime).
+[workspace]
+members = ["."]
+
+[[bin]]
+name = "decode_frame"
+path = "fuzz_targets/decode_frame.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "decode_ivf"
+path = "fuzz_targets/decode_ivf.rs"
+test = false
+doc = false
+bench = false
+
+[profile.release]
+debug = 1

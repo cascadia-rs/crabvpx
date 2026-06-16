@@ -1,0 +1,86 @@
+name: CI
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+env:
+  CARGO_TERM_COLOR: always
+  RUST_BACKTRACE: 1
+
+jobs:
+  test:
+    name: Build & test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Build
+        run: cargo build --verbose
+      - name: Test (single-threaded decode)
+        run: cargo test --verbose
+      # Advisory: the multithreaded decode path is currently incorrect (produces
+      # wrong output vs the references, e.g. vp80-00-comprehensive-007). Threads
+      # are opt-in (default is 1). Flip continue-on-error off once MT is fixed so
+      # this becomes a hard regression gate.
+      - name: Differential test (multithreaded decode)
+        run: cargo test --test differential_md5 --verbose
+        env:
+          CRABVPX_THREADS: 4
+        continue-on-error: true
+
+  lint:
+    name: Format & clippy (advisory)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: rustfmt, clippy
+      - uses: Swatinem/rust-cache@v2
+      # Non-blocking for now: the decoder core is c2rust-derived and not yet
+      # fully idiomatic. These surface the cleanup backlog without gating CI.
+      - name: rustfmt
+        run: cargo fmt --all -- --check
+        continue-on-error: true
+      - name: clippy
+        run: cargo clippy --all-targets
+        continue-on-error: true
+
+  bench:
+    name: Benchmarks compile
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      # Compile-only: confirms benches build. Run `cargo bench` locally for numbers.
+      - name: Build benches
+        run: cargo bench --no-run
+
+  fuzz:
+    name: Fuzz targets smoke
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@nightly
+      - uses: Swatinem/rust-cache@v2
+      - name: Install cargo-fuzz
+        run: cargo install cargo-fuzz --locked
+      # Building the targets is a real, always-on compile gate.
+      - name: Build fuzz targets
+        run: cargo fuzz build
+      # Advisory until the decoder is hardened against malformed input: fuzzing
+      # already finds an unbounded-allocation OOM (decode_frame) and an integer
+      # overflow panic at decodeframe.rs:378 (decode_ivf). Flip continue-on-error
+      # off once those are fixed so regressions block CI.
+      - name: Smoke run (decode_frame)
+        run: cargo fuzz run decode_frame -- -runs=20000 -max_total_time=60 -rss_limit_mb=2048
+        continue-on-error: true
