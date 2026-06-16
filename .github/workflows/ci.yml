@@ -28,8 +28,8 @@ jobs:
         run: cargo test --verbose
       # Advisory: the multithreaded decode path is currently incorrect (produces
       # wrong output vs the references, e.g. vp80-00-comprehensive-007). Threads
-      # are opt-in (default is 1). Flip continue-on-error off once MT is fixed so
-      # this becomes a hard regression gate.
+      # are opt-in (default is 1). Tracked in #19 -- flip continue-on-error off
+      # once fixed so this becomes a hard regression gate.
       - name: Differential test (multithreaded decode)
         run: cargo test --test differential_md5 --verbose
         env:
@@ -78,9 +78,9 @@ jobs:
       - name: Build fuzz targets
         run: cargo fuzz build
       # Advisory until the decoder is hardened against malformed input: fuzzing
-      # already finds an unbounded-allocation OOM (decode_frame) and an integer
-      # overflow panic at decodeframe.rs:378 (decode_ivf). Flip continue-on-error
-      # off once those are fixed so regressions block CI.
+      # already finds an unbounded-allocation OOM (#20) and an integer-overflow
+      # panic at decodeframe.rs:378 (#21). Flip continue-on-error off once those
+      # are fixed so regressions block CI.
       - name: Smoke run (decode_frame)
         run: cargo fuzz run decode_frame -- -runs=20000 -max_total_time=60 -rss_limit_mb=2048
         continue-on-error: true
