@@ -5,11 +5,6 @@
 #![allow(non_upper_case_globals)]
 #![allow(unused_assignments)]
 #![allow(unused_mut)]
-#![feature(c_variadic)]
-#![feature(core_intrinsics)]
-#![feature(extern_types)]
-#![feature(raw_ref_op)]
-#![feature(allocator_api)]
 
 pub mod api;
 pub mod thread_shim;

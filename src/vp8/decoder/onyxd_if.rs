@@ -65,11 +65,8 @@ fn remove_decompressor(mut pbi: Box<VP8D_COMP>) {
     vp8_remove_common(&mut pbi.common);
 }
 fn create_decompressor() -> Option<Box<VP8D_COMP>> {
-    let mut pbi = match Box::try_new(VP8D_COMP::default()) {
-        Ok(b) => b,
-        Err(_) => return None,
-    };
-    
+    let mut pbi = Box::new(VP8D_COMP::default());
+
     vp8_create_common(&mut pbi.common);
     pbi.common.current_video_frame = 0;
     pbi.ready_for_new_data = 1;
