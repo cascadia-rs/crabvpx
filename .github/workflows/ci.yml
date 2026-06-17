@@ -26,15 +26,11 @@ jobs:
         run: cargo build --verbose
       - name: Test (single-threaded decode)
         run: cargo test --verbose
-      # Advisory: the multithreaded decode path is currently incorrect (produces
-      # wrong output vs the references, e.g. vp80-00-comprehensive-007). Threads
-      # are opt-in (default is 1). Flip continue-on-error off once MT is fixed so
-      # this becomes a hard regression gate.
+      # Hard gate: multithreaded decode is bit-exact with single-threaded as of #19.
       - name: Differential test (multithreaded decode)
         run: cargo test --test differential_md5 --verbose
         env:
           CRABVPX_THREADS: 4
-        continue-on-error: true
 
   lint:
     name: Format & clippy (advisory)

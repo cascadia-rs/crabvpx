@@ -431,6 +431,16 @@ fn mt_decode_macroblock(
             );
         }
 
+        // The destination views (dst_views) are border-inclusive frame buffers,
+        // so residual reconstruction must target the same border-adjusted offsets
+        // the predictor wrote to (recon_*offset is relative to the pixel region,
+        // not the buffer start). Using the bare recon offset writes the residual
+        // into the border, leaving the visible output as prediction-only.
+        let y_recon_buf_offset =
+            xd.dst_border as usize * xd.dst_y_stride as usize + xd.dst_border as usize + recon_yoffset;
+        let uv_recon_buf_offset = (xd.dst_border / 2) as usize * xd.dst_uv_stride as usize
+            + (xd.dst_border / 2) as usize
+            + recon_uvoffset;
         if mi.mbmi.mb_skip_coeff == 0 {
             if mode as ::core::ffi::c_uint != B_PRED as ::core::ffi::c_int as ::core::ffi::c_uint {
                 let dq_y: &[i16; 16] = if mode as ::core::ffi::c_uint != SPLITMV as ::core::ffi::c_int as ::core::ffi::c_uint {
@@ -462,7 +472,7 @@ fn mt_decode_macroblock(
                 };
 
                 let y_stride = xd.dst_y_stride;
-                let dst_y_view = dst_views.0.as_slice_mut(recon_yoffset, dst_views.0.len() - recon_yoffset);
+                let dst_y_view = dst_views.0.as_slice_mut(y_recon_buf_offset, dst_views.0.len() - y_recon_buf_offset);
                 let q_y: &mut [i16; 256] = (&mut xd.qcoeff[0..256]).try_into().unwrap();
                 let dst_len = 15 * y_stride as usize + 16;
                 let dst_slice = &mut dst_y_view[..dst_len];
@@ -472,8 +482,8 @@ fn mt_decode_macroblock(
             }
 
             let uv_stride = xd.dst_uv_stride;
-            let dst_u_view = dst_views.1.as_slice_mut(recon_uvoffset, dst_views.1.len() - recon_uvoffset);
-            let dst_v_view = dst_views.2.as_slice_mut(recon_uvoffset, dst_views.2.len() - recon_uvoffset);
+            let dst_u_view = dst_views.1.as_slice_mut(uv_recon_buf_offset, dst_views.1.len() - uv_recon_buf_offset);
+            let dst_v_view = dst_views.2.as_slice_mut(uv_recon_buf_offset, dst_views.2.len() - uv_recon_buf_offset);
             let q_uv: &mut [i16; 128] = (&mut xd.qcoeff[256..384]).try_into().unwrap();
             let dst_u_len = 7 * uv_stride as usize + 8;
             let dst_u_slice = &mut dst_u_view[..dst_u_len];
@@ -824,20 +834,26 @@ fn mt_decode_mb_rows(
                             let has_u = !dst_fb.u_buffer.is_null();
                             let has_v = !dst_fb.v_buffer.is_null();
                             
-                            let col_offset_y = (mb_col * 16) as usize;
-                            let col_offset_uv = (mb_col * 8) as usize;
-                            
+                            // dst_views are border-inclusive frame buffers, so the
+                            // filter row/column offsets must include the border (matching
+                            // the reconstruction). Without it the filter operates in the
+                            // border region, leaving the visible pixels unfiltered.
+                            let bd = xd.dst_border as usize;
+                            let bd_uv = bd / 2;
+                            let col_offset_y = bd + (mb_col * 16) as usize;
+                            let col_offset_uv = bd_uv + (mb_col * 8) as usize;
+
                             let (row_above, row_current) = if mb_row > 0 {
                                 let y_stride_us = y_stride as usize;
                                 let uv_stride_us = uv_stride as usize;
                                 let y_len = 16 * y_stride_us;
                                 let uv_len = 8 * uv_stride_us;
-                                let y_start_above = (mb_row as usize - 1) * 16 * y_stride_us;
-                                let u_start_above = (mb_row as usize - 1) * 8 * uv_stride_us;
-                                let v_start_above = (mb_row as usize - 1) * 8 * uv_stride_us;
-                                let y_start_curr = (mb_row as usize) * 16 * y_stride_us;
-                                let u_start_curr = (mb_row as usize) * 8 * uv_stride_us;
-                                let v_start_curr = (mb_row as usize) * 8 * uv_stride_us;
+                                let y_start_above = (bd + (mb_row as usize - 1) * 16) * y_stride_us;
+                                let u_start_above = (bd_uv + (mb_row as usize - 1) * 8) * uv_stride_us;
+                                let v_start_above = (bd_uv + (mb_row as usize - 1) * 8) * uv_stride_us;
+                                let y_start_curr = (bd + (mb_row as usize) * 16) * y_stride_us;
+                                let u_start_curr = (bd_uv + (mb_row as usize) * 8) * uv_stride_us;
+                                let v_start_curr = (bd_uv + (mb_row as usize) * 8) * uv_stride_us;
                                 (
                                     (
                                         dst_views.0.as_slice_mut(y_start_above, y_len),
@@ -858,9 +874,9 @@ fn mt_decode_mb_rows(
                                 (
                                     (&mut [] as &mut [u8], &mut [] as &mut [u8], &mut [] as &mut [u8]),
                                     (
-                                        dst_views.0.as_slice_mut(0, y_len),
-                                        dst_views.1.as_slice_mut(0, uv_len),
-                                        dst_views.2.as_slice_mut(0, uv_len),
+                                        dst_views.0.as_slice_mut(bd * y_stride_us, y_len),
+                                        dst_views.1.as_slice_mut(bd_uv * uv_stride_us, uv_len),
+                                        dst_views.2.as_slice_mut(bd_uv * uv_stride_us, uv_len),
                                     )
                                 )
                             };
@@ -951,14 +967,16 @@ fn mt_decode_mb_rows(
                         {
                             let y_stride = xd.dst_y_stride as usize;
                             let dst_fb = &pc.yv12_fb[xd.dst_fb_idx];
-                            
-                            let col_offset_y = (mb_col * 16) as usize;
-                            
+
+                            // Border-inclusive offsets (see the NORMAL branch above).
+                            let bd = xd.dst_border as usize;
+                            let col_offset_y = bd + (mb_col * 16) as usize;
+
                             let (row_above, row_current) = if mb_row > 0 {
                                 let y_stride_us = y_stride as usize;
                                 let y_len = 16 * y_stride_us;
-                                let y_start_above = (mb_row as usize - 1) * 16 * y_stride_us;
-                                let y_start_curr = (mb_row as usize) * 16 * y_stride_us;
+                                let y_start_above = (bd + (mb_row as usize - 1) * 16) * y_stride_us;
+                                let y_start_curr = (bd + (mb_row as usize) * 16) * y_stride_us;
                                 (
                                     (
                                         dst_views.0.as_slice_mut(y_start_above, y_len),
@@ -977,7 +995,7 @@ fn mt_decode_mb_rows(
                                 (
                                     (&mut [] as &mut [u8], &mut [] as &mut [u8], &mut [] as &mut [u8]),
                                     (
-                                        dst_views.0.as_slice_mut(0, y_len),
+                                        dst_views.0.as_slice_mut(bd * y_stride_us, y_len),
                                         &mut [] as &mut [u8],
                                         &mut [] as &mut [u8]
                                     )

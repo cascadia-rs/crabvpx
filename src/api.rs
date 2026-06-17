@@ -41,6 +41,16 @@ impl<'a> Image<'a> {
         }
     }
 
+    /// Row stride (in bytes) of a plane's backing buffer.
+    pub fn stride(&self, plane: Plane) -> usize {
+        match plane {
+            Plane::Y => self.strides[0],
+            Plane::U => self.strides[1],
+            Plane::V => self.strides[2],
+            Plane::Alpha => self.strides[3],
+        }
+    }
+
     /// Get the bit depth of the image.
     pub fn bit_depth(&self) -> u32 {
         self.bit_depth
