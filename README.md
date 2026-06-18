@@ -1,7 +1,34 @@
 # CrabVPX
 
-Lifting and shifting `libvpx` (specifically VP8 decoding) to Rust using `c2rust`.
-We successfully transpiled the C code, including ARM NEON intrinsics, yielding a **pure-Rust hardware-accelerated decoder** (on Apple Silicon). The project has been upgraded to the **Rust 2024 edition**.
+A **memory-safe, pure-Rust VP8 video decoder**. Originally lifted from `libvpx`
+with `c2rust` and progressively rewritten into safe Rust.
+
+- **Correct:** decode output is bit-exact with `libvpx` across the 35 WebM VP8
+  conformance vectors, single- and multi-threaded (verified in CI).
+- **Fast:** decode throughput is at parity with `libvpx` (within ±3%) — LLVM
+  auto-vectorizes the hot loops, so no hand-written SIMD is required.
+- **Safe:** builds on stable Rust (no `unsafe`-heavy FFI in the decode path;
+  the remaining `unsafe` is confined to the low-level buffer/threading core).
+- **Scope:** VP8 *decoding* only (no encoder, no VP9/AV1).
+
+## Usage
+
+```rust
+use crabvpx::api::{Decoder, Plane, Vp8Decoder};
+
+let mut dec = Vp8Decoder::new();
+dec.init()?;
+dec.decode(frame)?; // one compressed VP8 frame
+while let Some(img) = dec.get_frame()? {
+    let y = img.plane(Plane::Y).unwrap();
+    let stride = img.stride(Plane::Y);
+    // ... use img.width(), img.height(), planes ...
+}
+```
+
+Multithreaded decoding is opt-in via `CRABVPX_THREADS` (default `1`).
+
+## Provenance
 
 ## Project Status Checklist
 

@@ -1,6 +1,4 @@
-use std::ffi::c_void;
-use std::sync::{Arc, Mutex, Condvar, OnceLock};
-use std::collections::HashMap;
+use std::sync::{Mutex, Condvar};
 
 
 // Opaque struct for semaphore

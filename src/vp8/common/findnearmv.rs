@@ -137,7 +137,7 @@ pub static vp8_mbsplit_offset: [[::core::ffi::c_uchar; 16]; 4] = [
     ],
 ];
 pub fn vp8_find_near_mvs_safe(
-    xd: &MACROBLOCKD,
+    _xd: &MACROBLOCKD,
     above: &MODE_INFO,
     left: &MODE_INFO,
     aboveleft: &MODE_INFO,
@@ -216,10 +216,10 @@ pub fn vp8_find_near_mvs_safe(
     }
 
     near_mv_ref_cnts[CNT_SPLITMV as usize] = 
-        (((above.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int
+        ((above.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int
             + (left.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int)
             * 2 as ::core::ffi::c_int
-            + (aboveleft.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int);
+            + (aboveleft.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int ;
 
     if near_mv_ref_cnts[CNT_NEAR as usize] > near_mv_ref_cnts[CNT_NEAREST as usize] {
         let tmp = near_mv_ref_cnts[CNT_NEAREST as usize];

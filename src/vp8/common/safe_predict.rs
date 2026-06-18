@@ -2,7 +2,6 @@
 // This file provides safe Rust interfaces to the unsafe FFI predictor functions.
 // It performs necessary bounds checks prior to calling the unsafe FFI.
 
-use crate::vp8::common::types::vp8_subpix_fn_t;
 
 
 // Helper macros or functions for assertions

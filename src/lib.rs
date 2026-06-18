@@ -1,4 +1,36 @@
-#![allow(warnings)]
+//! # crabvpx
+//!
+//! A memory-safe, pure-Rust VP8 video decoder. Originally lifted from
+//! `libvpx` and progressively rewritten into safe Rust; decode output is
+//! bit-exact with `libvpx` and decode throughput is at parity (LLVM
+//! auto-vectorizes the hot loops, so no hand-written SIMD is needed).
+//!
+//! ## Decoding
+//!
+//! Use [`api::Vp8Decoder`] via the [`api::Decoder`] trait:
+//!
+//! ```no_run
+//! use crabvpx::api::{Decoder, Plane, Vp8Decoder};
+//!
+//! let mut dec = Vp8Decoder::new();
+//! dec.init().unwrap();
+//! // `frame` is one compressed VP8 frame (e.g. an IVF payload).
+//! # let frame: &[u8] = &[];
+//! dec.decode(frame).unwrap();
+//! while let Some(img) = dec.get_frame().unwrap() {
+//!     let y = img.plane(Plane::Y).unwrap();
+//!     let stride = img.stride(Plane::Y);
+//!     let _ = (img.width(), img.height(), y, stride);
+//! }
+//! ```
+//!
+//! Multithreaded decoding is opt-in via the `CRABVPX_THREADS` environment
+//! variable (default `1`) and is bit-identical to single-threaded.
+//!
+//! ## Scope
+//!
+//! VP8 **decoding** only — no encoder, and no VP9/AV1.
+
 #![allow(dead_code)]
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]

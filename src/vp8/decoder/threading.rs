@@ -1,7 +1,6 @@
 use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_context};
 use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_frame_init;
 use crate::vp8::decoder::decodeframe::vp8_mb_init_dequantizer;
-use crate::vp8::common::extend::vp8_extend_mb_row;
 use crate::vp8::common::reconintra::intra_prediction_down_copy;
 use crate::vp8::common::idctllm::vp8_short_inv_walsh4x4_1_safe;
 use crate::vp8::common::dequantize::vp8_dequantize_b_safe;
@@ -154,7 +153,7 @@ fn mt_decode_macroblock(
     common: &VP8_COMMON,
     safe_decoder: &mut crate::vp8::decoder::dboolhuff::SafeBoolDecoder,
     xd: &mut MACROBLOCKD,
-    mb_idx: ::core::ffi::c_uint,
+    _mb_idx: ::core::ffi::c_uint,
     above_y: Option<&[u8]>,
     above_u: Option<&[u8]>,
     above_v: Option<&[u8]>,
@@ -658,9 +657,9 @@ fn mt_decode_mb_rows(
             let y_offset = active_start_y + recon_yoffset as usize;
             let uv_offset = active_start_uv + recon_uvoffset as usize;
             
-            let dst_y_ptr = &slice_y[y_offset] as *const u8 as *mut u8;
-            let dst_u_ptr = &slice_u[uv_offset] as *const u8 as *mut u8;
-            let dst_v_ptr = &slice_v[uv_offset] as *const u8 as *mut u8;
+            let _dst_y_ptr = &slice_y[y_offset] as *const u8 as *mut u8;
+            let _dst_u_ptr = &slice_u[uv_offset] as *const u8 as *mut u8;
+            let _dst_v_ptr = &slice_v[uv_offset] as *const u8 as *mut u8;
             
             let cur_ref_frame = xd.mode_info(pc.mip_slice()).mbmi.ref_frame;
             xd.corrupted |= ref_fb_corrupted[cur_ref_frame as usize];
@@ -966,7 +965,7 @@ fn mt_decode_mb_rows(
                     } else {
                         {
                             let y_stride = xd.dst_y_stride as usize;
-                            let dst_fb = &pc.yv12_fb[xd.dst_fb_idx];
+                            let _dst_fb = &pc.yv12_fb[xd.dst_fb_idx];
 
                             // Border-inclusive offsets (see the NORMAL branch above).
                             let bd = xd.dst_border as usize;

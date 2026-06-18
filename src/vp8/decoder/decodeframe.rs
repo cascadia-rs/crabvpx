@@ -203,7 +203,7 @@ fn decode_macroblock(
     common: &mut VP8_COMMON,
     safe_decoders: &mut [SafeBoolDecoder],
     xd: &mut MACROBLOCKD,
-    mb_idx: ::core::ffi::c_uint,
+    _mb_idx: ::core::ffi::c_uint,
     above: &mut ENTROPY_CONTEXT_PLANES,
     left: &mut ENTROPY_CONTEXT_PLANES,
 ) {
@@ -654,8 +654,6 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
         .collect();
     let mut ibc: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
     let mut num_part: ::core::ffi::c_int = num_active_partitions;
-    let mut recon_yoffset: ::core::ffi::c_int = 0;
-    let mut recon_uvoffset: ::core::ffi::c_int = 0;
     let mut mb_row: ::core::ffi::c_int = 0;
     let mut mb_col: ::core::ffi::c_int = 0;
     let mut mb_idx: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
@@ -701,8 +699,6 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
                 ibc = 0 as ::core::ffi::c_int;
             }
         }
-        recon_yoffset = mb_row * recon_y_stride * 16 as ::core::ffi::c_int;
-        recon_uvoffset = mb_row * recon_uv_stride * 8 as ::core::ffi::c_int;
         
         let mut left_context = ENTROPY_CONTEXT_PLANES::default();
         xd.left_available = 0 as ::core::ffi::c_int;
@@ -754,8 +750,6 @@ fn decode_mb_rows(pbi: &mut VP8D_COMP) {
             xd.left_available = 1 as ::core::ffi::c_int;
             xd.corrupted |= vp8dx_safe_bool_error(&safe_decoders[xd.current_bc_idx]);
             
-            recon_yoffset += 16 as ::core::ffi::c_int;
-            recon_uvoffset += 8 as ::core::ffi::c_int;
             
             xd.mode_info_idx += 1;
             mb_col += 1;
@@ -1140,8 +1134,8 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         }
         
         pbi.common.frame_type = (clear_slice[0] as ::core::ffi::c_int & 1 as ::core::ffi::c_int) as FRAME_TYPE;
-        pbi.common.version = (clear_slice[0] as ::core::ffi::c_int >> 1 as ::core::ffi::c_int & 7 as ::core::ffi::c_int);
-        pbi.common.show_frame = (clear_slice[0] as ::core::ffi::c_int >> 4 as ::core::ffi::c_int & 1 as ::core::ffi::c_int);
+        pbi.common.version = clear_slice[0] as ::core::ffi::c_int >> 1 as ::core::ffi::c_int & 7 as ::core::ffi::c_int ;
+        pbi.common.show_frame = clear_slice[0] as ::core::ffi::c_int >> 4 as ::core::ffi::c_int & 1 as ::core::ffi::c_int ;
         
         first_partition_length_in_bytes = (
             (clear_slice[0] as ::core::ffi::c_int)
@@ -1170,14 +1164,14 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
                         "Invalid frame sync code",
                     );
                 }
-                pbi.common.Width = ((clear_slice[3] as ::core::ffi::c_int
+                pbi.common.Width = (clear_slice[3] as ::core::ffi::c_int
                     | (clear_slice[4] as ::core::ffi::c_int) << 8)
-                    & 0x3fff as ::core::ffi::c_int);
-                pbi.common.horiz_scale = (clear_slice[4] as ::core::ffi::c_int >> 6);
-                pbi.common.Height = ((clear_slice[5] as ::core::ffi::c_int
+                    & 0x3fff as ::core::ffi::c_int ;
+                pbi.common.horiz_scale = clear_slice[4] as ::core::ffi::c_int >> 6 ;
+                pbi.common.Height = (clear_slice[5] as ::core::ffi::c_int
                     | (clear_slice[6] as ::core::ffi::c_int) << 8)
-                    & 0x3fff as ::core::ffi::c_int);
-                pbi.common.vert_scale = (clear_slice[6] as ::core::ffi::c_int >> 6);
+                    & 0x3fff as ::core::ffi::c_int ;
+                pbi.common.vert_scale = clear_slice[6] as ::core::ffi::c_int >> 6 ;
                 data_idx += 7;
             } else if pbi.ec_active == 0 {
                 pbi.common.error.trigger(
@@ -1319,7 +1313,7 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         }
     }
     
-    let token_part_sizes_len = data_slice.len() - (data_idx + first_partition_length_in_bytes as usize);
+    let _token_part_sizes_len = data_slice.len() - (data_idx + first_partition_length_in_bytes as usize);
     let token_part_sizes_slice = &data_slice[data_idx + first_partition_length_in_bytes as usize .. ];
     let token_part_sizes_offset = data_idx + first_partition_length_in_bytes as usize;
     

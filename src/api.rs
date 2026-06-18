@@ -1,4 +1,4 @@
-use crate::vp8::vp8_dx_iface::{Vp8DecoderInstance, YV12_BUFFER_CONFIG};
+use crate::vp8::vp8_dx_iface::Vp8DecoderInstance;
 
 /// A safe wrapper around the decoded image planes.
 pub struct Image<'a> {
@@ -79,6 +79,29 @@ impl<'a> Image<'a> {
     }
 }
 
+/// Errors that can occur while decoding.
+#[derive(Debug, Clone, PartialEq, Eq)]
+pub enum DecodeError {
+    /// A decode/frame method was called before [`Decoder::init`].
+    NotInitialized,
+    /// Decoder initialization failed (e.g. allocation failure).
+    Init(String),
+    /// Decoding a frame failed; carries the underlying `vpx_codec_err_t` code.
+    Decode(u32),
+}
+
+impl std::fmt::Display for DecodeError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            DecodeError::NotInitialized => write!(f, "decoder not initialized"),
+            DecodeError::Init(msg) => write!(f, "decoder initialization failed: {msg}"),
+            DecodeError::Decode(code) => write!(f, "frame decode failed (vpx code {code})"),
+        }
+    }
+}
+
+impl std::error::Error for DecodeError {}
+
 /// A generic Video Decoder trait that can be implemented by different codecs
 /// (e.g., VP8, VP9, AV1, H264).
 pub trait Decoder {
@@ -116,7 +139,7 @@ impl Default for Vp8Decoder {
 
 impl Decoder for Vp8Decoder {
     type Frame<'a> = Image<'a>;
-    type Error = String;
+    type Error = DecodeError;
 
     fn init(&mut self) -> Result<(), Self::Error> {
         let threads = std::env::var("CRABVPX_THREADS")
@@ -131,7 +154,7 @@ impl Decoder for Vp8Decoder {
         let inst = self
             .instance
             .as_mut()
-            .ok_or_else(|| "Decoder not initialized".to_string())?;
+            .ok_or(DecodeError::NotInitialized)?;
         inst.decode(payload)
     }
 
@@ -139,7 +162,7 @@ impl Decoder for Vp8Decoder {
         let inst = self
             .instance
             .as_mut()
-            .ok_or_else(|| "Decoder not initialized".to_string())?;
+            .ok_or(DecodeError::NotInitialized)?;
         if let Some((cfg, width, height)) = inst.get_frame() {
             let (y_plane, u_plane, v_plane) = cfg.views();
             let alpha_plane = None;

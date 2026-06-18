@@ -162,17 +162,17 @@ impl CrabVpxDecoder {
 impl VideoDecoder for CrabVpxDecoder {
     fn init(&mut self) -> Result<(), String> {
         use crabvpx::api::Decoder;
-        self.inner.init()
+        self.inner.init().map_err(|e| e.to_string())
     }
 
     fn decode_frame(&mut self, payload: &[u8]) -> Result<(), String> {
         use crabvpx::api::Decoder;
-        self.inner.decode(payload)
+        self.inner.decode(payload).map_err(|e| e.to_string())
     }
 
     fn get_frame(&mut self) -> Result<Option<DecodedFrame>, String> {
         use crabvpx::api::Decoder;
-        match self.inner.get_frame()? {
+        match self.inner.get_frame().map_err(|e| e.to_string())? {
             Some(img) => {
                 if std::env::var("CRABVPX_DUMP").is_ok() && self.frame_counter == 1 {
                     let threads = std::env::var("CRABVPX_THREADS").unwrap_or_else(|_| "1".to_string());

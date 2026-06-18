@@ -83,10 +83,10 @@ fn vp8_filter(
     filter2 = (filter2 >> 3) as i8;
     
     u = vp8_signed_char_clamp(qs0 as i32 - filter1 as i32);
-    *oq0 = (u as u8 ^ 0x80);
+    *oq0 = u as u8 ^ 0x80;
     
     u = vp8_signed_char_clamp(ps0 as i32 + filter2 as i32);
-    *op0 = (u as u8 ^ 0x80);
+    *op0 = u as u8 ^ 0x80;
     
     filter_value = filter1;
     filter_value = (filter_value as i32 + 1) as i8;
@@ -94,10 +94,10 @@ fn vp8_filter(
     filter_value = (filter_value as i32 & !(hev as i32)) as i8;
     
     u = vp8_signed_char_clamp(qs1 as i32 - filter_value as i32);
-    *oq1 = (u as u8 ^ 0x80);
+    *oq1 = u as u8 ^ 0x80;
     
     u = vp8_signed_char_clamp(ps1 as i32 + filter_value as i32);
-    *op1 = (u as u8 ^ 0x80);
+    *op1 = u as u8 ^ 0x80;
 }
 pub(crate) fn loop_filter_horizontal_edge_safe(
     s: &mut [u8],
@@ -256,25 +256,25 @@ fn vp8_mbfilter(
         (63 + filter2 as i32 * 27) >> 7,
     );
     s = vp8_signed_char_clamp(qs0 as i32 - u as i32);
-    *oq0 = (s as u8 ^ 0x80);
+    *oq0 = s as u8 ^ 0x80;
     s = vp8_signed_char_clamp(ps0 as i32 + u as i32);
-    *op0 = (s as u8 ^ 0x80);
+    *op0 = s as u8 ^ 0x80;
     
     u = vp8_signed_char_clamp(
         (63 + filter2 as i32 * 18) >> 7,
     );
     s = vp8_signed_char_clamp(qs1 as i32 - u as i32);
-    *oq1 = (s as u8 ^ 0x80);
+    *oq1 = s as u8 ^ 0x80;
     s = vp8_signed_char_clamp(ps1 as i32 + u as i32);
-    *op1 = (s as u8 ^ 0x80);
+    *op1 = s as u8 ^ 0x80;
     
     u = vp8_signed_char_clamp(
         (63 + filter2 as i32 * 9) >> 7,
     );
     s = vp8_signed_char_clamp(qs2 as i32 - u as i32);
-    *oq2 = (s as u8 ^ 0x80);
+    *oq2 = s as u8 ^ 0x80;
     s = vp8_signed_char_clamp(ps2 as i32 + u as i32);
-    *op2 = (s as u8 ^ 0x80);
+    *op2 = s as u8 ^ 0x80;
 }
 pub(crate) fn mbloop_filter_horizontal_edge_safe(
     s: &mut [u8],
