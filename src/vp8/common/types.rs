@@ -749,8 +749,11 @@ pub struct vpx_internal_error_info {
     pub error_code: vpx_codec_err_t,
     pub has_detail: ::core::ffi::c_int,
     pub detail: [::core::ffi::c_char; 80],
+    /// Non-zero while a [`catch_unwind`](std::panic::catch_unwind) guard is
+    /// active at the decode boundary. When armed, [`Self::trigger`] unwinds
+    /// (replacing libvpx's `setjmp`/`longjmp`); when not, it only records the
+    /// error and returns.
     pub setjmp: ::core::ffi::c_int,
-    pub jmp: jmp_buf,
 }
 
 impl Default for vpx_internal_error_info {
@@ -760,7 +763,6 @@ impl Default for vpx_internal_error_info {
             has_detail: 0,
             detail: [0; 80],
             setjmp: 0,
-            jmp: [0; 48],
         }
     }
 }
@@ -779,17 +781,41 @@ impl vpx_internal_error_info {
             self.detail[len] = 0; // Null terminator
         }
         if self.setjmp != 0 {
-            unsafe {
-                unsafe extern "C" {
-                    fn longjmp(_: *mut ::core::ffi::c_int, _: ::core::ffi::c_int) -> !;
-                }
-                longjmp(
-                    &raw mut self.jmp as *mut ::core::ffi::c_int,
-                    self.error_code as ::core::ffi::c_int,
-                );
-            }
+            // Replaces libvpx's `longjmp`. The unwind is caught by the
+            // `catch_unwind` guard at the decode boundary (see `vp8_decode`),
+            // which reads the outcome back from `self.error_code`. The panic
+            // hook stays silent for this payload (see `arm_panic_hook`), since
+            // a corrupt frame is normal decoder operation, not a fault.
+            std::panic::panic_any(Vp8Bail);
         }
     }
+}
+
+/// Typed payload for the decode-error unwind that replaced `setjmp`/`longjmp`.
+/// Caught only at the decode boundary; any other panic propagates normally.
+pub(crate) struct Vp8Bail;
+
+/// True if a caught panic payload is our internal decode bail.
+pub(crate) fn is_vp8_bail(payload: &Box<dyn std::any::Any + Send>) -> bool {
+    payload.downcast_ref::<Vp8Bail>().is_some()
+}
+
+/// Install (once) a panic hook that stays silent for [`Vp8Bail`] unwinds while
+/// delegating every other panic to the previously installed hook. Without it
+/// the default hook would print a spurious "thread panicked" line for every
+/// corrupt frame.
+pub(crate) fn arm_panic_hook() {
+    use std::sync::Once;
+    static ONCE: Once = Once::new();
+    ONCE.call_once(|| {
+        let prev = std::panic::take_hook();
+        std::panic::set_hook(Box::new(move |info| {
+            if info.payload().is::<Vp8Bail>() {
+                return;
+            }
+            prev(info);
+        }));
+    });
 }
 
 

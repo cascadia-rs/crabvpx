@@ -4,7 +4,6 @@ unsafe extern "C" {
         __c: ::core::ffi::c_int,
         __len: size_t,
     ) -> *mut ::core::ffi::c_void;
-    fn setjmp(_: *mut ::core::ffi::c_int) -> ::core::ffi::c_int;
 }
 use crate::vp8::decoder::onyxd_if::{
     vp8dx_receive_compressed_data_safe,
@@ -26,6 +25,7 @@ pub type uint64_t = u64;
 pub use crate::vp8::common::types::*;
 use crate::vp8::common::mbpitch::vp8_build_block_doffsets;
 use crate::vp8::common::alloccommon::vp8_alloc_frame_buffers;
+use crate::vp8::common::types::{arm_panic_hook, is_vp8_bail};
 
 pub type vpx_color_range_t = vpx_color_range;
 pub type vpx_color_range = ::core::ffi::c_uint;
@@ -697,19 +697,23 @@ unsafe extern "C" fn vp8_decode(
         let mut pbi_0: *mut VP8D_COMP =
             (*ctx).yv12_frame_buffers.pbi[0 as ::core::ffi::c_int as usize];
         let pc: *mut VP8_COMMON = &raw mut (*pbi_0).common;
-        if setjmp(&raw mut (*pbi_0).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
-            (*pbi_0).common.error.setjmp = 0 as ::core::ffi::c_int;
+        (*pbi_0).max_threads = (*ctx).cfg.threads as ::core::ffi::c_int;
+        (*pbi_0).common.error.setjmp = 1 as ::core::ffi::c_int;
+        let guard = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            let _ = vp8_decoder_create_threads(&mut *pbi_0);
+            if vpx_atomic_load_acquire(&(*pbi_0).b_multithreaded_rd) != 0 {
+                vp8mt_alloc_temp_buffers(&mut *pbi_0, (*pc).Width, (*pc).mb_rows);
+            }
+        }));
+        (*pbi_0).common.error.setjmp = 0 as ::core::ffi::c_int;
+        if let Err(p) = guard {
+            if !is_vp8_bail(&p) {
+                std::panic::resume_unwind(p);
+            }
             vp8_decoder_remove_threads(&mut *pbi_0);
             return VPX_CODEC_ERROR;
         }
-        (*pbi_0).common.error.setjmp = 1 as ::core::ffi::c_int;
-        (*pbi_0).max_threads = (*ctx).cfg.threads as ::core::ffi::c_int;
-        let _ = vp8_decoder_create_threads(&mut *pbi_0);
-        if vpx_atomic_load_acquire(&(*pbi_0).b_multithreaded_rd) != 0 {
-            vp8mt_alloc_temp_buffers(&mut *pbi_0, (*pc).Width, (*pc).mb_rows);
-        }
         (*ctx).restart_threads = 0 as ::core::ffi::c_int;
-        (*pbi_0).common.error.setjmp = 0 as ::core::ffi::c_int;
     }
     if res as u64 == 0 && (*ctx).decoder_init == 0 {
         let mut oxcf: VP8D_CONFIG = VP8D_CONFIG {
@@ -764,85 +768,98 @@ unsafe extern "C" fn vp8_decode(
             let mut i: ::core::ffi::c_int = 0;
             (*pc_0).Width = (*ctx).si.w as ::core::ffi::c_int;
             (*pc_0).Height = (*ctx).si.h as ::core::ffi::c_int;
-            if setjmp(&raw mut (*pbi_1).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
-                (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
+            (*pbi_1).common.error.setjmp = 1 as ::core::ffi::c_int;
+            let guard = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+                if (*pc_0).Width <= 0 as ::core::ffi::c_int {
+                    (*pc_0).Width = w as ::core::ffi::c_int;
+                    (*pc_0).error.trigger(VPX_CODEC_CORRUPT_FRAME, "Invalid frame width");
+                }
+                if (*pc_0).Height <= 0 as ::core::ffi::c_int {
+                    (*pc_0).Height = h as ::core::ffi::c_int;
+                    (*pc_0).error.trigger(VPX_CODEC_CORRUPT_FRAME, "Invalid frame height");
+                }
+                if vpx_atomic_load_acquire(&(*pbi_1).b_multithreaded_rd) != 0 {
+                    vp8mt_de_alloc_temp_buffers(&mut *pbi_1, (*pc_0).mb_rows);
+                }
+                if vp8_alloc_frame_buffers(&mut *pc_0, (*pc_0).Width, (*pc_0).Height) != 0 {
+                    (*pc_0).error.trigger(VPX_CODEC_MEM_ERROR, "Failed to allocate frame buffers");
+                }
+                let lst_fb_idx = (*pc_0).lst_fb_idx as usize;
+                let new_fb_idx = (*pc_0).new_fb_idx as usize;
+                (*xd).pre_fb_idx = lst_fb_idx;
+                (*xd).dst_fb_idx = new_fb_idx;
+                (*xd).dst_y_stride = (*pc_0).yv12_fb[new_fb_idx].y_stride;
+                (*xd).dst_uv_stride = (*pc_0).yv12_fb[new_fb_idx].uv_stride;
+                (*xd).dst_border = (*pc_0).yv12_fb[new_fb_idx].border;
+                (*xd).pre_y_stride = (*pc_0).yv12_fb[lst_fb_idx].y_stride;
+                (*xd).pre_uv_stride = (*pc_0).yv12_fb[lst_fb_idx].uv_stride;
+                (*xd).pre_border = (*pc_0).yv12_fb[lst_fb_idx].border;
+                i = 0 as ::core::ffi::c_int;
+                while i < (*pbi_1).allocated_decoding_thread_count {
+                    let mut m_guard = (*pbi_1).mb_row_di.as_mut().unwrap()[i as usize].lock().unwrap();
+                    let mbd = &mut m_guard.mbd;
+                    mbd.dst_fb_idx = new_fb_idx;
+                    mbd.dst_y_stride = (*pc_0).yv12_fb[new_fb_idx].y_stride;
+                    mbd.dst_uv_stride = (*pc_0).yv12_fb[new_fb_idx].uv_stride;
+                    mbd.dst_border = (*pc_0).yv12_fb[new_fb_idx].border;
+                    vp8_build_block_doffsets(mbd);
+                    i += 1;
+                }
+                vp8_build_block_doffsets(&mut (*pbi_1).mb);
+                if vpx_atomic_load_acquire(&(*pbi_1).b_multithreaded_rd) != 0 {
+                    vp8mt_alloc_temp_buffers(&mut *pbi_1, (*pc_0).Width, 0 as ::core::ffi::c_int);
+                }
+            }));
+            (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
+            if let Err(p) = guard {
+                if !is_vp8_bail(&p) {
+                    std::panic::resume_unwind(p);
+                }
                 (*ctx).si.w = 0 as ::core::ffi::c_uint;
                 (*ctx).si.h = 0 as ::core::ffi::c_uint;
                 return 4294967295 as vpx_codec_err_t;
             }
-            (*pbi_1).common.error.setjmp = 1 as ::core::ffi::c_int;
-            if (*pc_0).Width <= 0 as ::core::ffi::c_int {
-                (*pc_0).Width = w as ::core::ffi::c_int;
-                (*pc_0).error.trigger(VPX_CODEC_CORRUPT_FRAME, "Invalid frame width");
-            }
-            if (*pc_0).Height <= 0 as ::core::ffi::c_int {
-                (*pc_0).Height = h as ::core::ffi::c_int;
-                (*pc_0).error.trigger(VPX_CODEC_CORRUPT_FRAME, "Invalid frame height");
-            }
-            if vpx_atomic_load_acquire(&(*pbi_1).b_multithreaded_rd) != 0 {
-                vp8mt_de_alloc_temp_buffers(&mut *pbi_1, (*pc_0).mb_rows);
-            }
-            if vp8_alloc_frame_buffers(&mut *pc_0, (*pc_0).Width, (*pc_0).Height) != 0 {
-                (*pc_0).error.trigger(VPX_CODEC_MEM_ERROR, "Failed to allocate frame buffers");
-            }
-            let lst_fb_idx = (*pc_0).lst_fb_idx as usize;
-            let new_fb_idx = (*pc_0).new_fb_idx as usize;
-            (*xd).pre_fb_idx = lst_fb_idx;
-            (*xd).dst_fb_idx = new_fb_idx;
-            (*xd).dst_y_stride = (*pc_0).yv12_fb[new_fb_idx].y_stride;
-            (*xd).dst_uv_stride = (*pc_0).yv12_fb[new_fb_idx].uv_stride;
-            (*xd).dst_border = (*pc_0).yv12_fb[new_fb_idx].border;
-            (*xd).pre_y_stride = (*pc_0).yv12_fb[lst_fb_idx].y_stride;
-            (*xd).pre_uv_stride = (*pc_0).yv12_fb[lst_fb_idx].uv_stride;
-            (*xd).pre_border = (*pc_0).yv12_fb[lst_fb_idx].border;
-            i = 0 as ::core::ffi::c_int;
-            while i < (*pbi_1).allocated_decoding_thread_count {
-                let mut m_guard = (*pbi_1).mb_row_di.as_mut().unwrap()[i as usize].lock().unwrap();
-                let mbd = &mut m_guard.mbd;
-                mbd.dst_fb_idx = new_fb_idx;
-                mbd.dst_y_stride = (*pc_0).yv12_fb[new_fb_idx].y_stride;
-                mbd.dst_uv_stride = (*pc_0).yv12_fb[new_fb_idx].uv_stride;
-                mbd.dst_border = (*pc_0).yv12_fb[new_fb_idx].border;
-                vp8_build_block_doffsets(mbd);
-                i += 1;
-            }
-            vp8_build_block_doffsets(&mut (*pbi_1).mb);
-            if vpx_atomic_load_acquire(&(*pbi_1).b_multithreaded_rd) != 0 {
-                vp8mt_alloc_temp_buffers(&mut *pbi_1, (*pc_0).Width, 0 as ::core::ffi::c_int);
-            }
-            (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
             (*pbi_1).common.fb_idx_ref_cnt[0 as ::core::ffi::c_int as usize] =
                 0 as ::core::ffi::c_int;
         }
-        if setjmp(&raw mut (*pbi_1).common.error.jmp as *mut ::core::ffi::c_int) != 0 {
-            (*pc_0).yv12_fb[(*pc_0).lst_fb_idx as usize].corrupted = 1 as ::core::ffi::c_int;
-            if (*pc_0).fb_idx_ref_cnt[(*pc_0).new_fb_idx as usize] > 0 as ::core::ffi::c_int {
-                (*pc_0).fb_idx_ref_cnt[(*pc_0).new_fb_idx as usize] -= 1;
-            }
-            (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
-            if (*pbi_1).restart_threads != 0 {
-                (*ctx).si.w = 0 as ::core::ffi::c_uint;
-                (*ctx).si.h = 0 as ::core::ffi::c_uint;
-                (*ctx).restart_threads = 1 as ::core::ffi::c_int;
-            }
-            ::core::ptr::write_volatile(
-                &mut res as *mut vpx_codec_err_t,
-                update_error_state(ctx, &raw mut (*pbi_1).common.error),
-            );
-            return res;
-        }
-        (*pbi_1).common.error.setjmp = 1 as ::core::ffi::c_int;
         (*pbi_1).fragments = (*ctx).fragments;
         (*pbi_1).restart_threads = 0 as ::core::ffi::c_int;
         (*ctx).user_priv = user_priv;
-        if vp8dx_receive_compressed_data_safe(&mut *pbi_1) != 0 {
-            ::core::ptr::write_volatile(
-                &mut res as *mut vpx_codec_err_t,
-                update_error_state(ctx, &raw mut (*pbi_1).common.error),
-            );
-        }
-        (*ctx).fragments.count = 0 as ::core::ffi::c_uint;
+        (*pbi_1).common.error.setjmp = 1 as ::core::ffi::c_int;
+        let guard = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| {
+            vp8dx_receive_compressed_data_safe(&mut *pbi_1)
+        }));
         (*pbi_1).common.error.setjmp = 0 as ::core::ffi::c_int;
+        match guard {
+            Ok(rv) => {
+                if rv != 0 {
+                    ::core::ptr::write_volatile(
+                        &mut res as *mut vpx_codec_err_t,
+                        update_error_state(ctx, &raw mut (*pbi_1).common.error),
+                    );
+                }
+                (*ctx).fragments.count = 0 as ::core::ffi::c_uint;
+            }
+            Err(p) => {
+                if !is_vp8_bail(&p) {
+                    std::panic::resume_unwind(p);
+                }
+                (*pc_0).yv12_fb[(*pc_0).lst_fb_idx as usize].corrupted = 1 as ::core::ffi::c_int;
+                if (*pc_0).fb_idx_ref_cnt[(*pc_0).new_fb_idx as usize] > 0 as ::core::ffi::c_int {
+                    (*pc_0).fb_idx_ref_cnt[(*pc_0).new_fb_idx as usize] -= 1;
+                }
+                if (*pbi_1).restart_threads != 0 {
+                    (*ctx).si.w = 0 as ::core::ffi::c_uint;
+                    (*ctx).si.h = 0 as ::core::ffi::c_uint;
+                    (*ctx).restart_threads = 1 as ::core::ffi::c_int;
+                }
+                ::core::ptr::write_volatile(
+                    &mut res as *mut vpx_codec_err_t,
+                    update_error_state(ctx, &raw mut (*pbi_1).common.error),
+                );
+                return res;
+            }
+        }
     }
     return res;
 }}
@@ -854,6 +871,9 @@ pub struct Vp8DecoderInstance {
 
 impl Vp8DecoderInstance {
     pub fn new(threads: u32) -> Result<Self, crate::api::DecodeError> {
+        // Keep the default panic hook quiet for the internal decode-bail
+        // unwind that replaced setjmp/longjmp; all other panics still print.
+        arm_panic_hook();
         unsafe {
             vp8_rtcd();
             vpx_dsp_rtcd();
