@@ -171,6 +171,201 @@ fn store_u8(dst: &mut [u8], v: uint8x8_t, n: usize) {
     }
 }
 
+// ===========================================================================
+// Normal loop filter (block edges) — the branchy hotspot LLVM can't auto-vec.
+// Bit-exact with loopfilter_filters::{vp8_filter_mask, vp8_hevmask, vp8_filter}.
+// The filter math is done in widened i16 so the single i32-domain clamp of
+// `fv + 3*(qs0-ps0)` in the scalar is reproduced exactly (an s8 saturating-add
+// chain would round differently).
+// ===========================================================================
+
+#[target_feature(enable = "neon")]
+fn clamp_s8_i16(x: int16x8_t) -> int16x8_t {
+    vminq_s16(vmaxq_s16(x, vdupq_n_s16(-128)), vdupq_n_s16(127))
+}
+
+#[target_feature(enable = "neon")]
+fn widen_mask(m: uint8x8_t) -> int16x8_t {
+    // 0x00 -> 0x0000, 0xFF -> 0xFFFF (sign-extend the 0/-1 byte mask).
+    vmovl_s8(vreinterpret_s8_u8(m))
+}
+
+/// 0xFF where the edge should be filtered (all tap deltas within `limit` and the
+/// blimit term within `blimit`). Matches `vp8_filter_mask` (which returns mask-1).
+#[target_feature(enable = "neon")]
+fn filter_mask8(
+    limit: u8, blimit: u8,
+    p3: uint8x8_t, p2: uint8x8_t, p1: uint8x8_t, p0: uint8x8_t,
+    q0: uint8x8_t, q1: uint8x8_t, q2: uint8x8_t, q3: uint8x8_t,
+) -> uint8x8_t {
+    let lim = vdup_n_u8(limit);
+    let mut v = vcgt_u8(vabd_u8(p3, p2), lim);
+    v = vorr_u8(v, vcgt_u8(vabd_u8(p2, p1), lim));
+    v = vorr_u8(v, vcgt_u8(vabd_u8(p1, p0), lim));
+    v = vorr_u8(v, vcgt_u8(vabd_u8(q1, q0), lim));
+    v = vorr_u8(v, vcgt_u8(vabd_u8(q2, q1), lim));
+    v = vorr_u8(v, vcgt_u8(vabd_u8(q3, q2), lim));
+    // |p0-q0|*2 + |p1-q1|/2 > blimit, computed in u16 to avoid overflow.
+    let a = vmovl_u8(vabd_u8(p0, q0));
+    let b = vmovl_u8(vabd_u8(p1, q1));
+    let term = vaddq_u16(vshlq_n_u16::<1>(a), vshrq_n_u16::<1>(b));
+    let m7 = vmovn_u16(vcgtq_u16(term, vdupq_n_u16(blimit as u16)));
+    v = vorr_u8(v, m7);
+    vmvn_u8(v) // 0xFF where NOT violated
+}
+
+/// 0xFF where |p1-p0|>thresh or |q1-q0|>thresh. Matches `vp8_hevmask`.
+#[target_feature(enable = "neon")]
+fn hev8(thresh: u8, p1: uint8x8_t, p0: uint8x8_t, q0: uint8x8_t, q1: uint8x8_t) -> uint8x8_t {
+    let t = vdup_n_u8(thresh);
+    vorr_u8(vcgt_u8(vabd_u8(p1, p0), t), vcgt_u8(vabd_u8(q1, q0), t))
+}
+
+#[target_feature(enable = "neon")]
+fn to_signed_i16(x: uint8x8_t, c80: uint8x8_t) -> int16x8_t {
+    vmovl_s8(vreinterpret_s8_u8(veor_u8(x, c80)))
+}
+
+#[target_feature(enable = "neon")]
+fn from_signed_i16(x: int16x8_t, c80: uint8x8_t) -> uint8x8_t {
+    veor_u8(vreinterpret_u8_s8(vmovn_s16(x)), c80)
+}
+
+/// Bit-exact NEON twin of `vp8_filter` for 8 lanes. Returns new (p1,p0,q0,q1).
+#[target_feature(enable = "neon")]
+fn normal_filter8(
+    mask: uint8x8_t, hev: uint8x8_t,
+    p1: uint8x8_t, p0: uint8x8_t, q0: uint8x8_t, q1: uint8x8_t,
+) -> (uint8x8_t, uint8x8_t, uint8x8_t, uint8x8_t) {
+    let c80 = vdup_n_u8(0x80);
+    let ps1 = to_signed_i16(p1, c80);
+    let ps0 = to_signed_i16(p0, c80);
+    let qs0 = to_signed_i16(q0, c80);
+    let qs1 = to_signed_i16(q1, c80);
+    let hev16 = widen_mask(hev);
+    let mask16 = widen_mask(mask);
+    let nhev16 = vmvnq_s16(hev16);
+
+    let mut fv = clamp_s8_i16(vsubq_s16(ps1, qs1)); // clamp(ps1 - qs1)
+    fv = vandq_s16(fv, hev16); // & hev
+    let d = vsubq_s16(qs0, ps0);
+    let three_d = vaddq_s16(vaddq_s16(d, d), d); // 3*(qs0-ps0), exact in i16
+    fv = clamp_s8_i16(vaddq_s16(fv, three_d)); // clamp(fv + 3*(qs0-ps0))
+    fv = vandq_s16(fv, mask16); // & mask
+
+    let f1 = vshrq_n_s16::<3>(clamp_s8_i16(vaddq_s16(fv, vdupq_n_s16(4))));
+    let f2 = vshrq_n_s16::<3>(clamp_s8_i16(vaddq_s16(fv, vdupq_n_s16(3))));
+
+    let n_q0 = clamp_s8_i16(vsubq_s16(qs0, f1));
+    let n_p0 = clamp_s8_i16(vaddq_s16(ps0, f2));
+
+    let mut fv2 = vshrq_n_s16::<1>(vaddq_s16(f1, vdupq_n_s16(1))); // (f1+1)>>1
+    fv2 = vandq_s16(fv2, nhev16); // & !hev
+    let n_q1 = clamp_s8_i16(vsubq_s16(qs1, fv2));
+    let n_p1 = clamp_s8_i16(vaddq_s16(ps1, fv2));
+
+    (
+        from_signed_i16(n_p1, c80),
+        from_signed_i16(n_p0, c80),
+        from_signed_i16(n_q0, c80),
+        from_signed_i16(n_q1, c80),
+    )
+}
+
+/// NEON twin of `loop_filter_horizontal_edge_safe`. Edge pixels are contiguous;
+/// taps are at row stride `p`. Access range matches the scalar exactly.
+pub(crate) fn loop_filter_horizontal_edge_neon(
+    s: &mut [u8], s_offset: usize, p: usize,
+    blimit: u8, limit: u8, thresh: u8, count: usize,
+) {
+    // SAFETY: NEON is aarch64 baseline. For each 8-lane chunk we read/write the
+    // same elements the scalar loop indexes (idx-4p .. idx+3p over 8 columns),
+    // which the caller guarantees in-bounds (bordered frame buffer).
+    unsafe {
+        let base = s.as_mut_ptr();
+        for chunk in 0..count {
+            let idx = s_offset + chunk * 8;
+            let ld = |o: usize| vld1_u8(base.add(o) as *const u8);
+            let p3 = ld(idx - 4 * p);
+            let p2 = ld(idx - 3 * p);
+            let p1 = ld(idx - 2 * p);
+            let p0 = ld(idx - p);
+            let q0 = ld(idx);
+            let q1 = ld(idx + p);
+            let q2 = ld(idx + 2 * p);
+            let q3 = ld(idx + 3 * p);
+            let mask = filter_mask8(limit, blimit, p3, p2, p1, p0, q0, q1, q2, q3);
+            let hev = hev8(thresh, p1, p0, q0, q1);
+            let (n1, n0, m0, m1) = normal_filter8(mask, hev, p1, p0, q0, q1);
+            vst1_u8(base.add(idx - 2 * p), n1);
+            vst1_u8(base.add(idx - p), n0);
+            vst1_u8(base.add(idx), m0);
+            vst1_u8(base.add(idx + p), m1);
+        }
+    }
+}
+
+/// NEON 8x8 byte transpose (rows -> columns). `out[j]` = column `j` of input.
+#[target_feature(enable = "neon")]
+fn transpose8x8(a: [uint8x8_t; 8]) -> [uint8x8_t; 8] {
+    // L1: transpose adjacent 8-bit lanes.
+    let b0 = vtrn_u8(a[0], a[1]);
+    let b1 = vtrn_u8(a[2], a[3]);
+    let b2 = vtrn_u8(a[4], a[5]);
+    let b3 = vtrn_u8(a[6], a[7]);
+    // L2: as u16, transpose lanes two apart.
+    let c0 = vtrn_u16(vreinterpret_u16_u8(b0.0), vreinterpret_u16_u8(b1.0));
+    let c1 = vtrn_u16(vreinterpret_u16_u8(b0.1), vreinterpret_u16_u8(b1.1));
+    let c2 = vtrn_u16(vreinterpret_u16_u8(b2.0), vreinterpret_u16_u8(b3.0));
+    let c3 = vtrn_u16(vreinterpret_u16_u8(b2.1), vreinterpret_u16_u8(b3.1));
+    // L3: as u32, transpose lanes four apart.
+    let d0 = vtrn_u32(vreinterpret_u32_u16(c0.0), vreinterpret_u32_u16(c2.0));
+    let d1 = vtrn_u32(vreinterpret_u32_u16(c1.0), vreinterpret_u32_u16(c3.0));
+    let d2 = vtrn_u32(vreinterpret_u32_u16(c0.1), vreinterpret_u32_u16(c2.1));
+    let d3 = vtrn_u32(vreinterpret_u32_u16(c1.1), vreinterpret_u32_u16(c3.1));
+    [
+        vreinterpret_u8_u32(d0.0),
+        vreinterpret_u8_u32(d1.0),
+        vreinterpret_u8_u32(d2.0),
+        vreinterpret_u8_u32(d3.0),
+        vreinterpret_u8_u32(d0.1),
+        vreinterpret_u8_u32(d1.1),
+        vreinterpret_u8_u32(d2.1),
+        vreinterpret_u8_u32(d3.1),
+    ]
+}
+
+/// NEON twin of `loop_filter_vertical_edge_safe`. Edge pixels run down the
+/// column at stride `p`; taps are horizontal. We load 8 rows of 8 bytes
+/// (`s[idx-4 .. idx+4]`), transpose to lane-per-row, filter, transpose back,
+/// and store whole rows (unmodified taps written back unchanged).
+pub(crate) fn loop_filter_vertical_edge_neon(
+    s: &mut [u8], s_offset: usize, p: usize,
+    blimit: u8, limit: u8, thresh: u8, count: usize,
+) {
+    // SAFETY: NEON is aarch64 baseline. Each chunk reads/writes s[row*p-4 .. +4]
+    // for 8 consecutive rows — the same elements the scalar loop touches, which
+    // the caller guarantees in-bounds.
+    unsafe {
+        let base = s.as_mut_ptr();
+        for chunk in 0..count {
+            let row0 = s_offset + chunk * 8 * p;
+            let mut r = [vdup_n_u8(0); 8];
+            for i in 0..8 {
+                r[i] = vld1_u8(base.add(row0 + i * p - 4) as *const u8);
+            }
+            let t = transpose8x8(r); // t[0..8] = p3,p2,p1,p0,q0,q1,q2,q3
+            let mask = filter_mask8(limit, blimit, t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]);
+            let hev = hev8(thresh, t[2], t[3], t[4], t[5]);
+            let (n1, n0, m0, m1) = normal_filter8(mask, hev, t[2], t[3], t[4], t[5]);
+            let out = transpose8x8([t[0], t[1], n1, n0, m0, m1, t[6], t[7]]);
+            for i in 0..8 {
+                vst1_u8(base.add(row0 + i * p - 4), out[i]);
+            }
+        }
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -217,6 +412,59 @@ mod tests {
 
     // Run with: cargo test --release --lib neon_sixtap_microbench -- --nocapture --ignored
     #[test]
+    fn neon_loopfilter_h_matches_scalar_bit_exact() {
+        use crate::vp8::common::loopfilter_filters::loop_filter_horizontal_edge_scalar;
+        let p = 32usize; // stride
+        let rows = 16usize;
+        let buf_len = rows * p;
+        let s_offset = 5 * p + 4; // room for -4p taps and left margin
+        for trial in 0..200 {
+            let mut seed = trial as u64 * 2654435761 + 1;
+            // limits chosen to exercise both filtered and skipped lanes
+            let blimit = vec![(lcg(&mut seed) % 40 + 1); 16];
+            let limit = vec![(lcg(&mut seed) % 20 + 1); 16];
+            let thresh = vec![(lcg(&mut seed) % 16); 16];
+            let mut base = vec![0u8; buf_len];
+            for b in base.iter_mut() {
+                *b = lcg(&mut seed);
+            }
+            for count in 1..=2usize {
+                let mut a = base.clone();
+                let mut b = base.clone();
+                loop_filter_horizontal_edge_scalar(&mut a, s_offset, p, &blimit, &limit, &thresh, count);
+                loop_filter_horizontal_edge_neon(&mut b, s_offset, p, blimit[0], limit[0], thresh[0], count);
+                assert_eq!(a, b, "h loopfilter mismatch trial={trial} count={count}");
+            }
+        }
+    }
+
+    #[test]
+    fn neon_loopfilter_v_matches_scalar_bit_exact() {
+        use crate::vp8::common::loopfilter_filters::loop_filter_vertical_edge_scalar;
+        let p = 32usize;
+        let rows = 24usize;
+        let buf_len = rows * p;
+        let s_offset = 2 * p + 8; // room for -4 .. +3 horizontal taps
+        for trial in 0..200 {
+            let mut seed = trial as u64 * 40503 + 7;
+            let blimit = vec![(lcg(&mut seed) % 40 + 1); 16];
+            let limit = vec![(lcg(&mut seed) % 20 + 1); 16];
+            let thresh = vec![(lcg(&mut seed) % 16); 16];
+            let mut bsrc = vec![0u8; buf_len];
+            for b in bsrc.iter_mut() {
+                *b = lcg(&mut seed);
+            }
+            for count in 1..=2usize {
+                let mut a = bsrc.clone();
+                let mut b = bsrc.clone();
+                loop_filter_vertical_edge_scalar(&mut a, s_offset, p, &blimit, &limit, &thresh, count);
+                loop_filter_vertical_edge_neon(&mut b, s_offset, p, blimit[0], limit[0], thresh[0], count);
+                assert_eq!(a, b, "v loopfilter mismatch trial={trial} count={count}");
+            }
+        }
+    }
+
+    #[test]
     #[ignore]
     fn neon_sixtap_microbench() {
         use std::time::Instant;
@@ -249,6 +497,36 @@ mod tests {
         println!(
             "sixtap 16x16: scalar {scalar:.1} ns, neon {neon:.1} ns, speedup {:.2}x",
             scalar / neon
+        );
+
+        // Loop filter (16 px horizontal block edge)
+        use crate::vp8::common::loopfilter_filters::loop_filter_horizontal_edge_scalar;
+        let p = 32usize;
+        let mut s = vec![0u8; 16 * p];
+        for b in s.iter_mut() {
+            *b = lcg(&mut seed);
+        }
+        let off = 5 * p + 4;
+        let bl = vec![20u8; 16];
+        let li = vec![10u8; 16];
+        let th = vec![7u8; 16];
+        let mut sc = s.clone();
+        let t = Instant::now();
+        for _ in 0..iters {
+            loop_filter_horizontal_edge_scalar(&mut sc, off, p, &bl, &li, &th, 2);
+            std::hint::black_box(&sc);
+        }
+        let lf_scalar = t.elapsed().as_secs_f64() / iters as f64 * 1e9;
+        let mut sn = s.clone();
+        let t = Instant::now();
+        for _ in 0..iters {
+            loop_filter_horizontal_edge_neon(&mut sn, off, p, bl[0], li[0], th[0], 2);
+            std::hint::black_box(&sn);
+        }
+        let lf_neon = t.elapsed().as_secs_f64() / iters as f64 * 1e9;
+        println!(
+            "loopfilter h 16px: scalar {lf_scalar:.1} ns, neon {lf_neon:.1} ns, speedup {:.2}x",
+            lf_scalar / lf_neon
         );
     }
 }
