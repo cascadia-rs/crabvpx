@@ -162,6 +162,12 @@ pub(crate) fn mbloop_filter_vertical_edge_neon(
 ) {
     super::kernels::mbloop_filter_vertical_edge::<Neon>(s, s_offset, p, blimit, limit, thresh, count);
 }
+pub(crate) fn simple_horizontal_edge_neon(y: &mut [u8], y_offset: usize, stride: usize, blimit: u8) {
+    super::kernels::simple_horizontal_edge::<Neon>(y, y_offset, stride, blimit);
+}
+pub(crate) fn simple_vertical_edge_neon(y: &mut [u8], y_offset: usize, stride: usize, blimit: u8) {
+    super::kernels::simple_vertical_edge::<Neon>(y, y_offset, stride, blimit);
+}
 
 // ===========================================================================
 // NEON-specific sixtap sub-pixel filter. Not generic: it auto-vectorizes well
@@ -346,6 +352,32 @@ mod tests {
                     mbloop_filter_vertical_edge_scalar, mbloop_filter_vertical_edge_neon);
                 assert_eq!(a, b, "mb v trial={trial} count={count}");
             }
+        }
+    }
+
+    #[test]
+    fn neon_simple_loopfilter_matches_scalar_bit_exact() {
+        use crate::vp8::common::loopfilter_filters::{
+            vp8_loop_filter_simple_horizontal_edge_scalar, vp8_loop_filter_simple_vertical_edge_scalar,
+        };
+        let stride = 32usize;
+        for trial in 0..200 {
+            let mut seed = trial as u64 * 1099087573 + 3;
+            let blimit = (lcg(&mut seed) % 60 + 1) as u8;
+            let mut buf = vec![0u8; 24 * stride];
+            for x in buf.iter_mut() { *x = lcg(&mut seed); }
+            // horizontal (off has >= 2 rows above, 16 cols)
+            let mut a = buf.clone();
+            let mut b = buf.clone();
+            vp8_loop_filter_simple_horizontal_edge_scalar(&mut a, 6 * stride, stride, blimit);
+            simple_horizontal_edge_neon(&mut b, 6 * stride, stride, blimit);
+            assert_eq!(a, b, "simple h trial={trial}");
+            // vertical
+            let mut a = buf.clone();
+            let mut b = buf.clone();
+            vp8_loop_filter_simple_vertical_edge_scalar(&mut a, 2 * stride + 8, stride, blimit);
+            simple_vertical_edge_neon(&mut b, 2 * stride + 8, stride, blimit);
+            assert_eq!(a, b, "simple v trial={trial}");
         }
     }
 

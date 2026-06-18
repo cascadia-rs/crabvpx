@@ -227,6 +227,81 @@ pub(crate) fn mbloop_filter_horizontal_edge<S: Simd>(
     }
 }
 
+/// 0xFF where |p0-q0|*2 + |p1-q1|/2 <= blimit. Matches `vp8_simple_filter_mask`.
+#[inline(always)]
+fn simple_filter_mask8<S: Simd>(blimit: u8, p1: S::U8, p0: S::U8, q0: S::U8, q1: S::U8) -> S::U8 {
+    let a = S::widen_u8(S::abd_u8(p0, q0));
+    let b = S::widen_u8(S::abd_u8(p1, q1));
+    let term = S::add_i16(S::shl_i16::<1>(a), S::shr_i16::<1>(b));
+    let gt = S::narrow_mask(S::cgt_i16(term, S::splat_i16(blimit as i16)));
+    S::not_u8(gt) // 0xFF where term <= blimit
+}
+
+/// Bit-exact twin of `vp8_simple_filter`: new (p0, q0). p1/q1 are read-only.
+#[inline(always)]
+fn simple_filter8<S: Simd>(
+    mask: S::U8, p1: S::U8, p0: S::U8, q0: S::U8, q1: S::U8,
+) -> (S::U8, S::U8) {
+    let ps1 = S::to_signed_i16(p1);
+    let ps0 = S::to_signed_i16(p0);
+    let qs0 = S::to_signed_i16(q0);
+    let qs1 = S::to_signed_i16(q1);
+    let mask16 = S::widen_mask(mask);
+
+    let mut fv = clamp_s8::<S>(S::sub_i16(ps1, qs1));
+    let d = S::sub_i16(qs0, ps0);
+    fv = clamp_s8::<S>(S::add_i16(fv, S::add_i16(S::add_i16(d, d), d)));
+    fv = S::and_i16(fv, mask16);
+    let f1 = S::shr_i16::<3>(clamp_s8::<S>(S::add_i16(fv, S::splat_i16(4))));
+    let f2 = S::shr_i16::<3>(clamp_s8::<S>(S::add_i16(fv, S::splat_i16(3))));
+    let nq0 = clamp_s8::<S>(S::sub_i16(qs0, f1));
+    let np0 = clamp_s8::<S>(S::add_i16(ps0, f2));
+    (S::from_signed_i16(np0), S::from_signed_i16(nq0))
+}
+
+/// NEON twin of `vp8_loop_filter_simple_horizontal_edge_safe` (16 px).
+pub(crate) fn simple_horizontal_edge<S: Simd>(y: &mut [u8], y_offset: usize, stride: usize, blimit: u8) {
+    let base = y.as_mut_ptr();
+    for chunk in 0..2 {
+        let idx = y_offset + chunk * 8;
+        // SAFETY: reads/writes y[idx-2*stride .. idx+stride] over 8 columns —
+        // the same elements the scalar loop indexes; in-bounds per the caller.
+        unsafe {
+            let p1 = S::load_u8(base.add(idx - 2 * stride));
+            let p0 = S::load_u8(base.add(idx - stride));
+            let q0 = S::load_u8(base.add(idx));
+            let q1 = S::load_u8(base.add(idx + stride));
+            let mask = simple_filter_mask8::<S>(blimit, p1, p0, q0, q1);
+            let (np0, nq0) = simple_filter8::<S>(mask, p1, p0, q0, q1);
+            S::store_u8(base.add(idx - stride), np0);
+            S::store_u8(base.add(idx), nq0);
+        }
+    }
+}
+
+/// NEON twin of `vp8_loop_filter_simple_vertical_edge_safe` (16 px).
+pub(crate) fn simple_vertical_edge<S: Simd>(y: &mut [u8], y_offset: usize, stride: usize, blimit: u8) {
+    let base = y.as_mut_ptr();
+    for chunk in 0..2 {
+        let row0 = y_offset + chunk * 8 * stride;
+        // SAFETY: 8 rows of 8 bytes at y[row*stride-2 .. +6]; columns -2..+1 are
+        // the taps the scalar uses (the extra columns are written back unchanged).
+        unsafe {
+            let mut r = [S::load_u8(base.add(row0 - 2)); 8];
+            for i in 0..8 {
+                r[i] = S::load_u8(base.add(row0 + i * stride - 2));
+            }
+            let t = S::transpose8x8(r); // t[0..4] = p1,p0,q0,q1
+            let mask = simple_filter_mask8::<S>(blimit, t[0], t[1], t[2], t[3]);
+            let (np0, nq0) = simple_filter8::<S>(mask, t[0], t[1], t[2], t[3]);
+            let out = S::transpose8x8([t[0], np0, nq0, t[3], t[4], t[5], t[6], t[7]]);
+            for i in 0..8 {
+                S::store_u8(base.add(row0 + i * stride - 2), out[i]);
+            }
+        }
+    }
+}
+
 pub(crate) fn mbloop_filter_vertical_edge<S: Simd>(
     s: &mut [u8], s_offset: usize, p: usize,
     blimit: u8, limit: u8, thresh: u8, count: usize,

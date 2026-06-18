@@ -599,6 +599,21 @@ pub(crate) fn vp8_loop_filter_simple_horizontal_edge_safe(
     y_stride: usize,
     blimit: u8,
 ) {
+    #[cfg(target_arch = "aarch64")]
+    {
+        crate::vp8::common::simd::neon::simple_horizontal_edge_neon(y, y_offset, y_stride, blimit);
+        return;
+    }
+    #[cfg(not(target_arch = "aarch64"))]
+    vp8_loop_filter_simple_horizontal_edge_scalar(y, y_offset, y_stride, blimit);
+}
+
+pub(crate) fn vp8_loop_filter_simple_horizontal_edge_scalar(
+    y: &mut [u8],
+    y_offset: usize,
+    y_stride: usize,
+    blimit: u8,
+) {
     let mut mask: i8;
     for i in 0..16 {
         let idx = y_offset + i;
@@ -670,6 +685,21 @@ pub(crate) fn vp8_loop_filter_simple_horizontal_edge_split_safe(
 }
 
 pub(crate) fn vp8_loop_filter_simple_vertical_edge_safe(
+    y: &mut [u8],
+    y_offset: usize,
+    y_stride: usize,
+    blimit: u8,
+) {
+    #[cfg(target_arch = "aarch64")]
+    {
+        crate::vp8::common::simd::neon::simple_vertical_edge_neon(y, y_offset, y_stride, blimit);
+        return;
+    }
+    #[cfg(not(target_arch = "aarch64"))]
+    vp8_loop_filter_simple_vertical_edge_scalar(y, y_offset, y_stride, blimit);
+}
+
+pub(crate) fn vp8_loop_filter_simple_vertical_edge_scalar(
     y: &mut [u8],
     y_offset: usize,
     y_stride: usize,
