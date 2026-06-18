@@ -15,7 +15,7 @@ Constraints:
 - **Correctness** — every ISA path stays bit-exact with the scalar reference
   (gated by per-kernel unit tests + the 62-vector `differential_md5` suite).
 - **`unsafe` stays confined** to the SIMD backends and tracked separately from
-  the scalar zero-unsafe ratchet (cascadia ADR-014's up-only `[simd_ceilings]`).
+  the scalar zero-unsafe goal (an up-only SIMD-only budget).
 
 ## Decision
 
@@ -61,7 +61,7 @@ transpose** the vertical loop filter needs — that's an ISA shuffle (`vtrn` /
 
 ### 3. Dispatch
 
-A detect-once fn-pointer table (cascadia's `OnceLock` pattern), differing by
+A detect-once fn-pointer table (a `OnceLock`), differing by
 arch only at the table-selection step:
 
 ```rust
@@ -95,7 +95,7 @@ Kernel bodies are untouched.
   vector backend — the same gating #31 established, now run under each `Dsp`.
 - **`unsafe` confined** to the backend `impl`s (loads/stores + the
   `#[target_feature]` boundary; arithmetic is safe inside `#[target_feature]`
-  on Rust ≥ 1.87). Tracked in an up-only SIMD budget per ADR-014, never
+  on Rust ≥ 1.87). Tracked in a separate, up-only SIMD budget, never
   touching the scalar ratchet.
 - CI gains an x86 job (e.g. `ubuntu` already x86) running the differential
   suite under the detected `Dsp`; a `CRABVPX_FORCE_SCALAR=1` (or per-`Dsp`

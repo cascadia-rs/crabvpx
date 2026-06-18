@@ -176,7 +176,7 @@ impl VideoDecoder for CrabVpxDecoder {
             Some(img) => {
                 if std::env::var("CRABVPX_DUMP").is_ok() && self.frame_counter == 1 {
                     let threads = std::env::var("CRABVPX_THREADS").unwrap_or_else(|_| "1".to_string());
-                    let path = format!("/usr/local/google/home/liberato/.gemini/jetski/brain/b80e2e3b-61ce-4410-9009-62a1230d94f6/scratch/dump_threads_{}.yuv", threads);
+                    let path = std::env::temp_dir().join(format!("crabvpx_dump_threads_{}.yuv", threads));
                     let mut f = std::fs::File::create(&path).map_err(|e| e.to_string())?;
                     use std::io::Write;
                     
@@ -189,7 +189,7 @@ impl VideoDecoder for CrabVpxDecoder {
                     if let Some(v) = img.plane(crabvpx::api::Plane::V) {
                         f.write_all(v).map_err(|e| e.to_string())?;
                     }
-                    println!("DEBUG: Dumped Frame 1 to {}", path);
+                    println!("DEBUG: Dumped Frame 1 to {}", path.display());
                 }
                 self.frame_counter += 1;
                 
