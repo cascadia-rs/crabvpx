@@ -325,6 +325,26 @@ pub(crate) fn mbloop_filter_horizontal_edge_safe(
     thresh: &[u8],
     count: usize,
 ) {
+    #[cfg(target_arch = "aarch64")]
+    {
+        crate::vp8::common::neon::mbloop_filter_horizontal_edge_neon(
+            s, s_offset, p, blimit[0], limit[0], thresh[0], count,
+        );
+        return;
+    }
+    #[cfg(not(target_arch = "aarch64"))]
+    mbloop_filter_horizontal_edge_scalar(s, s_offset, p, blimit, limit, thresh, count);
+}
+
+pub(crate) fn mbloop_filter_horizontal_edge_scalar(
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: &[u8],
+    limit: &[u8],
+    thresh: &[u8],
+    count: usize,
+) {
     let mut hev: uc = 0;
     let mut mask: i8 = 0;
     let count_8 = count * 8;
@@ -453,6 +473,26 @@ pub(crate) fn mbloop_filter_horizontal_edge_split_safe(
 }
 
 pub(crate) fn mbloop_filter_vertical_edge_safe(
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: &[u8],
+    limit: &[u8],
+    thresh: &[u8],
+    count: usize,
+) {
+    #[cfg(target_arch = "aarch64")]
+    {
+        crate::vp8::common::neon::mbloop_filter_vertical_edge_neon(
+            s, s_offset, p, blimit[0], limit[0], thresh[0], count,
+        );
+        return;
+    }
+    #[cfg(not(target_arch = "aarch64"))]
+    mbloop_filter_vertical_edge_scalar(s, s_offset, p, blimit, limit, thresh, count);
+}
+
+pub(crate) fn mbloop_filter_vertical_edge_scalar(
     s: &mut [u8],
     s_offset: usize,
     p: usize,

@@ -305,6 +305,124 @@ pub(crate) fn loop_filter_horizontal_edge_neon(
     }
 }
 
+/// Bit-exact NEON twin of `vp8_mbfilter` for 8 lanes (modifies p2..q2).
+#[target_feature(enable = "neon")]
+fn mbfilter8(
+    mask: uint8x8_t, hev: uint8x8_t,
+    p2: uint8x8_t, p1: uint8x8_t, p0: uint8x8_t,
+    q0: uint8x8_t, q1: uint8x8_t, q2: uint8x8_t,
+) -> (uint8x8_t, uint8x8_t, uint8x8_t, uint8x8_t, uint8x8_t, uint8x8_t) {
+    let c80 = vdup_n_u8(0x80);
+    let ps2 = to_signed_i16(p2, c80);
+    let ps1 = to_signed_i16(p1, c80);
+    let ps0 = to_signed_i16(p0, c80);
+    let qs0 = to_signed_i16(q0, c80);
+    let qs1 = to_signed_i16(q1, c80);
+    let qs2 = to_signed_i16(q2, c80);
+    let hev16 = widen_mask(hev);
+    let mask16 = widen_mask(mask);
+    let nhev16 = vmvnq_s16(hev16);
+
+    let mut fv = clamp_s8_i16(vsubq_s16(ps1, qs1));
+    let d = vsubq_s16(qs0, ps0);
+    let three_d = vaddq_s16(vaddq_s16(d, d), d);
+    fv = clamp_s8_i16(vaddq_s16(fv, three_d));
+    fv = vandq_s16(fv, mask16);
+
+    // hev path (narrow filter on p0/q0)
+    let fh = vandq_s16(fv, hev16);
+    let f1 = vshrq_n_s16::<3>(clamp_s8_i16(vaddq_s16(fh, vdupq_n_s16(4))));
+    let f2 = vshrq_n_s16::<3>(clamp_s8_i16(vaddq_s16(fh, vdupq_n_s16(3))));
+    let mut nq0 = clamp_s8_i16(vsubq_s16(qs0, f1));
+    let mut np0 = clamp_s8_i16(vaddq_s16(ps0, f2));
+
+    // wide path (where !hev): u = clamp((63 + fw*k) >> 7)
+    let fw = vandq_s16(fv, nhev16);
+    let wide = |k: i16, x: int16x8_t| -> int16x8_t {
+        clamp_s8_i16(vshrq_n_s16::<7>(vaddq_s16(
+            vdupq_n_s16(63),
+            vmulq_s16(x, vdupq_n_s16(k)),
+        )))
+    };
+    let u = wide(27, fw);
+    nq0 = clamp_s8_i16(vsubq_s16(nq0, u));
+    np0 = clamp_s8_i16(vaddq_s16(np0, u));
+    let u = wide(18, fw);
+    let nq1 = clamp_s8_i16(vsubq_s16(qs1, u));
+    let np1 = clamp_s8_i16(vaddq_s16(ps1, u));
+    let u = wide(9, fw);
+    let nq2 = clamp_s8_i16(vsubq_s16(qs2, u));
+    let np2 = clamp_s8_i16(vaddq_s16(ps2, u));
+
+    (
+        from_signed_i16(np2, c80),
+        from_signed_i16(np1, c80),
+        from_signed_i16(np0, c80),
+        from_signed_i16(nq0, c80),
+        from_signed_i16(nq1, c80),
+        from_signed_i16(nq2, c80),
+    )
+}
+
+/// NEON twin of `mbloop_filter_horizontal_edge_safe`.
+pub(crate) fn mbloop_filter_horizontal_edge_neon(
+    s: &mut [u8], s_offset: usize, p: usize,
+    blimit: u8, limit: u8, thresh: u8, count: usize,
+) {
+    // SAFETY: see loop_filter_horizontal_edge_neon — same access pattern.
+    unsafe {
+        let base = s.as_mut_ptr();
+        for chunk in 0..count {
+            let idx = s_offset + chunk * 8;
+            let ld = |o: usize| vld1_u8(base.add(o) as *const u8);
+            let p3 = ld(idx - 4 * p);
+            let p2 = ld(idx - 3 * p);
+            let p1 = ld(idx - 2 * p);
+            let p0 = ld(idx - p);
+            let q0 = ld(idx);
+            let q1 = ld(idx + p);
+            let q2 = ld(idx + 2 * p);
+            let q3 = ld(idx + 3 * p);
+            let mask = filter_mask8(limit, blimit, p3, p2, p1, p0, q0, q1, q2, q3);
+            let hev = hev8(thresh, p1, p0, q0, q1);
+            let (r2, r1, r0, s0, s1, s2) = mbfilter8(mask, hev, p2, p1, p0, q0, q1, q2);
+            vst1_u8(base.add(idx - 3 * p), r2);
+            vst1_u8(base.add(idx - 2 * p), r1);
+            vst1_u8(base.add(idx - p), r0);
+            vst1_u8(base.add(idx), s0);
+            vst1_u8(base.add(idx + p), s1);
+            vst1_u8(base.add(idx + 2 * p), s2);
+        }
+    }
+}
+
+/// NEON twin of `mbloop_filter_vertical_edge_safe` (load 8 rows, transpose,
+/// MB-filter, transpose back, store).
+pub(crate) fn mbloop_filter_vertical_edge_neon(
+    s: &mut [u8], s_offset: usize, p: usize,
+    blimit: u8, limit: u8, thresh: u8, count: usize,
+) {
+    // SAFETY: see loop_filter_vertical_edge_neon — same access pattern.
+    unsafe {
+        let base = s.as_mut_ptr();
+        for chunk in 0..count {
+            let row0 = s_offset + chunk * 8 * p;
+            let mut r = [vdup_n_u8(0); 8];
+            for i in 0..8 {
+                r[i] = vld1_u8(base.add(row0 + i * p - 4) as *const u8);
+            }
+            let t = transpose8x8(r);
+            let mask = filter_mask8(limit, blimit, t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]);
+            let hev = hev8(thresh, t[2], t[3], t[4], t[5]);
+            let (r2, r1, r0, s0, s1, s2) = mbfilter8(mask, hev, t[1], t[2], t[3], t[4], t[5], t[6]);
+            let out = transpose8x8([t[0], r2, r1, r0, s0, s1, s2, t[7]]);
+            for i in 0..8 {
+                vst1_u8(base.add(row0 + i * p - 4), out[i]);
+            }
+        }
+    }
+}
+
 /// NEON 8x8 byte transpose (rows -> columns). `out[j]` = column `j` of input.
 #[target_feature(enable = "neon")]
 fn transpose8x8(a: [uint8x8_t; 8]) -> [uint8x8_t; 8] {
@@ -460,6 +578,41 @@ mod tests {
                 loop_filter_vertical_edge_scalar(&mut a, s_offset, p, &blimit, &limit, &thresh, count);
                 loop_filter_vertical_edge_neon(&mut b, s_offset, p, blimit[0], limit[0], thresh[0], count);
                 assert_eq!(a, b, "v loopfilter mismatch trial={trial} count={count}");
+            }
+        }
+    }
+
+    #[test]
+    fn neon_mbloop_matches_scalar_bit_exact() {
+        use crate::vp8::common::loopfilter_filters::{
+            mbloop_filter_horizontal_edge_scalar, mbloop_filter_vertical_edge_scalar,
+        };
+        let p = 32usize;
+        let buf_len = 32 * p;
+        for trial in 0..200 {
+            let mut seed = trial as u64 * 2246822519 + 13;
+            let blimit = vec![(lcg(&mut seed) % 40 + 1); 16];
+            let limit = vec![(lcg(&mut seed) % 20 + 1); 16];
+            let thresh = vec![(lcg(&mut seed) % 16); 16];
+            let mut bsrc = vec![0u8; buf_len];
+            for b in bsrc.iter_mut() {
+                *b = lcg(&mut seed);
+            }
+            for count in 1..=2usize {
+                // horizontal
+                let off_h = 6 * p + 4;
+                let mut a = bsrc.clone();
+                let mut b = bsrc.clone();
+                mbloop_filter_horizontal_edge_scalar(&mut a, off_h, p, &blimit, &limit, &thresh, count);
+                mbloop_filter_horizontal_edge_neon(&mut b, off_h, p, blimit[0], limit[0], thresh[0], count);
+                assert_eq!(a, b, "mb h mismatch trial={trial} count={count}");
+                // vertical
+                let off_v = 2 * p + 8;
+                let mut a = bsrc.clone();
+                let mut b = bsrc.clone();
+                mbloop_filter_vertical_edge_scalar(&mut a, off_v, p, &blimit, &limit, &thresh, count);
+                mbloop_filter_vertical_edge_neon(&mut b, off_v, p, blimit[0], limit[0], thresh[0], count);
+                assert_eq!(a, b, "mb v mismatch trial={trial} count={count}");
             }
         }
     }
