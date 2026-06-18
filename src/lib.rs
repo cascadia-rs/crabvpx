@@ -2,8 +2,9 @@
 //!
 //! A memory-safe, pure-Rust VP8 video decoder. Originally lifted from
 //! `libvpx` and progressively rewritten into safe Rust; decode output is
-//! bit-exact with `libvpx` and decode throughput is at parity (LLVM
-//! auto-vectorizes the hot loops, so no hand-written SIMD is needed).
+//! bit-exact with `libvpx`. It uses no hand-written SIMD (LLVM
+//! auto-vectorizes the hot loops) and currently runs roughly 1.5–3× slower
+//! than `libvpx`'s hand-tuned NEON/SSE kernels on typical content.
 //!
 //! ## Decoding
 //!
