@@ -32,12 +32,21 @@ impl AlignedBox {
         Some(Self { vec, offset, size })
     }
 
-    pub fn as_ptr(&self) -> *mut u8 {
-        let slice = self.as_slice();
-        if slice.is_empty() {
+    /// Returns the aligned base pointer with **write** provenance.
+    ///
+    /// The pointer is derived from `&mut self` (not `&self`), so callers that
+    /// cache it and later write through it — e.g. `buffer_alloc` reconstructed
+    /// into a `&mut [u8]` via `from_raw_parts_mut` — do not retag from a
+    /// read-only borrow, which is Undefined Behavior under Stacked Borrows.
+    /// Nothing else accesses the backing `Vec` after this, so the cached
+    /// pointer stays valid for the buffer's lifetime.
+    pub fn as_mut_ptr(&mut self) -> *mut u8 {
+        if self.size == 0 {
             std::ptr::null_mut()
         } else {
-            slice.as_ptr() as *mut u8
+            // SAFETY: `offset + size <= vec.len()` (established in `new`), so
+            // the offset stays inside the allocation.
+            unsafe { self.vec.as_mut_ptr().add(self.offset) }
         }
     }
 

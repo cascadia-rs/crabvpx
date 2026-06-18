@@ -1284,7 +1284,7 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
-                yabove_views.push(UnsafeRowView::new(b.as_ptr(), size));
+                yabove_views.push(UnsafeRowView::new(b.as_mut_ptr(), size));
             }
             yabove_allocs.push(ab);
         }
@@ -1303,7 +1303,7 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
-                uabove_views.push(UnsafeRowView::new(b.as_ptr(), size));
+                uabove_views.push(UnsafeRowView::new(b.as_mut_ptr(), size));
             }
             uabove_allocs.push(ab);
         }
@@ -1322,7 +1322,7 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
-                vabove_views.push(UnsafeRowView::new(b.as_ptr(), size));
+                vabove_views.push(UnsafeRowView::new(b.as_mut_ptr(), size));
             }
             vabove_allocs.push(ab);
         }
@@ -1341,7 +1341,7 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
-                yleft_views.push(UnsafeRowView::new(b.as_ptr(), size));
+                yleft_views.push(UnsafeRowView::new(b.as_mut_ptr(), size));
             }
             yleft_allocs.push(ab);
         }
@@ -1360,7 +1360,7 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
-                uleft_views.push(UnsafeRowView::new(b.as_ptr(), size));
+                uleft_views.push(UnsafeRowView::new(b.as_mut_ptr(), size));
             }
             uleft_allocs.push(ab);
         }
@@ -1379,7 +1379,7 @@ pub fn vp8mt_alloc_temp_buffers(
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
-                vleft_views.push(UnsafeRowView::new(b.as_ptr(), size));
+                vleft_views.push(UnsafeRowView::new(b.as_mut_ptr(), size));
             }
             vleft_allocs.push(ab);
         }

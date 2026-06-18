@@ -51,14 +51,14 @@ pub fn vp8_yv12_realloc_frame_buffer_safe(
     let frame_size = (yplane_size + 2 * uvplane_size) as usize;
 
     if alloc.is_none() {
-        let aligned_box = match AlignedBox::new(32, frame_size) {
+        let mut aligned_box = match AlignedBox::new(32, frame_size) {
             Some(b) => b,
             None => {
                 ybf.buffer_alloc_sz = 0;
                 return Err(-1);
             }
         };
-        ybf.buffer_alloc = aligned_box.as_ptr();
+        ybf.buffer_alloc = aligned_box.as_mut_ptr();
         ybf.buffer_alloc_sz = frame_size;
         *alloc = Some(aligned_box);
     }
@@ -86,10 +86,21 @@ pub fn vp8_yv12_realloc_frame_buffer_safe(
     ybf.border = border;
     ybf.frame_size = frame_size;
 
-    let base = ybf.buffer_alloc as usize;
-    ybf.y_buffer = (base + (border * y_stride + border) as usize) as *mut u8;
-    ybf.u_buffer = (base + yplane_size as usize + ((border / 2) * uv_stride + border / 2) as usize) as *mut u8;
-    ybf.v_buffer = (base + yplane_size as usize + uvplane_size as usize + ((border / 2) * uv_stride + border / 2) as usize) as *mut u8;
+    // Derive the plane pointers from `buffer_alloc` with pointer arithmetic
+    // rather than usize round-trips, so they inherit its provenance (no
+    // exposed/int-to-ptr provenance for Miri to lose track of). All offsets
+    // stay within the `frame_size` allocation.
+    let base = ybf.buffer_alloc;
+    unsafe {
+        ybf.y_buffer = base.add((border * y_stride + border) as usize);
+        ybf.u_buffer =
+            base.add(yplane_size as usize + ((border / 2) * uv_stride + border / 2) as usize);
+        ybf.v_buffer = base.add(
+            yplane_size as usize
+                + uvplane_size as usize
+                + ((border / 2) * uv_stride + border / 2) as usize,
+        );
+    }
     ybf.alpha_buffer = core::ptr::null_mut();
     ybf.corrupted = 0;
 
