@@ -42,17 +42,6 @@ pub const VPX_CS_BT_709: vpx_color_space = 2;
 pub const VPX_CS_BT_601: vpx_color_space = 1;
 pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
 pub type vpx_img_fmt = ::core::ffi::c_uint;
-pub const VPX_IMG_FMT_I44016: vpx_img_fmt = 2311;
-pub const VPX_IMG_FMT_I44416: vpx_img_fmt = 2310;
-pub const VPX_IMG_FMT_I42216: vpx_img_fmt = 2309;
-pub const VPX_IMG_FMT_I42016: vpx_img_fmt = 2306;
-pub const VPX_IMG_FMT_NV12: vpx_img_fmt = 265;
-pub const VPX_IMG_FMT_I440: vpx_img_fmt = 263;
-pub const VPX_IMG_FMT_I444: vpx_img_fmt = 262;
-pub const VPX_IMG_FMT_I422: vpx_img_fmt = 261;
-pub const VPX_IMG_FMT_I420: vpx_img_fmt = 258;
-pub const VPX_IMG_FMT_YV12: vpx_img_fmt = 769;
-pub const VPX_IMG_FMT_NONE: vpx_img_fmt = 0;
 pub type vpx_img_fmt_t = vpx_img_fmt;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -197,9 +186,6 @@ pub struct vpx_rational {
     pub den: ::core::ffi::c_int,
 }
 pub type vpx_kf_mode = ::core::ffi::c_uint;
-pub const VPX_KF_DISABLED: vpx_kf_mode = 0;
-pub const VPX_KF_AUTO: vpx_kf_mode = 1;
-pub const VPX_KF_FIXED: vpx_kf_mode = 0;
 pub type vpx_fixed_buf_t = vpx_fixed_buf;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -208,20 +194,10 @@ pub struct vpx_fixed_buf {
     pub sz: size_t,
 }
 pub type vpx_rc_mode = ::core::ffi::c_uint;
-pub const VPX_Q: vpx_rc_mode = 3;
-pub const VPX_CQ: vpx_rc_mode = 2;
-pub const VPX_CBR: vpx_rc_mode = 1;
-pub const VPX_VBR: vpx_rc_mode = 0;
 pub type vpx_enc_pass = ::core::ffi::c_uint;
-pub const VPX_RC_LAST_PASS: vpx_enc_pass = 2;
-pub const VPX_RC_FIRST_PASS: vpx_enc_pass = 1;
-pub const VPX_RC_ONE_PASS: vpx_enc_pass = 0;
 pub type vpx_codec_er_flags_t = uint32_t;
 pub type vpx_bit_depth_t = vpx_bit_depth;
 pub type vpx_bit_depth = ::core::ffi::c_uint;
-pub const VPX_BITS_12: vpx_bit_depth = 12;
-pub const VPX_BITS_10: vpx_bit_depth = 10;
-pub const VPX_BITS_8: vpx_bit_depth = 8;
 pub type vpx_codec_get_preview_frame_fn_t =
     Option<unsafe extern "C" fn(*mut vpx_codec_alg_priv_t) -> *mut vpx_image_t>;
 pub type vpx_codec_alg_priv_t = vpx_codec_alg_priv;
@@ -328,11 +304,6 @@ pub struct C2RustUnnamed_1 {
 pub type vpx_codec_frame_flags_t = uint32_t;
 pub type vpx_codec_pts_t = int64_t;
 pub type vpx_codec_cx_pkt_kind = ::core::ffi::c_uint;
-pub const VPX_CODEC_CUSTOM_PKT: vpx_codec_cx_pkt_kind = 256;
-pub const VPX_CODEC_PSNR_PKT: vpx_codec_cx_pkt_kind = 3;
-pub const VPX_CODEC_FPMB_STATS_PKT: vpx_codec_cx_pkt_kind = 2;
-pub const VPX_CODEC_STATS_PKT: vpx_codec_cx_pkt_kind = 1;
-pub const VPX_CODEC_CX_FRAME_PKT: vpx_codec_cx_pkt_kind = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct C2RustUnnamed_2 {
@@ -500,31 +471,14 @@ pub union C2RustUnnamed_4 {
     pub raw: *const ::core::ffi::c_void,
 }
 pub type vpx_codec_iface_t = vpx_codec_iface;
-pub type vp8_com_control_id = ::core::ffi::c_uint;
-pub const VP8_DECODER_CTRL_ID_START: vp8_com_control_id = 256;
-pub const VP8_COMMON_CTRL_ID_MAX: vp8_com_control_id = 129;
-pub const VP9_GET_REFERENCE: vp8_com_control_id = 128;
-pub const VP8_SET_POSTPROC: vp8_com_control_id = 3;
-pub const VP8_COPY_REFERENCE: vp8_com_control_id = 2;
-pub const VP8_SET_REFERENCE: vp8_com_control_id = 1;
 pub type vp8_postproc_level = ::core::ffi::c_uint;
 pub const VP8_MFQE: vp8_postproc_level = 8;
-pub const VP8_ADDNOISE: vp8_postproc_level = 4;
 pub const VP8_DEMACROBLOCK: vp8_postproc_level = 2;
 pub const VP8_DEBLOCK: vp8_postproc_level = 1;
-pub const VP8_NOFILTERING: vp8_postproc_level = 0;
 pub type vpx_ref_frame_type = ::core::ffi::c_uint;
 pub const VP8_ALTR_FRAME: vpx_ref_frame_type = 4;
 pub const VP8_GOLD_FRAME: vpx_ref_frame_type = 2;
 pub const VP8_LAST_FRAME: vpx_ref_frame_type = 1;
-pub type vpx_ref_frame_type_t = vpx_ref_frame_type;
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct vpx_ref_frame {
-    pub frame_type: vpx_ref_frame_type_t,
-    pub img: vpx_image_t,
-}
-pub type vpx_ref_frame_t = vpx_ref_frame;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vp8_ppflags_t {
@@ -536,50 +490,15 @@ pub struct vp8_ppflags_t {
     pub display_b_modes_flag: ::core::ffi::c_int,
     pub display_mv_flag: ::core::ffi::c_int,
 }
-#[derive(Copy, Clone)]
-#[repr(C)]
-pub struct vpx_decrypt_init {
-    pub decrypt_cb: vpx_decrypt_cb,
-    pub decrypt_state: *mut ::core::ffi::c_void,
-}
-pub const VPXD_SET_DECRYPTOR: vp8_dec_control_id = 259;
-pub const VPXD_GET_LAST_QUANTIZER: vp8_dec_control_id = 267;
 pub const LAST_FRAME: C2RustUnnamed_5 = 1;
 pub const GOLDEN_FRAME: C2RustUnnamed_5 = 2;
 pub const ALTREF_FRAME: C2RustUnnamed_5 = 3;
-pub const VP8D_GET_LAST_REF_USED: vp8_dec_control_id = 258;
-pub const VP8D_GET_FRAME_CORRUPTED: vp8_dec_control_id = 257;
-pub const VP8D_GET_LAST_REF_UPDATES: vp8_dec_control_id = 256;
-pub type vp8_dec_control_id = ::core::ffi::c_uint;
-pub const VP8_DECODER_CTRL_ID_MAX: vp8_dec_control_id = 270;
-pub const VP9D_SET_LOOP_FILTER_OPT: vp8_dec_control_id = 269;
-pub const VP9D_SET_ROW_MT: vp8_dec_control_id = 268;
-pub const VP9_DECODE_SVC_SPATIAL_LAYER: vp8_dec_control_id = 266;
-pub const VP9_SET_SKIP_LOOP_FILTER: vp8_dec_control_id = 265;
-pub const VP9_INVERT_TILE_DECODE_ORDER: vp8_dec_control_id = 264;
-pub const VP9_SET_BYTE_ALIGNMENT: vp8_dec_control_id = 263;
-pub const VP9D_GET_BIT_DEPTH: vp8_dec_control_id = 262;
-pub const VP9D_GET_DISPLAY_SIZE: vp8_dec_control_id = 261;
-pub const VP9D_GET_FRAME_SIZE: vp8_dec_control_id = 260;
-pub const VP8D_SET_DECRYPTOR: vp8_dec_control_id = 259;
 pub type C2RustUnnamed_5 = ::core::ffi::c_uint;
 pub const MAX_REF_FRAMES: C2RustUnnamed_5 = 4;
 pub const INTRA_FRAME: C2RustUnnamed_5 = 0;
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
-pub const CONFIG_POSTPROC: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-pub const CONFIG_ERROR_CONCEALMENT: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-pub const VPX_PLANE_Y: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-pub const VPX_PLANE_U: ::core::ffi::c_int = 1 as ::core::ffi::c_int;
-pub const VPX_PLANE_V: ::core::ffi::c_int = 2 as ::core::ffi::c_int;
-pub const VPX_PLANE_ALPHA: ::core::ffi::c_int = 3 as ::core::ffi::c_int;
-pub const VPX_CODEC_CAP_DECODER: ::core::ffi::c_int = 0x1 as ::core::ffi::c_int;
-pub const VPX_CODEC_CAP_POSTPROC: ::core::ffi::c_int = 0x40000 as ::core::ffi::c_int;
-pub const VPX_CODEC_CAP_ERROR_CONCEALMENT: ::core::ffi::c_int = 0x80000 as ::core::ffi::c_int;
-pub const VPX_CODEC_CAP_INPUT_FRAGMENTS: ::core::ffi::c_int = 0x100000 as ::core::ffi::c_int;
 pub const VPX_CODEC_USE_POSTPROC: ::core::ffi::c_int = 0x10000 as ::core::ffi::c_int;
 pub const VPX_CODEC_USE_ERROR_CONCEALMENT: ::core::ffi::c_int = 0x20000 as ::core::ffi::c_int;
-pub const VPX_CODEC_USE_INPUT_FRAGMENTS: ::core::ffi::c_int = 0x40000 as ::core::ffi::c_int;
-pub const VPX_CODEC_INTERNAL_ABI_VERSION: ::core::ffi::c_int = 5 as ::core::ffi::c_int;
 pub const VP8BORDERINPIXELS: ::core::ffi::c_int = 32 as ::core::ffi::c_int;
 pub const MAX_PARTITIONS: ::core::ffi::c_int = 9 as ::core::ffi::c_int;
 #[inline]
