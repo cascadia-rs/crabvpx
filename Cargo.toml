@@ -2,7 +2,7 @@
 name = "crabvpx"
 version = "0.1.0"
 edition = "2024"
-rust-version = "1.85"
+rust-version = "1.88"
 description = "A memory-safe, pure-Rust VP8 video decoder (bit-exact with libvpx)."
 license = "BSD-3-Clause"
 repository = "https://github.com/ubercodec/crabvpx"
