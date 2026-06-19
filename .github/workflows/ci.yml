@@ -33,7 +33,7 @@ jobs:
           CRABVPX_THREADS: 4
 
   lint:
-    name: Format & clippy (advisory)
+    name: Format & clippy
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -41,14 +41,12 @@ jobs:
         with:
           components: rustfmt, clippy
       - uses: Swatinem/rust-cache@v2
-      # Non-blocking for now: the decoder core is c2rust-derived and not yet
-      # fully idiomatic. These surface the cleanup backlog without gating CI.
+      # Blocking gates. The small set of allowed clippy lints (structural
+      # transpilation lints) is documented in src/lib.rs.
       - name: rustfmt
         run: cargo fmt --all -- --check
-        continue-on-error: true
       - name: clippy
-        run: cargo clippy --all-targets
-        continue-on-error: true
+        run: cargo clippy --all-targets -- -D warnings
 
   bench:
     name: Benchmarks compile

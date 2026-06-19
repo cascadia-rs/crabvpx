@@ -1,4 +1,4 @@
-pub use crate::vp8::common::types::{mv_context, vp8_prob, MV_CONTEXT};
+pub use crate::vp8::common::types::{MV_CONTEXT, mv_context, vp8_prob};
 pub const vp8_mv_update_probs: [MV_CONTEXT; 2] = [
     mv_context {
         prob: [

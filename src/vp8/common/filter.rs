@@ -103,7 +103,6 @@ pub static vp8_sub_pel_filters: [[::core::ffi::c_short; 6]; 8] = [
     ],
 ];
 
-
 fn filter_block2d_first_pass_safe(
     src: &[u8],
     src_stride: usize,
@@ -172,7 +171,7 @@ fn filter_block2d_second_pass_safe(
     let dst = &mut dst[..req_dst];
 
     for i in 0..output_height {
-        let r0 = &src[(i + 0) * src_stride..(i + 0) * src_stride + output_width];
+        let r0 = &src[i * src_stride..i * src_stride + output_width];
         let r1 = &src[(i + 1) * src_stride..(i + 1) * src_stride + output_width];
         let r2 = &src[(i + 2) * src_stride..(i + 2) * src_stride + output_width];
         let r3 = &src[(i + 3) * src_stride..(i + 3) * src_stride + output_width];
@@ -189,13 +188,7 @@ fn filter_block2d_second_pass_safe(
             .zip(r4.iter())
             .zip(r5.iter())
         {
-            let mut temp = p0 * f0
-                + p1 * f1
-                + p2 * f2
-                + p3 * f3
-                + p4 * f4
-                + p5 * f5
-                + half_weight;
+            let mut temp = p0 * f0 + p1 * f1 + p2 * f2 + p3 * f3 + p4 * f4 + p5 * f5 + half_weight;
 
             temp >>= VP8_FILTER_SHIFT;
             *dst_pix = temp.clamp(0, 255) as u8;
@@ -212,23 +205,8 @@ fn filter_block2d_safe(
     v_filter: &[i16; 6],
 ) {
     let mut f_data = [0i32; 36]; // 4x9
-    filter_block2d_first_pass_safe(
-        src,
-        src_stride,
-        9,
-        4,
-        h_filter,
-        &mut f_data,
-    );
-    filter_block2d_second_pass_safe(
-        &f_data,
-        4,
-        dst,
-        dst_pitch,
-        4,
-        4,
-        v_filter,
-    );
+    filter_block2d_first_pass_safe(src, src_stride, 9, 4, h_filter, &mut f_data);
+    filter_block2d_second_pass_safe(&f_data, 4, dst, dst_pitch, 4, 4, v_filter);
 }
 
 fn filter_block2d_bil_first_pass_safe(
@@ -343,22 +321,6 @@ pub(crate) fn filter_block2d_sixtap_safe(
     let f_data_len = (height + 5) * width;
     let f_data_slice = &mut f_data[..f_data_len];
 
-    filter_block2d_first_pass_safe(
-        src,
-        src_stride,
-        height + 5,
-        width,
-        h_filter,
-        f_data_slice,
-    );
-    filter_block2d_second_pass_safe(
-        f_data_slice,
-        width,
-        dst,
-        dst_pitch,
-        height,
-        width,
-        v_filter,
-    );
+    filter_block2d_first_pass_safe(src, src_stride, height + 5, width, h_filter, f_data_slice);
+    filter_block2d_second_pass_safe(f_data_slice, width, dst, dst_pitch, height, width, v_filter);
 }
-

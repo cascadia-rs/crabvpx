@@ -19,8 +19,6 @@ pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
 pub type vpx_color_range_t = vpx_color_range;
 pub type size_t = __darwin_size_t;
 
-
-
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 pub fn vp8_yv12_de_alloc_frame_buffer_safe(
@@ -30,8 +28,6 @@ pub fn vp8_yv12_de_alloc_frame_buffer_safe(
     *alloc = None;
     *ybf = YV12_BUFFER_CONFIG::default();
 }
-
-
 
 pub fn vp8_yv12_realloc_frame_buffer_safe(
     ybf: &mut YV12_BUFFER_CONFIG,
@@ -107,8 +103,6 @@ pub fn vp8_yv12_realloc_frame_buffer_safe(
     Ok(())
 }
 
-
-
 pub fn vp8_yv12_alloc_frame_buffer_safe(
     ybf: &mut YV12_BUFFER_CONFIG,
     width: i32,
@@ -119,6 +113,3 @@ pub fn vp8_yv12_alloc_frame_buffer_safe(
     vp8_yv12_de_alloc_frame_buffer_safe(ybf, alloc);
     vp8_yv12_realloc_frame_buffer_safe(ybf, width, height, border, alloc)
 }
-
-
-

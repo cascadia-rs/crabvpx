@@ -4,8 +4,8 @@
 //! against representative test vectors (intra-heavy, inter, segmentation).
 //! Frame payloads are demuxed up front so the benchmark times only decoding.
 
-use criterion::{criterion_group, criterion_main, BenchmarkId, Criterion, Throughput};
 use crabvpx::api::{Decoder, Vp8Decoder};
+use criterion::{BenchmarkId, Criterion, Throughput, criterion_group, criterion_main};
 use std::fs::File;
 use std::io::Read;
 use std::path::{Path, PathBuf};

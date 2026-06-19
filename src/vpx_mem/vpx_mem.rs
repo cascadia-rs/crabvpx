@@ -17,18 +17,18 @@ impl AlignedBox {
         if !align.is_power_of_two() {
             align = align.next_power_of_two();
         }
-        
+
         // Allocate extra space for alignment
         let mut vec = Vec::new();
         if vec.try_reserve(size + align).is_err() {
             return None;
         }
         vec.resize(size + align, 0u8);
-        
+
         let raw_ptr = vec.as_ptr() as usize;
         let aligned_ptr = (raw_ptr + align - 1) & !(align - 1);
         let offset = aligned_ptr - raw_ptr;
-        
+
         Some(Self { vec, offset, size })
     }
 
@@ -51,10 +51,10 @@ impl AlignedBox {
     }
 
     pub fn as_slice(&self) -> &[u8] {
-        &self.vec[self.offset .. self.offset + self.size]
+        &self.vec[self.offset..self.offset + self.size]
     }
 
     pub fn as_slice_mut(&mut self) -> &mut [u8] {
-        &mut self.vec[self.offset .. self.offset + self.size]
+        &mut self.vec[self.offset..self.offset + self.size]
     }
 }

@@ -1,16 +1,10 @@
-
 pub type __darwin_ptrdiff_t = isize;
 pub type __darwin_size_t = usize;
 pub type ptrdiff_t = __darwin_ptrdiff_t;
 pub type size_t = __darwin_size_t;
 pub type uint8_t = u8;
 
-pub fn vpx_d207_predictor_safe(
-    dst: &mut [u8],
-    stride: usize,
-    bs: usize,
-    left: &[u8],
-) {
+pub fn vpx_d207_predictor_safe(dst: &mut [u8], stride: usize, bs: usize, left: &[u8]) {
     for r in 0..bs - 1 {
         dst[r * stride] = ((left[r] as i32 + left[r + 1] as i32 + 1) >> 1) as u8;
     }
@@ -20,8 +14,7 @@ pub fn vpx_d207_predictor_safe(
         dst[r * stride + 1] =
             ((left[r] as i32 + 2 * left[r + 1] as i32 + left[r + 2] as i32 + 2) >> 2) as u8;
     }
-    dst[(bs - 2) * stride + 1] =
-        ((left[bs - 2] as i32 + 3 * left[bs - 1] as i32 + 2) >> 2) as u8;
+    dst[(bs - 2) * stride + 1] = ((left[bs - 2] as i32 + 3 * left[bs - 1] as i32 + 2) >> 2) as u8;
     dst[(bs - 1) * stride + 1] = left[bs - 1];
 
     for c in 0..bs - 2 {
@@ -35,18 +28,7 @@ pub fn vpx_d207_predictor_safe(
     }
 }
 
-
-
-
-
-
-
-pub fn vpx_he_predictor_4x4_safe(
-    dst: &mut [u8],
-    stride: usize,
-    above: &[u8],
-    left: &[u8],
-) {
+pub fn vpx_he_predictor_4x4_safe(dst: &mut [u8], stride: usize, above: &[u8], left: &[u8]) {
     let h = above[0] as i32;
     let i = left[0] as i32;
     let j = left[1] as i32;
@@ -64,13 +46,7 @@ pub fn vpx_he_predictor_4x4_safe(
     dst[3 * stride..3 * stride + 4].fill(val3);
 }
 
-
-
-pub fn vpx_ve_predictor_4x4_safe(
-    dst: &mut [u8],
-    stride: usize,
-    above: &[u8],
-) {
+pub fn vpx_ve_predictor_4x4_safe(dst: &mut [u8], stride: usize, above: &[u8]) {
     let h = above[0] as i32;
     let i = above[1] as i32;
     let j = above[2] as i32;
@@ -97,12 +73,7 @@ pub fn vpx_ve_predictor_4x4_safe(
     }
 }
 
-
-pub fn vpx_d207_predictor_4x4_safe(
-    dst: &mut [u8],
-    stride: usize,
-    left: &[u8],
-) {
+pub fn vpx_d207_predictor_4x4_safe(dst: &mut [u8], stride: usize, left: &[u8]) {
     let i_val = left[0] as i32;
     let j_val = left[1] as i32;
     let k_val = left[2] as i32;
@@ -149,13 +120,7 @@ pub fn vpx_d207_predictor_4x4_safe(
     dst[3 * stride + 3] = val_3_3;
 }
 
-
-
-pub fn vpx_d63e_predictor_4x4_safe(
-    dst: &mut [u8],
-    stride: usize,
-    above: &[u8],
-) {
+pub fn vpx_d63e_predictor_4x4_safe(dst: &mut [u8], stride: usize, above: &[u8]) {
     let A = above[0] as i32;
     let B = above[1] as i32;
     let C = above[2] as i32;
@@ -196,12 +161,7 @@ pub fn vpx_d63e_predictor_4x4_safe(
     dst[3 * stride + 3] = ((F + 2 * G + H + 2) >> 2) as u8;
 }
 
-
-pub fn vpx_d45e_predictor_4x4_safe(
-    dst: &mut [u8],
-    stride: usize,
-    above: &[u8],
-) {
+pub fn vpx_d45e_predictor_4x4_safe(dst: &mut [u8], stride: usize, above: &[u8]) {
     let A = above[0] as i32;
     let B = above[1] as i32;
     let C = above[2] as i32;
@@ -239,13 +199,7 @@ pub fn vpx_d45e_predictor_4x4_safe(
     dst[3 * stride + 3] = ((G + 2 * H + H + 2) >> 2) as u8;
 }
 
-
-pub fn vpx_d117_predictor_4x4_safe(
-    dst: &mut [u8],
-    stride: usize,
-    above: &[u8],
-    left: &[u8],
-) {
+pub fn vpx_d117_predictor_4x4_safe(dst: &mut [u8], stride: usize, above: &[u8], left: &[u8]) {
     let X = above[0] as i32;
     let A = above[1] as i32;
     let B = above[2] as i32;
@@ -287,13 +241,7 @@ pub fn vpx_d117_predictor_4x4_safe(
     dst[stride + 3] = ((B + 2 * C + D + 2) >> 2) as u8;
 }
 
-
-pub fn vpx_d135_predictor_4x4_safe(
-    dst: &mut [u8],
-    stride: usize,
-    above: &[u8],
-    left: &[u8],
-) {
+pub fn vpx_d135_predictor_4x4_safe(dst: &mut [u8], stride: usize, above: &[u8], left: &[u8]) {
     let X = above[0] as i32;
     let A = above[1] as i32;
     let B = above[2] as i32;
@@ -334,12 +282,7 @@ pub fn vpx_d135_predictor_4x4_safe(
     dst[3] = ((D + 2 * C + B + 2) >> 2) as u8;
 }
 
-pub fn vpx_d153_predictor_4x4_safe(
-    dst: &mut [u8],
-    stride: usize,
-    above: &[u8],
-    left: &[u8],
-) {
+pub fn vpx_d153_predictor_4x4_safe(dst: &mut [u8], stride: usize, above: &[u8], left: &[u8]) {
     let I = left[0] as i32;
     let J = left[1] as i32;
     let K = left[2] as i32;
@@ -384,38 +327,21 @@ pub fn vpx_d153_predictor_4x4_safe(
     dst[3 * stride + 3] = val_2_1;
 }
 
-
-
-
-
-
-pub fn vpx_v_predictor_8x8_safe(
-    dst: &mut [u8],
-    stride: usize,
-    above: &[u8],
-) {
+pub fn vpx_v_predictor_8x8_safe(dst: &mut [u8], stride: usize, above: &[u8]) {
     for r in 0..8 {
         let start = r * stride;
         dst[start..start + 8].copy_from_slice(&above[..8]);
     }
 }
 
-pub fn vpx_v_predictor_16x16_safe(
-    dst: &mut [u8],
-    stride: usize,
-    above: &[u8],
-) {
+pub fn vpx_v_predictor_16x16_safe(dst: &mut [u8], stride: usize, above: &[u8]) {
     for r in 0..16 {
         let start = r * stride;
         dst[start..start + 16].copy_from_slice(&above[..16]);
     }
 }
 
-pub fn vpx_h_predictor_16x16_safe(
-    dst: &mut [u8],
-    stride: usize,
-    left: &[u8],
-) {
+pub fn vpx_h_predictor_16x16_safe(dst: &mut [u8], stride: usize, left: &[u8]) {
     for r in 0..16 {
         let start = r * stride;
         let val = left[r];
@@ -423,20 +349,13 @@ pub fn vpx_h_predictor_16x16_safe(
     }
 }
 
-
-pub fn vpx_h_predictor_8x8_safe(
-    dst: &mut [u8],
-    stride: usize,
-    left: &[u8],
-) {
+pub fn vpx_h_predictor_8x8_safe(dst: &mut [u8], stride: usize, left: &[u8]) {
     for r in 0..8 {
         let start = r * stride;
         let val = left[r];
         dst[start..start + 8].fill(val);
     }
 }
-
-
 
 pub fn vpx_tm_predictor_16x16_safe(
     dst: &mut [u8],
@@ -456,7 +375,6 @@ pub fn vpx_tm_predictor_16x16_safe(
     }
 }
 
-
 pub fn vpx_tm_predictor_4x4_safe(
     dst: &mut [u8],
     stride: usize,
@@ -474,7 +392,6 @@ pub fn vpx_tm_predictor_4x4_safe(
         }
     }
 }
-
 
 pub fn vpx_tm_predictor_8x8_safe(
     dst: &mut [u8],
@@ -494,16 +411,7 @@ pub fn vpx_tm_predictor_8x8_safe(
     }
 }
 
-
-
-
-
-pub fn vpx_dc_predictor_4x4_safe(
-    dst: &mut [u8],
-    stride: usize,
-    above: &[u8],
-    left: &[u8],
-) {
+pub fn vpx_dc_predictor_4x4_safe(dst: &mut [u8], stride: usize, above: &[u8], left: &[u8]) {
     let mut sum = 0i32;
     for i in 0..4 {
         sum += above[i] as i32;
@@ -515,9 +423,6 @@ pub fn vpx_dc_predictor_4x4_safe(
         dst[dst_idx..dst_idx + 4].fill(expected_dc);
     }
 }
-
-
-
 
 pub fn vpx_dc_128_predictor_16x16_safe(dst: &mut [u8], stride: usize) {
     for r in 0..16 {
@@ -606,9 +511,3 @@ pub fn vpx_dc_predictor_8x8_safe(dst: &mut [u8], stride: usize, above: &[u8], le
         dst[start..start + 8].fill(expected_dc);
     }
 }
-
-
-
-
-
-

@@ -1,4 +1,3 @@
-
 pub use crate::vp8::common::types::*;
 pub type vpx_color_range_t = vpx_color_range;
 pub type vpx_color_range = ::core::ffi::c_uint;
@@ -28,48 +27,48 @@ fn extend_plane(
     extend_right: usize,
 ) {
     let linesize = extend_left + width + extend_right;
-    
+
     // 1. Extend left/right for active rows.
     for r in 0..height {
         let row_idx = extend_top + r;
         let row_start = row_idx * stride;
-        
+
         let src_left_val = plane[row_start + extend_left];
         let src_right_val = plane[row_start + extend_left + width - 1];
-        
+
         // Fill left border
         for i in 0..extend_left {
             plane[row_start + i] = src_left_val;
         }
-        
+
         // Fill right border
         let right_start = row_start + extend_left + width;
         for i in 0..extend_right {
             plane[right_start + i] = src_right_val;
         }
     }
-    
+
     // 2. Extend top rows.
     let src_top_start = extend_top * stride;
     for r in 0..extend_top {
         let dst_start = r * stride;
-        plane.copy_within(src_top_start .. src_top_start + linesize, dst_start);
+        plane.copy_within(src_top_start..src_top_start + linesize, dst_start);
     }
-    
+
     // 3. Extend bottom rows.
     let src_bot_start = (extend_top + height - 1) * stride;
     for r in 0..extend_bottom {
         let dst_start = (extend_top + height + r) * stride;
-        plane.copy_within(src_bot_start .. src_bot_start + linesize, dst_start);
+        plane.copy_within(src_bot_start..src_bot_start + linesize, dst_start);
     }
 }
 
 pub fn vp8_yv12_extend_frame_borders_c(ybf: &mut YV12_BUFFER_CONFIG) {
     let uv_border = ybf.border / 2;
-    
+
     let y_extend_bottom = (ybf.border + ybf.y_height - ybf.y_crop_height) as usize;
     let y_extend_right = (ybf.border + ybf.y_width - ybf.y_crop_width) as usize;
-    
+
     let uv_extend_bottom = (uv_border + ybf.uv_height - ybf.uv_crop_height) as usize;
     let uv_extend_right = (uv_border + ybf.uv_width - ybf.uv_crop_width) as usize;
 
@@ -77,7 +76,7 @@ pub fn vp8_yv12_extend_frame_borders_c(ybf: &mut YV12_BUFFER_CONFIG) {
     let y_crop_width = ybf.y_crop_width as usize;
     let y_crop_height = ybf.y_crop_height as usize;
     let y_border = ybf.border as usize;
-    
+
     let y_plane = ybf.y_slice_mut_safe();
     extend_plane(
         y_plane,
@@ -118,10 +117,7 @@ pub fn vp8_yv12_extend_frame_borders_c(ybf: &mut YV12_BUFFER_CONFIG) {
         uv_extend_right,
     );
 }
-pub fn vp8_yv12_copy_frame_c(
-    src_ybc: &YV12_BUFFER_CONFIG,
-    dst_ybc: &mut YV12_BUFFER_CONFIG,
-) {
+pub fn vp8_yv12_copy_frame_c(src_ybc: &YV12_BUFFER_CONFIG, dst_ybc: &mut YV12_BUFFER_CONFIG) {
     let src_border = src_ybc.border as usize;
     let dst_border = dst_ybc.border as usize;
     let src_y_stride = src_ybc.y_stride as usize;
@@ -134,7 +130,8 @@ pub fn vp8_yv12_copy_frame_c(
     for r in 0..y_height {
         let src_start = (src_border + r) * src_y_stride + src_border;
         let dst_start = (dst_border + r) * dst_y_stride + dst_border;
-        dst_y[dst_start..dst_start + y_width].copy_from_slice(&src_y[src_start..src_start + y_width]);
+        dst_y[dst_start..dst_start + y_width]
+            .copy_from_slice(&src_y[src_start..src_start + y_width]);
     }
 
     let src_uv_border = src_border / 2;
@@ -149,7 +146,8 @@ pub fn vp8_yv12_copy_frame_c(
     for r in 0..uv_height {
         let src_start = (src_uv_border + r) * src_uv_stride + src_uv_border;
         let dst_start = (dst_uv_border + r) * dst_uv_stride + dst_uv_border;
-        dst_u[dst_start..dst_start + uv_width].copy_from_slice(&src_u[src_start..src_start + uv_width]);
+        dst_u[dst_start..dst_start + uv_width]
+            .copy_from_slice(&src_u[src_start..src_start + uv_width]);
     }
 
     let src_v = src_ybc.v_slice_safe();
@@ -157,15 +155,13 @@ pub fn vp8_yv12_copy_frame_c(
     for r in 0..uv_height {
         let src_start = (src_uv_border + r) * src_uv_stride + src_uv_border;
         let dst_start = (dst_uv_border + r) * dst_uv_stride + dst_uv_border;
-        dst_v[dst_start..dst_start + uv_width].copy_from_slice(&src_v[src_start..src_start + uv_width]);
+        dst_v[dst_start..dst_start + uv_width]
+            .copy_from_slice(&src_v[src_start..src_start + uv_width]);
     }
 
     vp8_yv12_extend_frame_borders_c(dst_ybc);
 }
-pub fn vpx_yv12_copy_y_c(
-    src_ybc: &YV12_BUFFER_CONFIG,
-    dst_ybc: &mut YV12_BUFFER_CONFIG,
-) {
+pub fn vpx_yv12_copy_y_c(src_ybc: &YV12_BUFFER_CONFIG, dst_ybc: &mut YV12_BUFFER_CONFIG) {
     let src_border = src_ybc.border as usize;
     let dst_border = dst_ybc.border as usize;
     let src_y_stride = src_ybc.y_stride as usize;
@@ -178,6 +174,7 @@ pub fn vpx_yv12_copy_y_c(
     for r in 0..y_height {
         let src_start = (src_border + r) * src_y_stride + src_border;
         let dst_start = (dst_border + r) * dst_y_stride + dst_border;
-        dst_y[dst_start..dst_start + y_width].copy_from_slice(&src_y[src_start..src_start + y_width]);
+        dst_y[dst_start..dst_start + y_width]
+            .copy_from_slice(&src_y[src_start..src_start + y_width]);
     }
 }

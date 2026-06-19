@@ -29,13 +29,12 @@ pub fn vp8_build_block_doffsets(x: &mut MACROBLOCKD) {
     }
     block = 16 as ::core::ffi::c_int;
     while block < 20 as ::core::ffi::c_int {
-        x.block[block as usize].offset = (block - 16 as ::core::ffi::c_int
+        x.block[block as usize].offset = ((block - 16 as ::core::ffi::c_int)
             >> 1 as ::core::ffi::c_int)
             * 4 as ::core::ffi::c_int
             * x.dst_uv_stride
             + (block & 1 as ::core::ffi::c_int) * 4 as ::core::ffi::c_int;
-        x.block[(block + 4 as ::core::ffi::c_int) as usize].offset =
-            x.block[block as usize].offset;
+        x.block[(block + 4 as ::core::ffi::c_int) as usize].offset = x.block[block as usize].offset;
         block += 1;
     }
 }

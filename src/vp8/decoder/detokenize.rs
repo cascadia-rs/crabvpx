@@ -1,4 +1,3 @@
-
 pub type vpx_color_space = ::core::ffi::c_uint;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
 pub const VPX_CS_RESERVED: vpx_color_space = 6;
@@ -37,22 +36,13 @@ pub fn vp8_reset_mb_tokens_context(
         l_ctx.y2 = 0;
     }
 }
-static kBands: [uint8_t; 17] = [
-    0, 1, 2, 3, 6, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 0,
-];
+static kBands: [uint8_t; 17] = [0, 1, 2, 3, 6, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 0];
 static kCat3: [uint8_t; 3] = [173, 148, 140];
 static kCat4: [uint8_t; 4] = [176, 155, 140, 135];
 static kCat5: [uint8_t; 5] = [180, 157, 141, 134, 130];
 static kCat6: [uint8_t; 11] = [254, 254, 243, 230, 196, 177, 153, 140, 133, 130, 129];
-static kCat3456: [&[uint8_t]; 4] = [
-    &kCat3,
-    &kCat4,
-    &kCat5,
-    &kCat6,
-];
-static kZigzag: [uint8_t; 16] = [
-    0, 1, 4, 8, 5, 2, 3, 6, 9, 12, 13, 10, 7, 11, 14, 15,
-];
+static kCat3456: [&[uint8_t]; 4] = [&kCat3, &kCat4, &kCat5, &kCat6];
+static kZigzag: [uint8_t; 16] = [0, 1, 4, 8, 5, 2, 3, 6, 9, 12, 13, 10, 7, 11, 14, 15];
 fn GetSigned(
     br: &mut crate::vp8::decoder::dboolhuff::SafeBoolDecoder,
     value_to_sign: ::core::ffi::c_int,
@@ -105,7 +95,7 @@ fn GetCoeffs(
                     v = 0;
                     let tab = kCat3456[cat as usize];
                     for &prob_val in tab {
-                        v += v + br.read_bool(prob_val as ::core::ffi::c_int);
+                        v = 2 * v + br.read_bool(prob_val as ::core::ffi::c_int);
                     }
                     v += 3 + (8 << cat);
                 }
@@ -138,11 +128,11 @@ pub fn vp8_decode_mb_tokens(
         let coef_probs = &fc_ref.coef_probs[1];
         let ctx = a_ctx.y2 as ::core::ffi::c_int + l_ctx.y2 as ::core::ffi::c_int;
         let nonzeros = GetCoeffs(
-            &mut safe_decoder,
+            safe_decoder,
             coef_probs,
             ctx,
             0,
-            &mut qcoeff[24 * 16 .. 25 * 16],
+            &mut qcoeff[24 * 16..25 * 16],
         );
         let nonzero_bool = (nonzeros > 0) as ::core::ffi::c_int as ENTROPY_CONTEXT;
         l_ctx.y2 = nonzero_bool;
@@ -165,17 +155,17 @@ pub fn vp8_decode_mb_tokens(
         let row = i >> 2;
         let ctx = a_ctx.y1[col] as ::core::ffi::c_int + l_ctx.y1[row] as ::core::ffi::c_int;
         let nonzeros = GetCoeffs(
-            &mut safe_decoder,
+            safe_decoder,
             coef_probs_y1,
             ctx,
             skip_dc,
-            &mut qcoeff[(i * 16) as usize .. ((i + 1) * 16) as usize],
+            &mut qcoeff[(i * 16)..((i + 1) * 16)],
         );
         let nonzero_bool = (nonzeros > 0) as ::core::ffi::c_int as ENTROPY_CONTEXT;
         l_ctx.y1[row] = nonzero_bool;
         a_ctx.y1[col] = nonzero_bool;
         let eob_val = nonzeros + skip_dc;
-        eobs[i as usize] = eob_val as ::core::ffi::c_char;
+        eobs[i] = eob_val as ::core::ffi::c_char;
         eobtotal += eob_val;
     }
 
@@ -186,16 +176,16 @@ pub fn vp8_decode_mb_tokens(
         let row = (i & 3) >> 1;
         let ctx = a_ctx.u[col] as ::core::ffi::c_int + l_ctx.u[row] as ::core::ffi::c_int;
         let nonzeros = GetCoeffs(
-            &mut safe_decoder,
+            safe_decoder,
             coef_probs_uv,
             ctx,
             0,
-            &mut qcoeff[(i * 16) as usize .. ((i + 1) * 16) as usize],
+            &mut qcoeff[(i * 16)..((i + 1) * 16)],
         );
         let nonzero_bool = (nonzeros > 0) as ::core::ffi::c_int as ENTROPY_CONTEXT;
         l_ctx.u[row] = nonzero_bool;
         a_ctx.u[col] = nonzero_bool;
-        eobs[i as usize] = nonzeros as ::core::ffi::c_char;
+        eobs[i] = nonzeros as ::core::ffi::c_char;
         eobtotal += nonzeros;
     }
 
@@ -204,18 +194,18 @@ pub fn vp8_decode_mb_tokens(
         let row = (i & 3) >> 1;
         let ctx = a_ctx.v[col] as ::core::ffi::c_int + l_ctx.v[row] as ::core::ffi::c_int;
         let nonzeros = GetCoeffs(
-            &mut safe_decoder,
+            safe_decoder,
             coef_probs_uv,
             ctx,
             0,
-            &mut qcoeff[(i * 16) as usize .. ((i + 1) * 16) as usize],
+            &mut qcoeff[(i * 16)..((i + 1) * 16)],
         );
         let nonzero_bool = (nonzeros > 0) as ::core::ffi::c_int as ENTROPY_CONTEXT;
         l_ctx.v[row] = nonzero_bool;
         a_ctx.v[col] = nonzero_bool;
-        eobs[i as usize] = nonzeros as ::core::ffi::c_char;
+        eobs[i] = nonzeros as ::core::ffi::c_char;
         eobtotal += nonzeros;
     }
 
-    return eobtotal;
+    eobtotal
 }

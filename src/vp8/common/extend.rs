@@ -34,74 +34,77 @@ fn copy_and_extend_plane_safe(
     for r in 0..h {
         let src_row_start = r * sp;
         let dst_row_start = (et + r) * dp; // Row in dst_slice
-        
+
         // 1. Left border
         let src_left_val = src[src_row_start];
         for i in 0..el {
             dst[dst_row_start + i] = src_left_val;
         }
-        
+
         // 2. Active copy
         if interleave_step == 1 {
-            let src_row = &src[src_row_start .. src_row_start + w];
-            dst[dst_row_start + el .. dst_row_start + el + w].copy_from_slice(src_row);
+            let src_row = &src[src_row_start..src_row_start + w];
+            dst[dst_row_start + el..dst_row_start + el + w].copy_from_slice(src_row);
         } else {
             for j in 0..w {
                 dst[dst_row_start + el + j] = src[src_row_start + j * interleave_step];
             }
         }
-        
+
         // 3. Right border
         let src_right_val = src[src_row_start + (w - 1) * interleave_step];
         for i in 0..er {
             dst[dst_row_start + el + w + i] = src_right_val;
         }
     }
-    
+
     // Now we extend the top and bottom borders.
     let linesize = el + w + er;
-    
+
     // 4. Top border (replicate the first active row of dst)
     let first_active_row_start = et * dp;
     for r in 0..et {
         let dst_row_start = r * dp;
-        dst.copy_within(first_active_row_start .. first_active_row_start + linesize, dst_row_start);
+        dst.copy_within(
+            first_active_row_start..first_active_row_start + linesize,
+            dst_row_start,
+        );
     }
-    
+
     // 5. Bottom border (replicate the last active row of dst)
     let last_active_row_start = (et + h - 1) * dp;
     for r in 0..eb {
         let dst_row_start = (et + h + r) * dp;
-        dst.copy_within(last_active_row_start .. last_active_row_start + linesize, dst_row_start);
+        dst.copy_within(
+            last_active_row_start..last_active_row_start + linesize,
+            dst_row_start,
+        );
     }
 }
 
-pub fn vp8_copy_and_extend_frame_safe(
-    src: &YV12_BUFFER_CONFIG,
-    dst: &mut YV12_BUFFER_CONFIG,
-) {
+pub fn vp8_copy_and_extend_frame_safe(src: &YV12_BUFFER_CONFIG, dst: &mut YV12_BUFFER_CONFIG) {
     let et = dst.border;
     let el = dst.border;
     let eb = dst.border + dst.y_height - src.y_height;
     let er = dst.border + dst.y_width - src.y_width;
-    
+
     let chroma_step = if (src.v_buffer as usize).wrapping_sub(src.u_buffer as usize) == 1 {
         2
     } else {
         1
     };
-    
+
     // Y plane
     {
         let src_border = src.border as usize;
         let src_stride = src.y_stride as usize;
         let src_active_start = src_border * src_stride + src_border;
         let src_len = (src.y_height - 1) as usize * src_stride + src.y_width as usize;
-        let src_slice = &src.y_slice_safe()[src_active_start .. src_active_start + src_len];
-        
+        let src_slice = &src.y_slice_safe()[src_active_start..src_active_start + src_len];
+
         let dst_stride = dst.y_stride as usize;
         let dst_slice = dst.y_slice_mut_safe();
-        
+
         copy_and_extend_plane_safe(
             src_slice,
             src.y_stride as usize,
@@ -116,23 +119,25 @@ pub fn vp8_copy_and_extend_frame_safe(
             1,
         );
     }
-    
+
     // U plane
     let et_uv = dst.border >> 1;
     let el_uv = dst.border >> 1;
     let eb_uv = (dst.border >> 1) + dst.uv_height - src.uv_height;
     let er_uv = (dst.border >> 1) + dst.uv_width - src.uv_width;
-    
+
     {
         let src_border_uv = (src.border / 2) as usize;
         let src_stride_uv = src.uv_stride as usize;
         let src_active_start_uv = src_border_uv * src_stride_uv + src_border_uv;
-        let src_len = (src.uv_height - 1) as usize * src_stride_uv + (src.uv_width - 1) as usize * chroma_step as usize + 1;
-        let src_slice = &src.u_slice_safe()[src_active_start_uv .. src_active_start_uv + src_len];
-        
+        let src_len = (src.uv_height - 1) as usize * src_stride_uv
+            + (src.uv_width - 1) as usize * chroma_step as usize
+            + 1;
+        let src_slice = &src.u_slice_safe()[src_active_start_uv..src_active_start_uv + src_len];
+
         let dst_stride_uv = dst.uv_stride as usize;
         let dst_slice = dst.u_slice_mut_safe();
-        
+
         copy_and_extend_plane_safe(
             src_slice,
             src.uv_stride as usize,
@@ -147,18 +152,20 @@ pub fn vp8_copy_and_extend_frame_safe(
             chroma_step as usize,
         );
     }
-    
+
     // V plane
     {
         let src_border_uv = (src.border / 2) as usize;
         let src_stride_uv = src.uv_stride as usize;
         let src_active_start_uv = src_border_uv * src_stride_uv + src_border_uv;
-        let src_len = (src.uv_height - 1) as usize * src_stride_uv + (src.uv_width - 1) as usize * chroma_step as usize + 1;
-        let src_slice = &src.v_slice_safe()[src_active_start_uv .. src_active_start_uv + src_len];
-        
+        let src_len = (src.uv_height - 1) as usize * src_stride_uv
+            + (src.uv_width - 1) as usize * chroma_step as usize
+            + 1;
+        let src_slice = &src.v_slice_safe()[src_active_start_uv..src_active_start_uv + src_len];
+
         let dst_stride_uv = dst.uv_stride as usize;
         let dst_slice = dst.v_slice_mut_safe();
-        
+
         copy_and_extend_plane_safe(
             src_slice,
             src.uv_stride as usize,
@@ -187,13 +194,13 @@ pub fn vp8_copy_and_extend_frame_with_rect_safe(
     let mut el = dst.border;
     let mut eb = dst.border + dst.y_height - src.y_height;
     let mut er = dst.border + dst.y_width - src.y_width;
-    
+
     let chroma_step = if (src.v_buffer as usize).wrapping_sub(src.u_buffer as usize) == 1 {
         2
     } else {
         1
     };
-    
+
     if srcy != 0 {
         et = 0;
     }
@@ -206,22 +213,24 @@ pub fn vp8_copy_and_extend_frame_with_rect_safe(
     if srcx + srcw != src.y_width {
         er = 0;
     }
-    
+
     // Y plane
     {
         let src_border = src.border as usize;
         let src_stride = src.y_stride as usize;
-        let src_start_idx = src_border * src_stride + src_border + (srcy as usize * src_stride + srcx as usize);
+        let src_start_idx =
+            src_border * src_stride + src_border + (srcy as usize * src_stride + srcx as usize);
         let src_len = (srch - 1) as usize * src_stride + srcw as usize;
-        let src_slice = &src.y_slice_safe()[src_start_idx .. src_start_idx + src_len];
-        
+        let src_slice = &src.y_slice_safe()[src_start_idx..src_start_idx + src_len];
+
         let dst_border = dst.border as usize;
         let dst_stride = dst.y_stride as usize;
-        let dst_offset = (srcy as usize + dst_border - et as usize) * dst_stride + (srcx as usize + dst_border - el as usize);
+        let dst_offset = (srcy as usize + dst_border - et as usize) * dst_stride
+            + (srcx as usize + dst_border - el as usize);
         let total_h = et + srch + eb;
         let dst_len = total_h as usize * dst_stride;
-        let dst_slice = &mut dst.y_slice_mut_safe()[dst_offset .. dst_offset + dst_len];
-        
+        let dst_slice = &mut dst.y_slice_mut_safe()[dst_offset..dst_offset + dst_len];
+
         copy_and_extend_plane_safe(
             src_slice,
             src.y_stride as usize,
@@ -236,7 +245,7 @@ pub fn vp8_copy_and_extend_frame_with_rect_safe(
             1,
         );
     }
-    
+
     // UV dimensions
     let et_uv = (et + 1) >> 1;
     let el_uv = (el + 1) >> 1;
@@ -244,25 +253,30 @@ pub fn vp8_copy_and_extend_frame_with_rect_safe(
     let er_uv = (er + 1) >> 1;
     let srch_uv = (srch + 1) >> 1;
     let srcw_uv = (srcw + 1) >> 1;
-    
+
     let srcy_uv = srcy >> 1;
     let srcx_uv = srcx >> 1;
-    
+
     // U plane
     {
         let src_border_uv = (src.border / 2) as usize;
         let src_stride_uv = src.uv_stride as usize;
-        let src_start_idx = src_border_uv * src_stride_uv + src_border_uv + (srcy_uv as usize * src_stride_uv + srcx_uv as usize);
-        let src_len = (srch_uv - 1) as usize * src_stride_uv + (srcw_uv - 1) as usize * chroma_step as usize + 1;
-        let src_slice = &src.u_slice_safe()[src_start_idx .. src_start_idx + src_len];
-        
+        let src_start_idx = src_border_uv * src_stride_uv
+            + src_border_uv
+            + (srcy_uv as usize * src_stride_uv + srcx_uv as usize);
+        let src_len = (srch_uv - 1) as usize * src_stride_uv
+            + (srcw_uv - 1) as usize * chroma_step as usize
+            + 1;
+        let src_slice = &src.u_slice_safe()[src_start_idx..src_start_idx + src_len];
+
         let dst_border_uv = (dst.border / 2) as usize;
         let dst_stride_uv = dst.uv_stride as usize;
-        let dst_offset = (srcy_uv as usize + dst_border_uv - et_uv as usize) * dst_stride_uv + (srcx_uv as usize + dst_border_uv - el_uv as usize);
+        let dst_offset = (srcy_uv as usize + dst_border_uv - et_uv as usize) * dst_stride_uv
+            + (srcx_uv as usize + dst_border_uv - el_uv as usize);
         let total_h = et_uv + srch_uv + eb_uv;
         let dst_len = total_h as usize * dst_stride_uv;
-        let dst_slice = &mut dst.u_slice_mut_safe()[dst_offset .. dst_offset + dst_len];
-        
+        let dst_slice = &mut dst.u_slice_mut_safe()[dst_offset..dst_offset + dst_len];
+
         copy_and_extend_plane_safe(
             src_slice,
             src.uv_stride as usize,
@@ -277,22 +291,27 @@ pub fn vp8_copy_and_extend_frame_with_rect_safe(
             chroma_step as usize,
         );
     }
-    
+
     // V plane
     {
         let src_border_uv = (src.border / 2) as usize;
         let src_stride_uv = src.uv_stride as usize;
-        let src_start_idx = src_border_uv * src_stride_uv + src_border_uv + (srcy_uv as usize * src_stride_uv + srcx_uv as usize);
-        let src_len = (srch_uv - 1) as usize * src_stride_uv + (srcw_uv - 1) as usize * chroma_step as usize + 1;
-        let src_slice = &src.v_slice_safe()[src_start_idx .. src_start_idx + src_len];
-        
+        let src_start_idx = src_border_uv * src_stride_uv
+            + src_border_uv
+            + (srcy_uv as usize * src_stride_uv + srcx_uv as usize);
+        let src_len = (srch_uv - 1) as usize * src_stride_uv
+            + (srcw_uv - 1) as usize * chroma_step as usize
+            + 1;
+        let src_slice = &src.v_slice_safe()[src_start_idx..src_start_idx + src_len];
+
         let dst_border_uv = (dst.border / 2) as usize;
         let dst_stride_uv = dst.uv_stride as usize;
-        let dst_offset = (srcy_uv as usize + dst_border_uv - et_uv as usize) * dst_stride_uv + (srcx_uv as usize + dst_border_uv - el_uv as usize);
+        let dst_offset = (srcy_uv as usize + dst_border_uv - et_uv as usize) * dst_stride_uv
+            + (srcx_uv as usize + dst_border_uv - el_uv as usize);
         let total_h = et_uv + srch_uv + eb_uv;
         let dst_len = total_h as usize * dst_stride_uv;
-        let dst_slice = &mut dst.v_slice_mut_safe()[dst_offset .. dst_offset + dst_len];
-        
+        let dst_slice = &mut dst.v_slice_mut_safe()[dst_offset..dst_offset + dst_len];
+
         copy_and_extend_plane_safe(
             src_slice,
             src.uv_stride as usize,
@@ -309,10 +328,7 @@ pub fn vp8_copy_and_extend_frame_with_rect_safe(
     }
 }
 
-pub fn vp8_extend_mb_row(
-    ybf: &mut YV12_BUFFER_CONFIG,
-    mb_row: i32,
-) {
+pub fn vp8_extend_mb_row(ybf: &mut YV12_BUFFER_CONFIG, mb_row: i32) {
     let y_stride = ybf.y_stride as usize;
     let uv_stride = ybf.uv_stride as usize;
     let y_width = ybf.y_width as usize;
@@ -323,7 +339,7 @@ pub fn vp8_extend_mb_row(
     // Y plane border extension
     {
         let y_slice = ybf.y_slice_mut_safe();
-        
+
         // Y plane row 14
         {
             let row_idx = border + mb_row * 16 + 14;
@@ -351,7 +367,7 @@ pub fn vp8_extend_mb_row(
     // U plane border extension
     {
         let u_slice = ybf.u_slice_mut_safe();
-        
+
         // U plane row 6
         {
             let row_idx = uv_border + mb_row * 8 + 6;
@@ -377,7 +393,7 @@ pub fn vp8_extend_mb_row(
     // V plane border extension
     {
         let v_slice = ybf.v_slice_mut_safe();
-        
+
         // V plane row 6
         {
             let row_idx = uv_border + mb_row * 8 + 6;

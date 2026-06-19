@@ -39,7 +39,10 @@ fn decodes_one_keyframe() {
     dec.init().expect("init");
     dec.decode(&payload).expect("decode keyframe");
 
-    let img = dec.get_frame().expect("get_frame").expect("a displayed frame");
+    let img = dec
+        .get_frame()
+        .expect("get_frame")
+        .expect("a displayed frame");
     assert!(img.width() > 0 && img.height() > 0, "sane dimensions");
     let y = img.plane(Plane::Y).expect("Y plane");
     assert!(

@@ -57,8 +57,7 @@ pub fn vp8_clamp_mv2(mv: &mut MV, xd: &MACROBLOCKD) {
     }
     if (mv.row as ::core::ffi::c_int) < xd.mb_to_top_edge - LEFT_TOP_MARGIN {
         mv.row = (xd.mb_to_top_edge - LEFT_TOP_MARGIN) as ::core::ffi::c_short;
-    } else if mv.row as ::core::ffi::c_int > xd.mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN
-    {
+    } else if mv.row as ::core::ffi::c_int > xd.mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN {
         mv.row = (xd.mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN) as ::core::ffi::c_short;
     }
 }
@@ -209,22 +208,23 @@ pub fn vp8_find_near_mvs_safe(
         }
     }
 
-    if near_mv_ref_cnts[CNT_SPLITMV as usize] != 0 {
-        if near_mvs[nmv_idx].as_int() == near_mvs[CNT_NEAREST as usize].as_int() {
-            near_mv_ref_cnts[CNT_NEAREST as usize] += 1 as ::core::ffi::c_int;
-        }
+    if near_mv_ref_cnts[CNT_SPLITMV as usize] != 0
+        && near_mvs[nmv_idx].as_int() == near_mvs[CNT_NEAREST as usize].as_int()
+    {
+        near_mv_ref_cnts[CNT_NEAREST as usize] += 1 as ::core::ffi::c_int;
     }
 
-    near_mv_ref_cnts[CNT_SPLITMV as usize] = 
-        ((above.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int
-            + (left.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int)
-            * 2 as ::core::ffi::c_int
-            + (aboveleft.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int ;
+    near_mv_ref_cnts[CNT_SPLITMV as usize] = ((above.mbmi.mode as ::core::ffi::c_int
+        == SPLITMV as ::core::ffi::c_int)
+        as ::core::ffi::c_int
+        + (left.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int)
+            as ::core::ffi::c_int)
+        * 2 as ::core::ffi::c_int
+        + (aboveleft.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int)
+            as ::core::ffi::c_int;
 
     if near_mv_ref_cnts[CNT_NEAR as usize] > near_mv_ref_cnts[CNT_NEAREST as usize] {
-        let tmp = near_mv_ref_cnts[CNT_NEAREST as usize];
-        near_mv_ref_cnts[CNT_NEAREST as usize] = near_mv_ref_cnts[CNT_NEAR as usize];
-        near_mv_ref_cnts[CNT_NEAR as usize] = tmp;
+        near_mv_ref_cnts.swap(CNT_NEAREST as usize, CNT_NEAR as usize);
 
         let tmp_mv = near_mvs[CNT_NEAREST as usize].as_int();
         near_mvs[CNT_NEAREST as usize].set_as_int(near_mvs[CNT_NEAR as usize].as_int());
@@ -240,10 +240,7 @@ pub fn vp8_find_near_mvs_safe(
     nearby.set_as_int(near_mvs[CNT_NEAR as usize].as_int());
 }
 
-pub fn vp8_mv_ref_probs_safe(
-    p: &mut [vp8_prob; 4],
-    near_mv_ref_ct: &[::core::ffi::c_int; 4],
-) {
+pub fn vp8_mv_ref_probs_safe(p: &mut [vp8_prob; 4], near_mv_ref_ct: &[::core::ffi::c_int; 4]) {
     p[0] = vp8_mode_contexts[near_mv_ref_ct[0] as usize][0] as vp8_prob;
     p[1] = vp8_mode_contexts[near_mv_ref_ct[1] as usize][1] as vp8_prob;
     p[2] = vp8_mode_contexts[near_mv_ref_ct[2] as usize][2] as vp8_prob;

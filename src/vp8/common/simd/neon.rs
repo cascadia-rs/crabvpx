@@ -143,26 +143,61 @@ impl Simd for Neon {
 // --- Public per-kernel entry points (called from the scalar dispatchers) ---
 
 pub(crate) fn loop_filter_horizontal_edge_neon(
-    s: &mut [u8], s_offset: usize, p: usize, blimit: u8, limit: u8, thresh: u8, count: usize,
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+    count: usize,
 ) {
-    super::kernels::loop_filter_horizontal_edge::<Neon>(s, s_offset, p, blimit, limit, thresh, count);
+    super::kernels::loop_filter_horizontal_edge::<Neon>(
+        s, s_offset, p, blimit, limit, thresh, count,
+    );
 }
 pub(crate) fn loop_filter_vertical_edge_neon(
-    s: &mut [u8], s_offset: usize, p: usize, blimit: u8, limit: u8, thresh: u8, count: usize,
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+    count: usize,
 ) {
     super::kernels::loop_filter_vertical_edge::<Neon>(s, s_offset, p, blimit, limit, thresh, count);
 }
 pub(crate) fn mbloop_filter_horizontal_edge_neon(
-    s: &mut [u8], s_offset: usize, p: usize, blimit: u8, limit: u8, thresh: u8, count: usize,
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+    count: usize,
 ) {
-    super::kernels::mbloop_filter_horizontal_edge::<Neon>(s, s_offset, p, blimit, limit, thresh, count);
+    super::kernels::mbloop_filter_horizontal_edge::<Neon>(
+        s, s_offset, p, blimit, limit, thresh, count,
+    );
 }
 pub(crate) fn mbloop_filter_vertical_edge_neon(
-    s: &mut [u8], s_offset: usize, p: usize, blimit: u8, limit: u8, thresh: u8, count: usize,
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+    count: usize,
 ) {
-    super::kernels::mbloop_filter_vertical_edge::<Neon>(s, s_offset, p, blimit, limit, thresh, count);
+    super::kernels::mbloop_filter_vertical_edge::<Neon>(
+        s, s_offset, p, blimit, limit, thresh, count,
+    );
 }
-pub(crate) fn simple_horizontal_edge_neon(y: &mut [u8], y_offset: usize, stride: usize, blimit: u8) {
+pub(crate) fn simple_horizontal_edge_neon(
+    y: &mut [u8],
+    y_offset: usize,
+    stride: usize,
+    blimit: u8,
+) {
     super::kernels::simple_horizontal_edge::<Neon>(y, y_offset, stride, blimit);
 }
 pub(crate) fn simple_vertical_edge_neon(y: &mut [u8], y_offset: usize, stride: usize, blimit: u8) {
@@ -180,11 +215,17 @@ const SHIFT: i32 = 7;
 const MID_LEN: usize = 21 * 16 + 8;
 
 pub(crate) fn filter_block2d_sixtap_neon(
-    src: &[u8], src_stride: usize, dst: &mut [u8], dst_pitch: usize,
-    width: usize, height: usize, h_filter: &[i16; 6], v_filter: &[i16; 6],
+    src: &[u8],
+    src_stride: usize,
+    dst: &mut [u8],
+    dst_pitch: usize,
+    width: usize,
+    height: usize,
+    h_filter: &[i16; 6],
+    v_filter: &[i16; 6],
 ) {
     let ih = height + 5;
-    let last_base = ((width + 7) / 8 - 1) * 8;
+    let last_base = (width.div_ceil(8) - 1) * 8;
     let req_src = ih.saturating_sub(1) * src_stride + last_base + 13;
     let req_dst = height.saturating_sub(1) * dst_pitch + width;
     if src.len() < req_src || dst.len() < req_dst || width == 0 || height == 0 {
@@ -197,14 +238,23 @@ pub(crate) fn filter_block2d_sixtap_neon(
     // SAFETY: NEON baseline; the length checks above keep every load/store in
     // bounds of `src`, `dst`, and the padded `mid`.
     unsafe {
-        sixtap_impl(src, src_stride, &mut mid, dst, dst_pitch, width, height, h_filter, v_filter);
+        sixtap_impl(
+            src, src_stride, &mut mid, dst, dst_pitch, width, height, h_filter, v_filter,
+        );
     }
 }
 
 #[target_feature(enable = "neon")]
 fn sixtap_impl(
-    src: &[u8], src_stride: usize, mid: &mut [i16], dst: &mut [u8], dst_pitch: usize,
-    width: usize, height: usize, hf: &[i16; 6], vf: &[i16; 6],
+    src: &[u8],
+    src_stride: usize,
+    mid: &mut [i16],
+    dst: &mut [u8],
+    dst_pitch: usize,
+    width: usize,
+    height: usize,
+    hf: &[i16; 6],
+    vf: &[i16; 6],
 ) {
     let ih = height + 5;
     for i in 0..ih {
@@ -224,7 +274,12 @@ fn sixtap_impl(
                     acc_hi = vmlal_s16(acc_hi, vget_high_s16(w), f);
                 }};
             }
-            tap!(0); tap!(1); tap!(2); tap!(3); tap!(4); tap!(5);
+            tap!(0);
+            tap!(1);
+            tap!(2);
+            tap!(3);
+            tap!(4);
+            tap!(5);
             let res = pack_clamped(acc_lo, acc_hi);
             sixtap_store_i16(&mut mid[mout + c..], res, (width - c).min(8));
             c += 8;
@@ -243,7 +298,12 @@ fn sixtap_impl(
                     acc_hi = vmlal_s16(acc_hi, vget_high_s16(m), f);
                 }};
             }
-            vtap!(0); vtap!(1); vtap!(2); vtap!(3); vtap!(4); vtap!(5);
+            vtap!(0);
+            vtap!(1);
+            vtap!(2);
+            vtap!(3);
+            vtap!(4);
+            vtap!(5);
             let res = pack_clamped(acc_lo, acc_hi);
             let bytes = vmovn_u16(vreinterpretq_u16_s16(res));
             sixtap_store_u8(&mut dst[i * dst_pitch + c..], bytes, (width - c).min(8));
@@ -295,7 +355,9 @@ mod tests {
     };
 
     fn lcg(state: &mut u64) -> u8 {
-        *state = state.wrapping_mul(6364136223846793005).wrapping_add(1442695040888963407);
+        *state = state
+            .wrapping_mul(6364136223846793005)
+            .wrapping_add(1442695040888963407);
         (*state >> 33) as u8
     }
 
@@ -308,7 +370,9 @@ mod tests {
                 let vf = &vp8_sub_pel_filters[yo];
                 let mut seed = (xo * 131 + yo * 977 + width * 17 + height) as u64 + 1;
                 let mut src = vec![0u8; src_len];
-                for b in src.iter_mut() { *b = lcg(&mut seed); }
+                for b in src.iter_mut() {
+                    *b = lcg(&mut seed);
+                }
                 let mut a = vec![0u8; height * width];
                 let mut b = vec![0u8; height * width];
                 filter_block2d_sixtap_safe(&src, stride, &mut a, width, width, height, hf, vf);
@@ -331,25 +395,63 @@ mod tests {
         let p = 32usize;
         for trial in 0..200 {
             let mut seed = trial as u64 * 2654435761 + 1;
-            let blimit = vec![(lcg(&mut seed) % 40 + 1); 16];
-            let limit = vec![(lcg(&mut seed) % 20 + 1); 16];
-            let thresh = vec![(lcg(&mut seed) % 16); 16];
+            let blimit = vec![lcg(&mut seed) % 40 + 1; 16];
+            let limit = vec![lcg(&mut seed) % 20 + 1; 16];
+            let thresh = vec![lcg(&mut seed) % 16; 16];
             let mut buf = vec![0u8; 32 * p];
-            for x in buf.iter_mut() { *x = lcg(&mut seed); }
+            for x in buf.iter_mut() {
+                *x = lcg(&mut seed);
+            }
             for count in 1..=2usize {
                 // block edges
-                let (a, b) = run2(&buf, 6 * p + 4, p, &blimit, &limit, &thresh, count,
-                    loop_filter_horizontal_edge_scalar, loop_filter_horizontal_edge_neon);
+                let (a, b) = run2(
+                    &buf,
+                    6 * p + 4,
+                    p,
+                    &blimit,
+                    &limit,
+                    &thresh,
+                    count,
+                    loop_filter_horizontal_edge_scalar,
+                    loop_filter_horizontal_edge_neon,
+                );
                 assert_eq!(a, b, "lf h trial={trial} count={count}");
-                let (a, b) = run2(&buf, 2 * p + 8, p, &blimit, &limit, &thresh, count,
-                    loop_filter_vertical_edge_scalar, loop_filter_vertical_edge_neon);
+                let (a, b) = run2(
+                    &buf,
+                    2 * p + 8,
+                    p,
+                    &blimit,
+                    &limit,
+                    &thresh,
+                    count,
+                    loop_filter_vertical_edge_scalar,
+                    loop_filter_vertical_edge_neon,
+                );
                 assert_eq!(a, b, "lf v trial={trial} count={count}");
                 // MB edges
-                let (a, b) = run2(&buf, 6 * p + 4, p, &blimit, &limit, &thresh, count,
-                    mbloop_filter_horizontal_edge_scalar, mbloop_filter_horizontal_edge_neon);
+                let (a, b) = run2(
+                    &buf,
+                    6 * p + 4,
+                    p,
+                    &blimit,
+                    &limit,
+                    &thresh,
+                    count,
+                    mbloop_filter_horizontal_edge_scalar,
+                    mbloop_filter_horizontal_edge_neon,
+                );
                 assert_eq!(a, b, "mb h trial={trial} count={count}");
-                let (a, b) = run2(&buf, 2 * p + 8, p, &blimit, &limit, &thresh, count,
-                    mbloop_filter_vertical_edge_scalar, mbloop_filter_vertical_edge_neon);
+                let (a, b) = run2(
+                    &buf,
+                    2 * p + 8,
+                    p,
+                    &blimit,
+                    &limit,
+                    &thresh,
+                    count,
+                    mbloop_filter_vertical_edge_scalar,
+                    mbloop_filter_vertical_edge_neon,
+                );
                 assert_eq!(a, b, "mb v trial={trial} count={count}");
             }
         }
@@ -358,14 +460,17 @@ mod tests {
     #[test]
     fn neon_simple_loopfilter_matches_scalar_bit_exact() {
         use crate::vp8::common::loopfilter_filters::{
-            vp8_loop_filter_simple_horizontal_edge_scalar, vp8_loop_filter_simple_vertical_edge_scalar,
+            vp8_loop_filter_simple_horizontal_edge_scalar,
+            vp8_loop_filter_simple_vertical_edge_scalar,
         };
         let stride = 32usize;
         for trial in 0..200 {
             let mut seed = trial as u64 * 1099087573 + 3;
-            let blimit = (lcg(&mut seed) % 60 + 1) as u8;
+            let blimit = lcg(&mut seed) % 60 + 1;
             let mut buf = vec![0u8; 24 * stride];
-            for x in buf.iter_mut() { *x = lcg(&mut seed); }
+            for x in buf.iter_mut() {
+                *x = lcg(&mut seed);
+            }
             // horizontal (off has >= 2 rows above, 16 cols)
             let mut a = buf.clone();
             let mut b = buf.clone();
@@ -383,7 +488,13 @@ mod tests {
 
     #[allow(clippy::too_many_arguments)]
     fn run2(
-        buf: &[u8], off: usize, p: usize, bl: &[u8], li: &[u8], th: &[u8], count: usize,
+        buf: &[u8],
+        off: usize,
+        p: usize,
+        bl: &[u8],
+        li: &[u8],
+        th: &[u8],
+        count: usize,
         scalar: fn(&mut [u8], usize, usize, &[u8], &[u8], &[u8], usize),
         neon: fn(&mut [u8], usize, usize, u8, u8, u8, usize),
     ) -> (Vec<u8>, Vec<u8>) {

@@ -15,9 +15,16 @@ fn clamp_s8<S: Simd>(x: S::I16) -> S::I16 {
 /// 0xFF where the edge should be filtered. Matches `vp8_filter_mask`.
 #[inline(always)]
 fn filter_mask8<S: Simd>(
-    limit: u8, blimit: u8,
-    p3: S::U8, p2: S::U8, p1: S::U8, p0: S::U8,
-    q0: S::U8, q1: S::U8, q2: S::U8, q3: S::U8,
+    limit: u8,
+    blimit: u8,
+    p3: S::U8,
+    p2: S::U8,
+    p1: S::U8,
+    p0: S::U8,
+    q0: S::U8,
+    q1: S::U8,
+    q2: S::U8,
+    q3: S::U8,
 ) -> S::U8 {
     let lim = S::splat_u8(limit);
     let mut v = S::cgt_u8(S::abd_u8(p3, p2), lim);
@@ -39,14 +46,21 @@ fn filter_mask8<S: Simd>(
 #[inline(always)]
 fn hev8<S: Simd>(thresh: u8, p1: S::U8, p0: S::U8, q0: S::U8, q1: S::U8) -> S::U8 {
     let t = S::splat_u8(thresh);
-    S::or_u8(S::cgt_u8(S::abd_u8(p1, p0), t), S::cgt_u8(S::abd_u8(q1, q0), t))
+    S::or_u8(
+        S::cgt_u8(S::abd_u8(p1, p0), t),
+        S::cgt_u8(S::abd_u8(q1, q0), t),
+    )
 }
 
 /// Bit-exact twin of `vp8_filter` (block edge): new (p1,p0,q0,q1).
 #[inline(always)]
 fn normal_filter8<S: Simd>(
-    mask: S::U8, hev: S::U8,
-    p1: S::U8, p0: S::U8, q0: S::U8, q1: S::U8,
+    mask: S::U8,
+    hev: S::U8,
+    p1: S::U8,
+    p0: S::U8,
+    q0: S::U8,
+    q1: S::U8,
 ) -> (S::U8, S::U8, S::U8, S::U8) {
     let ps1 = S::to_signed_i16(p1);
     let ps0 = S::to_signed_i16(p0);
@@ -84,8 +98,14 @@ fn normal_filter8<S: Simd>(
 /// Bit-exact twin of `vp8_mbfilter` (MB edge): new (p2,p1,p0,q0,q1,q2).
 #[inline(always)]
 fn mbfilter8<S: Simd>(
-    mask: S::U8, hev: S::U8,
-    p2: S::U8, p1: S::U8, p0: S::U8, q0: S::U8, q1: S::U8, q2: S::U8,
+    mask: S::U8,
+    hev: S::U8,
+    p2: S::U8,
+    p1: S::U8,
+    p0: S::U8,
+    q0: S::U8,
+    q1: S::U8,
+    q2: S::U8,
 ) -> (S::U8, S::U8, S::U8, S::U8, S::U8, S::U8) {
     let ps2 = S::to_signed_i16(p2);
     let ps1 = S::to_signed_i16(p1);
@@ -144,8 +164,13 @@ fn mbfilter8<S: Simd>(
 // --------------------------------------------------------------------------
 
 pub(crate) fn loop_filter_horizontal_edge<S: Simd>(
-    s: &mut [u8], s_offset: usize, p: usize,
-    blimit: u8, limit: u8, thresh: u8, count: usize,
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+    count: usize,
 ) {
     let base = s.as_mut_ptr();
     for chunk in 0..count {
@@ -173,8 +198,13 @@ pub(crate) fn loop_filter_horizontal_edge<S: Simd>(
 }
 
 pub(crate) fn loop_filter_vertical_edge<S: Simd>(
-    s: &mut [u8], s_offset: usize, p: usize,
-    blimit: u8, limit: u8, thresh: u8, count: usize,
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+    count: usize,
 ) {
     let base = s.as_mut_ptr();
     for chunk in 0..count {
@@ -186,7 +216,9 @@ pub(crate) fn loop_filter_vertical_edge<S: Simd>(
                 r[i] = S::load_u8(base.add(row0 + i * p - 4));
             }
             let t = S::transpose8x8(r);
-            let mask = filter_mask8::<S>(limit, blimit, t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]);
+            let mask = filter_mask8::<S>(
+                limit, blimit, t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7],
+            );
             let hev = hev8::<S>(thresh, t[2], t[3], t[4], t[5]);
             let (n1, n0, m0, m1) = normal_filter8::<S>(mask, hev, t[2], t[3], t[4], t[5]);
             let out = S::transpose8x8([t[0], t[1], n1, n0, m0, m1, t[6], t[7]]);
@@ -198,8 +230,13 @@ pub(crate) fn loop_filter_vertical_edge<S: Simd>(
 }
 
 pub(crate) fn mbloop_filter_horizontal_edge<S: Simd>(
-    s: &mut [u8], s_offset: usize, p: usize,
-    blimit: u8, limit: u8, thresh: u8, count: usize,
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+    count: usize,
 ) {
     let base = s.as_mut_ptr();
     for chunk in 0..count {
@@ -240,7 +277,11 @@ fn simple_filter_mask8<S: Simd>(blimit: u8, p1: S::U8, p0: S::U8, q0: S::U8, q1:
 /// Bit-exact twin of `vp8_simple_filter`: new (p0, q0). p1/q1 are read-only.
 #[inline(always)]
 fn simple_filter8<S: Simd>(
-    mask: S::U8, p1: S::U8, p0: S::U8, q0: S::U8, q1: S::U8,
+    mask: S::U8,
+    p1: S::U8,
+    p0: S::U8,
+    q0: S::U8,
+    q1: S::U8,
 ) -> (S::U8, S::U8) {
     let ps1 = S::to_signed_i16(p1);
     let ps0 = S::to_signed_i16(p0);
@@ -260,7 +301,12 @@ fn simple_filter8<S: Simd>(
 }
 
 /// NEON twin of `vp8_loop_filter_simple_horizontal_edge_safe` (16 px).
-pub(crate) fn simple_horizontal_edge<S: Simd>(y: &mut [u8], y_offset: usize, stride: usize, blimit: u8) {
+pub(crate) fn simple_horizontal_edge<S: Simd>(
+    y: &mut [u8],
+    y_offset: usize,
+    stride: usize,
+    blimit: u8,
+) {
     let base = y.as_mut_ptr();
     for chunk in 0..2 {
         let idx = y_offset + chunk * 8;
@@ -280,7 +326,12 @@ pub(crate) fn simple_horizontal_edge<S: Simd>(y: &mut [u8], y_offset: usize, str
 }
 
 /// NEON twin of `vp8_loop_filter_simple_vertical_edge_safe` (16 px).
-pub(crate) fn simple_vertical_edge<S: Simd>(y: &mut [u8], y_offset: usize, stride: usize, blimit: u8) {
+pub(crate) fn simple_vertical_edge<S: Simd>(
+    y: &mut [u8],
+    y_offset: usize,
+    stride: usize,
+    blimit: u8,
+) {
     let base = y.as_mut_ptr();
     for chunk in 0..2 {
         let row0 = y_offset + chunk * 8 * stride;
@@ -303,8 +354,13 @@ pub(crate) fn simple_vertical_edge<S: Simd>(y: &mut [u8], y_offset: usize, strid
 }
 
 pub(crate) fn mbloop_filter_vertical_edge<S: Simd>(
-    s: &mut [u8], s_offset: usize, p: usize,
-    blimit: u8, limit: u8, thresh: u8, count: usize,
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+    count: usize,
 ) {
     let base = s.as_mut_ptr();
     for chunk in 0..count {
@@ -316,9 +372,12 @@ pub(crate) fn mbloop_filter_vertical_edge<S: Simd>(
                 r[i] = S::load_u8(base.add(row0 + i * p - 4));
             }
             let t = S::transpose8x8(r);
-            let mask = filter_mask8::<S>(limit, blimit, t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7]);
+            let mask = filter_mask8::<S>(
+                limit, blimit, t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7],
+            );
             let hev = hev8::<S>(thresh, t[2], t[3], t[4], t[5]);
-            let (r2, r1, r0, s0, s1, s2) = mbfilter8::<S>(mask, hev, t[1], t[2], t[3], t[4], t[5], t[6]);
+            let (r2, r1, r0, s0, s1, s2) =
+                mbfilter8::<S>(mask, hev, t[1], t[2], t[3], t[4], t[5], t[6]);
             let out = S::transpose8x8([t[0], r2, r1, r0, s0, s1, s2, t[7]]);
             for i in 0..8 {
                 S::store_u8(base.add(row0 + i * p - 4), out[i]);

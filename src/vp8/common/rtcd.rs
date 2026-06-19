@@ -11,4 +11,3 @@ pub fn vp8_rtcd() {
         setup_rtcd_internal();
     });
 }
-

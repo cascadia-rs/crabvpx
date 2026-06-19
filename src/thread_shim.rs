@@ -1,5 +1,4 @@
-use std::sync::{Mutex, Condvar};
-
+use std::sync::{Condvar, Mutex};
 
 // Opaque struct for semaphore
 pub struct Semaphore {
@@ -29,8 +28,3 @@ impl Semaphore {
         self.cond.notify_one();
     }
 }
-
-
-
-
-

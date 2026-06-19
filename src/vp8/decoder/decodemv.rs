@@ -1,10 +1,14 @@
+use crate::vp8::common::entropymode::{
+    vp8_bmode_tree, vp8_kf_bmode_prob, vp8_kf_uv_mode_prob, vp8_kf_ymode_prob, vp8_kf_ymode_tree,
+    vp8_small_mvtree, vp8_uv_mode_tree, vp8_ymode_tree,
+};
 use crate::vp8::common::entropymv::vp8_mv_update_probs;
 use crate::vp8::decoder::dboolhuff::SafeBoolDecoder;
-use crate::vp8::common::entropymode::{vp8_bmode_tree, vp8_ymode_tree, vp8_kf_ymode_tree, vp8_uv_mode_tree, vp8_small_mvtree, vp8_kf_bmode_prob, vp8_kf_uv_mode_prob, vp8_kf_ymode_prob};
 
-
+use crate::vp8::common::findnearmv::{
+    LEFT_TOP_MARGIN, RIGHT_BOTTOM_MARGIN, vp8_clamp_mv2, vp8_mbsplit_offset,
+};
 use crate::vp8::common::modecont::vp8_mode_contexts;
-use crate::vp8::common::findnearmv::{vp8_mbsplit_offset, vp8_clamp_mv2, LEFT_TOP_MARGIN, RIGHT_BOTTOM_MARGIN};
 
 pub type vpx_color_space = ::core::ffi::c_uint;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
@@ -53,7 +57,6 @@ pub const vp8_prob_half: vp8_prob = 128 as ::core::ffi::c_int as vp8_prob;
 pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
     ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
 
-
 #[inline]
 fn mv_bias(
     refmb_ref_frame_sign_bias: ::core::ffi::c_int,
@@ -62,10 +65,10 @@ fn mv_bias(
     ref_frame_sign_bias: &[::core::ffi::c_int; 4],
 ) {
     if refmb_ref_frame_sign_bias != ref_frame_sign_bias[refframe as usize] {
-        mvp.row = (mvp.row as ::core::ffi::c_int * -(1 as ::core::ffi::c_int))
-            as ::core::ffi::c_short;
-        mvp.col = (mvp.col as ::core::ffi::c_int * -(1 as ::core::ffi::c_int))
-            as ::core::ffi::c_short;
+        mvp.row =
+            (mvp.row as ::core::ffi::c_int * -(1 as ::core::ffi::c_int)) as ::core::ffi::c_short;
+        mvp.col =
+            (mvp.col as ::core::ffi::c_int * -(1 as ::core::ffi::c_int)) as ::core::ffi::c_short;
     }
 }
 
@@ -78,22 +81,18 @@ fn vp8_check_mv_bounds(
     mb_to_bottom_edge: ::core::ffi::c_int,
 ) -> ::core::ffi::c_uint {
     let mut need_to_clamp: ::core::ffi::c_uint = 0;
-    need_to_clamp = ((mv.col as ::core::ffi::c_int) < mb_to_left_edge)
-        as ::core::ffi::c_int as ::core::ffi::c_uint;
-    need_to_clamp |= (mv.col as ::core::ffi::c_int > mb_to_right_edge)
-        as ::core::ffi::c_int as ::core::ffi::c_uint;
-    need_to_clamp |= ((mv.row as ::core::ffi::c_int) < mb_to_top_edge)
-        as ::core::ffi::c_int as ::core::ffi::c_uint;
-    need_to_clamp |= (mv.row as ::core::ffi::c_int > mb_to_bottom_edge)
-        as ::core::ffi::c_int as ::core::ffi::c_uint;
-    return need_to_clamp;
+    need_to_clamp = ((mv.col as ::core::ffi::c_int) < mb_to_left_edge) as ::core::ffi::c_int
+        as ::core::ffi::c_uint;
+    need_to_clamp |= (mv.col as ::core::ffi::c_int > mb_to_right_edge) as ::core::ffi::c_int
+        as ::core::ffi::c_uint;
+    need_to_clamp |= ((mv.row as ::core::ffi::c_int) < mb_to_top_edge) as ::core::ffi::c_int
+        as ::core::ffi::c_uint;
+    need_to_clamp |= (mv.row as ::core::ffi::c_int > mb_to_bottom_edge) as ::core::ffi::c_int
+        as ::core::ffi::c_uint;
+    need_to_clamp
 }
 #[inline]
-fn left_block_mode(
-    mip_slice: &[MODE_INFO],
-    cur_idx: usize,
-    b: usize,
-) -> B_PREDICTION_MODE {
+fn left_block_mode(mip_slice: &[MODE_INFO], cur_idx: usize, b: usize) -> B_PREDICTION_MODE {
     if b & 3 == 0 {
         let left_mb = &mip_slice[cur_idx - 1];
         match left_mb.mbmi.mode as ::core::ffi::c_int {
@@ -131,11 +130,7 @@ fn above_block_mode(
         cur_mb.bmi[b - 4].mode()
     }
 }
-fn safe_treed_read(
-    r: &mut SafeBoolDecoder,
-    t: &[vp8_tree_index],
-    p: &[vp8_prob],
-) -> i32 {
+fn safe_treed_read(r: &mut SafeBoolDecoder, t: &[vp8_tree_index], p: &[vp8_prob]) -> i32 {
     let mut i: usize = 0;
     loop {
         let prob = p[i >> 1];
@@ -148,31 +143,19 @@ fn safe_treed_read(
     }
 }
 
-fn read_bmode(
-    bc: &mut SafeBoolDecoder,
-    p: &[vp8_prob],
-) -> B_PREDICTION_MODE {
+fn read_bmode(bc: &mut SafeBoolDecoder, p: &[vp8_prob]) -> B_PREDICTION_MODE {
     safe_treed_read(bc, &vp8_bmode_tree, p) as B_PREDICTION_MODE
 }
 
-fn read_ymode(
-    bc: &mut SafeBoolDecoder,
-    p: &[vp8_prob],
-) -> MB_PREDICTION_MODE {
+fn read_ymode(bc: &mut SafeBoolDecoder, p: &[vp8_prob]) -> MB_PREDICTION_MODE {
     safe_treed_read(bc, &vp8_ymode_tree, p) as MB_PREDICTION_MODE
 }
 
-fn read_kf_ymode(
-    bc: &mut SafeBoolDecoder,
-    p: &[vp8_prob],
-) -> MB_PREDICTION_MODE {
+fn read_kf_ymode(bc: &mut SafeBoolDecoder, p: &[vp8_prob]) -> MB_PREDICTION_MODE {
     safe_treed_read(bc, &vp8_kf_ymode_tree, p) as MB_PREDICTION_MODE
 }
 
-fn read_uv_mode(
-    bc: &mut SafeBoolDecoder,
-    p: &[vp8_prob],
-) -> MB_PREDICTION_MODE {
+fn read_uv_mode(bc: &mut SafeBoolDecoder, p: &[vp8_prob]) -> MB_PREDICTION_MODE {
     safe_treed_read(bc, &vp8_uv_mode_tree, p) as MB_PREDICTION_MODE
 }
 
@@ -187,7 +170,8 @@ fn read_kf_modes(
     if mip_slice[cur_idx].mbmi.mode as ::core::ffi::c_int == B_PRED as ::core::ffi::c_int {
         mip_slice[cur_idx].mbmi.is_4x4 = 1 as uint8_t;
         for i in 0..16usize {
-            let A: B_PREDICTION_MODE = above_block_mode(mip_slice, cur_idx, mis, i) as B_PREDICTION_MODE;
+            let A: B_PREDICTION_MODE =
+                above_block_mode(mip_slice, cur_idx, mis, i) as B_PREDICTION_MODE;
             let L: B_PREDICTION_MODE = left_block_mode(mip_slice, cur_idx, i) as B_PREDICTION_MODE;
             mip_slice[cur_idx].bmi[i].set_mode(read_bmode(
                 safe_decoder,
@@ -195,13 +179,9 @@ fn read_kf_modes(
             ));
         }
     }
-    mip_slice[cur_idx].mbmi.uv_mode =
-        read_uv_mode(safe_decoder, &vp8_kf_uv_mode_prob) as uint8_t;
+    mip_slice[cur_idx].mbmi.uv_mode = read_uv_mode(safe_decoder, &vp8_kf_uv_mode_prob) as uint8_t;
 }
-fn read_mvcomponent(
-    r: &mut SafeBoolDecoder,
-    mvc: &MV_CONTEXT,
-) -> i32 {
+fn read_mvcomponent(r: &mut SafeBoolDecoder, mvc: &MV_CONTEXT) -> i32 {
     let p = &mvc.prob;
     let mut x: i32 = 0;
     if r.read_bool(p[mvpis_short as usize] as i32) != 0 {
@@ -446,10 +426,16 @@ fn decode_split_mv(
             if safe_decoder.read_bool(prob[1] as i32) != 0 {
                 blockmv = int_mv::default();
                 if safe_decoder.read_bool(prob[2] as i32) != 0 {
-                    blockmv.as_mv_mut().row = (read_mvcomponent(safe_decoder, &mvc[0]) * 2) as ::core::ffi::c_short;
-                    blockmv.as_mv_mut().row = (blockmv.as_mv().row as ::core::ffi::c_int + best_mv.as_mv().row as ::core::ffi::c_int) as ::core::ffi::c_short;
-                    blockmv.as_mv_mut().col = (read_mvcomponent(safe_decoder, &mvc[1]) * 2) as ::core::ffi::c_short;
-                    blockmv.as_mv_mut().col = (blockmv.as_mv().col as ::core::ffi::c_int + best_mv.as_mv().col as ::core::ffi::c_int) as ::core::ffi::c_short;
+                    blockmv.as_mv_mut().row =
+                        (read_mvcomponent(safe_decoder, &mvc[0]) * 2) as ::core::ffi::c_short;
+                    blockmv.as_mv_mut().row = (blockmv.as_mv().row as ::core::ffi::c_int
+                        + best_mv.as_mv().row as ::core::ffi::c_int)
+                        as ::core::ffi::c_short;
+                    blockmv.as_mv_mut().col =
+                        (read_mvcomponent(safe_decoder, &mvc[1]) * 2) as ::core::ffi::c_short;
+                    blockmv.as_mv_mut().col = (blockmv.as_mv().col as ::core::ffi::c_int
+                        + best_mv.as_mv().col as ::core::ffi::c_int)
+                        as ::core::ffi::c_short;
                 }
             } else {
                 blockmv = abovemv;
@@ -467,12 +453,13 @@ fn decode_split_mv(
             )) as uint8_t;
         let fill_count = mbsplit_fill_count[s as usize] as usize;
         let offset_start = (j as usize) * fill_count;
-        let fill_offsets = &mbsplit_fill_offset[s as usize][offset_start..offset_start + fill_count];
+        let fill_offsets =
+            &mbsplit_fill_offset[s as usize][offset_start..offset_start + fill_count];
         for &idx in fill_offsets {
             mi.bmi[idx as usize].mv = blockmv;
         }
         j += 1;
-        if !(j < num_p) {
+        if j >= num_p {
             break;
         }
     }
@@ -492,7 +479,8 @@ fn read_mb_modes_mv(
     let aboveleft_mi = &prev_mips[prev_mips.len() - mis - 1];
     let ref_frame_sign_bias = &pbi.common.ref_frame_sign_bias;
 
-    cur_mi.mbmi.ref_frame = safe_decoder.read_bool(pbi.prob_intra as i32) as MV_REFERENCE_FRAME as uint8_t;
+    cur_mi.mbmi.ref_frame =
+        safe_decoder.read_bool(pbi.prob_intra as i32) as MV_REFERENCE_FRAME as uint8_t;
     if cur_mi.mbmi.ref_frame != 0 {
         let mut cnt: [::core::ffi::c_int; 4] = [0; 4];
         let mut cntx_idx: usize = 0;
@@ -558,23 +546,19 @@ fn read_mb_modes_mv(
                 cnt[CNT_INTRA as usize] += 1;
             }
         }
-        if safe_decoder.read_bool(
-            vp8_mode_contexts[cnt[CNT_INTRA as usize] as usize][0] as i32,
-        ) != 0 {
+        if safe_decoder.read_bool(vp8_mode_contexts[cnt[CNT_INTRA as usize] as usize][0]) != 0 {
             cnt[CNT_NEAREST as usize] += (cnt[CNT_SPLITMV as usize] > 0) as ::core::ffi::c_int
-                & (near_mvs[nmv_idx].as_int() == near_mvs[CNT_NEAREST as usize].as_int()) as ::core::ffi::c_int;
+                & (near_mvs[nmv_idx].as_int() == near_mvs[CNT_NEAREST as usize].as_int())
+                    as ::core::ffi::c_int;
             if cnt[CNT_NEAR as usize] > cnt[CNT_NEAREST as usize] {
-                let tmp_cnt = cnt[CNT_NEAREST as usize];
-                cnt[CNT_NEAREST as usize] = cnt[CNT_NEAR as usize];
-                cnt[CNT_NEAR as usize] = tmp_cnt;
+                cnt.swap(CNT_NEAREST as usize, CNT_NEAR as usize);
                 near_mvs.swap(CNT_NEAREST as usize, CNT_NEAR as usize);
             }
-            if safe_decoder.read_bool(
-                vp8_mode_contexts[cnt[CNT_NEAREST as usize] as usize][1] as i32,
-            ) != 0 {
-                if safe_decoder.read_bool(
-                    vp8_mode_contexts[cnt[CNT_NEAR as usize] as usize][2] as i32,
-                ) != 0 {
+            if safe_decoder.read_bool(vp8_mode_contexts[cnt[CNT_NEAREST as usize] as usize][1]) != 0
+            {
+                if safe_decoder.read_bool(vp8_mode_contexts[cnt[CNT_NEAR as usize] as usize][2])
+                    != 0
+                {
                     let mvc = &pbi.common.fc.mvc;
                     let mb_to_top_edge = pbi.mb.mb_to_top_edge - LEFT_TOP_MARGIN;
                     let mb_to_bottom_edge = pbi.mb.mb_to_bottom_edge + RIGHT_BOTTOM_MARGIN;
@@ -585,13 +569,20 @@ fn read_mb_modes_mv(
                         + (cnt[CNT_NEAREST as usize] >= cnt[CNT_INTRA as usize]) as usize;
                     vp8_clamp_mv2(near_mvs[near_index].as_mv_mut(), &pbi.mb);
 
-                    cnt[CNT_SPLITMV as usize] = ((above_mi.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int
-                        + (left_mi.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int) * 2
-                        + (aboveleft_mi.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int) as ::core::ffi::c_int;
+                    cnt[CNT_SPLITMV as usize] = ((above_mi.mbmi.mode as ::core::ffi::c_int
+                        == SPLITMV as ::core::ffi::c_int)
+                        as ::core::ffi::c_int
+                        + (left_mi.mbmi.mode as ::core::ffi::c_int == SPLITMV as ::core::ffi::c_int)
+                            as ::core::ffi::c_int)
+                        * 2
+                        + (aboveleft_mi.mbmi.mode as ::core::ffi::c_int
+                            == SPLITMV as ::core::ffi::c_int)
+                            as ::core::ffi::c_int;
 
-                    if safe_decoder.read_bool(
-                        vp8_mode_contexts[cnt[CNT_SPLITMV as usize] as usize][3] as i32,
-                    ) != 0 {
+                    if safe_decoder
+                        .read_bool(vp8_mode_contexts[cnt[CNT_SPLITMV as usize] as usize][3])
+                        != 0
+                    {
                         decode_split_mv(
                             safe_decoder,
                             cur_mi,
@@ -609,8 +600,14 @@ fn read_mb_modes_mv(
                         cur_mi.mbmi.is_4x4 = 1;
                     } else {
                         read_mv(safe_decoder, cur_mi.mbmi.mv.as_mv_mut(), mvc);
-                        cur_mi.mbmi.mv.as_mv_mut().row = (cur_mi.mbmi.mv.as_mv().row as ::core::ffi::c_int + near_mvs[near_index].as_mv().row as ::core::ffi::c_int) as ::core::ffi::c_short;
-                        cur_mi.mbmi.mv.as_mv_mut().col = (cur_mi.mbmi.mv.as_mv().col as ::core::ffi::c_int + near_mvs[near_index].as_mv().col as ::core::ffi::c_int) as ::core::ffi::c_short;
+                        cur_mi.mbmi.mv.as_mv_mut().row = (cur_mi.mbmi.mv.as_mv().row
+                            as ::core::ffi::c_int
+                            + near_mvs[near_index].as_mv().row as ::core::ffi::c_int)
+                            as ::core::ffi::c_short;
+                        cur_mi.mbmi.mv.as_mv_mut().col = (cur_mi.mbmi.mv.as_mv().col
+                            as ::core::ffi::c_int
+                            + near_mvs[near_index].as_mv().col as ::core::ffi::c_int)
+                            as ::core::ffi::c_short;
                         cur_mi.mbmi.need_to_clamp_mvs = vp8_check_mv_bounds(
                             &cur_mi.mbmi.mv.as_mv(),
                             mb_to_left_edge,
@@ -646,16 +643,13 @@ fn read_mb_modes_mv(
         cur_mi.mbmi.uv_mode = read_uv_mode(safe_decoder, &pbi.common.fc.uv_mode_prob) as uint8_t;
     }
 }
-fn read_mb_features(
-    safe_decoder: &mut SafeBoolDecoder,
-    mi: &mut MB_MODE_INFO,
-    x: &MACROBLOCKD,
-) {
+fn read_mb_features(safe_decoder: &mut SafeBoolDecoder, mi: &mut MB_MODE_INFO, x: &MACROBLOCKD) {
     if x.segmentation_enabled as ::core::ffi::c_int != 0
         && x.update_mb_segmentation_map as ::core::ffi::c_int != 0
     {
         if safe_decoder.read_bool(x.mb_segment_tree_probs[0] as i32) != 0 {
-            mi.segment_id = (2 + safe_decoder.read_bool(x.mb_segment_tree_probs[2] as i32)) as uint8_t;
+            mi.segment_id =
+                (2 + safe_decoder.read_bool(x.mb_segment_tree_probs[2] as i32)) as uint8_t;
         } else {
             mi.segment_id = safe_decoder.read_bool(x.mb_segment_tree_probs[1] as i32) as uint8_t;
         }
@@ -668,18 +662,15 @@ fn decode_mb_mode_mvs(
     safe_decoder: &mut SafeBoolDecoder,
 ) {
     if pbi.mb.update_mb_segmentation_map != 0 {
-        read_mb_features(
-            safe_decoder,
-            &mut mip_slice[cur_idx].mbmi,
-            &pbi.mb,
-        );
+        read_mb_features(safe_decoder, &mut mip_slice[cur_idx].mbmi, &pbi.mb);
     } else if pbi.common.frame_type as ::core::ffi::c_uint
         == KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
     {
         mip_slice[cur_idx].mbmi.segment_id = 0 as uint8_t;
     }
     if pbi.common.mb_no_coeff_skip != 0 {
-        mip_slice[cur_idx].mbmi.mb_skip_coeff = safe_decoder.read_bool(pbi.prob_skip_false as i32) as uint8_t;
+        mip_slice[cur_idx].mbmi.mb_skip_coeff =
+            safe_decoder.read_bool(pbi.prob_skip_false as i32) as uint8_t;
     } else {
         mip_slice[cur_idx].mbmi.mb_skip_coeff = 0 as uint8_t;
     }
@@ -687,7 +678,12 @@ fn decode_mb_mode_mvs(
     if pbi.common.frame_type as ::core::ffi::c_uint
         == KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
     {
-        read_kf_modes(pbi.common.mode_info_stride as usize, mip_slice, cur_idx, safe_decoder);
+        read_kf_modes(
+            pbi.common.mode_info_stride as usize,
+            mip_slice,
+            cur_idx,
+            safe_decoder,
+        );
     } else {
         read_mb_modes_mv(pbi, mip_slice, cur_idx, safe_decoder);
     };
@@ -713,7 +709,7 @@ pub fn vp8_decode_mode_mvs(
         << 3 as ::core::ffi::c_int;
     loop {
         mb_row += 1;
-        if !(mb_row < pbi.common.mb_rows) {
+        if mb_row >= pbi.common.mb_rows {
             break;
         }
         let mut mb_col: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
@@ -721,7 +717,7 @@ pub fn vp8_decode_mode_mvs(
         pbi.mb.mb_to_right_edge = mb_to_right_edge_start;
         loop {
             mb_col += 1;
-            if !(mb_col < pbi.common.mb_cols) {
+            if mb_col >= pbi.common.mb_cols {
                 break;
             }
             decode_mb_mode_mvs(&*pbi, mip_slice, cur_idx, safe_decoder);

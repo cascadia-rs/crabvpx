@@ -63,8 +63,16 @@ impl<'a> Image<'a> {
         for (plane_idx, plane_type) in [(0, Plane::Y), (1, Plane::U), (2, Plane::V)] {
             if let Some(plane_data) = self.plane(plane_type) {
                 let stride = self.strides[plane_idx];
-                let w = if plane_idx == 0 { self.d_w as usize } else { ((self.d_w + 1) >> 1) as usize };
-                let h = if plane_idx == 0 { self.d_h as usize } else { ((self.d_h + 1) >> 1) as usize };
+                let w = if plane_idx == 0 {
+                    self.d_w as usize
+                } else {
+                    ((self.d_w + 1) >> 1) as usize
+                };
+                let h = if plane_idx == 0 {
+                    self.d_h as usize
+                } else {
+                    ((self.d_h + 1) >> 1) as usize
+                };
 
                 for row in 0..h {
                     let start = row * stride;
@@ -106,7 +114,9 @@ impl std::error::Error for DecodeError {}
 /// (e.g., VP8, VP9, AV1, H264).
 pub trait Decoder {
     /// The decoded frame representation.
-    type Frame<'a> where Self: 'a;
+    type Frame<'a>
+    where
+        Self: 'a;
     /// The error representation.
     type Error;
 
@@ -151,18 +161,12 @@ impl Decoder for Vp8Decoder {
     }
 
     fn decode(&mut self, payload: &[u8]) -> Result<(), Self::Error> {
-        let inst = self
-            .instance
-            .as_mut()
-            .ok_or(DecodeError::NotInitialized)?;
+        let inst = self.instance.as_mut().ok_or(DecodeError::NotInitialized)?;
         inst.decode(payload)
     }
 
     fn get_frame<'a>(&'a mut self) -> Result<Option<Self::Frame<'a>>, Self::Error> {
-        let inst = self
-            .instance
-            .as_mut()
-            .ok_or(DecodeError::NotInitialized)?;
+        let inst = self.instance.as_mut().ok_or(DecodeError::NotInitialized)?;
         if let Some((cfg, width, height)) = inst.get_frame() {
             let (y_plane, u_plane, v_plane) = cfg.views();
             let alpha_plane = None;

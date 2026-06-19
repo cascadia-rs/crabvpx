@@ -2,8 +2,6 @@
 // This file provides safe Rust interfaces to the unsafe FFI predictor functions.
 // It performs necessary bounds checks prior to calling the unsafe FFI.
 
-
-
 // Helper macros or functions for assertions
 
 #[inline(always)]
@@ -19,11 +17,21 @@ fn assert_bilinear_bounds(
 ) {
     // H * stride + W + 1
     let req_src_len = src_offset + h * src_stride + w + 1;
-    assert!(src_len >= req_src_len, "Bilinear src out of bounds: len={}, req={}", src_len, req_src_len);
-    
+    assert!(
+        src_len >= req_src_len,
+        "Bilinear src out of bounds: len={}, req={}",
+        src_len,
+        req_src_len
+    );
+
     // (H - 1) * dst_stride + W
     let req_dst_len = dst_offset + (h - 1) * dst_stride + w;
-    assert!(dst_len >= req_dst_len, "Bilinear dst out of bounds: len={}, req={}", dst_len, req_dst_len);
+    assert!(
+        dst_len >= req_dst_len,
+        "Bilinear dst out of bounds: len={}, req={}",
+        dst_len,
+        req_dst_len
+    );
 }
 
 #[inline(always)]
@@ -39,15 +47,30 @@ fn assert_sixtap_bounds(
 ) {
     // min_idx = -2 * stride - 2
     let min_idx = src_offset as isize - 2 * src_stride as isize - 2;
-    assert!(min_idx >= 0, "Sixtap src negative offset out of bounds: offset={}, min_idx={}", src_offset, min_idx);
-    
+    assert!(
+        min_idx >= 0,
+        "Sixtap src negative offset out of bounds: offset={}, min_idx={}",
+        src_offset,
+        min_idx
+    );
+
     // max_idx = (H + 2) * stride + W + 2
     let req_src_len = src_offset + (h + 2) * src_stride + w + 3; // +3 because max_idx is size - 1
-    assert!(src_len >= req_src_len, "Sixtap src out of bounds: len={}, req={}", src_len, req_src_len);
-    
+    assert!(
+        src_len >= req_src_len,
+        "Sixtap src out of bounds: len={}, req={}",
+        src_len,
+        req_src_len
+    );
+
     // (H - 1) * dst_stride + W
     let req_dst_len = dst_offset + (h - 1) * dst_stride + w;
-    assert!(dst_len >= req_dst_len, "Sixtap dst out of bounds: len={}, req={}", dst_len, req_dst_len);
+    assert!(
+        dst_len >= req_dst_len,
+        "Sixtap dst out of bounds: len={}, req={}",
+        dst_len,
+        req_dst_len
+    );
 }
 
 // Safe Bilinear Wrappers
@@ -77,10 +100,10 @@ pub fn safe_vp8_bilinear_predict16x16_neon(
         let dst_stride_usize = dst_stride as usize;
         let h_filter = &crate::vp8::common::filter::vp8_bilinear_filters[xoffset as usize];
         let v_filter = &crate::vp8::common::filter::vp8_bilinear_filters[yoffset as usize];
-        
+
         let src_slice = &src[src_offset..];
         let dst_slice = &mut dst[dst_offset..];
-        
+
         crate::vp8::common::filter::filter_block2d_bil_safe(
             src_slice,
             stride,
@@ -119,10 +142,10 @@ pub fn safe_vp8_bilinear_predict8x8_neon(
         let dst_stride_usize = dst_stride as usize;
         let h_filter = &crate::vp8::common::filter::vp8_bilinear_filters[xoffset as usize];
         let v_filter = &crate::vp8::common::filter::vp8_bilinear_filters[yoffset as usize];
-        
+
         let src_slice = &src[src_offset..];
         let dst_slice = &mut dst[dst_offset..];
-        
+
         crate::vp8::common::filter::filter_block2d_bil_safe(
             src_slice,
             stride,
@@ -161,10 +184,10 @@ pub fn safe_vp8_bilinear_predict8x4_neon(
         let dst_stride_usize = dst_stride as usize;
         let h_filter = &crate::vp8::common::filter::vp8_bilinear_filters[xoffset as usize];
         let v_filter = &crate::vp8::common::filter::vp8_bilinear_filters[yoffset as usize];
-        
+
         let src_slice = &src[src_offset..];
         let dst_slice = &mut dst[dst_offset..];
-        
+
         crate::vp8::common::filter::filter_block2d_bil_safe(
             src_slice,
             stride,
@@ -203,10 +226,10 @@ pub fn safe_vp8_bilinear_predict4x4_neon(
         let dst_stride_usize = dst_stride as usize;
         let h_filter = &crate::vp8::common::filter::vp8_bilinear_filters[xoffset as usize];
         let v_filter = &crate::vp8::common::filter::vp8_bilinear_filters[yoffset as usize];
-        
+
         let src_slice = &src[src_offset..];
         let dst_slice = &mut dst[dst_offset..];
-        
+
         crate::vp8::common::filter::filter_block2d_bil_safe(
             src_slice,
             stride,
@@ -275,11 +298,11 @@ pub fn safe_vp8_sixtap_predict16x16_neon(
         let dst_stride_usize = dst_stride as usize;
         let h_filter = &crate::vp8::common::filter::vp8_sub_pel_filters[xoffset as usize];
         let v_filter = &crate::vp8::common::filter::vp8_sub_pel_filters[yoffset as usize];
-        
+
         let offset = src_offset as isize - 2 * stride as isize - 2;
         let src_slice = &src[offset as usize..];
         let dst_slice = &mut dst[dst_offset..];
-        
+
         sixtap_dispatch(
             src_slice,
             stride,
@@ -318,11 +341,11 @@ pub fn safe_vp8_sixtap_predict8x8_neon(
         let dst_stride_usize = dst_stride as usize;
         let h_filter = &crate::vp8::common::filter::vp8_sub_pel_filters[xoffset as usize];
         let v_filter = &crate::vp8::common::filter::vp8_sub_pel_filters[yoffset as usize];
-        
+
         let offset = src_offset as isize - 2 * stride as isize - 2;
         let src_slice = &src[offset as usize..];
         let dst_slice = &mut dst[dst_offset..];
-        
+
         sixtap_dispatch(
             src_slice,
             stride,
@@ -361,11 +384,11 @@ pub fn safe_vp8_sixtap_predict8x4_neon(
         let dst_stride_usize = dst_stride as usize;
         let h_filter = &crate::vp8::common::filter::vp8_sub_pel_filters[xoffset as usize];
         let v_filter = &crate::vp8::common::filter::vp8_sub_pel_filters[yoffset as usize];
-        
+
         let offset = src_offset as isize - 2 * stride as isize - 2;
         let src_slice = &src[offset as usize..];
         let dst_slice = &mut dst[dst_offset..];
-        
+
         sixtap_dispatch(
             src_slice,
             stride,
@@ -404,11 +427,11 @@ pub fn safe_vp8_sixtap_predict4x4_neon(
         let dst_stride_usize = dst_stride as usize;
         let h_filter = &crate::vp8::common::filter::vp8_sub_pel_filters[xoffset as usize];
         let v_filter = &crate::vp8::common::filter::vp8_sub_pel_filters[yoffset as usize];
-        
+
         let offset = src_offset as isize - 2 * stride as isize - 2;
         let src_slice = &src[offset as usize..];
         let dst_slice = &mut dst[dst_offset..];
-        
+
         sixtap_dispatch(
             src_slice,
             stride,

@@ -1,4 +1,3 @@
-
 pub type __darwin_ptrdiff_t = isize;
 pub type __darwin_size_t = usize;
 pub type ptrdiff_t = __darwin_ptrdiff_t;
@@ -22,7 +21,6 @@ pub const VPX_CS_BT_709: vpx_color_space = 2;
 pub const VPX_CS_BT_601: vpx_color_space = 1;
 pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
 
-
 pub fn vp8_build_intra_predictors_mby_safe(
     mode: MB_PREDICTION_MODE,
     left_available: i32,
@@ -41,11 +39,7 @@ pub fn vp8_build_intra_predictors_mby_safe(
             );
         }
         H_PRED => {
-            crate::vpx_dsp::intrapred::vpx_h_predictor_16x16_safe(
-                ypred_slice,
-                y_stride,
-                yleft,
-            );
+            crate::vpx_dsp::intrapred::vpx_h_predictor_16x16_safe(ypred_slice, y_stride, yleft);
         }
         TM_PRED => {
             crate::vpx_dsp::intrapred::vpx_tm_predictor_16x16_safe(
@@ -60,16 +54,32 @@ pub fn vp8_build_intra_predictors_mby_safe(
             debug_assert_eq!(mode, DC_PRED);
             match (left_available != 0, up_available != 0) {
                 (false, false) => {
-                    crate::vpx_dsp::intrapred::vpx_dc_128_predictor_16x16_safe(ypred_slice, y_stride);
+                    crate::vpx_dsp::intrapred::vpx_dc_128_predictor_16x16_safe(
+                        ypred_slice,
+                        y_stride,
+                    );
                 }
                 (false, true) => {
-                    crate::vpx_dsp::intrapred::vpx_dc_top_predictor_16x16_safe(ypred_slice, y_stride, &yabove[1..]);
+                    crate::vpx_dsp::intrapred::vpx_dc_top_predictor_16x16_safe(
+                        ypred_slice,
+                        y_stride,
+                        &yabove[1..],
+                    );
                 }
                 (true, false) => {
-                    crate::vpx_dsp::intrapred::vpx_dc_left_predictor_16x16_safe(ypred_slice, y_stride, yleft);
+                    crate::vpx_dsp::intrapred::vpx_dc_left_predictor_16x16_safe(
+                        ypred_slice,
+                        y_stride,
+                        yleft,
+                    );
                 }
                 (true, true) => {
-                    crate::vpx_dsp::intrapred::vpx_dc_predictor_16x16_safe(ypred_slice, y_stride, &yabove[1..], yleft);
+                    crate::vpx_dsp::intrapred::vpx_dc_predictor_16x16_safe(
+                        ypred_slice,
+                        y_stride,
+                        &yabove[1..],
+                        yleft,
+                    );
                 }
             }
         }
@@ -101,16 +111,8 @@ pub fn vp8_build_intra_predictors_mbuv_safe(
             );
         }
         H_PRED => {
-            crate::vpx_dsp::intrapred::vpx_h_predictor_8x8_safe(
-                upred_slice,
-                uv_stride,
-                uleft,
-            );
-            crate::vpx_dsp::intrapred::vpx_h_predictor_8x8_safe(
-                vpred_slice,
-                uv_stride,
-                vleft,
-            );
+            crate::vpx_dsp::intrapred::vpx_h_predictor_8x8_safe(upred_slice, uv_stride, uleft);
+            crate::vpx_dsp::intrapred::vpx_h_predictor_8x8_safe(vpred_slice, uv_stride, vleft);
         }
         TM_PRED => {
             crate::vpx_dsp::intrapred::vpx_tm_predictor_8x8_safe(
@@ -132,20 +134,52 @@ pub fn vp8_build_intra_predictors_mbuv_safe(
             debug_assert_eq!(uvmode, DC_PRED);
             match (left_available != 0, up_available != 0) {
                 (false, false) => {
-                    crate::vpx_dsp::intrapred::vpx_dc_128_predictor_8x8_safe(upred_slice, uv_stride);
-                    crate::vpx_dsp::intrapred::vpx_dc_128_predictor_8x8_safe(vpred_slice, uv_stride);
+                    crate::vpx_dsp::intrapred::vpx_dc_128_predictor_8x8_safe(
+                        upred_slice,
+                        uv_stride,
+                    );
+                    crate::vpx_dsp::intrapred::vpx_dc_128_predictor_8x8_safe(
+                        vpred_slice,
+                        uv_stride,
+                    );
                 }
                 (false, true) => {
-                    crate::vpx_dsp::intrapred::vpx_dc_top_predictor_8x8_safe(upred_slice, uv_stride, &uabove[1..]);
-                    crate::vpx_dsp::intrapred::vpx_dc_top_predictor_8x8_safe(vpred_slice, uv_stride, &vabove[1..]);
+                    crate::vpx_dsp::intrapred::vpx_dc_top_predictor_8x8_safe(
+                        upred_slice,
+                        uv_stride,
+                        &uabove[1..],
+                    );
+                    crate::vpx_dsp::intrapred::vpx_dc_top_predictor_8x8_safe(
+                        vpred_slice,
+                        uv_stride,
+                        &vabove[1..],
+                    );
                 }
                 (true, false) => {
-                    crate::vpx_dsp::intrapred::vpx_dc_left_predictor_8x8_safe(upred_slice, uv_stride, uleft);
-                    crate::vpx_dsp::intrapred::vpx_dc_left_predictor_8x8_safe(vpred_slice, uv_stride, vleft);
+                    crate::vpx_dsp::intrapred::vpx_dc_left_predictor_8x8_safe(
+                        upred_slice,
+                        uv_stride,
+                        uleft,
+                    );
+                    crate::vpx_dsp::intrapred::vpx_dc_left_predictor_8x8_safe(
+                        vpred_slice,
+                        uv_stride,
+                        vleft,
+                    );
                 }
                 (true, true) => {
-                    crate::vpx_dsp::intrapred::vpx_dc_predictor_8x8_safe(upred_slice, uv_stride, &uabove[1..], uleft);
-                    crate::vpx_dsp::intrapred::vpx_dc_predictor_8x8_safe(vpred_slice, uv_stride, &vabove[1..], vleft);
+                    crate::vpx_dsp::intrapred::vpx_dc_predictor_8x8_safe(
+                        upred_slice,
+                        uv_stride,
+                        &uabove[1..],
+                        uleft,
+                    );
+                    crate::vpx_dsp::intrapred::vpx_dc_predictor_8x8_safe(
+                        vpred_slice,
+                        uv_stride,
+                        &vabove[1..],
+                        vleft,
+                    );
                 }
             }
         }
@@ -177,4 +211,3 @@ pub fn intra_prediction_down_copy(
     y_slice[idx1..idx1 + 4].copy_from_slice(&src_bytes);
     y_slice[idx2..idx2 + 4].copy_from_slice(&src_bytes);
 }
-

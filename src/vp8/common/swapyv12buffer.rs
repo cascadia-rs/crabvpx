@@ -26,4 +26,3 @@ pub fn vp8_swap_yv12_buffer_safe(
     core::mem::swap(&mut new_frame.u_buffer, &mut last_frame.u_buffer);
     core::mem::swap(&mut new_frame.v_buffer, &mut last_frame.v_buffer);
 }
-

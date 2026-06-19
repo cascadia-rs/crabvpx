@@ -23,7 +23,6 @@ pub fn vp8dx_start_decode_safe(
     safe_decoder.update_bool_decoder(br);
 }
 
-
 pub struct SafeBoolDecoder<'a> {
     pub buffer: &'a [u8],
     pub offset: usize,
@@ -35,7 +34,11 @@ pub struct SafeBoolDecoder<'a> {
 }
 
 impl<'a> SafeBoolDecoder<'a> {
-    pub fn new(source: &'a [u8], decrypt_cb: vpx_decrypt_cb, decrypt_state: *mut core::ffi::c_void) -> Self {
+    pub fn new(
+        source: &'a [u8],
+        decrypt_cb: vpx_decrypt_cb,
+        decrypt_state: *mut core::ffi::c_void,
+    ) -> Self {
         let mut decoder = Self {
             buffer: source,
             offset: 0,
@@ -68,7 +71,6 @@ impl<'a> SafeBoolDecoder<'a> {
         bc.range = self.range;
     }
 
-
     pub fn fill(&mut self) {
         let mut shift = VP8_BD_VALUE_SIZE - CHAR_BIT - (self.count + CHAR_BIT);
         let bytes_left = self.buffer.len() - self.offset;
@@ -78,7 +80,12 @@ impl<'a> SafeBoolDecoder<'a> {
 
         let mut current_slice = &self.buffer[self.offset..];
         let mut decrypted = [0u8; 9];
-        if vpx_decrypt_safe(self.decrypt_cb, self.decrypt_state, current_slice, &mut decrypted) {
+        if vpx_decrypt_safe(
+            self.decrypt_cb,
+            self.decrypt_state,
+            current_slice,
+            &mut decrypted,
+        ) {
             let n = core::cmp::min(9, bytes_left);
             current_slice = &decrypted[..n];
         }
@@ -114,7 +121,7 @@ impl<'a> SafeBoolDecoder<'a> {
         let mut bit = 0;
         if value >= bigsplit {
             range = self.range - split;
-            value = value - bigsplit;
+            value -= bigsplit;
             bit = 1;
         }
         let shift = crate::vp8::common::entropy::vp8_norm[range as usize];

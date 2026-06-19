@@ -85,7 +85,7 @@ fn test_differential_md5() {
         .expect("failed to read test_data/")
         .flatten()
         .map(|e| e.path())
-        .filter(|p| p.extension().map_or(false, |ext| ext == "ivf"))
+        .filter(|p| p.extension().is_some_and(|ext| ext == "ivf"))
         .collect();
     ivf_files.sort();
     assert!(!ivf_files.is_empty(), "no .ivf vectors found in test_data/");

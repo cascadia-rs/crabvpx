@@ -1,13 +1,13 @@
-use crate::vp8::decoder::decodeframe::{vp8cx_init_de_quantizer, vp8_decode_frame};
-use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_init;
-use std::sync::Once;
-use crate::vpx_dsp::vpx_dsp_rtcd::vpx_dsp_rtcd;
 use crate::vp8::common::reconintra::vp8_init_intra_predictors;
+use crate::vp8::common::vp8_loopfilter::vp8_loop_filter_init;
+use crate::vp8::decoder::decodeframe::{vp8_decode_frame, vp8cx_init_de_quantizer};
+use crate::vpx_dsp::vpx_dsp_rtcd::vpx_dsp_rtcd;
+use std::sync::Once;
 
 // setjmp import removed
-use crate::vp8::decoder::threading::{vp8_decoder_create_threads, vp8_decoder_remove_threads};
 pub use crate::vp8::common::alloccommon::{vp8_create_common, vp8_remove_common};
 pub use crate::vp8::common::types::*;
+use crate::vp8::decoder::threading::{vp8_decoder_create_threads, vp8_decoder_remove_threads};
 pub use crate::vpx_scale::generic::yv12extend::vp8_yv12_copy_frame_c;
 pub type uint32_t = u32;
 
@@ -107,14 +107,12 @@ pub fn vp8dx_get_reference(
         || cm.yv12_fb[ref_fb_idx as usize].uv_height != sd.uv_height
         || cm.yv12_fb[ref_fb_idx as usize].uv_width != sd.uv_width
     {
-        cm.error.trigger(VPX_CODEC_ERROR, "Incorrect buffer dimensions");
+        cm.error
+            .trigger(VPX_CODEC_ERROR, "Incorrect buffer dimensions");
     } else {
-        vp8_yv12_copy_frame_c(
-            &cm.yv12_fb[ref_fb_idx as usize],
-            sd,
-        );
+        vp8_yv12_copy_frame_c(&cm.yv12_fb[ref_fb_idx as usize], sd);
     }
-    return pbi.common.error.error_code;
+    pbi.common.error.error_code
 }
 pub fn vp8dx_set_reference(
     pbi: &mut VP8D_COMP,
@@ -122,14 +120,14 @@ pub fn vp8dx_set_reference(
     sd: &YV12_BUFFER_CONFIG,
 ) -> vpx_codec_err_t {
     let cm = &mut pbi.common;
-    
+
     enum TargetFrame {
         Last,
         Gold,
         Alt,
     }
     let target: TargetFrame;
-    
+
     if ref_frame_flag as ::core::ffi::c_uint
         == VP8_LAST_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
     {
@@ -146,42 +144,36 @@ pub fn vp8dx_set_reference(
         cm.error.trigger(VPX_CODEC_ERROR, "Invalid reference frame");
         return cm.error.error_code;
     }
-    
+
     let ref_fb_idx = match target {
         TargetFrame::Last => cm.lst_fb_idx,
         TargetFrame::Gold => cm.gld_fb_idx,
         TargetFrame::Alt => cm.alt_fb_idx,
     };
-    
+
     if cm.yv12_fb[ref_fb_idx as usize].y_height != sd.y_height
         || cm.yv12_fb[ref_fb_idx as usize].y_width != sd.y_width
         || cm.yv12_fb[ref_fb_idx as usize].uv_height != sd.uv_height
         || cm.yv12_fb[ref_fb_idx as usize].uv_width != sd.uv_width
     {
-        cm.error.trigger(VPX_CODEC_ERROR, "Incorrect buffer dimensions");
+        cm.error
+            .trigger(VPX_CODEC_ERROR, "Incorrect buffer dimensions");
     } else {
         let free_fb = get_free_fb(cm);
         let mut temp_idx = ref_fb_idx;
-        
+
         cm.fb_idx_ref_cnt[free_fb as usize] -= 1;
-        ref_cnt_fb(
-            &mut cm.fb_idx_ref_cnt,
-            &mut temp_idx,
-            free_fb,
-        );
-        
+        ref_cnt_fb(&mut cm.fb_idx_ref_cnt, &mut temp_idx, free_fb);
+
         match target {
             TargetFrame::Last => cm.lst_fb_idx = temp_idx,
             TargetFrame::Gold => cm.gld_fb_idx = temp_idx,
             TargetFrame::Alt => cm.alt_fb_idx = temp_idx,
         }
-        
-        vp8_yv12_copy_frame_c(
-            sd,
-            &mut cm.yv12_fb[temp_idx as usize],
-        );
+
+        vp8_yv12_copy_frame_c(sd, &mut cm.yv12_fb[temp_idx as usize]);
     }
-    return cm.error.error_code;
+    cm.error.error_code
 }
 fn get_free_fb(cm: &mut VP8_COMMON) -> ::core::ffi::c_int {
     let mut i: ::core::ffi::c_int = 0;
@@ -193,7 +185,7 @@ fn get_free_fb(cm: &mut VP8_COMMON) -> ::core::ffi::c_int {
         i += 1;
     }
     cm.fb_idx_ref_cnt[i as usize] = 1 as ::core::ffi::c_int;
-    return i;
+    i
 }
 fn ref_cnt_fb(
     buf: &mut [::core::ffi::c_int],
@@ -217,11 +209,7 @@ fn swap_frame_buffers(cm: &mut VP8_COMMON) -> ::core::ffi::c_int {
         } else {
             err = -(1 as ::core::ffi::c_int);
         }
-        ref_cnt_fb(
-            &mut cm.fb_idx_ref_cnt,
-            &mut cm.alt_fb_idx,
-            new_fb,
-        );
+        ref_cnt_fb(&mut cm.fb_idx_ref_cnt, &mut cm.alt_fb_idx, new_fb);
     }
     if cm.copy_buffer_to_gf != 0 {
         let mut new_fb_0: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
@@ -232,32 +220,16 @@ fn swap_frame_buffers(cm: &mut VP8_COMMON) -> ::core::ffi::c_int {
         } else {
             err = -(1 as ::core::ffi::c_int);
         }
-        ref_cnt_fb(
-            &mut cm.fb_idx_ref_cnt,
-            &mut cm.gld_fb_idx,
-            new_fb_0,
-        );
+        ref_cnt_fb(&mut cm.fb_idx_ref_cnt, &mut cm.gld_fb_idx, new_fb_0);
     }
     if cm.refresh_golden_frame != 0 {
-        ref_cnt_fb(
-            &mut cm.fb_idx_ref_cnt,
-            &mut cm.gld_fb_idx,
-            cm.new_fb_idx,
-        );
+        ref_cnt_fb(&mut cm.fb_idx_ref_cnt, &mut cm.gld_fb_idx, cm.new_fb_idx);
     }
     if cm.refresh_alt_ref_frame != 0 {
-        ref_cnt_fb(
-            &mut cm.fb_idx_ref_cnt,
-            &mut cm.alt_fb_idx,
-            cm.new_fb_idx,
-        );
+        ref_cnt_fb(&mut cm.fb_idx_ref_cnt, &mut cm.alt_fb_idx, cm.new_fb_idx);
     }
     if cm.refresh_last_frame != 0 {
-        ref_cnt_fb(
-            &mut cm.fb_idx_ref_cnt,
-            &mut cm.lst_fb_idx,
-            cm.new_fb_idx,
-        );
+        ref_cnt_fb(&mut cm.fb_idx_ref_cnt, &mut cm.lst_fb_idx, cm.new_fb_idx);
         let lst_fb_idx = cm.lst_fb_idx as usize;
         cm.frame_to_show_idx = Some(lst_fb_idx);
     } else {
@@ -265,13 +237,10 @@ fn swap_frame_buffers(cm: &mut VP8_COMMON) -> ::core::ffi::c_int {
         cm.frame_to_show_idx = Some(new_fb_idx);
     }
     cm.fb_idx_ref_cnt[cm.new_fb_idx as usize] -= 1;
-    return err;
+    err
 }
 fn check_fragments_for_errors(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
-    if pbi.ec_active == 0
-        && pbi.fragments.count <= 1
-        && pbi.fragments.sizes[0] == 0
-    {
+    if pbi.ec_active == 0 && pbi.fragments.count <= 1 && pbi.fragments.sizes[0] == 0 {
         let cm = &mut pbi.common;
         if cm.fb_idx_ref_cnt[cm.lst_fb_idx as usize] > 1 {
             let prev_idx = cm.lst_fb_idx as usize;
@@ -291,24 +260,22 @@ fn check_fragments_for_errors(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         cm.show_frame = 0;
         return 0;
     }
-    return 1;
+    1
 }
-pub fn vp8dx_receive_compressed_data_safe(
-    pbi: &mut VP8D_COMP,
-) -> ::core::ffi::c_int {
+pub fn vp8dx_receive_compressed_data_safe(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
     let mut retcode: ::core::ffi::c_int = -1;
     pbi.common.error.error_code = VPX_CODEC_OK;
-    
+
     retcode = check_fragments_for_errors(pbi);
     if retcode <= 0 {
         return retcode;
     }
-    
+
     let new_fb_idx = get_free_fb(&mut pbi.common);
     pbi.common.new_fb_idx = new_fb_idx;
-    
+
     retcode = vp8_decode_frame(pbi);
-    
+
     if retcode < 0 {
         if pbi.common.fb_idx_ref_cnt[new_fb_idx as usize] > 0 {
             pbi.common.fb_idx_ref_cnt[new_fb_idx as usize] -= 1;
@@ -326,13 +293,10 @@ pub fn vp8dx_receive_compressed_data_safe(
         }
         pbi.ready_for_new_data = 0;
     }
-    return retcode;
+    retcode
 }
 
-pub fn vp8dx_get_raw_frame(
-    pbi: &mut VP8D_COMP,
-    sd: &mut YV12_BUFFER_CONFIG,
-) -> ::core::ffi::c_int {
+pub fn vp8dx_get_raw_frame(pbi: &mut VP8D_COMP, sd: &mut YV12_BUFFER_CONFIG) -> ::core::ffi::c_int {
     let mut ret: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
     if pbi.ready_for_new_data == 1 as ::core::ffi::c_int {
         return ret;
@@ -350,7 +314,7 @@ pub fn vp8dx_get_raw_frame(
     } else {
         ret = -(1 as ::core::ffi::c_int);
     }
-    return ret;
+    ret
 }
 pub fn vp8dx_references_buffer(
     oci: &VP8_COMMON,
@@ -372,7 +336,7 @@ pub fn vp8dx_references_buffer(
         cur_idx += 1;
         mb_row += 1;
     }
-    return 0 as ::core::ffi::c_int;
+    0 as ::core::ffi::c_int
 }
 pub fn vp8_create_decoder_instances(
     fb: &mut frame_buffers,
@@ -383,7 +347,7 @@ pub fn vp8_create_decoder_instances(
         None => return VPX_CODEC_ERROR as ::core::ffi::c_int,
     };
     pbi.max_threads = oxcf.max_threads;
-    
+
     if let Err(detail) = vp8_decoder_create_threads(&mut pbi) {
         pbi.common.error.error_code = VPX_CODEC_MEM_ERROR;
         pbi.common.error.has_detail = 1;
@@ -393,19 +357,17 @@ pub fn vp8_create_decoder_instances(
             pbi.common.error.detail[i] = bytes[i] as ::core::ffi::c_char;
         }
         pbi.common.error.detail[len] = 0;
-        
+
         vp8_decoder_remove_threads(&mut pbi);
         remove_decompressor(pbi);
         fb.pbi = [::core::ptr::null_mut(); 32];
         return VPX_CODEC_ERROR as ::core::ffi::c_int;
     }
-    
+
     fb.pbi[0] = Box::into_raw(pbi);
-    return VPX_CODEC_OK as ::core::ffi::c_int;
+    VPX_CODEC_OK as ::core::ffi::c_int
 }
-pub fn vp8_remove_decoder_instances(
-    fb: &mut frame_buffers,
-) -> ::core::ffi::c_int {
+pub fn vp8_remove_decoder_instances(fb: &mut frame_buffers) -> ::core::ffi::c_int {
     let pbi: *mut VP8D_COMP = fb.pbi[0];
     if pbi.is_null() {
         return VPX_CODEC_ERROR as ::core::ffi::c_int;
@@ -414,12 +376,12 @@ pub fn vp8_remove_decoder_instances(
     // from the raw pointer stored in `fb.pbi[0]` (which was previously created via `Box::into_raw`
     // during `vp8_create_decoder_instances`).
     let mut decompressor = unsafe { Box::from_raw(pbi) };
-    vp8_decoder_remove_threads(&mut *decompressor);
+    vp8_decoder_remove_threads(&mut decompressor);
     remove_decompressor(decompressor);
     fb.pbi[0] = ::core::ptr::null_mut::<VP8D_COMP>();
-    return VPX_CODEC_OK as ::core::ffi::c_int;
+    VPX_CODEC_OK as ::core::ffi::c_int
 }
 pub fn vp8dx_get_quantizer(pbi: &VP8D_COMP) -> ::core::ffi::c_int {
-    return pbi.common.base_qindex;
+    pbi.common.base_qindex
 }
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;

@@ -1,5 +1,3 @@
-
-
 pub type vp8_tree_index = ::core::ffi::c_schar;
 
 #[derive(Copy, Clone)]
@@ -53,7 +51,6 @@ pub use crate::vp8::common::types::*;
 pub type FRAME_TYPE = ::core::ffi::c_uint;
 pub const INTER_FRAME: FRAME_TYPE = 1;
 pub const KEY_FRAME: FRAME_TYPE = 0;
-
 
 pub const ZERO_TOKEN: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
 pub const ONE_TOKEN: ::core::ffi::c_int = 1 as ::core::ffi::c_int;

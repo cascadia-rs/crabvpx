@@ -41,6 +41,18 @@
 #![allow(non_upper_case_globals)]
 #![allow(unused_assignments)]
 #![allow(unused_mut)]
+// Structural lints that don't fit this libvpx-derived numeric code and are not
+// worth churning the whole tree for. Clippy is otherwise a blocking gate (CI),
+// so this list is the deliberate, documented exception — keep it small.
+//   - too_many_arguments: kernel/codec signatures inherited from the C source.
+//   - needless_range_loop: index loops over strided / multi-array pixel data
+//     read clearer than iterator chains.
+//   - type_complexity: function-pointer dispatch-table types.
+//   - module_inception: module layout mirrors libvpx (e.g. vpx_mem::vpx_mem).
+#![allow(clippy::too_many_arguments)]
+#![allow(clippy::needless_range_loop)]
+#![allow(clippy::type_complexity)]
+#![allow(clippy::module_inception)]
 
 pub mod api;
 pub mod thread_shim;
@@ -69,12 +81,12 @@ pub mod vp8 {
         pub mod reconintra;
         pub mod reconintra4x4;
         pub mod rtcd;
+        pub mod safe_predict;
         pub mod setupintrarecon;
         pub mod swapyv12buffer;
         pub mod treecoder;
         pub mod types;
         pub mod vp8_loopfilter;
-        pub mod safe_predict;
     } // mod common
     pub mod decoder {
         pub mod dboolhuff;
@@ -121,5 +133,3 @@ pub mod vpx_scale {
 // pub mod vpx_util {
 //     pub mod vpx_write_yuv_frame;
 // } // mod vpx_util
-
-

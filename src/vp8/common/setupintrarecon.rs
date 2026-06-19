@@ -1,4 +1,3 @@
-
 pub use crate::vp8::common::types::*;
 pub type vpx_color_space = ::core::ffi::c_uint;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
