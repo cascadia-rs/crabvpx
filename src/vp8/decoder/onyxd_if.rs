@@ -99,7 +99,7 @@ pub fn vp8dx_get_reference(
     {
         ref_fb_idx = cm.alt_fb_idx;
     } else {
-        cm.error.trigger(VPX_CODEC_ERROR, "Invalid reference frame");
+        let _ = cm.error.trigger(VPX_CODEC_ERROR, "Invalid reference frame");
         return pbi.common.error.error_code;
     }
     if cm.yv12_fb[ref_fb_idx as usize].y_height != sd.y_height
@@ -107,7 +107,8 @@ pub fn vp8dx_get_reference(
         || cm.yv12_fb[ref_fb_idx as usize].uv_height != sd.uv_height
         || cm.yv12_fb[ref_fb_idx as usize].uv_width != sd.uv_width
     {
-        cm.error
+        let _ = cm
+            .error
             .trigger(VPX_CODEC_ERROR, "Incorrect buffer dimensions");
     } else {
         vp8_yv12_copy_frame_c(&cm.yv12_fb[ref_fb_idx as usize], sd);
@@ -141,7 +142,7 @@ pub fn vp8dx_set_reference(
     {
         target = TargetFrame::Alt;
     } else {
-        cm.error.trigger(VPX_CODEC_ERROR, "Invalid reference frame");
+        let _ = cm.error.trigger(VPX_CODEC_ERROR, "Invalid reference frame");
         return cm.error.error_code;
     }
 
@@ -156,7 +157,8 @@ pub fn vp8dx_set_reference(
         || cm.yv12_fb[ref_fb_idx as usize].uv_height != sd.uv_height
         || cm.yv12_fb[ref_fb_idx as usize].uv_width != sd.uv_width
     {
-        cm.error
+        let _ = cm
+            .error
             .trigger(VPX_CODEC_ERROR, "Incorrect buffer dimensions");
     } else {
         let free_fb = get_free_fb(cm);
@@ -262,19 +264,23 @@ fn check_fragments_for_errors(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
     }
     1
 }
-pub fn vp8dx_receive_compressed_data_safe(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
-    let mut retcode: ::core::ffi::c_int = -1;
+pub fn vp8dx_receive_compressed_data_safe(
+    pbi: &mut VP8D_COMP,
+) -> Result<::core::ffi::c_int, Vp8Bail> {
+    let mut retcode: ::core::ffi::c_int;
     pbi.common.error.error_code = VPX_CODEC_OK;
 
     retcode = check_fragments_for_errors(pbi);
     if retcode <= 0 {
-        return retcode;
+        return Ok(retcode);
     }
 
     let new_fb_idx = get_free_fb(&mut pbi.common);
     pbi.common.new_fb_idx = new_fb_idx;
 
-    retcode = vp8_decode_frame(pbi);
+    // A bail from the frame decoder (corrupt bitstream / alloc failure)
+    // propagates to the decode boundary, which runs the recovery path.
+    retcode = vp8_decode_frame(pbi)?;
 
     if retcode < 0 {
         if pbi.common.fb_idx_ref_cnt[new_fb_idx as usize] > 0 {
@@ -293,7 +299,7 @@ pub fn vp8dx_receive_compressed_data_safe(pbi: &mut VP8D_COMP) -> ::core::ffi::c
         }
         pbi.ready_for_new_data = 0;
     }
-    retcode
+    Ok(retcode)
 }
 
 pub fn vp8dx_get_raw_frame(pbi: &mut VP8D_COMP, sd: &mut YV12_BUFFER_CONFIG) -> ::core::ffi::c_int {

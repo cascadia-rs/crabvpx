@@ -867,7 +867,7 @@ fn read_available_partition_size(
     fragment: &[u8],
     i: ::core::ffi::c_int,
     num_part: ::core::ffi::c_int,
-) -> ::core::ffi::c_uint {
+) -> Result<::core::ffi::c_uint, Vp8Bail> {
     let mut partition_size: ::core::ffi::c_uint = 0;
     let bytes_left = fragment.len();
     if i < num_part - 1 {
@@ -878,9 +878,10 @@ fn read_available_partition_size(
         } else if pbi.ec_active != 0 {
             partition_size = bytes_left as ::core::ffi::c_uint;
         } else {
-            pbi.common
+            return Err(pbi
+                .common
                 .error
-                .trigger(VPX_CODEC_CORRUPT_FRAME, "Truncated partition size data");
+                .trigger(VPX_CODEC_CORRUPT_FRAME, "Truncated partition size data"));
         }
     } else {
         partition_size = bytes_left as ::core::ffi::c_uint;
@@ -889,20 +890,20 @@ fn read_available_partition_size(
         if pbi.ec_active != 0 {
             partition_size = bytes_left as ::core::ffi::c_uint;
         } else {
-            pbi.common.error.trigger(
+            return Err(pbi.common.error.trigger(
                 VPX_CODEC_CORRUPT_FRAME,
                 &format!("Truncated packet or corrupt partition {} length", i + 1),
-            );
+            ));
         }
     }
-    partition_size
+    Ok(partition_size)
 }
 fn setup_token_decoder(
     pbi: &mut VP8D_COMP,
     token_part_sizes: &[u8],
     first_partition_length: usize,
     safe_decoder: &mut SafeBoolDecoder,
-) {
+) -> Result<(), Vp8Bail> {
     let mut multi_token_partition: TOKEN_PARTITION =
         safe_decoder.read_literal(2) as TOKEN_PARTITION;
     if safe_decoder.count <= VP8_BD_VALUE_SIZE || safe_decoder.count >= VP8_LOTS_OF_BITS {
@@ -941,10 +942,10 @@ fn setup_token_decoder(
         if fragment_idx == 0 {
             let ext_first_part_size = first_partition_length + 3 * (num_token_partitions - 1);
             if current_remaining.len() < ext_first_part_size {
-                pbi.common.error.trigger(
+                return Err(pbi.common.error.trigger(
                     VPX_CODEC_CORRUPT_FRAME,
                     &format!("Corrupted fragment size {}", current_remaining.len()),
-                );
+                ));
             }
 
             let (first_part, remaining) = current_remaining.split_at(ext_first_part_size);
@@ -965,13 +966,13 @@ fn setup_token_decoder(
                 current_remaining,
                 (target_partition_idx - 1) as i32,
                 num_token_partitions as i32,
-            ) as usize;
+            )? as usize;
 
             if current_remaining.len() < partition_size {
-                pbi.common.error.trigger(
+                return Err(pbi.common.error.trigger(
                     VPX_CODEC_CORRUPT_FRAME,
                     &format!("Corrupted fragment size {}", current_remaining.len()),
-                );
+                ));
             }
 
             let (partition, next_remaining) = current_remaining.split_at(partition_size);
@@ -1019,6 +1020,7 @@ fn setup_token_decoder(
         pbi.decoding_thread_count =
             (pbi.common.mb_rows - 1 as ::core::ffi::c_int) as ::core::ffi::c_uint;
     }
+    Ok(())
 }
 fn init_frame(pbi: &mut VP8D_COMP) {
     if pbi.common.frame_type as ::core::ffi::c_uint
@@ -1067,7 +1069,7 @@ fn init_frame(pbi: &mut VP8D_COMP) {
         pbi.mb.fullpixel_mask = !(7 as ::core::ffi::c_int);
     }
 }
-pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
+pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> Result<::core::ffi::c_int, Vp8Bail> {
     let fragments = pbi.fragments;
     let data_slice = fragments.get_slice(0).unwrap_or(&[]);
 
@@ -1100,9 +1102,10 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
 
     if data_slice.len() < 3 {
         if pbi.ec_active == 0 {
-            pbi.common
+            return Err(pbi
+                .common
                 .error
-                .trigger(VPX_CODEC_CORRUPT_FRAME, "Truncated packet");
+                .trigger(VPX_CODEC_CORRUPT_FRAME, "Truncated packet"));
         }
         pbi.common.frame_type = INTER_FRAME;
         pbi.common.version = 0 as ::core::ffi::c_int;
@@ -1148,9 +1151,10 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
                     || clear_slice[1] as ::core::ffi::c_int != 0x1 as ::core::ffi::c_int
                     || clear_slice[2] as ::core::ffi::c_int != 0x2a as ::core::ffi::c_int
                 {
-                    pbi.common
+                    return Err(pbi
+                        .common
                         .error
-                        .trigger(VPX_CODEC_UNSUP_BITSTREAM, "Invalid frame sync code");
+                        .trigger(VPX_CODEC_UNSUP_BITSTREAM, "Invalid frame sync code"));
                 }
                 pbi.common.Width = (clear_slice[3] as ::core::ffi::c_int
                     | (clear_slice[4] as ::core::ffi::c_int) << 8)
@@ -1162,9 +1166,10 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
                 pbi.common.vert_scale = clear_slice[6] as ::core::ffi::c_int >> 6;
                 data_idx += 7;
             } else if pbi.ec_active == 0 {
-                pbi.common
+                return Err(pbi
+                    .common
                     .error
-                    .trigger(VPX_CODEC_CORRUPT_FRAME, "Truncated key frame header");
+                    .trigger(VPX_CODEC_CORRUPT_FRAME, "Truncated key frame header"));
             } else {
                 data_idx = data_slice.len();
             }
@@ -1174,15 +1179,15 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         && pbi.common.frame_type as ::core::ffi::c_uint
             != KEY_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
     {
-        return -(1 as ::core::ffi::c_int);
+        return Ok(-(1 as ::core::ffi::c_int));
     }
     if pbi.ec_active == 0
         && (data_slice.len() - data_idx) < first_partition_length_in_bytes as usize
     {
-        pbi.common.error.trigger(
+        return Err(pbi.common.error.trigger(
             VPX_CODEC_CORRUPT_FRAME,
             "Truncated packet or corrupt partition 0 length",
-        );
+        ));
     }
 
     init_frame(pbi);
@@ -1309,7 +1314,7 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         token_part_sizes_slice,
         token_part_sizes_offset,
         &mut safe_decoder,
-    );
+    )?;
     pbi.mb.current_bc_idx = 0;
 
     let mut Q: ::core::ffi::c_int = 0;
@@ -1415,7 +1420,7 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         if vp8mt_decode_mb_rows(pbi) != 0 {
             vp8_decoder_remove_threads(pbi);
             pbi.restart_threads = 1 as ::core::ffi::c_int;
-            pbi.common.error.trigger(VPX_CODEC_CORRUPT_FRAME, "");
+            return Err(pbi.common.error.trigger(VPX_CODEC_CORRUPT_FRAME, ""));
         }
 
         vp8_yv12_extend_frame_borders_c(&mut pbi.common.yv12_fb[new_fb_idx]);
@@ -1443,10 +1448,10 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         {
             pbi.decoded_key_frame = 1 as ::core::ffi::c_int;
         } else {
-            pbi.common.error.trigger(
+            return Err(pbi.common.error.trigger(
                 VPX_CODEC_CORRUPT_FRAME,
                 "A stream must start with a complete key frame",
-            );
+            ));
         }
     }
 
@@ -1454,6 +1459,6 @@ pub fn vp8_decode_frame(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
         pbi.common.fc = pbi.common.lfc;
         pbi.independent_partitions = prev_independent_partitions;
     }
-    0 as ::core::ffi::c_int
+    Ok(0 as ::core::ffi::c_int)
 }
 pub const __ATOMIC_ACQUIRE: ::core::ffi::c_int = 2 as ::core::ffi::c_int;

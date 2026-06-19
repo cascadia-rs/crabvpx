@@ -1298,7 +1298,7 @@ pub fn vp8mt_alloc_temp_buffers(
     pbi: &mut VP8D_COMP,
     mut width: ::core::ffi::c_int,
     prev_mb_rows: ::core::ffi::c_int,
-) {
+) -> Result<(), Vp8Bail> {
     let mut uv_width: ::core::ffi::c_int = 0;
     if vpx_atomic_load_acquire(&pbi.b_multithreaded_rd) != 0 {
         vp8mt_de_alloc_temp_buffers(pbi, prev_mb_rows);
@@ -1335,11 +1335,10 @@ pub fn vp8mt_alloc_temp_buffers(
             let size = (width + ((32 as ::core::ffi::c_int) << 1 as ::core::ffi::c_int)) as usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(16, size);
             if ab.is_none() {
-                pbi.common.error.trigger(
+                return Err(pbi.common.error.trigger(
                     VPX_CODEC_MEM_ERROR,
                     "Failed to allocate pbi->mt_yabove_row[i]",
-                );
-                return;
+                ));
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
@@ -1357,11 +1356,10 @@ pub fn vp8mt_alloc_temp_buffers(
             let size = (uv_width + 32 as ::core::ffi::c_int) as usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(16, size);
             if ab.is_none() {
-                pbi.common.error.trigger(
+                return Err(pbi.common.error.trigger(
                     VPX_CODEC_MEM_ERROR,
                     "Failed to allocate pbi->mt_uabove_row[i]",
-                );
-                return;
+                ));
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
@@ -1379,11 +1377,10 @@ pub fn vp8mt_alloc_temp_buffers(
             let size = (uv_width + 32 as ::core::ffi::c_int) as usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(16, size);
             if ab.is_none() {
-                pbi.common.error.trigger(
+                return Err(pbi.common.error.trigger(
                     VPX_CODEC_MEM_ERROR,
                     "Failed to allocate pbi->mt_vabove_row[i]",
-                );
-                return;
+                ));
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
@@ -1401,11 +1398,10 @@ pub fn vp8mt_alloc_temp_buffers(
             let size = 16usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(32, size);
             if ab.is_none() {
-                pbi.common.error.trigger(
+                return Err(pbi.common.error.trigger(
                     VPX_CODEC_MEM_ERROR,
                     "Failed to allocate pbi->mt_yleft_col[i]",
-                );
-                return;
+                ));
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
@@ -1423,11 +1419,10 @@ pub fn vp8mt_alloc_temp_buffers(
             let size = 8usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(32, size);
             if ab.is_none() {
-                pbi.common.error.trigger(
+                return Err(pbi.common.error.trigger(
                     VPX_CODEC_MEM_ERROR,
                     "Failed to allocate pbi->mt_uleft_col[i]",
-                );
-                return;
+                ));
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
@@ -1445,11 +1440,10 @@ pub fn vp8mt_alloc_temp_buffers(
             let size = 8usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(32, size);
             if ab.is_none() {
-                pbi.common.error.trigger(
+                return Err(pbi.common.error.trigger(
                     VPX_CODEC_MEM_ERROR,
                     "Failed to allocate pbi->mt_vleft_col[i]",
-                );
-                return;
+                ));
             }
             if let Some(ref mut b) = ab {
                 b.as_slice_mut().fill(0);
@@ -1460,6 +1454,7 @@ pub fn vp8mt_alloc_temp_buffers(
         pbi.mt_sync.mt_vleft_col = Some(vleft_views.into_boxed_slice());
         pbi.mt_sync.mt_vleft_col_allocs = Some(vleft_allocs.into_boxed_slice());
     }
+    Ok(())
 }
 pub fn vp8_decoder_remove_threads(pbi: &mut VP8D_COMP) {
     if vpx_atomic_load_acquire(&pbi.b_multithreaded_rd) != 0 {

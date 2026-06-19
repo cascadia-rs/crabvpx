@@ -779,11 +779,6 @@ pub struct vpx_internal_error_info {
     pub error_code: vpx_codec_err_t,
     pub has_detail: ::core::ffi::c_int,
     pub detail: [::core::ffi::c_char; 80],
-    /// Non-zero while a [`catch_unwind`](std::panic::catch_unwind) guard is
-    /// active at the decode boundary. When armed, [`Self::trigger`] unwinds
-    /// (replacing libvpx's `setjmp`/`longjmp`); when not, it only records the
-    /// error and returns.
-    pub setjmp: ::core::ffi::c_int,
 }
 
 impl Default for vpx_internal_error_info {
@@ -792,13 +787,20 @@ impl Default for vpx_internal_error_info {
             error_code: 0,
             has_detail: 0,
             detail: [0; 80],
-            setjmp: 0,
         }
     }
 }
 
 impl vpx_internal_error_info {
-    pub fn trigger(&mut self, error: vpx_codec_err_t, detail: &str) {
+    /// Record a decode error and return the [`Vp8Bail`] marker.
+    ///
+    /// Replaces libvpx's `setjmp`/`longjmp`: instead of unwinding, the decode
+    /// path propagates `Err(Vp8Bail)` up to the boundary, which reads the
+    /// outcome back from `error_code`. This never panics — corrupt input must
+    /// be reported as an error, not crash (the decoder is built with
+    /// `panic = abort` in embedders such as Chromium).
+    #[must_use = "propagate the bail as Err(Vp8Bail); decoding must stop"]
+    pub fn trigger(&mut self, error: vpx_codec_err_t, detail: &str) -> Vp8Bail {
         self.error_code = error;
         self.has_detail = 0;
         if !detail.is_empty() {
@@ -810,43 +812,14 @@ impl vpx_internal_error_info {
             }
             self.detail[len] = 0; // Null terminator
         }
-        if self.setjmp != 0 {
-            // Replaces libvpx's `longjmp`. The unwind is caught by the
-            // `catch_unwind` guard at the decode boundary (see `vp8_decode`),
-            // which reads the outcome back from `self.error_code`. The panic
-            // hook stays silent for this payload (see `arm_panic_hook`), since
-            // a corrupt frame is normal decoder operation, not a fault.
-            std::panic::panic_any(Vp8Bail);
-        }
+        Vp8Bail
     }
 }
 
-/// Typed payload for the decode-error unwind that replaced `setjmp`/`longjmp`.
-/// Caught only at the decode boundary; any other panic propagates normally.
-pub(crate) struct Vp8Bail;
-
-/// True if a caught panic payload is our internal decode bail.
-pub(crate) fn is_vp8_bail(payload: &Box<dyn std::any::Any + Send>) -> bool {
-    payload.downcast_ref::<Vp8Bail>().is_some()
-}
-
-/// Install (once) a panic hook that stays silent for [`Vp8Bail`] unwinds while
-/// delegating every other panic to the previously installed hook. Without it
-/// the default hook would print a spurious "thread panicked" line for every
-/// corrupt frame.
-pub(crate) fn arm_panic_hook() {
-    use std::sync::Once;
-    static ONCE: Once = Once::new();
-    ONCE.call_once(|| {
-        let prev = std::panic::take_hook();
-        std::panic::set_hook(Box::new(move |info| {
-            if info.payload().is::<Vp8Bail>() {
-                return;
-            }
-            prev(info);
-        }));
-    });
-}
+/// Marker for an internal decode bail, carried as `Err(Vp8Bail)` up the decode
+/// call chain. The error code and detail live in [`vpx_internal_error_info`];
+/// the boundary turns the bail into a `vpx_codec_err_t`.
+pub struct Vp8Bail;
 
 pub type FRAME_TYPE = ::core::ffi::c_uint;
 pub const INTER_FRAME: FRAME_TYPE = 1;
