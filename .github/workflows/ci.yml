@@ -71,14 +71,23 @@ jobs:
       # Building the targets is a real, always-on compile gate.
       - name: Build fuzz targets
         run: cargo fuzz build
-      # The earlier known crashes (DC-only IDCT dequant overflow #21,
-      # frame-buffer alloc failure #20, truncated-partition underflow #22) are
-      # fixed. The smoke run stays advisory because a hostile keyframe can
-      # legitimately declare spec-max dimensions (up to 16383x16383) and exceed
-      # rss_limit with a single (fallible, graceful) allocation, and because
-      # fuzzing may always surface new findings.
-      - name: Smoke run (decode_frame)
-        run: cargo fuzz run decode_frame -- -runs=20000 -max_total_time=60 -rss_limit_mb=2048
+      # Seed decode_ivf from the conformance vectors so the fuzzer starts from
+      # valid bitstreams and mutates outward (much deeper coverage than cold).
+      - name: Seed corpus
+        run: |
+          mkdir -p fuzz/corpus/decode_ivf
+          cp test_data/*.ivf fuzz/corpus/decode_ivf/
+      # `-ignore_ooms=1`: a hostile keyframe can declare spec-max dimensions
+      # (16383x16383) and legitimately allocate ~1.6 GB in one fallible call;
+      # that is an embedder-level resolution-cap concern, not a decoder bug, so
+      # don't let it mask real findings. Panics/UB/timeouts still fail the run.
+      # Advisory because fuzzing may always surface something new; the error
+      # path is panic-free (Result-based) and ~14k seeded runs find no panic.
+      - name: Fuzz decode_ivf (seeded)
+        run: cargo fuzz run decode_ivf fuzz/corpus/decode_ivf -- -max_total_time=60 -rss_limit_mb=4096 -ignore_ooms=1
+        continue-on-error: true
+      - name: Fuzz decode_frame
+        run: cargo fuzz run decode_frame -- -max_total_time=60 -rss_limit_mb=4096 -ignore_ooms=1
         continue-on-error: true
 
   msrv:
