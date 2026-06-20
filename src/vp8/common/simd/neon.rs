@@ -171,9 +171,14 @@ pub(crate) fn loop_filter_vertical_edge_neon(
     thresh: u8,
     count: usize,
 ) {
-    // Vertical edges stay on the generic 8-wide kernel: the 16-row transpose a
-    // 16-wide s8 path needs costs more than the s8 filter saves (measured wash).
-    super::kernels::loop_filter_vertical_edge::<Neon>(s, s_offset, p, blimit, limit, thresh, count);
+    if count == 2 {
+        // SAFETY: NEON baseline; the s8 path touches the same in-bounds elements.
+        unsafe { loop_filter_vertical_y_s8(s, s_offset, p, blimit, limit, thresh) };
+    } else {
+        super::kernels::loop_filter_vertical_edge::<Neon>(
+            s, s_offset, p, blimit, limit, thresh, count,
+        );
+    }
 }
 pub(crate) fn mbloop_filter_horizontal_edge_neon(
     s: &mut [u8],
@@ -202,10 +207,14 @@ pub(crate) fn mbloop_filter_vertical_edge_neon(
     thresh: u8,
     count: usize,
 ) {
-    // Vertical edges stay on the generic 8-wide kernel (see loop_filter_vertical).
-    super::kernels::mbloop_filter_vertical_edge::<Neon>(
-        s, s_offset, p, blimit, limit, thresh, count,
-    );
+    if count == 2 {
+        // SAFETY: NEON baseline; the s8 path touches the same in-bounds elements.
+        unsafe { mbloop_filter_vertical_y_s8(s, s_offset, p, blimit, limit, thresh) };
+    } else {
+        super::kernels::mbloop_filter_vertical_edge::<Neon>(
+            s, s_offset, p, blimit, limit, thresh, count,
+        );
+    }
 }
 pub(crate) fn simple_horizontal_edge_neon(
     y: &mut [u8],
@@ -457,6 +466,155 @@ fn mbloop_filter_horizontal_y_s8(
         vst1q_u8(base.add(s_offset), nq0);
         vst1q_u8(base.add(s_offset + p), nq1);
         vst1q_u8(base.add(s_offset + 2 * p), nq2);
+    }
+}
+
+// --- s8 loop filter, vertical Y edges (16-wide via transpose) ---
+// libvpx's vertical path: load 16 rows of 8 bytes, transpose to 8 taps (each a
+// uint8x16 across the 16 rows), run the same 16-wide s8 filter, then store. The
+// normal filter writes its 4 changed columns with `vst4_lane` (transpose on
+// store); the MB filter changes 6 columns, so it transposes back and stores
+// 8 bytes/row. My earlier vertical-s8 attempt washed because it transposed back
+// with 8x8 transposes + vcombine round-trips; this uses libvpx's tighter scheme.
+
+/// The 16x8 <-> 8x16 byte transpose (vtrnq u32/u16/u8). Self-inverse: used for
+/// both the load (rows -> taps) and the MB store-back (taps -> rows).
+#[target_feature(enable = "neon")]
+fn lf_transpose_q(a: &[uint8x16_t; 8]) -> [uint8x16_t; 8] {
+    let t0 = vtrnq_u32(vreinterpretq_u32_u8(a[0]), vreinterpretq_u32_u8(a[4]));
+    let t1 = vtrnq_u32(vreinterpretq_u32_u8(a[1]), vreinterpretq_u32_u8(a[5]));
+    let t2 = vtrnq_u32(vreinterpretq_u32_u8(a[2]), vreinterpretq_u32_u8(a[6]));
+    let t3 = vtrnq_u32(vreinterpretq_u32_u8(a[3]), vreinterpretq_u32_u8(a[7]));
+    let u4 = vtrnq_u16(vreinterpretq_u16_u32(t0.0), vreinterpretq_u16_u32(t2.0));
+    let u5 = vtrnq_u16(vreinterpretq_u16_u32(t1.0), vreinterpretq_u16_u32(t3.0));
+    let u6 = vtrnq_u16(vreinterpretq_u16_u32(t0.1), vreinterpretq_u16_u32(t2.1));
+    let u7 = vtrnq_u16(vreinterpretq_u16_u32(t1.1), vreinterpretq_u16_u32(t3.1));
+    let v8 = vtrnq_u8(vreinterpretq_u8_u16(u4.0), vreinterpretq_u8_u16(u5.0));
+    let v9 = vtrnq_u8(vreinterpretq_u8_u16(u4.1), vreinterpretq_u8_u16(u5.1));
+    let v10 = vtrnq_u8(vreinterpretq_u8_u16(u6.0), vreinterpretq_u8_u16(u7.0));
+    let v11 = vtrnq_u8(vreinterpretq_u8_u16(u6.1), vreinterpretq_u8_u16(u7.1));
+    [v8.0, v8.1, v9.0, v9.1, v10.0, v10.1, v11.0, v11.1]
+}
+
+/// Load the 8-byte p3..q3 window of 16 rows around a vertical edge and transpose
+/// to 8 taps. `s` points at row 0, column p3 (i.e. edge - 4).
+#[target_feature(enable = "neon")]
+fn lf_load_vert(s: *const u8, p: usize) -> [uint8x16_t; 8] {
+    // SAFETY: caller guarantees 16 rows of 8 bytes from `s` are in bounds.
+    let qs = unsafe {
+        [
+            vcombine_u8(vld1_u8(s), vld1_u8(s.add(8 * p))),
+            vcombine_u8(vld1_u8(s.add(p)), vld1_u8(s.add(9 * p))),
+            vcombine_u8(vld1_u8(s.add(2 * p)), vld1_u8(s.add(10 * p))),
+            vcombine_u8(vld1_u8(s.add(3 * p)), vld1_u8(s.add(11 * p))),
+            vcombine_u8(vld1_u8(s.add(4 * p)), vld1_u8(s.add(12 * p))),
+            vcombine_u8(vld1_u8(s.add(5 * p)), vld1_u8(s.add(13 * p))),
+            vcombine_u8(vld1_u8(s.add(6 * p)), vld1_u8(s.add(14 * p))),
+            vcombine_u8(vld1_u8(s.add(7 * p)), vld1_u8(s.add(15 * p))),
+        ]
+    };
+    lf_transpose_q(&qs)
+}
+
+/// Store 4 changed columns (`a,b,c,d` = uint8x16, 16 rows) back to a vertical
+/// edge at `d0` (column of the first changed tap), via `vst4_lane` per row.
+#[target_feature(enable = "neon")]
+fn lf_store_vert4(
+    d0: *mut u8,
+    p: usize,
+    a: uint8x16_t,
+    b: uint8x16_t,
+    c: uint8x16_t,
+    e: uint8x16_t,
+) {
+    let lo = uint8x8x4_t(
+        vget_low_u8(a),
+        vget_low_u8(b),
+        vget_low_u8(c),
+        vget_low_u8(e),
+    );
+    let hi = uint8x8x4_t(
+        vget_high_u8(a),
+        vget_high_u8(b),
+        vget_high_u8(c),
+        vget_high_u8(e),
+    );
+    // SAFETY: 4 bytes per row over 16 rows; in-bounds per the caller.
+    unsafe {
+        macro_rules! w4 {
+            ($base:expr, $r:expr, $v:expr) => {
+                vst4_lane_u8::<$r>($base.add($r * p), $v)
+            };
+        }
+        w4!(d0, 0, lo);
+        w4!(d0, 1, lo);
+        w4!(d0, 2, lo);
+        w4!(d0, 3, lo);
+        w4!(d0, 4, lo);
+        w4!(d0, 5, lo);
+        w4!(d0, 6, lo);
+        w4!(d0, 7, lo);
+        let d1 = d0.add(8 * p);
+        w4!(d1, 0, hi);
+        w4!(d1, 1, hi);
+        w4!(d1, 2, hi);
+        w4!(d1, 3, hi);
+        w4!(d1, 4, hi);
+        w4!(d1, 5, hi);
+        w4!(d1, 6, hi);
+        w4!(d1, 7, hi);
+    }
+}
+
+/// Normal block-edge filter on a vertical Y edge (16 rows, 16-wide s8).
+#[target_feature(enable = "neon")]
+fn loop_filter_vertical_y_s8(
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+) {
+    let base = s.as_mut_ptr();
+    // SAFETY: the vertical edge reads s[off-4 + r*p .. +8] and writes
+    // s[off-2 + r*p .. +4] over 16 rows -- the same elements the generic 8-wide
+    // vertical kernel touches over count=2; in-bounds per the bordered buffer.
+    let t = lf_load_vert(unsafe { base.add(s_offset - 4) as *const u8 }, p);
+    let (mask, hev) = lf_mask_hev(
+        blimit, limit, thresh, t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7],
+    );
+    let (np1, np0, nq0, nq1) = lf_normal_s8(mask, hev, t[2], t[3], t[4], t[5]);
+    lf_store_vert4(unsafe { base.add(s_offset - 2) }, p, np1, np0, nq0, nq1);
+}
+
+/// MB-edge filter on a vertical Y edge: 6 columns change, so transpose back and
+/// store 8 bytes/row.
+#[target_feature(enable = "neon")]
+fn mbloop_filter_vertical_y_s8(
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+) {
+    let base = s.as_mut_ptr();
+    // SAFETY: as loop_filter_vertical_y_s8, but writes all 8 columns back.
+    unsafe {
+        let s0 = base.add(s_offset - 4);
+        let t = lf_load_vert(s0 as *const u8, p);
+        let (mask, hev) = lf_mask_hev(
+            blimit, limit, thresh, t[0], t[1], t[2], t[3], t[4], t[5], t[6], t[7],
+        );
+        let (np2, np1, np0, nq0, nq1, nq2) =
+            lf_mb_s8(mask, hev, t[1], t[2], t[3], t[4], t[5], t[6]);
+        // Rebuild the 8 taps (p3 and q3 unchanged), transpose back, store rows.
+        let out = lf_transpose_q(&[t[0], np2, np1, np0, nq0, nq1, nq2, t[7]]);
+        for (k, q) in out.iter().enumerate() {
+            vst1_u8(s0.add(k * p), vget_low_u8(*q));
+            vst1_u8(s0.add((k + 8) * p), vget_high_u8(*q));
+        }
     }
 }
 
