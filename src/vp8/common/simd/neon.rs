@@ -461,6 +461,201 @@ fn mbloop_filter_horizontal_y_s8(
 }
 
 // ===========================================================================
+// NEON dequant + 4x4 IDCT + add, processing TWO horizontally-adjacent blocks at
+// once (libvpx's idct_dequant_full_2x / _0_2x). Twice the throughput per
+// instruction vs a per-block kernel; the per-block version was perf-neutral
+// because per-block dispatch dominated. i16 saturating arithmetic, `vqdmulhq`
+// for the cospi/sinpi constants (same scheme as the per-block idct). The two
+// paired blocks are adjacent in `dst`, so each of the 4 transform rows is 8
+// contiguous bytes (block0 cols 0..4 ++ block1 cols 0..4). Bit-exact with the
+// scalar reference on real streams (62-vector differential is the gate); the
+// saturating i16 domain matches scalar i32 for valid dequantized coefficients.
+// ===========================================================================
+
+const IDCT_COSPI: i16 = 20091;
+const IDCT_SINPI_H: i16 = 17734; // sinpi8sqrt2 (35468) >> 1; doubled back by vqdmulhq
+
+/// One IDCT butterfly pass over two blocks at once (8 lanes = 2 blocks × 4 cols).
+#[target_feature(enable = "neon")]
+fn idct2x_pass(
+    row0: int16x8_t,
+    row1: int16x8_t,
+    row2: int16x8_t,
+    row3: int16x8_t,
+) -> (int16x8_t, int16x8_t, int16x8_t, int16x8_t) {
+    let a1 = vqaddq_s16(row0, row2);
+    let b1 = vqsubq_s16(row0, row2);
+    let t1 = vqaddq_s16(row1, vshrq_n_s16::<1>(vqdmulhq_n_s16(row1, IDCT_COSPI)));
+    let t3 = vqaddq_s16(row3, vshrq_n_s16::<1>(vqdmulhq_n_s16(row3, IDCT_COSPI)));
+    let c1 = vqsubq_s16(vqdmulhq_n_s16(row1, IDCT_SINPI_H), t3);
+    let d1 = vqaddq_s16(t1, vqdmulhq_n_s16(row3, IDCT_SINPI_H));
+    (
+        vqaddq_s16(a1, d1),
+        vqaddq_s16(b1, c1),
+        vqsubq_s16(b1, c1),
+        vqsubq_s16(a1, d1),
+    )
+}
+
+/// 4x4 transpose of both blocks in parallel (`vtrnq` does each 4-lane half).
+/// Returns the four transposed rows in order.
+#[target_feature(enable = "neon")]
+fn idct2x_transpose(
+    a: int16x8_t,
+    b: int16x8_t,
+    c: int16x8_t,
+    d: int16x8_t,
+) -> (int16x8_t, int16x8_t, int16x8_t, int16x8_t) {
+    let t0 = vtrnq_s32(vreinterpretq_s32_s16(a), vreinterpretq_s32_s16(c));
+    let t1 = vtrnq_s32(vreinterpretq_s32_s16(b), vreinterpretq_s32_s16(d));
+    let u0 = vtrnq_s16(vreinterpretq_s16_s32(t0.0), vreinterpretq_s16_s32(t1.0));
+    let u1 = vtrnq_s16(vreinterpretq_s16_s32(t0.1), vreinterpretq_s16_s32(t1.1));
+    (u0.0, u0.1, u1.0, u1.1)
+}
+
+/// Add an 8-wide residual row to the 8 predictor bytes at `dst + r*stride`,
+/// clamp, and store. (u16-wrap add + `vqmovun_s16` == `clamp(res + pred, 0, 255)`.)
+#[target_feature(enable = "neon")]
+fn idct2x_store_row(dst: &mut [u8], off: usize, res: int16x8_t) {
+    // SAFETY: callers guarantee 8 valid bytes at `dst[off..off+8]`.
+    unsafe {
+        let pred = vld1_u8(dst.as_ptr().add(off));
+        let sum = vqmovun_s16(vreinterpretq_s16_u16(vaddw_u8(
+            vreinterpretq_u16_s16(res),
+            pred,
+        )));
+        vst1_u8(dst.as_mut_ptr().add(off), sum);
+    }
+}
+
+/// Full dequant+IDCT+add for two adjacent blocks (`q[0..16]` -> `dst` cols 0..4,
+/// `q[16..32]` -> `dst` cols 4..8). Clears the 32 processed coefficients.
+#[target_feature(enable = "neon")]
+fn idct_dequant_full_2x(q: &mut [i16], dq: &[i16; 16], dst: &mut [u8], stride: usize) {
+    // SAFETY: NEON baseline; q has >= 32 elems, dq is [i16;16], rows are in-bounds.
+    let (row0, row1, row2, row3) = unsafe {
+        let dq0 = vld1q_s16(dq.as_ptr());
+        let dq1 = vld1q_s16(dq.as_ptr().add(8));
+        let b0r01 = vmulq_s16(vld1q_s16(q.as_ptr()), dq0);
+        let b0r23 = vmulq_s16(vld1q_s16(q.as_ptr().add(8)), dq1);
+        let b1r01 = vmulq_s16(vld1q_s16(q.as_ptr().add(16)), dq0);
+        let b1r23 = vmulq_s16(vld1q_s16(q.as_ptr().add(24)), dq1);
+        // Interleave so each row holds [block0 4 cols, block1 4 cols].
+        (
+            vcombine_s16(vget_low_s16(b0r01), vget_low_s16(b1r01)),
+            vcombine_s16(vget_high_s16(b0r01), vget_high_s16(b1r01)),
+            vcombine_s16(vget_low_s16(b0r23), vget_low_s16(b1r23)),
+            vcombine_s16(vget_high_s16(b0r23), vget_high_s16(b1r23)),
+        )
+    };
+    let (o0, o1, o2, o3) = idct2x_pass(row0, row1, row2, row3);
+    let (t0, t1, t2, t3) = idct2x_transpose(o0, o1, o2, o3);
+    let (p0, p1, p2, p3) = idct2x_pass(t0, t1, t2, t3);
+    let (f0, f1, f2, f3) = idct2x_transpose(
+        vrshrq_n_s16::<3>(p0),
+        vrshrq_n_s16::<3>(p1),
+        vrshrq_n_s16::<3>(p2),
+        vrshrq_n_s16::<3>(p3),
+    );
+    idct2x_store_row(dst, 0, f0);
+    idct2x_store_row(dst, stride, f1);
+    idct2x_store_row(dst, 2 * stride, f2);
+    idct2x_store_row(dst, 3 * stride, f3);
+    q[..32].fill(0);
+}
+
+/// DC-only dequant+add for two adjacent blocks: add `(q[0]*dq + 4) >> 3` to
+/// block0 and `(q[16]*dq + 4) >> 3` to block1, each over its 4x4.
+#[target_feature(enable = "neon")]
+fn idct_dequant_0_2x(q: &mut [i16], dq0: i16, dst: &mut [u8], stride: usize) {
+    let a0 = (((q[0] as i32) * (dq0 as i32) + 4) >> 3) as i16;
+    let a1 = (((q[16] as i32) * (dq0 as i32) + 4) >> 3) as i16;
+    q[0] = 0;
+    q[16] = 0;
+    let add = vcombine_s16(vdup_n_s16(a0), vdup_n_s16(a1)); // [a0;4, a1;4]
+    for r in 0..4 {
+        idct2x_store_row(dst, r * stride, add);
+    }
+}
+
+/// Driver for the 16 luma blocks: process horizontally-adjacent pairs, choosing
+/// the full transform if either block has AC coefficients (eob > 1), the DC-only
+/// path if either has only DC, and skipping empty pairs. Mirrors libvpx's
+/// `vp8_dequant_idct_add_y_block_neon`.
+pub(crate) fn vp8_dequant_idct_add_y_block_neon(
+    q: &mut [i16; 256],
+    dq: &[i16; 16],
+    dst: &mut [u8],
+    stride: usize,
+    eobs: &[i8; 16],
+) {
+    for row in 0..4 {
+        for pair in 0..2 {
+            let blk = row * 4 + pair * 2;
+            let (ea, eb) = (eobs[blk], eobs[blk + 1]);
+            let dst_off = row * 4 * stride + pair * 8;
+            let q_off = blk * 16;
+            // SAFETY: NEON baseline on aarch64.
+            unsafe {
+                if ea > 1 || eb > 1 {
+                    idct_dequant_full_2x(
+                        &mut q[q_off..q_off + 32],
+                        dq,
+                        &mut dst[dst_off..],
+                        stride,
+                    );
+                } else if ea != 0 || eb != 0 {
+                    idct_dequant_0_2x(
+                        &mut q[q_off..q_off + 32],
+                        dq[0],
+                        &mut dst[dst_off..],
+                        stride,
+                    );
+                }
+            }
+        }
+    }
+}
+
+/// Driver for the 8 chroma blocks (U then V, each a 2x2 grid of blocks).
+pub(crate) fn vp8_dequant_idct_add_uv_block_neon(
+    q: &mut [i16; 128],
+    dq: &[i16; 16],
+    dst_u: &mut [u8],
+    dst_v: &mut [u8],
+    stride: usize,
+    eobs: &[i8; 8],
+) {
+    for plane in 0..2 {
+        let dst = if plane == 0 { &mut *dst_u } else { &mut *dst_v };
+        for row in 0..2 {
+            let blk = plane * 4 + row * 2;
+            let (ea, eb) = (eobs[blk], eobs[blk + 1]);
+            let dst_off = row * 4 * stride;
+            let q_off = blk * 16;
+            // SAFETY: NEON baseline on aarch64.
+            unsafe {
+                if ea > 1 || eb > 1 {
+                    idct_dequant_full_2x(
+                        &mut q[q_off..q_off + 32],
+                        dq,
+                        &mut dst[dst_off..],
+                        stride,
+                    );
+                } else if ea != 0 || eb != 0 {
+                    idct_dequant_0_2x(
+                        &mut q[q_off..q_off + 32],
+                        dq[0],
+                        &mut dst[dst_off..],
+                        stride,
+                    );
+                }
+            }
+        }
+    }
+}
+
+// ===========================================================================
 // NEON-specific sixtap sub-pixel filter. Not generic: it auto-vectorizes well
 // in scalar (~1.13x), below the bar to port to other ISAs, so it stays NEON-only
 // and isn't part of the `Simd` trait. Bit-exact with filter_block2d_sixtap_safe.
@@ -762,6 +957,52 @@ mod tests {
             .wrapping_mul(6364136223846793005)
             .wrapping_add(1442695040888963407);
         (*state >> 33) as u8
+    }
+
+    #[test]
+    fn neon_dequant_idct_add_y_block_matches_scalar_bit_exact() {
+        use crate::vp8::common::idct_blk::vp8_dequant_idct_add_y_block_scalar;
+        let stride = 24i32;
+        let s = stride as usize;
+        let dst_len = 15 * s + 16;
+        for trial in 0..4000 {
+            let mut seed = (trial as u64)
+                .wrapping_mul(2862933555777941757)
+                .wrapping_add(5);
+            // Bounded dequantized coefficients (|q*dq| small) so no i16 butterfly
+            // intermediate saturates -> the saturating NEON matches the i32
+            // scalar exactly (real-stream saturation is covered by the
+            // differential, matching libvpx's NEON).
+            let mut q = [0i16; 256];
+            let mut eobs = [0i8; 16];
+            for blk in 0..16 {
+                let eob = (lcg(&mut seed) % 17) as i8; // 0..=16
+                eobs[blk] = eob;
+                // Respect the decode invariant: only the first `eob` coefficients
+                // may be nonzero (so eob<=1 means DC-only). Otherwise a DC-only
+                // block paired with a full block would legitimately differ
+                // (scalar uses the DC path, NEON the full path) on an input that
+                // can't occur in a real stream.
+                for k in 0..(eob as usize) {
+                    q[blk * 16 + k] = (lcg(&mut seed) as i16) - 128; // [-128,127]
+                }
+            }
+            let mut dq = [0i16; 16];
+            for d in dq.iter_mut() {
+                *d = (lcg(&mut seed) % 32) as i16 + 1; // [1,32]
+            }
+            let mut dst_a = vec![0u8; dst_len];
+            for b in dst_a.iter_mut() {
+                *b = lcg(&mut seed);
+            }
+            let dst_b = dst_a.clone();
+            let (mut qa, mut qb) = (q, q);
+            let mut a = dst_a;
+            let mut b = dst_b;
+            vp8_dequant_idct_add_y_block_scalar(&mut qa, &dq, &mut a, stride, &eobs);
+            vp8_dequant_idct_add_y_block_neon(&mut qb, &dq, &mut b, s, &eobs);
+            assert_eq!(a, b, "y_block dst trial={trial}");
+        }
     }
 
     #[test]
