@@ -151,9 +151,16 @@ pub(crate) fn loop_filter_horizontal_edge_neon(
     thresh: u8,
     count: usize,
 ) {
-    super::kernels::loop_filter_horizontal_edge::<Neon>(
-        s, s_offset, p, blimit, limit, thresh, count,
-    );
+    // Y edges (count == 2, 16 px) use the s8 path; UV (count == 1) keeps the
+    // generic 8-wide kernel.
+    if count == 2 {
+        // SAFETY: NEON baseline; the s8 path touches the same in-bounds elements.
+        unsafe { loop_filter_horizontal_y_s8(s, s_offset, p, blimit, limit, thresh) };
+    } else {
+        super::kernels::loop_filter_horizontal_edge::<Neon>(
+            s, s_offset, p, blimit, limit, thresh, count,
+        );
+    }
 }
 pub(crate) fn loop_filter_vertical_edge_neon(
     s: &mut [u8],
@@ -164,6 +171,8 @@ pub(crate) fn loop_filter_vertical_edge_neon(
     thresh: u8,
     count: usize,
 ) {
+    // Vertical edges stay on the generic 8-wide kernel: the 16-row transpose a
+    // 16-wide s8 path needs costs more than the s8 filter saves (measured wash).
     super::kernels::loop_filter_vertical_edge::<Neon>(s, s_offset, p, blimit, limit, thresh, count);
 }
 pub(crate) fn mbloop_filter_horizontal_edge_neon(
@@ -175,9 +184,14 @@ pub(crate) fn mbloop_filter_horizontal_edge_neon(
     thresh: u8,
     count: usize,
 ) {
-    super::kernels::mbloop_filter_horizontal_edge::<Neon>(
-        s, s_offset, p, blimit, limit, thresh, count,
-    );
+    if count == 2 {
+        // SAFETY: NEON baseline; the s8 path touches the same in-bounds elements.
+        unsafe { mbloop_filter_horizontal_y_s8(s, s_offset, p, blimit, limit, thresh) };
+    } else {
+        super::kernels::mbloop_filter_horizontal_edge::<Neon>(
+            s, s_offset, p, blimit, limit, thresh, count,
+        );
+    }
 }
 pub(crate) fn mbloop_filter_vertical_edge_neon(
     s: &mut [u8],
@@ -188,6 +202,7 @@ pub(crate) fn mbloop_filter_vertical_edge_neon(
     thresh: u8,
     count: usize,
 ) {
+    // Vertical edges stay on the generic 8-wide kernel (see loop_filter_vertical).
     super::kernels::mbloop_filter_vertical_edge::<Neon>(
         s, s_offset, p, blimit, limit, thresh, count,
     );
@@ -202,6 +217,247 @@ pub(crate) fn simple_horizontal_edge_neon(
 }
 pub(crate) fn simple_vertical_edge_neon(y: &mut [u8], y_offset: usize, stride: usize, blimit: u8) {
     super::kernels::simple_vertical_edge::<Neon>(y, y_offset, stride, blimit);
+}
+
+// ===========================================================================
+// NEON s8 loop filter (Y plane, 16-wide). The filter runs in 8-bit signed
+// saturating arithmetic: `vqaddq_s8`/`vqsubq_s8` saturation IS the scalar's
+// `[-128, 127]` (`vp8_signed_char_clamp`), so no widening to i16 is needed
+// except the `3*(qs0 - ps0)` term. Mirrors libvpx's `vp8_loop_filter_neon`;
+// bit-exact with the scalar `loopfilter_filters` reference. Used only for the
+// 16-px Y edges (count == 2); UV (count == 1, 8 px) keeps the generic kernel.
+// ===========================================================================
+
+/// `vp8_filter_mask` + `vp8_hevmask`, 16 lanes. Returns `(mask, hev)` as 0xff
+/// byte masks. Saturating `vqaddq_u8` for the `|p0-q0|*2 + |p1-q1|/2` term is
+/// exact for the comparison: it only saturates above 255, which always exceeds
+/// the (small) blimit, matching the scalar's `> blimit`.
+#[target_feature(enable = "neon")]
+#[allow(clippy::too_many_arguments)]
+fn lf_mask_hev(
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+    p3: uint8x16_t,
+    p2: uint8x16_t,
+    p1: uint8x16_t,
+    p0: uint8x16_t,
+    q0: uint8x16_t,
+    q1: uint8x16_t,
+    q2: uint8x16_t,
+    q3: uint8x16_t,
+) -> (uint8x16_t, uint8x16_t) {
+    let qlimit = vdupq_n_u8(limit);
+    let qblimit = vdupq_n_u8(blimit);
+    let qthresh = vdupq_n_u8(thresh);
+    let c_p1p0 = vabdq_u8(p1, p0);
+    let c_q1q0 = vabdq_u8(q1, q0);
+    let mut m = vabdq_u8(p3, p2);
+    m = vmaxq_u8(m, vabdq_u8(p2, p1));
+    m = vmaxq_u8(m, c_p1p0);
+    m = vmaxq_u8(m, c_q1q0);
+    m = vmaxq_u8(m, vabdq_u8(q2, q1));
+    m = vmaxq_u8(m, vabdq_u8(q3, q2));
+    let mut mask = vcleq_u8(m, qlimit);
+    let a2 = vqaddq_u8(vabdq_u8(p0, q0), vabdq_u8(p0, q0));
+    let b = vshrq_n_u8(vabdq_u8(p1, q1), 1);
+    mask = vandq_u8(mask, vcleq_u8(vqaddq_u8(a2, b), qblimit));
+    let hev = vorrq_u8(vcgtq_u8(c_p1p0, qthresh), vcgtq_u8(c_q1q0, qthresh));
+    (mask, hev)
+}
+
+/// `vp8_filter` (block edge), 16 lanes in s8. Returns new (p1, p0, q0, q1).
+#[target_feature(enable = "neon")]
+fn lf_normal_s8(
+    mask: uint8x16_t,
+    hev: uint8x16_t,
+    p1: uint8x16_t,
+    p0: uint8x16_t,
+    q0: uint8x16_t,
+    q1: uint8x16_t,
+) -> (uint8x16_t, uint8x16_t, uint8x16_t, uint8x16_t) {
+    let c80 = vdupq_n_u8(0x80);
+    let ps1 = vreinterpretq_s8_u8(veorq_u8(p1, c80));
+    let ps0 = vreinterpretq_s8_u8(veorq_u8(p0, c80));
+    let qs0 = vreinterpretq_s8_u8(veorq_u8(q0, c80));
+    let qs1 = vreinterpretq_s8_u8(veorq_u8(q1, c80));
+
+    // fv = clamp(ps1 - qs1), kept only where hev.
+    let mut fv = vqsubq_s8(ps1, qs1);
+    fv = vreinterpretq_s8_u8(vandq_u8(vreinterpretq_u8_s8(fv), hev));
+    // fv = clamp(fv + 3 * (qs0 - ps0)); the 3*d term needs i16.
+    let three = vdupq_n_s16(3);
+    let acc_lo = vaddw_s8(
+        vmulq_s16(vsubl_s8(vget_low_s8(qs0), vget_low_s8(ps0)), three),
+        vget_low_s8(fv),
+    );
+    let acc_hi = vaddw_s8(
+        vmulq_s16(vsubl_s8(vget_high_s8(qs0), vget_high_s8(ps0)), three),
+        vget_high_s8(fv),
+    );
+    fv = vcombine_s8(vqmovn_s16(acc_lo), vqmovn_s16(acc_hi));
+    fv = vreinterpretq_s8_u8(vandq_u8(vreinterpretq_u8_s8(fv), mask));
+
+    let f1 = vshrq_n_s8::<3>(vqaddq_s8(fv, vdupq_n_s8(4)));
+    let f2 = vshrq_n_s8::<3>(vqaddq_s8(fv, vdupq_n_s8(3)));
+    let nq0 = vqsubq_s8(qs0, f1);
+    let np0 = vqaddq_s8(ps0, f2);
+    // fv2 = (f1 + 1) >> 1 (rounding), applied only where !hev.
+    let fv2 = vbicq_s8(vrshrq_n_s8::<1>(f1), vreinterpretq_s8_u8(hev));
+    let nq1 = vqsubq_s8(qs1, fv2);
+    let np1 = vqaddq_s8(ps1, fv2);
+    (
+        veorq_u8(vreinterpretq_u8_s8(np1), c80),
+        veorq_u8(vreinterpretq_u8_s8(np0), c80),
+        veorq_u8(vreinterpretq_u8_s8(nq0), c80),
+        veorq_u8(vreinterpretq_u8_s8(nq1), c80),
+    )
+}
+
+/// The `!hev` wide term `clamp((63 + fw*k) >> 7)` for the MB filter, 16 lanes.
+/// `fw*k` (k in {9,18,27}) fits i16; `vqshrn_n_s16::<7>` does the `>>7` and the
+/// `[-128,127]` clamp (saturating narrow). The `+63` rounding bias is preloaded.
+#[target_feature(enable = "neon")]
+fn lf_mb_wide(fw: int8x16_t, k: i8) -> int8x16_t {
+    let bias = vdupq_n_s16(63);
+    let kk = vdup_n_s8(k);
+    let lo = vqshrn_n_s16::<7>(vmlal_s8(bias, vget_low_s8(fw), kk));
+    let hi = vqshrn_n_s16::<7>(vmlal_s8(bias, vget_high_s8(fw), kk));
+    vcombine_s8(lo, hi)
+}
+
+/// `vp8_mbfilter` (MB edge), 16 lanes in s8. Returns new (p2, p1, p0, q0, q1, q2).
+#[target_feature(enable = "neon")]
+fn lf_mb_s8(
+    mask: uint8x16_t,
+    hev: uint8x16_t,
+    p2: uint8x16_t,
+    p1: uint8x16_t,
+    p0: uint8x16_t,
+    q0: uint8x16_t,
+    q1: uint8x16_t,
+    q2: uint8x16_t,
+) -> (
+    uint8x16_t,
+    uint8x16_t,
+    uint8x16_t,
+    uint8x16_t,
+    uint8x16_t,
+    uint8x16_t,
+) {
+    let c80 = vdupq_n_u8(0x80);
+    let ps2 = vreinterpretq_s8_u8(veorq_u8(p2, c80));
+    let ps1 = vreinterpretq_s8_u8(veorq_u8(p1, c80));
+    let ps0 = vreinterpretq_s8_u8(veorq_u8(p0, c80));
+    let qs0 = vreinterpretq_s8_u8(veorq_u8(q0, c80));
+    let qs1 = vreinterpretq_s8_u8(veorq_u8(q1, c80));
+    let qs2 = vreinterpretq_s8_u8(veorq_u8(q2, c80));
+
+    // fv = clamp(clamp(ps1 - qs1) + 3 * (qs0 - ps0)) & mask.
+    let fv0 = vqsubq_s8(ps1, qs1);
+    let three = vdupq_n_s16(3);
+    let acc_lo = vaddw_s8(
+        vmulq_s16(vsubl_s8(vget_low_s8(qs0), vget_low_s8(ps0)), three),
+        vget_low_s8(fv0),
+    );
+    let acc_hi = vaddw_s8(
+        vmulq_s16(vsubl_s8(vget_high_s8(qs0), vget_high_s8(ps0)), three),
+        vget_high_s8(fv0),
+    );
+    let fv = vcombine_s8(vqmovn_s16(acc_lo), vqmovn_s16(acc_hi));
+    let fv = vreinterpretq_s8_u8(vandq_u8(vreinterpretq_u8_s8(fv), mask));
+
+    // hev path on p0/q0.
+    let fh = vreinterpretq_s8_u8(vandq_u8(vreinterpretq_u8_s8(fv), hev));
+    let f1 = vshrq_n_s8::<3>(vqaddq_s8(fh, vdupq_n_s8(4)));
+    let f2 = vshrq_n_s8::<3>(vqaddq_s8(fh, vdupq_n_s8(3)));
+    let mut nq0 = vqsubq_s8(qs0, f1);
+    let mut np0 = vqaddq_s8(ps0, f2);
+
+    // wide path where !hev.
+    let fw = vbicq_s8(fv, vreinterpretq_s8_u8(hev));
+    let u = lf_mb_wide(fw, 27);
+    nq0 = vqsubq_s8(nq0, u);
+    np0 = vqaddq_s8(np0, u);
+    let u = lf_mb_wide(fw, 18);
+    let nq1 = vqsubq_s8(qs1, u);
+    let np1 = vqaddq_s8(ps1, u);
+    let u = lf_mb_wide(fw, 9);
+    let nq2 = vqsubq_s8(qs2, u);
+    let np2 = vqaddq_s8(ps2, u);
+
+    (
+        veorq_u8(vreinterpretq_u8_s8(np2), c80),
+        veorq_u8(vreinterpretq_u8_s8(np1), c80),
+        veorq_u8(vreinterpretq_u8_s8(np0), c80),
+        veorq_u8(vreinterpretq_u8_s8(nq0), c80),
+        veorq_u8(vreinterpretq_u8_s8(nq1), c80),
+        veorq_u8(vreinterpretq_u8_s8(nq2), c80),
+    )
+}
+
+/// Normal block-edge filter on a horizontal Y edge: 16 contiguous columns, one
+/// vector per tap row. No transpose needed.
+#[target_feature(enable = "neon")]
+fn loop_filter_horizontal_y_s8(
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+) {
+    let base = s.as_mut_ptr();
+    // SAFETY: same elements the 8-wide kernel touches over count=2 (idx-4p..
+    // idx+3p across 16 columns); in-bounds per the bordered buffer.
+    unsafe {
+        let p3 = vld1q_u8(base.add(s_offset - 4 * p));
+        let p2 = vld1q_u8(base.add(s_offset - 3 * p));
+        let p1 = vld1q_u8(base.add(s_offset - 2 * p));
+        let p0 = vld1q_u8(base.add(s_offset - p));
+        let q0 = vld1q_u8(base.add(s_offset));
+        let q1 = vld1q_u8(base.add(s_offset + p));
+        let q2 = vld1q_u8(base.add(s_offset + 2 * p));
+        let q3 = vld1q_u8(base.add(s_offset + 3 * p));
+        let (mask, hev) = lf_mask_hev(blimit, limit, thresh, p3, p2, p1, p0, q0, q1, q2, q3);
+        let (np1, np0, nq0, nq1) = lf_normal_s8(mask, hev, p1, p0, q0, q1);
+        vst1q_u8(base.add(s_offset - 2 * p), np1);
+        vst1q_u8(base.add(s_offset - p), np0);
+        vst1q_u8(base.add(s_offset), nq0);
+        vst1q_u8(base.add(s_offset + p), nq1);
+    }
+}
+
+/// MB-edge filter on a horizontal Y edge: 16 contiguous columns, no transpose.
+#[target_feature(enable = "neon")]
+fn mbloop_filter_horizontal_y_s8(
+    s: &mut [u8],
+    s_offset: usize,
+    p: usize,
+    blimit: u8,
+    limit: u8,
+    thresh: u8,
+) {
+    let base = s.as_mut_ptr();
+    // SAFETY: same elements the 8-wide kernel touches over count=2.
+    unsafe {
+        let p3 = vld1q_u8(base.add(s_offset - 4 * p));
+        let p2 = vld1q_u8(base.add(s_offset - 3 * p));
+        let p1 = vld1q_u8(base.add(s_offset - 2 * p));
+        let p0 = vld1q_u8(base.add(s_offset - p));
+        let q0 = vld1q_u8(base.add(s_offset));
+        let q1 = vld1q_u8(base.add(s_offset + p));
+        let q2 = vld1q_u8(base.add(s_offset + 2 * p));
+        let q3 = vld1q_u8(base.add(s_offset + 3 * p));
+        let (mask, hev) = lf_mask_hev(blimit, limit, thresh, p3, p2, p1, p0, q0, q1, q2, q3);
+        let (np2, np1, np0, nq0, nq1, nq2) = lf_mb_s8(mask, hev, p2, p1, p0, q0, q1, q2);
+        vst1q_u8(base.add(s_offset - 3 * p), np2);
+        vst1q_u8(base.add(s_offset - 2 * p), np1);
+        vst1q_u8(base.add(s_offset - p), np0);
+        vst1q_u8(base.add(s_offset), nq0);
+        vst1q_u8(base.add(s_offset + p), nq1);
+        vst1q_u8(base.add(s_offset + 2 * p), nq2);
+    }
 }
 
 // ===========================================================================
