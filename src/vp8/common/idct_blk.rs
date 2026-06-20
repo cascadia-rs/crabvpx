@@ -1,6 +1,25 @@
 pub use crate::vp8::common::types::*;
 
+/// Dequant + IDCT + add for the 16 luma blocks. Dispatches to the batched
+/// 2-block NEON driver on aarch64 (bit-exact on real streams; see `simd::neon`);
+/// scalar elsewhere.
 pub fn vp8_dequant_idct_add_y_block_safe(
+    q: &mut [i16; 256],
+    dq: &[i16; 16],
+    dst: &mut [u8],
+    stride: i32,
+    eobs: &[::core::ffi::c_char; 16],
+) {
+    let stride_sz = stride as usize;
+    assert!(dst.len() >= 15 * stride_sz + 16, "dst buffer too small");
+    #[cfg(target_arch = "aarch64")]
+    crate::vp8::common::simd::neon::vp8_dequant_idct_add_y_block_neon(q, dq, dst, stride_sz, eobs);
+    #[cfg(not(target_arch = "aarch64"))]
+    vp8_dequant_idct_add_y_block_scalar(q, dq, dst, stride, eobs);
+}
+
+#[cfg_attr(target_arch = "aarch64", allow(dead_code))]
+pub fn vp8_dequant_idct_add_y_block_scalar(
     q: &mut [i16; 256],
     dq: &[i16; 16],
     dst: &mut [u8],
@@ -37,7 +56,29 @@ pub fn vp8_dequant_idct_add_y_block_safe(
     }
 }
 
+/// Dequant + IDCT + add for the 8 chroma blocks. Dispatches to the batched
+/// 2-block NEON driver on aarch64; scalar elsewhere.
 pub fn vp8_dequant_idct_add_uv_block_safe(
+    q: &mut [i16; 128],
+    dq: &[i16; 16],
+    dst_u: &mut [u8],
+    dst_v: &mut [u8],
+    stride: i32,
+    eobs: &[::core::ffi::c_char; 8],
+) {
+    let stride_sz = stride as usize;
+    assert!(dst_u.len() >= 7 * stride_sz + 8, "dst_u buffer too small");
+    assert!(dst_v.len() >= 7 * stride_sz + 8, "dst_v buffer too small");
+    #[cfg(target_arch = "aarch64")]
+    crate::vp8::common::simd::neon::vp8_dequant_idct_add_uv_block_neon(
+        q, dq, dst_u, dst_v, stride_sz, eobs,
+    );
+    #[cfg(not(target_arch = "aarch64"))]
+    vp8_dequant_idct_add_uv_block_scalar(q, dq, dst_u, dst_v, stride, eobs);
+}
+
+#[cfg_attr(target_arch = "aarch64", allow(dead_code))]
+pub fn vp8_dequant_idct_add_uv_block_scalar(
     q: &mut [i16; 128],
     dq: &[i16; 16],
     dst_u: &mut [u8],
