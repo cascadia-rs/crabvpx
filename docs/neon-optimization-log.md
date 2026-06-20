@@ -93,15 +93,29 @@ butterfly intermediate saturates); full-range fuzzing of those kernels is
 The SIMD-able compute is at/near libvpx parity. The residual gap is diffuse and
 mostly **not** more-kernel-SIMD:
 
-1. **Serial token/MV decode** — the #1 single cost (~1.1+ ms/frame) and only at
-   *parity* with libvpx's C. The main remaining headroom to actually *beat*
-   libvpx: micro-opt the Rust bool decoder (renorm, branch layout, fewer bounds
-   checks). Not SIMD.
+1. **Serial token/MV decode** — the #1 single cost (~1.1+ ms/frame), only at
+   *parity* with libvpx's C. **Investigated and found already optimal-shape:**
+   `read_bool` is inlined into `GetCoeffs` (state in registers; `fill` is rare),
+   and the token tree is a faithful port of libvpx's. The remaining difference is
+   the **safe-Rust bounds-check tax** — every `out[j]`/`kBands[n]`/`kZigzag[]`/
+   `prob[][]` access is checked, where libvpx uses raw pointers. Shedding it needs
+   `unsafe get_unchecked` in the hot loop, which contradicts the zero-unsafe-
+   scalar-paths principle (unsafe is confined to SIMD backends). **Policy call,
+   not a code call; small/uncertain payoff. Not attempted.**
 2. **Per-block dispatch** in the transform-add path (the real "transform gap").
-3. **crab-only buffer "views"/bounds overhead** (~2% of decode): per-MB
-   re-derivation of frame-buffer slice views (`views_mut`, `views_with_borders`,
-   `get_ref_and_dst_fb`). Hard to hoist cleanly — the *reference* frame varies
-   per MB, and holding views across the loop conflicts with per-MB buffer access.
+3. **crab-only buffer "views"/bounds overhead**: the sampler attributes ~2% to
+   per-MB `views_mut`/`views_with_borders`/`get_ref_and_dst_fb`, but **deduping
+   the per-MB `views_mut` calls measured as a wash** (the calls were already
+   nearly free; the self-time was over-attributed). Not worth pursuing.
+
+## Bottom line (2026-06-20)
+
+**~1.95× → ~1.24× this phase, staying bit-exact, panic-free, safe pure-Rust**
+(~310 fps 1080p single-thread). The SIMD compute is at the practical floor and
+the serial decoder is at parity; beating libvpx outright would require sacrificing
+the safety guarantees (unsafe in the token decoder) for a small, uncertain gain.
+Treated as the natural finish line for the NEON phase. Future ISA work (x86 SSE)
+should reuse the *arithmetic-scheme* lessons above, not chase lane width.
 
 ## Content caveat
 
