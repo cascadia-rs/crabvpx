@@ -96,8 +96,19 @@ Cumulative: ~1.95× → ~1.14×.
 - **Sixtap `vext` load reduction** (one 16-byte `vld1q_u8` per row + `vext` for
   the 6 taps, vs 6 overlapping 8-byte loads) — bit-exact, but **wash.** The
   horizontal loads are L1 hits and weren't the bottleneck (same lesson as the
-  const-generic sixtap). The remaining sixtap ~1.3× gap is not the loads;
-  closing it would need a full 16-wide-row restructure (uncertain). Discarded.
+  const-generic sixtap). Discarded.
+- **Sixtap 4-rows-at-once vertical** (libvpx's 16x16 shape: a 9-row window
+  feeding four independent vertical MACs per iteration, for ILP + load reuse)
+  — bit-exact, but **wash / slightly negative at 1080p.** The compiler already
+  schedules the 1-row sliding-window loop well; the wider window added register
+  pressure. Discarded.
+
+**Sixtap conclusion: at its practical floor.** Three structural restructures
+(const-generic, `vext`, 4-rows-at-once) all washed on top of the #49 u8-MAC
+kernel. The residual ~1.3× vs libvpx is not reachable by these reshapings — it's
+likely instruction-scheduling that Apple Silicon's pipeline rewards in libvpx's
+exact hand-written sequence, i.e. it would need assembly-level matching, not
+intrinsic restructuring. Stop here unless a fundamentally different idea appears.
 
 ## Notes on bit-exactness for the saturating kernels
 
@@ -144,13 +155,14 @@ Not a polish — real runway, but with measured ceilings. Ordered by ratio:
 2. ~~Loop filter: finish it~~ **DONE (#54 vertical Y ~2.6%, #55 chroma U+V ~2%).**
    `vtrnq` load-transpose + `vst4_lane` store (the earlier vertical wash used a
    slower transpose-back); chroma packs U+V into one 16-wide pass.
-3. ~~Sixtap: `vext` loads~~ **WASH, not shipped** (below). The remaining sixtap
-   ~1.3× would need a full 16-wide-row restructure; uncertain (const-generic
-   unrolling already washed too). Deprioritized.
+3. ~~Sixtap restructure~~ **EXHAUSTED (3 washes: const-generic, `vext`,
+   4-rows-at-once).** At its practical floor on the u8-MAC kernel; residual ~1.3×
+   likely needs assembly-level scheduling, not intrinsic reshaping. See the
+   sixtap conclusion above.
 4. **De-c2rust the MB control loop** — `decode_frame`/per-MB dispatch is ~2×
    libvpx; idiomatic rewrite so it optimizes like the C. ~0.05–0.1 + diffuse.
-   (Not yet attempted; profiling showed chroma LF was the better lever, done in
-   #55.)
+   The last untried lever; uncertain whether the 2× is c2rust verbosity or
+   inherent dispatch.
 
 ### Why parity is plausible here (vs the rav1d comparison)
 
@@ -206,12 +218,15 @@ are compiled away)."*
 (~330 fps 1080p single-thread). The path-to-parity thesis held up: #52 (batched
 2-block transform), #54 (vertical Y LF), and #55 (chroma U+V LF) all landed as
 real wins where the *easy* shape had washed — the gap was unfinished kernel
-tuning, not a wall. Remaining: **sixtap ~1.3×** (the only big SIMD kernel still
-behind; `vext`/const-generic both washed, so it needs a full 16-wide-row
-restructure — uncertain), token/MV decode (at parity, serial), and the ~2×
-`decode_frame` control overhead (de-c2rust candidate). Parity (rav1d-like
-~5–10%) looks reachable on aarch64. x86 is a separate, harder story (libvpx has
-hand asm). Reuse the *arithmetic-scheme* lessons; don't chase lane width.
+tuning, not a wall. **Sixtap is now the exception: ~1.3× behind and exhausted**
+(3 restructures washed — it's at the floor for intrinsic-level work, likely
+needs assembly to match libvpx's scheduling). Other remaining: token/MV decode
+(at parity, serial) and the ~2× `decode_frame` control overhead (the last untried
+lever, de-c2rust). So aarch64 is close to as far as pure-Rust intrinsics
+practically go (~1.14×); reaching rav1d's ~5% would likely require either the
+de-c2rust control work paying off or assembly for sixtap. x86 is a separate,
+harder story (libvpx has hand asm). Reuse the *arithmetic-scheme* lessons; don't
+chase lane width.
 
 ## Appendix: lessons from libvpx & where Rust can help (for the SSE phase)
 
