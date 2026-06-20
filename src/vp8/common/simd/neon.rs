@@ -214,6 +214,15 @@ const HALF: i32 = 64;
 const SHIFT: i32 = 7;
 const MID_LEN: usize = 21 * 16 + 8;
 
+/// The sub-pel filter index 0 is the identity `[0, 0, 128, 0, 0, 0]`: with the
+/// `+64 >> 7` rounding it maps every 0..=255 input to itself exactly. So when a
+/// filter is the identity, that pass is a pure copy and can be skipped without
+/// changing a single output bit. libvpx specializes the same way.
+#[inline(always)]
+fn is_identity(f: &[i16; 6]) -> bool {
+    f[0] == 0 && f[1] == 0 && f[3] == 0 && f[4] == 0 && f[5] == 0
+}
+
 pub(crate) fn filter_block2d_sixtap_neon(
     src: &[u8],
     src_stride: usize,
@@ -234,13 +243,139 @@ pub(crate) fn filter_block2d_sixtap_neon(
         );
         return;
     }
-    let mut mid = [0i16; MID_LEN];
+    let h_id = is_identity(h_filter);
+    let v_id = is_identity(v_filter);
     // SAFETY: NEON baseline; the length checks above keep every load/store in
-    // bounds of `src`, `dst`, and the padded `mid`.
+    // bounds of `src`, `dst`, and the padded `mid`. The fast paths read a strict
+    // subset of what the bounds check above guarantees (`req_src` is the full
+    // two-pass extent).
     unsafe {
-        sixtap_impl(
-            src, src_stride, &mut mid, dst, dst_pitch, width, height, h_filter, v_filter,
-        );
+        match (h_id, v_id) {
+            // Both identity: integer-pel, pure copy from the (+2,+2) center tap.
+            (true, true) => sixtap_copy(src, src_stride, dst, dst_pitch, width, height),
+            // Horizontal identity: vertical 6-tap straight from src (col +2).
+            (true, false) => {
+                sixtap_v_only(src, src_stride, dst, dst_pitch, width, height, v_filter)
+            }
+            // Vertical identity: horizontal 6-tap straight to dst (row +2).
+            (false, true) => {
+                sixtap_h_only(src, src_stride, dst, dst_pitch, width, height, h_filter)
+            }
+            // Both fractional: full two-pass through the i16 intermediate.
+            (false, false) => {
+                let mut mid = [0i16; MID_LEN];
+                sixtap_impl(
+                    src, src_stride, &mut mid, dst, dst_pitch, width, height, h_filter, v_filter,
+                );
+            }
+        }
+    }
+}
+
+/// Horizontal-only 6-tap (yoffset == 0): output row `i` is the horizontal filter
+/// of src row `i + 2`. Bit-exact with the two-pass filter using an identity
+/// vertical filter.
+#[target_feature(enable = "neon")]
+fn sixtap_h_only(
+    src: &[u8],
+    src_stride: usize,
+    dst: &mut [u8],
+    dst_pitch: usize,
+    width: usize,
+    height: usize,
+    hf: &[i16; 6],
+) {
+    for i in 0..height {
+        let row = (i + 2) * src_stride;
+        let mut c = 0;
+        while c < width {
+            let base = row + c;
+            let mut acc_lo = vdupq_n_s32(HALF);
+            let mut acc_hi = vdupq_n_s32(HALF);
+            macro_rules! tap {
+                ($k:literal) => {{
+                    let v = unsafe { vld1_u8(src.as_ptr().add(base + $k)) };
+                    let w = vreinterpretq_s16_u16(vmovl_u8(v));
+                    let f = vdup_n_s16(hf[$k]);
+                    acc_lo = vmlal_s16(acc_lo, vget_low_s16(w), f);
+                    acc_hi = vmlal_s16(acc_hi, vget_high_s16(w), f);
+                }};
+            }
+            tap!(0);
+            tap!(1);
+            tap!(2);
+            tap!(3);
+            tap!(4);
+            tap!(5);
+            let res = pack_clamped(acc_lo, acc_hi);
+            let bytes = vmovn_u16(vreinterpretq_u16_s16(res));
+            sixtap_store_u8(&mut dst[i * dst_pitch + c..], bytes, (width - c).min(8));
+            c += 8;
+        }
+    }
+}
+
+/// Vertical-only 6-tap (xoffset == 0): output row `i` filters src rows `i..i+5`
+/// at column `+2`. Bit-exact with the two-pass filter using an identity
+/// horizontal filter.
+#[target_feature(enable = "neon")]
+fn sixtap_v_only(
+    src: &[u8],
+    src_stride: usize,
+    dst: &mut [u8],
+    dst_pitch: usize,
+    width: usize,
+    height: usize,
+    vf: &[i16; 6],
+) {
+    for i in 0..height {
+        let mut c = 0;
+        while c < width {
+            let base = i * src_stride + c + 2;
+            let mut acc_lo = vdupq_n_s32(HALF);
+            let mut acc_hi = vdupq_n_s32(HALF);
+            macro_rules! tap {
+                ($k:literal) => {{
+                    let v = unsafe { vld1_u8(src.as_ptr().add(base + $k * src_stride)) };
+                    let w = vreinterpretq_s16_u16(vmovl_u8(v));
+                    let f = vdup_n_s16(vf[$k]);
+                    acc_lo = vmlal_s16(acc_lo, vget_low_s16(w), f);
+                    acc_hi = vmlal_s16(acc_hi, vget_high_s16(w), f);
+                }};
+            }
+            tap!(0);
+            tap!(1);
+            tap!(2);
+            tap!(3);
+            tap!(4);
+            tap!(5);
+            let res = pack_clamped(acc_lo, acc_hi);
+            let bytes = vmovn_u16(vreinterpretq_u16_s16(res));
+            sixtap_store_u8(&mut dst[i * dst_pitch + c..], bytes, (width - c).min(8));
+            c += 8;
+        }
+    }
+}
+
+/// Integer-pel copy (xoffset == 0 && yoffset == 0): both passes are identities,
+/// so output row `i` is src row `i + 2` shifted right by the `+2` center tap.
+#[target_feature(enable = "neon")]
+fn sixtap_copy(
+    src: &[u8],
+    src_stride: usize,
+    dst: &mut [u8],
+    dst_pitch: usize,
+    width: usize,
+    height: usize,
+) {
+    for i in 0..height {
+        let base = (i + 2) * src_stride + 2;
+        let mut c = 0;
+        while c < width {
+            let v = unsafe { vld1_u8(src.as_ptr().add(base + c)) };
+            sixtap_store_u8(&mut dst[i * dst_pitch + c..], v, (width - c).min(8));
+            c += 8;
+        }
     }
 }
 
