@@ -60,7 +60,31 @@ pub fn vp8_short_idct4x4llm_safe(
     }
 }
 
+/// Add the DC-only inverse transform (a single rounded DC term) to the
+/// predictor and clamp. Dispatches to the NEON kernel on aarch64 (bit-exact
+/// with the scalar twin); scalar elsewhere.
 pub fn vp8_dc_only_idct_add_safe(
+    input_dc: i16,
+    pred: &[u8],
+    pred_stride: i32,
+    dst: &mut [u8],
+    dst_stride: i32,
+) {
+    #[cfg(target_arch = "aarch64")]
+    {
+        crate::vp8::common::simd::neon::vp8_dc_only_idct_add_neon(
+            input_dc,
+            pred,
+            pred_stride,
+            dst,
+            dst_stride,
+        );
+    }
+    #[cfg(not(target_arch = "aarch64"))]
+    vp8_dc_only_idct_add_scalar(input_dc, pred, pred_stride, dst, dst_stride);
+}
+
+pub fn vp8_dc_only_idct_add_scalar(
     input_dc: i16,
     pred: &[u8],
     pred_stride: i32,
