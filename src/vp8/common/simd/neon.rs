@@ -212,7 +212,6 @@ pub(crate) fn simple_vertical_edge_neon(y: &mut [u8], y_offset: usize, stride: u
 
 const HALF: i32 = 64;
 const SHIFT: i32 = 7;
-const MID_LEN: usize = 21 * 16 + 8;
 
 /// The sub-pel filter index 0 is the identity `[0, 0, 128, 0, 0, 0]`: with the
 /// `+64 >> 7` rounding it maps every 0..=255 input to itself exactly. So when a
@@ -261,11 +260,11 @@ pub(crate) fn filter_block2d_sixtap_neon(
             (false, true) => {
                 sixtap_h_only(src, src_stride, dst, dst_pitch, width, height, h_filter)
             }
-            // Both fractional: full two-pass through the i16 intermediate.
+            // Both fractional: fused two-pass (horizontal results kept in a
+            // 6-row register window, no i16 intermediate buffer).
             (false, false) => {
-                let mut mid = [0i16; MID_LEN];
                 sixtap_impl(
-                    src, src_stride, &mut mid, dst, dst_pitch, width, height, h_filter, v_filter,
+                    src, src_stride, dst, dst_pitch, width, height, h_filter, v_filter,
                 );
             }
         }
@@ -379,11 +378,39 @@ fn sixtap_copy(
     }
 }
 
+/// Horizontal 6-tap over one 8-pixel strip at `src[base..]`, returning the
+/// clamped i16 result. Same arithmetic as the old first pass — just kept in a
+/// register instead of spilled to the `mid` buffer.
+#[target_feature(enable = "neon")]
+fn hfilter_strip(src: &[u8], base: usize, hf: &[i16; 6]) -> int16x8_t {
+    let mut acc_lo = vdupq_n_s32(HALF);
+    let mut acc_hi = vdupq_n_s32(HALF);
+    macro_rules! tap {
+        ($k:literal) => {{
+            let v = unsafe { vld1_u8(src.as_ptr().add(base + $k)) };
+            let w = vreinterpretq_s16_u16(vmovl_u8(v));
+            let f = vdup_n_s16(hf[$k]);
+            acc_lo = vmlal_s16(acc_lo, vget_low_s16(w), f);
+            acc_hi = vmlal_s16(acc_hi, vget_high_s16(w), f);
+        }};
+    }
+    tap!(0);
+    tap!(1);
+    tap!(2);
+    tap!(3);
+    tap!(4);
+    tap!(5);
+    pack_clamped(acc_lo, acc_hi)
+}
+
+/// Fused two-pass 6-tap (both offsets fractional). Per 8-col strip, a sliding
+/// 6-row window of horizontally-filtered rows lives in registers and feeds the
+/// vertical filter directly, so the i16 intermediate never touches memory. The
+/// arithmetic is identical to the old two-pass version, so it stays bit-exact.
 #[target_feature(enable = "neon")]
 fn sixtap_impl(
     src: &[u8],
     src_stride: usize,
-    mid: &mut [i16],
     dst: &mut [u8],
     dst_pitch: usize,
     width: usize,
@@ -391,59 +418,46 @@ fn sixtap_impl(
     hf: &[i16; 6],
     vf: &[i16; 6],
 ) {
-    let ih = height + 5;
-    for i in 0..ih {
-        let row = i * src_stride;
-        let mout = i * width;
-        let mut c = 0;
-        while c < width {
-            let base = row + c;
-            let mut acc_lo = vdupq_n_s32(HALF);
-            let mut acc_hi = vdupq_n_s32(HALF);
-            macro_rules! tap {
-                ($k:literal) => {{
-                    let v = unsafe { vld1_u8(src.as_ptr().add(base + $k)) };
-                    let w = vreinterpretq_s16_u16(vmovl_u8(v));
-                    let f = vdup_n_s16(hf[$k]);
-                    acc_lo = vmlal_s16(acc_lo, vget_low_s16(w), f);
-                    acc_hi = vmlal_s16(acc_hi, vget_high_s16(w), f);
-                }};
-            }
-            tap!(0);
-            tap!(1);
-            tap!(2);
-            tap!(3);
-            tap!(4);
-            tap!(5);
-            let res = pack_clamped(acc_lo, acc_hi);
-            sixtap_store_i16(&mut mid[mout + c..], res, (width - c).min(8));
-            c += 8;
-        }
-    }
-    for i in 0..height {
-        let mut c = 0;
-        while c < width {
+    let mut c = 0;
+    while c < width {
+        let n = (width - c).min(8);
+        // Prime the window with horizontally-filtered rows 0..=5.
+        let mut h0 = hfilter_strip(src, c, hf);
+        let mut h1 = hfilter_strip(src, src_stride + c, hf);
+        let mut h2 = hfilter_strip(src, 2 * src_stride + c, hf);
+        let mut h3 = hfilter_strip(src, 3 * src_stride + c, hf);
+        let mut h4 = hfilter_strip(src, 4 * src_stride + c, hf);
+        let mut h5 = hfilter_strip(src, 5 * src_stride + c, hf);
+        for i in 0..height {
             let mut acc_lo = vdupq_n_s32(HALF);
             let mut acc_hi = vdupq_n_s32(HALF);
             macro_rules! vtap {
-                ($k:literal) => {{
-                    let m = unsafe { vld1q_s16(mid.as_ptr().add((i + $k) * width + c)) };
+                ($h:expr, $k:literal) => {{
                     let f = vdup_n_s16(vf[$k]);
-                    acc_lo = vmlal_s16(acc_lo, vget_low_s16(m), f);
-                    acc_hi = vmlal_s16(acc_hi, vget_high_s16(m), f);
+                    acc_lo = vmlal_s16(acc_lo, vget_low_s16($h), f);
+                    acc_hi = vmlal_s16(acc_hi, vget_high_s16($h), f);
                 }};
             }
-            vtap!(0);
-            vtap!(1);
-            vtap!(2);
-            vtap!(3);
-            vtap!(4);
-            vtap!(5);
+            vtap!(h0, 0);
+            vtap!(h1, 1);
+            vtap!(h2, 2);
+            vtap!(h3, 3);
+            vtap!(h4, 4);
+            vtap!(h5, 5);
             let res = pack_clamped(acc_lo, acc_hi);
             let bytes = vmovn_u16(vreinterpretq_u16_s16(res));
-            sixtap_store_u8(&mut dst[i * dst_pitch + c..], bytes, (width - c).min(8));
-            c += 8;
+            sixtap_store_u8(&mut dst[i * dst_pitch + c..], bytes, n);
+            // Slide the window down one row.
+            if i + 1 < height {
+                h0 = h1;
+                h1 = h2;
+                h2 = h3;
+                h3 = h4;
+                h4 = h5;
+                h5 = hfilter_strip(src, (i + 6) * src_stride + c, hf);
+            }
         }
+        c += 8;
     }
 }
 
@@ -456,17 +470,6 @@ fn pack_clamped(acc_lo: int32x4_t, acc_hi: int32x4_t) -> int16x8_t {
     let lo = vminq_s32(vmaxq_s32(lo, zero), max);
     let hi = vminq_s32(vmaxq_s32(hi, zero), max);
     vcombine_s16(vmovn_s32(lo), vmovn_s32(hi))
-}
-
-#[target_feature(enable = "neon")]
-fn sixtap_store_i16(dst: &mut [i16], v: int16x8_t, n: usize) {
-    if n >= 8 {
-        unsafe { vst1q_s16(dst.as_mut_ptr(), v) };
-    } else {
-        let mut tmp = [0i16; 8];
-        unsafe { vst1q_s16(tmp.as_mut_ptr(), v) };
-        dst[..n].copy_from_slice(&tmp[..n]);
-    }
 }
 
 #[target_feature(enable = "neon")]
