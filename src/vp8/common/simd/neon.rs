@@ -210,9 +210,6 @@ pub(crate) fn simple_vertical_edge_neon(y: &mut [u8], y_offset: usize, stride: u
 // and isn't part of the `Simd` trait. Bit-exact with filter_block2d_sixtap_safe.
 // ===========================================================================
 
-const HALF: i32 = 64;
-const SHIFT: i32 = 7;
-
 /// The sub-pel filter index 0 is the identity `[0, 0, 128, 0, 0, 0]`: with the
 /// `+64 >> 7` rounding it maps every 0..=255 input to itself exactly. So when a
 /// filter is the identity, that pass is a pure copy and can be skipped without
@@ -271,6 +268,40 @@ pub(crate) fn filter_block2d_sixtap_neon(
     }
 }
 
+/// Absolute values of a sub-pel filter's 6 taps. Every VP8 sub-pel filter has
+/// the fixed sign pattern `+,-,+,+,-,+` (taps 1 and 4 non-positive, the rest
+/// non-negative), so the MAC below hard-codes which taps add vs subtract.
+#[inline(always)]
+fn abs_filter6(f: &[i16; 6]) -> [u8; 6] {
+    let mut a = [0u8; 6];
+    for k in 0..6 {
+        a[k] = f[k].unsigned_abs() as u8;
+    }
+    a
+}
+
+/// 6-tap MAC over 8 lanes using `u8 * u8 -> u16` widening multiplies (libvpx's
+/// scheme): one multiply per tap across all 8 lanes, vs widening to i32 and
+/// doing two `vmlal_s16` halves. `b[k]` holds the 8 source bytes for tap k; `af`
+/// the absolute taps. Taps 0,2,3,5 add (`vmlal_u8`); taps 1,4 subtract
+/// (`vmlsl_u8`). Accumulating in two groups -- each carrying one of the two
+/// large taps (2 and 3) -- keeps every partial within i16 range; the groups are
+/// combined with a signed saturating add and rounded/clamped to u8 with
+/// `vqrshrun_n_s16`. This reproduces the scalar `clamp((64 + sum) >> 7, 0, 255)`
+/// exactly: the `+64` rounding and `>> 7` are the `vqrshrun` shift, and the
+/// saturating add + saturating narrow give the `0..=255` clamp.
+#[target_feature(enable = "neon")]
+fn sixtap_mac6(b: &[uint8x8_t; 6], af: &[u8; 6]) -> uint8x8_t {
+    let mut a = vmull_u8(b[0], vdup_n_u8(af[0]));
+    a = vmlsl_u8(a, b[4], vdup_n_u8(af[4]));
+    a = vmlal_u8(a, b[2], vdup_n_u8(af[2]));
+    let mut c = vmull_u8(b[5], vdup_n_u8(af[5]));
+    c = vmlsl_u8(c, b[1], vdup_n_u8(af[1]));
+    c = vmlal_u8(c, b[3], vdup_n_u8(af[3]));
+    let d = vqaddq_s16(vreinterpretq_s16_u16(c), vreinterpretq_s16_u16(a));
+    vqrshrun_n_s16::<7>(d)
+}
+
 /// Horizontal-only 6-tap (yoffset == 0): output row `i` is the horizontal filter
 /// of src row `i + 2`. Bit-exact with the two-pass filter using an identity
 /// vertical filter.
@@ -284,30 +315,12 @@ fn sixtap_h_only(
     height: usize,
     hf: &[i16; 6],
 ) {
+    let af = abs_filter6(hf);
     for i in 0..height {
         let row = (i + 2) * src_stride;
         let mut c = 0;
         while c < width {
-            let base = row + c;
-            let mut acc_lo = vdupq_n_s32(HALF);
-            let mut acc_hi = vdupq_n_s32(HALF);
-            macro_rules! tap {
-                ($k:literal) => {{
-                    let v = unsafe { vld1_u8(src.as_ptr().add(base + $k)) };
-                    let w = vreinterpretq_s16_u16(vmovl_u8(v));
-                    let f = vdup_n_s16(hf[$k]);
-                    acc_lo = vmlal_s16(acc_lo, vget_low_s16(w), f);
-                    acc_hi = vmlal_s16(acc_hi, vget_high_s16(w), f);
-                }};
-            }
-            tap!(0);
-            tap!(1);
-            tap!(2);
-            tap!(3);
-            tap!(4);
-            tap!(5);
-            let res = pack_clamped(acc_lo, acc_hi);
-            let bytes = vmovn_u16(vreinterpretq_u16_s16(res));
+            let bytes = hfilter_strip(src, row + c, &af);
             sixtap_store_u8(&mut dst[i * dst_pitch + c..], bytes, (width - c).min(8));
             c += 8;
         }
@@ -327,29 +340,23 @@ fn sixtap_v_only(
     height: usize,
     vf: &[i16; 6],
 ) {
+    let af = abs_filter6(vf);
     for i in 0..height {
         let mut c = 0;
         while c < width {
             let base = i * src_stride + c + 2;
-            let mut acc_lo = vdupq_n_s32(HALF);
-            let mut acc_hi = vdupq_n_s32(HALF);
-            macro_rules! tap {
-                ($k:literal) => {{
-                    let v = unsafe { vld1_u8(src.as_ptr().add(base + $k * src_stride)) };
-                    let w = vreinterpretq_s16_u16(vmovl_u8(v));
-                    let f = vdup_n_s16(vf[$k]);
-                    acc_lo = vmlal_s16(acc_lo, vget_low_s16(w), f);
-                    acc_hi = vmlal_s16(acc_hi, vget_high_s16(w), f);
-                }};
-            }
-            tap!(0);
-            tap!(1);
-            tap!(2);
-            tap!(3);
-            tap!(4);
-            tap!(5);
-            let res = pack_clamped(acc_lo, acc_hi);
-            let bytes = vmovn_u16(vreinterpretq_u16_s16(res));
+            // SAFETY: req_src bounds guarantee these 6 strided rows are in range.
+            let b = unsafe {
+                [
+                    vld1_u8(src.as_ptr().add(base)),
+                    vld1_u8(src.as_ptr().add(base + src_stride)),
+                    vld1_u8(src.as_ptr().add(base + 2 * src_stride)),
+                    vld1_u8(src.as_ptr().add(base + 3 * src_stride)),
+                    vld1_u8(src.as_ptr().add(base + 4 * src_stride)),
+                    vld1_u8(src.as_ptr().add(base + 5 * src_stride)),
+                ]
+            };
+            let bytes = sixtap_mac6(&b, &af);
             sixtap_store_u8(&mut dst[i * dst_pitch + c..], bytes, (width - c).min(8));
             c += 8;
         }
@@ -379,34 +386,27 @@ fn sixtap_copy(
 }
 
 /// Horizontal 6-tap over one 8-pixel strip at `src[base..]`, returning the
-/// clamped i16 result. Same arithmetic as the old first pass — just kept in a
-/// register instead of spilled to the `mid` buffer.
+/// clamped u8 result (the predictor pixels). `af` is the absolute filter.
 #[target_feature(enable = "neon")]
-fn hfilter_strip(src: &[u8], base: usize, hf: &[i16; 6]) -> int16x8_t {
-    let mut acc_lo = vdupq_n_s32(HALF);
-    let mut acc_hi = vdupq_n_s32(HALF);
-    macro_rules! tap {
-        ($k:literal) => {{
-            let v = unsafe { vld1_u8(src.as_ptr().add(base + $k)) };
-            let w = vreinterpretq_s16_u16(vmovl_u8(v));
-            let f = vdup_n_s16(hf[$k]);
-            acc_lo = vmlal_s16(acc_lo, vget_low_s16(w), f);
-            acc_hi = vmlal_s16(acc_hi, vget_high_s16(w), f);
-        }};
-    }
-    tap!(0);
-    tap!(1);
-    tap!(2);
-    tap!(3);
-    tap!(4);
-    tap!(5);
-    pack_clamped(acc_lo, acc_hi)
+fn hfilter_strip(src: &[u8], base: usize, af: &[u8; 6]) -> uint8x8_t {
+    // SAFETY: req_src bounds guarantee `src[base..base + 13]` is in range.
+    let b = unsafe {
+        [
+            vld1_u8(src.as_ptr().add(base)),
+            vld1_u8(src.as_ptr().add(base + 1)),
+            vld1_u8(src.as_ptr().add(base + 2)),
+            vld1_u8(src.as_ptr().add(base + 3)),
+            vld1_u8(src.as_ptr().add(base + 4)),
+            vld1_u8(src.as_ptr().add(base + 5)),
+        ]
+    };
+    sixtap_mac6(&b, af)
 }
 
 /// Fused two-pass 6-tap (both offsets fractional). Per 8-col strip, a sliding
-/// 6-row window of horizontally-filtered rows lives in registers and feeds the
-/// vertical filter directly, so the i16 intermediate never touches memory. The
-/// arithmetic is identical to the old two-pass version, so it stays bit-exact.
+/// 6-row window of horizontally-filtered rows (u8) lives in registers and feeds
+/// the vertical filter directly, so the intermediate never touches memory. The
+/// arithmetic matches the scalar two-pass filter, so it stays bit-exact.
 #[target_feature(enable = "neon")]
 fn sixtap_impl(
     src: &[u8],
@@ -418,58 +418,35 @@ fn sixtap_impl(
     hf: &[i16; 6],
     vf: &[i16; 6],
 ) {
+    let haf = abs_filter6(hf);
+    let vaf = abs_filter6(vf);
     let mut c = 0;
     while c < width {
         let n = (width - c).min(8);
         // Prime the window with horizontally-filtered rows 0..=5.
-        let mut h0 = hfilter_strip(src, c, hf);
-        let mut h1 = hfilter_strip(src, src_stride + c, hf);
-        let mut h2 = hfilter_strip(src, 2 * src_stride + c, hf);
-        let mut h3 = hfilter_strip(src, 3 * src_stride + c, hf);
-        let mut h4 = hfilter_strip(src, 4 * src_stride + c, hf);
-        let mut h5 = hfilter_strip(src, 5 * src_stride + c, hf);
+        let mut w = [
+            hfilter_strip(src, c, &haf),
+            hfilter_strip(src, src_stride + c, &haf),
+            hfilter_strip(src, 2 * src_stride + c, &haf),
+            hfilter_strip(src, 3 * src_stride + c, &haf),
+            hfilter_strip(src, 4 * src_stride + c, &haf),
+            hfilter_strip(src, 5 * src_stride + c, &haf),
+        ];
         for i in 0..height {
-            let mut acc_lo = vdupq_n_s32(HALF);
-            let mut acc_hi = vdupq_n_s32(HALF);
-            macro_rules! vtap {
-                ($h:expr, $k:literal) => {{
-                    let f = vdup_n_s16(vf[$k]);
-                    acc_lo = vmlal_s16(acc_lo, vget_low_s16($h), f);
-                    acc_hi = vmlal_s16(acc_hi, vget_high_s16($h), f);
-                }};
-            }
-            vtap!(h0, 0);
-            vtap!(h1, 1);
-            vtap!(h2, 2);
-            vtap!(h3, 3);
-            vtap!(h4, 4);
-            vtap!(h5, 5);
-            let res = pack_clamped(acc_lo, acc_hi);
-            let bytes = vmovn_u16(vreinterpretq_u16_s16(res));
+            let bytes = sixtap_mac6(&w, &vaf);
             sixtap_store_u8(&mut dst[i * dst_pitch + c..], bytes, n);
             // Slide the window down one row.
             if i + 1 < height {
-                h0 = h1;
-                h1 = h2;
-                h2 = h3;
-                h3 = h4;
-                h4 = h5;
-                h5 = hfilter_strip(src, (i + 6) * src_stride + c, hf);
+                w[0] = w[1];
+                w[1] = w[2];
+                w[2] = w[3];
+                w[3] = w[4];
+                w[4] = w[5];
+                w[5] = hfilter_strip(src, (i + 6) * src_stride + c, &haf);
             }
         }
         c += 8;
     }
-}
-
-#[target_feature(enable = "neon")]
-fn pack_clamped(acc_lo: int32x4_t, acc_hi: int32x4_t) -> int16x8_t {
-    let lo = vshrq_n_s32::<SHIFT>(acc_lo);
-    let hi = vshrq_n_s32::<SHIFT>(acc_hi);
-    let zero = vdupq_n_s32(0);
-    let max = vdupq_n_s32(255);
-    let lo = vminq_s32(vmaxq_s32(lo, zero), max);
-    let hi = vminq_s32(vmaxq_s32(hi, zero), max);
-    vcombine_s16(vmovn_s32(lo), vmovn_s32(hi))
 }
 
 #[target_feature(enable = "neon")]
