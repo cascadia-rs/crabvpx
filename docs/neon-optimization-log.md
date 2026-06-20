@@ -48,8 +48,10 @@ autovectorization, not merely "the same work, by hand."
 | #49 | sixtap | **u8×u8→u16 MAC** (`vmull/vmlal/vmlsl_u8`): 6 mults/8-out vs 12 i32; fixed sign pattern, two-group split + `vqaddq_s16` + `vqrshrun_n_s16` | **~17%** |
 | #50 | loop filter (horizontal Y) | **s8 saturating arithmetic** (`vqadd/vqsub_s8`): s8 saturation IS the `[-128,127]` clamp, free | ~3% |
 | #52 | transform-add | **batched 2-block** dequant+IDCT+add (`idct_dequant_full_2x`): two adjacent blocks in the full int16x8 width. The per-block shape was a wash — the batching is the win | ~2.7% |
+| #54 | loop filter (vertical Y) | s8 16-wide via `vtrnq` load-transpose + `vst4_lane` store (normal) / transpose-back (MB). The earlier vertical-s8 wash used a slower transpose-back | ~2.6% |
+| #55 | loop filter (chroma) | U+V packed into one 16-wide s8 pass (U low lanes, V high), reusing the Y s8 cores + transpose | ~2% |
 
-Cumulative: ~1.95× → ~1.20×.
+Cumulative: ~1.95× → ~1.14×.
 
 ## What we tried that did NOT work (do not re-attempt without new insight)
 
@@ -90,6 +92,11 @@ Cumulative: ~1.95× → ~1.20×.
   Rust bounds-check tax" in the hot loop essentially isn't there, and the added
   mask instructions cost a hair. Discarded. (Corrects an earlier hypothesis;
   see "Interpreting the gap".)
+- **Sixtap `vext` load reduction** (one 16-byte `vld1q_u8` per row + `vext` for
+  the 6 taps, vs 6 overlapping 8-byte loads) — bit-exact, but **wash.** The
+  horizontal loads are L1 hits and weren't the bottleneck (same lesson as the
+  const-generic sixtap). The remaining sixtap ~1.3× gap is not the loads;
+  closing it would need a full 16-wide-row restructure (uncertain). Discarded.
 
 ## Notes on bit-exactness for the saturating kernels
 
@@ -133,12 +140,16 @@ Not a polish — real runway, but with measured ceilings. Ordered by ratio:
 1. ~~Transform-add: batched 2-block NEON~~ **DONE (#52, ~2.7%).** Confirmed the
    thesis: the per-block shape was a wash, the batched 2-block version won. Closed
    ~0.09 of the ~0.15 transform gap; the rest is per-pair dispatch / chroma.
-2. **Loop filter: finish it** — vertical + UV edges via a `vld4` deinterleaving
-   transpose (the vertical-s8 wash used the naive 8×8-transpose shape). ~0.10.
-3. **Sixtap: size-specialized + `vext` loads** (load each row once, shift for
-   taps; per-size 16×16/8×8/8×4/4×4). ~0.10.
+2. ~~Loop filter: finish it~~ **DONE (#54 vertical Y ~2.6%, #55 chroma U+V ~2%).**
+   `vtrnq` load-transpose + `vst4_lane` store (the earlier vertical wash used a
+   slower transpose-back); chroma packs U+V into one 16-wide pass.
+3. ~~Sixtap: `vext` loads~~ **WASH, not shipped** (below). The remaining sixtap
+   ~1.3× would need a full 16-wide-row restructure; uncertain (const-generic
+   unrolling already washed too). Deprioritized.
 4. **De-c2rust the MB control loop** — `decode_frame`/per-MB dispatch is ~2×
    libvpx; idiomatic rewrite so it optimizes like the C. ~0.05–0.1 + diffuse.
+   (Not yet attempted; profiling showed chroma LF was the better lever, done in
+   #55.)
 
 ### Why parity is plausible here (vs the rav1d comparison)
 
@@ -190,16 +201,16 @@ are compiled away)."*
 
 ## Bottom line (2026-06-20)
 
-**~1.95× → ~1.20× and counting, staying bit-exact, panic-free, safe pure-Rust**
-(~315 fps 1080p single-thread). The remaining ~20% is **not a wall** — the
-measured breakdown pins it to under-tuned SIMD kernels plus ~2× control overhead,
-with concrete techniques left to apply. **#52 (batched 2-block transform)
-validated the path-to-parity thesis**: a shape labeled "wash" (per-block) became a
-real win (batched), exactly as predicted. Parity (rav1d-like ~5–10%) is plausibly
-reachable on aarch64 (libvpx is intrinsics there, matchable in Rust); next levers
-are loop-filter vertical/UV (`vld4`) and size-specialized sixtap, then
-de-c2rust-ing the control loop. x86 is a separate, harder story (libvpx has hand
-asm there). Reuse the *arithmetic-scheme* lessons; don't chase lane width.
+**~1.95× → ~1.14× and counting, staying bit-exact, panic-free, safe pure-Rust**
+(~330 fps 1080p single-thread). The path-to-parity thesis held up: #52 (batched
+2-block transform), #54 (vertical Y LF), and #55 (chroma U+V LF) all landed as
+real wins where the *easy* shape had washed — the gap was unfinished kernel
+tuning, not a wall. Remaining: **sixtap ~1.3×** (the only big SIMD kernel still
+behind; `vext`/const-generic both washed, so it needs a full 16-wide-row
+restructure — uncertain), token/MV decode (at parity, serial), and the ~2×
+`decode_frame` control overhead (de-c2rust candidate). Parity (rav1d-like
+~5–10%) looks reachable on aarch64. x86 is a separate, harder story (libvpx has
+hand asm). Reuse the *arithmetic-scheme* lessons; don't chase lane width.
 
 ## Appendix: lessons from libvpx & where Rust can help (for the SSE phase)
 
