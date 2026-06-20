@@ -76,6 +76,19 @@ Cumulative: ~1.95× → ~1.24×.
   dispatch + wrapper/UV overhead**, not idct math — closing it would need a
   full-MB, 2-blocks-at-once restructure (`idct_dequant_full_2x_neon`), payoff
   uncertain given this result. Discarded.
+- **Per-MB `views_mut` dedup** (hoist the two per-macroblock plane-view
+  constructions in `decodeframe` into one) — **wash, slightly negative.** The
+  sampler attributed ~2% to these view helpers, but they were already nearly free
+  (cheap slicing the compiler had optimized); the self-time was over-attributed.
+  Discarded.
+- **Bounds-check elision in the token decoder** (power-of-two index masking +
+  `first_chunk_mut::<16>()` on `out`, so `out[j]`/`kBands[n]`/`kZigzag[]`/
+  `prob[]` prove in-bounds and drop their checks) — bit-exact (masks are no-ops
+  for the real value ranges), but **wash, slightly negative.** This is the key
+  result: **LLVM already elides those bounds checks** — the hypothesized "safe-
+  Rust bounds-check tax" in the hot loop essentially isn't there, and the added
+  mask instructions cost a hair. Discarded. (Corrects an earlier hypothesis;
+  see "Interpreting the gap".)
 
 ## Notes on bit-exactness for the saturating kernels
 
@@ -96,17 +109,17 @@ mostly **not** more-kernel-SIMD:
 1. **Serial token/MV decode** — the #1 single cost (~1.1+ ms/frame), only at
    *parity* with libvpx's C. **Investigated and found already optimal-shape:**
    `read_bool` is inlined into `GetCoeffs` (state in registers; `fill` is rare),
-   and the token tree is a faithful port of libvpx's. The remaining difference is
-   the **safe-Rust bounds-check tax** — every `out[j]`/`kBands[n]`/`kZigzag[]`/
-   `prob[][]` access is checked, where libvpx uses raw pointers. Shedding it needs
-   `unsafe get_unchecked` in the hot loop, which contradicts the zero-unsafe-
-   scalar-paths principle (unsafe is confined to SIMD backends). **Policy call,
-   not a code call; small/uncertain payoff. Not attempted.**
-2. **Per-block dispatch** in the transform-add path (the real "transform gap").
-3. **crab-only buffer "views"/bounds overhead**: the sampler attributes ~2% to
-   per-MB `views_mut`/`views_with_borders`/`get_ref_and_dst_fb`, but **deduping
-   the per-MB `views_mut` calls measured as a wash** (the calls were already
-   nearly free; the self-time was over-attributed). Not worth pursuing.
+   and the token tree is a faithful port. We *hypothesized* a safe-Rust
+   bounds-check tax here and tested it (power-of-two index masking, above) — it
+   was a **wash: LLVM already elides those checks.** So there's no removable
+   safety tax in the hot loop; even `unsafe get_unchecked` would not help.
+2. **Per-block dispatch** in the transform-add path (the real "transform gap"),
+   though NEON-ing the idct math didn't move it (wash, above).
+3. **Diffuse implementation-maturity overhead** — after 6 washes targeting the
+   profile's apparent gaps, no single removable lever survived. The residual is
+   cumulative: function-call boundaries, the multi-pass (vs fused-MB) structure,
+   and libvpx being marginally tighter everywhere from 15 years of tuning. Not a
+   single attributable hotspot.
 
 ## Interpreting the gap (do not quote "−24%" bare)
 
@@ -118,10 +131,14 @@ single-thread, decode-only, Apple Silicon NEON, Elephants Dream) — equivalentl
   hand-tuned C and assembly; crabvpx is a young safe-Rust port with NEON
   intrinsics on the hot kernels. The gap measures implementation maturity, not
   the language.
-- **Most of the residual is a *deliberate* safety tax**, not an inherent penalty:
-  bounds checks, panic-free `Result` handling, zero `unsafe` in scalar/decode
-  paths. C with the same checks would also slow down; Rust with `unsafe
-  get_unchecked` could recover much of it. So ~24% is the cost of *safe* Rust.
+- **It is *not* mainly a safety tax — we tested that.** The intuitive culprit is
+  Rust's bounds checks, but the elision experiment (above) showed **LLVM already
+  removes them** in the hot token loop; forcing elision was a wash. So safe Rust
+  is *not* meaningfully paying for bounds checks here, and `unsafe get_unchecked`
+  would not help. (panic-free `Result` paths and the safe slicing cost something,
+  but no single safety feature proved removable across 6 experiments.) The
+  residual is **diffuse implementation maturity**, not a language or safety
+  penalty.
 - **Worst-isolated case.** Decode-only excludes demux/IO/color-convert/display;
   in a real pipeline decode is a fraction of the work, so end-to-end impact is
   much smaller. Single-thread; both scale with `CRABVPX_THREADS`.
@@ -130,17 +147,53 @@ single-thread, decode-only, Apple Silicon NEON, Elephants Dream) — equivalentl
   motion-vector distribution).
 
 Fair one-liner: *"a bit-exact, panic-free, safe pure-Rust VP8 decoder runs decode
-~24% slower than libvpx's hand-tuned C+asm on Apple Silicon, and most of that
-remaining gap is the price of the safety guarantees, not the language."*
+~24% slower than libvpx's hand-tuned C+asm on Apple Silicon — and that gap is
+implementation maturity, not the language or its safety checks (the bounds checks
+are compiled away)."*
 
 ## Bottom line (2026-06-20)
 
 **~1.95× → ~1.24× this phase, staying bit-exact, panic-free, safe pure-Rust**
 (~310 fps 1080p single-thread). The SIMD compute is at the practical floor and
-the serial decoder is at parity; beating libvpx outright would require sacrificing
-the safety guarantees (unsafe in the token decoder) for a small, uncertain gain.
-Treated as the natural finish line for the NEON phase. Future ISA work (x86 SSE)
-should reuse the *arithmetic-scheme* lessons above, not chase lane width.
+the serial decoder is at parity. We chased the residual through 6 experiments
+(incl. the bounds-check tax, which LLVM already elides) and found **no single
+removable lever** — it's diffuse implementation maturity, not a safety or
+language penalty. Treated as the natural finish line for the NEON phase. Future
+ISA work (x86 SSE) should reuse the *arithmetic-scheme* lessons above, not chase
+lane width.
+
+## Appendix: lessons from libvpx & where Rust can help (for the SSE phase)
+
+**Mining libvpx's "hand assembly" — feasibility by ISA.** For aarch64 there is
+**no raw ARM assembly** in libvpx — the NEON path is C intrinsics
+(`vp8/common/arm/neon/*.c`), which we read directly; the high-value lessons are
+already extracted and shipped (u8-MAC, s8-saturating, `vqdmulhq` rotation
+constants, fused `vqrshrun`/`vqshrn` round+clamp, two-group accumulation,
+identity-pass skipping, in-place residual). What remains unported (2-block
+register blocking `idct_dequant_full_2x`, `vld4` deinterleaving transposes,
+manual scheduling) the compiler already matches — hence the washes. **The 68
+`.asm` files are all x86 (SSE/SSSE3/MMX)** and are a genuinely untapped goldmine
+**for the SSE phase only** (e.g. `vpx_subpixel_8t_ssse3.asm`, `idct_blk_sse2`).
+A feasible confirmation step if ever needed: `otool -tv`/`objdump` a single crab
+kernel and diff instruction count/scheduling vs libvpx's compiled kernel.
+
+**"Things Rust is better at" — what applies.**
+- *`&mut` = `noalias` for free* (C needs `restrict`, often omitted). Already
+  helping (it's why `read_bool` inlines with state in registers). Opportunistic
+  elsewhere.
+- *Whole-crate inlining without LTO.* Already gives libvpx's hand-fused-function
+  effect for free.
+- *Bounds-check elision via types.* Tested (above) — **LLVM already does it**, so
+  no win here, but it's why the safe code isn't paying a check tax. Keep using
+  fixed-size array refs / iterators so it stays that way.
+- *Monomorphization / the `Simd` trait.* Was a perf wash (const-generic sixtap)
+  but is the real **parity multiplier for SSE**: one bit-exact kernel body, two
+  ISAs. The biggest Rust leverage going forward is *productivity/correctness at
+  parity*, not raw single-thread speed.
+- *`const fn` to compute tables → store in a `static`.* Lookup tables must be
+  `static` (one rodata copy, addressed); reserve `const` for register-sized
+  values that lower to immediates. (crab already uses `static` for `kBands`/
+  `kZigzag`/`vp8_norm`/`coef_probs`.)
 
 ## Content caveat
 
