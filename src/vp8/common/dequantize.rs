@@ -1,8 +1,4 @@
 pub use crate::vp8::common::types::*;
-pub type uint32_t = u32;
-
-pub type size_t = __darwin_size_t;
-pub type __darwin_size_t = usize;
 
 pub fn vp8_dequantize_b_safe(q: &[i16], dq: &mut [i16], DQC: &[i16]) {
     for i in 0..16 {

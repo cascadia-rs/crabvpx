@@ -1,7 +1,5 @@
 pub use crate::vp8::common::types::*;
-pub type uint32_t = u32;
 
-pub type uint8_t = u8;
 pub type vpx_color_range_t = vpx_color_range;
 pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
@@ -315,7 +313,7 @@ pub fn vp8_build_inter16x16_predictors_mb(
     let mv_col_offset = _16x16mv.as_mv().col as i32 >> 3;
     let pre_y_offset = (pre_y_active_offset as i32 + mv_row_offset + mv_col_offset) as usize;
 
-    if _16x16mv.as_int() & 0x70007 as uint32_t != 0 {
+    if _16x16mv.as_int() & 0x70007_u32 != 0 {
         call_subpixel_predict(
             subpixel_predict16x16,
             pre_y_slice,
@@ -367,7 +365,7 @@ pub fn vp8_build_inter16x16_predictors_mb(
     let uv_col_offset = _16x16mv.as_mv().col as i32 >> 3;
     let pre_uv_offset = (pre_uv_active_offset as i32 + uv_row_offset + uv_col_offset) as usize;
 
-    if _16x16mv.as_int() & 0x70007 as uint32_t != 0 {
+    if _16x16mv.as_int() & 0x70007_u32 != 0 {
         call_subpixel_predict(
             subpixel_predict8x8,
             pre_u_slice,

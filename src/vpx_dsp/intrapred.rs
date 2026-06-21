@@ -1,9 +1,3 @@
-pub type __darwin_ptrdiff_t = isize;
-pub type __darwin_size_t = usize;
-pub type ptrdiff_t = __darwin_ptrdiff_t;
-pub type size_t = __darwin_size_t;
-pub type uint8_t = u8;
-
 pub fn vpx_d207_predictor_safe(dst: &mut [u8], stride: usize, bs: usize, left: &[u8]) {
     for r in 0..bs - 1 {
         dst[r * stride] = ((left[r] as i32 + left[r + 1] as i32 + 1) >> 1) as u8;

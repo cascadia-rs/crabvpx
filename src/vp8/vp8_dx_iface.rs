@@ -1,7 +1,10 @@
 unsafe extern "C" {
-    fn memset(__b: *mut ::core::ffi::c_void, __c: i32, __len: size_t) -> *mut ::core::ffi::c_void;
+    fn memset(__b: *mut ::core::ffi::c_void, __c: i32, __len: usize) -> *mut ::core::ffi::c_void;
 }
+use crate::vp8::common::alloccommon::vp8_alloc_frame_buffers;
+use crate::vp8::common::mbpitch::vp8_build_block_doffsets;
 use crate::vp8::common::rtcd::vp8_rtcd;
+pub use crate::vp8::common::types::*;
 use crate::vp8::decoder::onyxd_if::{
     vp8_create_decoder_instances, vp8_remove_decoder_instances, vp8dx_receive_compressed_data_safe,
 };
@@ -11,14 +14,6 @@ use crate::vp8::decoder::threading::{
 };
 use crate::vpx_dsp::vpx_dsp_rtcd::vpx_dsp_rtcd;
 use crate::vpx_scale::vpx_scale_rtcd::vpx_scale_rtcd;
-pub type int64_t = i64;
-pub type size_t = usize;
-pub type uint8_t = u8;
-pub type uint32_t = u32;
-pub type uint64_t = u64;
-use crate::vp8::common::alloccommon::vp8_alloc_frame_buffers;
-use crate::vp8::common::mbpitch::vp8_build_block_doffsets;
-pub use crate::vp8::common::types::*;
 
 pub type vpx_color_range_t = vpx_color_range;
 pub type vpx_color_range = u32;
@@ -184,11 +179,11 @@ pub type vpx_fixed_buf_t = vpx_fixed_buf;
 #[repr(C)]
 pub struct vpx_fixed_buf {
     pub buf: *mut ::core::ffi::c_void,
-    pub sz: size_t,
+    pub sz: usize,
 }
 pub type vpx_rc_mode = u32;
 pub type vpx_enc_pass = u32;
-pub type vpx_codec_er_flags_t = uint32_t;
+pub type vpx_codec_er_flags_t = u32;
 pub type vpx_bit_depth_t = vpx_bit_depth;
 pub type vpx_bit_depth = u32;
 pub type vpx_codec_get_preview_frame_fn_t =
@@ -277,7 +272,7 @@ pub union C2RustUnnamed_0 {
 #[repr(C)]
 pub struct vpx_psnr_pkt {
     pub samples: [u32; 4],
-    pub sse: [uint64_t; 4],
+    pub sse: [u64; 4],
     pub psnr: [f64; 4],
     pub spatial_layer_id: i32,
 }
@@ -285,17 +280,17 @@ pub struct vpx_psnr_pkt {
 #[repr(C)]
 pub struct C2RustUnnamed_1 {
     pub buf: *mut ::core::ffi::c_void,
-    pub sz: size_t,
+    pub sz: usize,
     pub pts: vpx_codec_pts_t,
     pub duration: ::core::ffi::c_ulong,
     pub flags: vpx_codec_frame_flags_t,
     pub partition_id: i32,
     pub width: [u32; 5],
     pub height: [u32; 5],
-    pub spatial_layer_encoded: [uint8_t; 5],
+    pub spatial_layer_encoded: [u8; 5],
 }
-pub type vpx_codec_frame_flags_t = uint32_t;
-pub type vpx_codec_pts_t = int64_t;
+pub type vpx_codec_frame_flags_t = u32;
+pub type vpx_codec_pts_t = i64;
 pub type vpx_codec_cx_pkt_kind = u32;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -380,12 +375,12 @@ pub type vpx_codec_frame_buffer_t = vpx_codec_frame_buffer;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vpx_codec_frame_buffer {
-    pub data: *mut uint8_t,
-    pub size: size_t,
+    pub data: *mut u8,
+    pub size: usize,
     pub priv_0: *mut ::core::ffi::c_void,
 }
 pub type vpx_get_frame_buffer_cb_fn_t = Option<
-    unsafe extern "C" fn(*mut ::core::ffi::c_void, size_t, *mut vpx_codec_frame_buffer_t) -> i32,
+    unsafe extern "C" fn(*mut ::core::ffi::c_void, usize, *mut vpx_codec_frame_buffer_t) -> i32,
 >;
 pub type vpx_codec_get_frame_fn_t = Option<
     unsafe extern "C" fn(*mut vpx_codec_alg_priv_t, *mut vpx_codec_iter_t) -> *mut vpx_image_t,
@@ -393,7 +388,7 @@ pub type vpx_codec_get_frame_fn_t = Option<
 pub type vpx_codec_decode_fn_t = Option<
     unsafe extern "C" fn(
         *mut vpx_codec_alg_priv_t,
-        *const uint8_t,
+        *const u8,
         u32,
         *mut ::core::ffi::c_void,
     ) -> vpx_codec_err_t,
@@ -404,9 +399,8 @@ pub type vpx_codec_get_si_fn_t = Option<
         *mut vpx_codec_stream_info_t,
     ) -> vpx_codec_err_t,
 >;
-pub type vpx_codec_peek_si_fn_t = Option<
-    unsafe extern "C" fn(*const uint8_t, u32, *mut vpx_codec_stream_info_t) -> vpx_codec_err_t,
->;
+pub type vpx_codec_peek_si_fn_t =
+    Option<unsafe extern "C" fn(*const u8, u32, *mut vpx_codec_stream_info_t) -> vpx_codec_err_t>;
 pub type vpx_codec_ctrl_fn_map_t = vpx_codec_ctrl_fn_map;
 #[derive(Copy, Clone)]
 #[repr(C)]
@@ -487,7 +481,7 @@ fn vpx_atomic_load_acquire(atomic: &vpx_atomic_int) -> i32 {
     atomic.value.load(core::sync::atomic::Ordering::Acquire)
 }
 unsafe extern "C" fn vp8_peek_si_internal(
-    mut data: *const uint8_t,
+    mut data: *const u8,
     mut data_sz: u32,
     mut si: *mut vpx_codec_stream_info_t,
     mut decrypt_cb: vpx_decrypt_cb,
@@ -501,17 +495,16 @@ unsafe extern "C" fn vp8_peek_si_internal(
         if data.offset(data_sz as isize) <= data {
             res = VPX_CODEC_INVALID_PARAM;
         } else {
-            let mut clear_buffer: [uint8_t; 10] = [0; 10];
-            let mut clear: *const uint8_t = data;
+            let mut clear_buffer: [u8; 10] = [0; 10];
+            let mut clear: *const u8 = data;
             if let Some(cb) = decrypt_cb {
-                let n: i32 =
-                    (if (::core::mem::size_of::<[uint8_t; 10]>() as usize) < data_sz as usize {
-                        ::core::mem::size_of::<[uint8_t; 10]>() as usize
-                    } else {
-                        data_sz as usize
-                    }) as i32;
+                let n: i32 = (if (::core::mem::size_of::<[u8; 10]>() as usize) < data_sz as usize {
+                    ::core::mem::size_of::<[u8; 10]>() as usize
+                } else {
+                    data_sz as usize
+                }) as i32;
                 cb(decrypt_state, data, &raw mut clear_buffer as *mut u8, n);
-                clear = &raw mut clear_buffer as *mut uint8_t;
+                clear = &raw mut clear_buffer as *mut u8;
             }
             (*si).is_kf = 0_u32;
             if data_sz >= 10_u32 && *clear.offset(0_i32 as isize) as i32 & 0x1_i32 == 0 {
@@ -559,7 +552,7 @@ unsafe extern "C" fn update_error_state(
 }
 unsafe extern "C" fn update_fragments(
     mut ctx: *mut vpx_codec_alg_priv_t,
-    mut data: *const uint8_t,
+    mut data: *const u8,
     mut data_sz: u32,
     mut res: *mut vpx_codec_err_t,
 ) -> i32 {
@@ -569,12 +562,12 @@ unsafe extern "C" fn update_fragments(
             memset(
                 &raw mut (*ctx).fragments.ptrs as *mut *const u8 as *mut ::core::ffi::c_void,
                 0_i32,
-                ::core::mem::size_of::<[*const u8; 9]>() as size_t,
+                ::core::mem::size_of::<[*const u8; 9]>() as usize,
             );
             memset(
                 &raw mut (*ctx).fragments.sizes as *mut u32 as *mut ::core::ffi::c_void,
                 0_i32,
-                ::core::mem::size_of::<[u32; 9]>() as size_t,
+                ::core::mem::size_of::<[u32; 9]>() as usize,
             );
         }
         if (*ctx).fragments.enabled != 0
@@ -608,7 +601,7 @@ unsafe extern "C" fn update_fragments(
 }
 unsafe extern "C" fn vp8_decode(
     mut ctx: *mut vpx_codec_alg_priv_t,
-    mut data: *const uint8_t,
+    mut data: *const u8,
     mut data_sz: u32,
     mut user_priv: *mut ::core::ffi::c_void,
 ) -> vpx_codec_err_t {

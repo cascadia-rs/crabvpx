@@ -7,5 +7,4 @@ pub struct vp8_token_struct {
     pub Len: i32,
 }
 pub type vp8_token = vp8_token_struct;
-pub type uint64_t = u64;
 pub const vp8_prob_half: vp8_prob = 128_i32 as vp8_prob;

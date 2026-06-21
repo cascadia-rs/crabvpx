@@ -1,6 +1,3 @@
-pub type uint32_t = u32;
-pub type uint8_t = u8;
-
 #[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct MV {
@@ -15,13 +12,13 @@ pub struct int_mv {
 }
 impl int_mv {
     #[inline]
-    pub fn as_int(&self) -> uint32_t {
+    pub fn as_int(&self) -> u32 {
         let row_u16 = self.as_mv.row as u16;
         let col_u16 = self.as_mv.col as u16;
         ((col_u16 as u32) << 16) | (row_u16 as u32)
     }
     #[inline]
-    pub fn set_as_int(&mut self, val: uint32_t) {
+    pub fn set_as_int(&mut self, val: u32) {
         self.as_mv.row = (val & 0xffff) as i16;
         self.as_mv.col = ((val >> 16) & 0xffff) as i16;
     }
@@ -117,15 +114,15 @@ pub const DC_PRED: MB_PREDICTION_MODE = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct MB_MODE_INFO {
-    pub mode: uint8_t,
-    pub uv_mode: uint8_t,
-    pub ref_frame: uint8_t,
-    pub is_4x4: uint8_t,
+    pub mode: u8,
+    pub uv_mode: u8,
+    pub ref_frame: u8,
+    pub is_4x4: u8,
     pub mv: int_mv,
-    pub partitioning: uint8_t,
-    pub mb_skip_coeff: uint8_t,
-    pub need_to_clamp_mvs: uint8_t,
-    pub segment_id: uint8_t,
+    pub partitioning: u8,
+    pub mb_skip_coeff: u8,
+    pub need_to_clamp_mvs: u8,
+    pub segment_id: u8,
 }
 
 impl Default for MB_MODE_INFO {
@@ -173,7 +170,6 @@ impl Default for modeinfo {
 
 pub type MODE_INFO = modeinfo;
 
-pub type size_t = usize;
 pub type vpx_color_space = u32;
 pub type vpx_color_space_t = vpx_color_space;
 pub type vpx_color_range = u32;
@@ -195,14 +191,14 @@ pub struct yv12_buffer_config {
     pub alpha_width: i32,
     pub alpha_height: i32,
     pub alpha_stride: i32,
-    pub y_buffer: *mut uint8_t,
-    pub u_buffer: *mut uint8_t,
-    pub v_buffer: *mut uint8_t,
-    pub alpha_buffer: *mut uint8_t,
-    pub buffer_alloc: *mut uint8_t,
-    pub buffer_alloc_sz: size_t,
+    pub y_buffer: *mut u8,
+    pub u_buffer: *mut u8,
+    pub v_buffer: *mut u8,
+    pub alpha_buffer: *mut u8,
+    pub buffer_alloc: *mut u8,
+    pub buffer_alloc_sz: usize,
     pub border: i32,
-    pub frame_size: size_t,
+    pub frame_size: usize,
     pub subsampling_x: i32,
     pub subsampling_y: i32,
     pub bit_depth: u32,
@@ -1012,7 +1008,7 @@ pub fn vpx_decrypt_safe(
     false
 }
 
-pub type VP8_BD_VALUE = size_t;
+pub type VP8_BD_VALUE = usize;
 
 #[derive(Copy, Clone)]
 #[repr(C)]

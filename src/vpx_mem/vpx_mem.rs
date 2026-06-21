@@ -1,5 +1,3 @@
-pub type size_t = usize;
-
 pub const DEFAULT_ALIGNMENT: usize = 32;
 
 pub struct AlignedBox {

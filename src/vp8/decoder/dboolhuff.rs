@@ -1,5 +1,3 @@
-pub type __darwin_size_t = usize;
-pub type size_t = __darwin_size_t;
 pub use crate::vp8::common::types::*;
 pub const CHAR_BIT: i32 = 8_i32;
 pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;

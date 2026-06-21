@@ -13,9 +13,6 @@ pub const VPX_CS_SMPTE_170: vpx_color_space = 3;
 pub const VPX_CS_BT_709: vpx_color_space = 2;
 pub const VPX_CS_BT_601: vpx_color_space = 1;
 pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
-pub type size_t = __darwin_size_t;
-pub type __darwin_size_t = usize;
-pub type uint8_t = u8;
 fn extend_plane(
     plane: &mut [u8],
     stride: usize,

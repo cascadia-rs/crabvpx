@@ -1,9 +1,3 @@
-pub type __darwin_ptrdiff_t = isize;
-pub type __darwin_size_t = usize;
-pub type ptrdiff_t = __darwin_ptrdiff_t;
-pub type size_t = __darwin_size_t;
-pub type uint8_t = u8;
-pub type uint32_t = u32;
 pub use crate::vp8::common::types::*;
 
 pub type vpx_color_range_t = vpx_color_range;

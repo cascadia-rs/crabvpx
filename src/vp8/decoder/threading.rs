@@ -16,9 +16,7 @@ use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_
 
 use crate::vp8::common::setupintrarecon::vp8_setup_intra_recon_top_line;
 pub use crate::vp8::common::types::*;
-pub type uint32_t = u32;
 
-pub type uint8_t = u8;
 pub type vpx_color_range_t = vpx_color_range;
 pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
@@ -181,7 +179,7 @@ fn mt_decode_macroblock(
                 xd.decode_tokens_inputs_mut(above_context_slice, left_context);
             eobtotal =
                 vp8_decode_mb_tokens(safe_decoder, &common.fc, qcoeff, eobs, above, left, is_4x4);
-            let skip_coeff = (eobtotal == 0_i32) as i32 as uint8_t;
+            let skip_coeff = (eobtotal == 0_i32) as i32 as u8;
             let mip_slice = std::slice::from_raw_parts_mut(mip_raw, common.mip_slice().len());
             mip_slice[xd.mode_info_idx].mbmi.mb_skip_coeff = skip_coeff;
             mi.mbmi.mb_skip_coeff = skip_coeff;

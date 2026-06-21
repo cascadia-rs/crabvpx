@@ -1,8 +1,6 @@
 pub use crate::vp8::common::types::*;
 use crate::vpx_mem::vpx_mem::AlignedBox;
-pub type uint8_t = u8;
 
-pub type __darwin_size_t = usize;
 pub type vpx_color_space = u32;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
 pub const VPX_CS_RESERVED: vpx_color_space = 6;
@@ -17,7 +15,6 @@ pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
 pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
 pub type vpx_color_range_t = vpx_color_range;
-pub type size_t = __darwin_size_t;
 
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;

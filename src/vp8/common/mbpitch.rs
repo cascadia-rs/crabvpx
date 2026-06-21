@@ -12,10 +12,6 @@ pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
 pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
 pub type vpx_color_range_t = vpx_color_range;
-pub type __darwin_size_t = usize;
-pub type size_t = __darwin_size_t;
-pub type uint8_t = u8;
-pub type uint32_t = u32;
 pub use crate::vp8::common::types::*;
 
 pub fn vp8_build_block_doffsets(x: &mut MACROBLOCKD) {

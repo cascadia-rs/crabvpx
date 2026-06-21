@@ -27,9 +27,7 @@ use crate::vp8::decoder::detokenize::{vp8_decode_mb_tokens, vp8_reset_mb_tokens_
 use crate::vp8::decoder::threading::vp8_decoder_remove_threads;
 use crate::vp8::decoder::threading::vp8mt_decode_mb_rows;
 use crate::vpx_scale::generic::yv12extend::vp8_yv12_extend_frame_borders_c;
-pub type uint32_t = u32;
 
-pub type uint8_t = u8;
 pub type vpx_color_range_t = vpx_color_range;
 pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
@@ -216,7 +214,7 @@ fn decode_macroblock(
             left,
             is_4x4,
         );
-        let skip_coeff = (eobtotal == 0_i32) as i32 as uint8_t;
+        let skip_coeff = (eobtotal == 0_i32) as i32 as u8;
         common.mip_slice_mut()[xd.mode_info_idx].mbmi.mb_skip_coeff = skip_coeff;
         mi.mbmi.mb_skip_coeff = skip_coeff;
     }
@@ -1015,7 +1013,7 @@ fn init_frame(pbi: &mut VP8D_COMP) {
     pbi.mb.above_context_idx = 0;
     pbi.mb.frame_type = pbi.common.frame_type;
     let mip = pbi.common.mip_slice_mut();
-    pbi.mb.mode_info_mut(mip).mbmi.mode = DC_PRED as i32 as uint8_t;
+    pbi.mb.mode_info_mut(mip).mbmi.mode = DC_PRED as i32 as u8;
     pbi.mb.mode_info_stride = pbi.common.mode_info_stride;
     pbi.mb.corrupted = 0_i32;
     pbi.mb.fullpixel_mask = !0_i32;

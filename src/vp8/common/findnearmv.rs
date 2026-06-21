@@ -1,8 +1,4 @@
 use crate::vp8::common::modecont::vp8_mode_contexts;
-pub type __darwin_size_t = usize;
-pub type size_t = __darwin_size_t;
-pub type uint8_t = u8;
-pub type uint32_t = u32;
 pub use crate::vp8::common::types::*;
 pub type vpx_color_space = u32;
 pub const VPX_CS_SRGB: vpx_color_space = 7;

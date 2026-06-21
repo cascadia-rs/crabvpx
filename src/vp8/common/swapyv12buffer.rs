@@ -14,9 +14,6 @@ pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
 pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
 pub type vpx_color_range_t = vpx_color_range;
-pub type __darwin_size_t = usize;
-pub type size_t = __darwin_size_t;
-pub type uint8_t = u8;
 pub fn vp8_swap_yv12_buffer_safe(
     new_frame: &mut YV12_BUFFER_CONFIG,
     last_frame: &mut YV12_BUFFER_CONFIG,

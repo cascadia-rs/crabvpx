@@ -1,7 +1,5 @@
 pub use crate::vp8::common::types::*;
-pub type uint32_t = u32;
 
-pub type uint8_t = u8;
 pub type vpx_color_range_t = vpx_color_range;
 pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
@@ -16,8 +14,6 @@ pub const VPX_CS_SMPTE_170: vpx_color_space = 3;
 pub const VPX_CS_BT_709: vpx_color_space = 2;
 pub const VPX_CS_BT_601: vpx_color_space = 1;
 pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
-pub type size_t = __darwin_size_t;
-pub type __darwin_size_t = usize;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info {

@@ -24,8 +24,6 @@ pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
 pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
 pub type vpx_color_range_t = vpx_color_range;
-pub type uint8_t = u8;
-pub type uint32_t = u32;
 pub use crate::vp8::common::types::*;
 pub type vp8_tree_index = i8;
 pub type C2RustUnnamed = u32;
@@ -158,10 +156,10 @@ fn read_kf_modes(
     cur_idx: usize,
     safe_decoder: &mut SafeBoolDecoder,
 ) {
-    mip_slice[cur_idx].mbmi.ref_frame = INTRA_FRAME as uint8_t;
-    mip_slice[cur_idx].mbmi.mode = read_kf_ymode(safe_decoder, &vp8_kf_ymode_prob) as uint8_t;
+    mip_slice[cur_idx].mbmi.ref_frame = INTRA_FRAME as u8;
+    mip_slice[cur_idx].mbmi.mode = read_kf_ymode(safe_decoder, &vp8_kf_ymode_prob) as u8;
     if mip_slice[cur_idx].mbmi.mode as i32 == B_PRED as i32 {
-        mip_slice[cur_idx].mbmi.is_4x4 = 1 as uint8_t;
+        mip_slice[cur_idx].mbmi.is_4x4 = 1_u8;
         for i in 0..16usize {
             let A: B_PREDICTION_MODE =
                 above_block_mode(mip_slice, cur_idx, mis, i) as B_PREDICTION_MODE;
@@ -172,7 +170,7 @@ fn read_kf_modes(
             ));
         }
     }
-    mip_slice[cur_idx].mbmi.uv_mode = read_uv_mode(safe_decoder, &vp8_kf_uv_mode_prob) as uint8_t;
+    mip_slice[cur_idx].mbmi.uv_mode = read_uv_mode(safe_decoder, &vp8_kf_uv_mode_prob) as u8;
 }
 fn read_mvcomponent(r: &mut SafeBoolDecoder, mvc: &MV_CONTEXT) -> i32 {
     let p = &mvc.prob;
@@ -323,7 +321,7 @@ static vp8_sub_mv_ref_prob3: [[vp8_prob; 3]; 8] = [
     [179_i32 as vp8_prob, 121_i32 as vp8_prob, 1_i32 as vp8_prob],
     [208_i32 as vp8_prob, 1_i32 as vp8_prob, 1_i32 as vp8_prob],
 ];
-fn get_sub_mv_ref_prob(left: uint32_t, above: uint32_t) -> &'static [vp8_prob; 3] {
+fn get_sub_mv_ref_prob(left: u32, above: u32) -> &'static [vp8_prob; 3] {
     let lez = (left == 0) as usize;
     let aez = (above == 0) as usize;
     let lea = (left == above) as usize;
@@ -400,7 +398,7 @@ fn decode_split_mv(
                 mb_to_right_edge,
                 mb_to_top_edge,
                 mb_to_bottom_edge,
-            )) as uint8_t;
+            )) as u8;
         let fill_count = mbsplit_fill_count[s as usize] as usize;
         let offset_start = (j as usize) * fill_count;
         let fill_offsets =
@@ -413,7 +411,7 @@ fn decode_split_mv(
             break;
         }
     }
-    mi.mbmi.partitioning = s as uint8_t;
+    mi.mbmi.partitioning = s as u8;
 }
 fn read_mb_modes_mv(
     pbi: &VP8D_COMP,
@@ -430,7 +428,7 @@ fn read_mb_modes_mv(
     let ref_frame_sign_bias = &pbi.common.ref_frame_sign_bias;
 
     cur_mi.mbmi.ref_frame =
-        safe_decoder.read_bool(pbi.prob_intra as i32) as MV_REFERENCE_FRAME as uint8_t;
+        safe_decoder.read_bool(pbi.prob_intra as i32) as MV_REFERENCE_FRAME as u8;
     if cur_mi.mbmi.ref_frame != 0 {
         let mut cnt: [i32; 4] = [0; 4];
         let mut cntx_idx: usize = 0;
@@ -439,7 +437,7 @@ fn read_mb_modes_mv(
 
         cur_mi.mbmi.need_to_clamp_mvs = 0;
         if safe_decoder.read_bool(pbi.prob_last as i32) != 0 {
-            cur_mi.mbmi.ref_frame = (2 + safe_decoder.read_bool(pbi.prob_gf as i32)) as uint8_t;
+            cur_mi.mbmi.ref_frame = (2 + safe_decoder.read_bool(pbi.prob_gf as i32)) as u8;
         }
 
         if above_mi.mbmi.ref_frame as i32 != INTRA_FRAME as i32 {
@@ -541,7 +539,7 @@ fn read_mb_modes_mv(
                             mb_to_bottom_edge,
                         );
                         cur_mi.mbmi.mv = cur_mi.bmi[15].mv();
-                        cur_mi.mbmi.mode = SPLITMV as uint8_t;
+                        cur_mi.mbmi.mode = SPLITMV as u8;
                         cur_mi.mbmi.is_4x4 = 1;
                     } else {
                         read_mv(safe_decoder, cur_mi.mbmi.mv.as_mv_mut(), mvc);
@@ -557,42 +555,41 @@ fn read_mb_modes_mv(
                             mb_to_right_edge,
                             mb_to_top_edge,
                             mb_to_bottom_edge,
-                        ) as uint8_t;
-                        cur_mi.mbmi.mode = NEWMV as uint8_t;
+                        ) as u8;
+                        cur_mi.mbmi.mode = NEWMV as u8;
                     }
                 } else {
-                    cur_mi.mbmi.mode = NEARMV as uint8_t;
+                    cur_mi.mbmi.mode = NEARMV as u8;
                     cur_mi.mbmi.mv = near_mvs[CNT_NEAR as usize];
                     vp8_clamp_mv2(cur_mi.mbmi.mv.as_mv_mut(), &pbi.mb);
                 }
             } else {
-                cur_mi.mbmi.mode = NEARESTMV as uint8_t;
+                cur_mi.mbmi.mode = NEARESTMV as u8;
                 cur_mi.mbmi.mv = near_mvs[CNT_NEAREST as usize];
                 vp8_clamp_mv2(cur_mi.mbmi.mv.as_mv_mut(), &pbi.mb);
             }
         } else {
-            cur_mi.mbmi.mode = ZEROMV as uint8_t;
+            cur_mi.mbmi.mode = ZEROMV as u8;
             cur_mi.mbmi.mv = int_mv::default();
         }
     } else {
         cur_mi.mbmi.mv = int_mv::default();
-        cur_mi.mbmi.mode = read_ymode(safe_decoder, &pbi.common.fc.ymode_prob) as uint8_t;
+        cur_mi.mbmi.mode = read_ymode(safe_decoder, &pbi.common.fc.ymode_prob) as u8;
         if cur_mi.mbmi.mode as i32 == B_PRED as i32 {
             cur_mi.mbmi.is_4x4 = 1;
             for j in 0..16 {
                 cur_mi.bmi[j].set_mode(read_bmode(safe_decoder, &pbi.common.fc.bmode_prob));
             }
         }
-        cur_mi.mbmi.uv_mode = read_uv_mode(safe_decoder, &pbi.common.fc.uv_mode_prob) as uint8_t;
+        cur_mi.mbmi.uv_mode = read_uv_mode(safe_decoder, &pbi.common.fc.uv_mode_prob) as u8;
     }
 }
 fn read_mb_features(safe_decoder: &mut SafeBoolDecoder, mi: &mut MB_MODE_INFO, x: &MACROBLOCKD) {
     if x.segmentation_enabled as i32 != 0 && x.update_mb_segmentation_map as i32 != 0 {
         if safe_decoder.read_bool(x.mb_segment_tree_probs[0] as i32) != 0 {
-            mi.segment_id =
-                (2 + safe_decoder.read_bool(x.mb_segment_tree_probs[2] as i32)) as uint8_t;
+            mi.segment_id = (2 + safe_decoder.read_bool(x.mb_segment_tree_probs[2] as i32)) as u8;
         } else {
-            mi.segment_id = safe_decoder.read_bool(x.mb_segment_tree_probs[1] as i32) as uint8_t;
+            mi.segment_id = safe_decoder.read_bool(x.mb_segment_tree_probs[1] as i32) as u8;
         }
     }
 }
@@ -605,15 +602,15 @@ fn decode_mb_mode_mvs(
     if pbi.mb.update_mb_segmentation_map != 0 {
         read_mb_features(safe_decoder, &mut mip_slice[cur_idx].mbmi, &pbi.mb);
     } else if pbi.common.frame_type == KEY_FRAME as i32 as u32 {
-        mip_slice[cur_idx].mbmi.segment_id = 0 as uint8_t;
+        mip_slice[cur_idx].mbmi.segment_id = 0_u8;
     }
     if pbi.common.mb_no_coeff_skip != 0 {
         mip_slice[cur_idx].mbmi.mb_skip_coeff =
-            safe_decoder.read_bool(pbi.prob_skip_false as i32) as uint8_t;
+            safe_decoder.read_bool(pbi.prob_skip_false as i32) as u8;
     } else {
-        mip_slice[cur_idx].mbmi.mb_skip_coeff = 0 as uint8_t;
+        mip_slice[cur_idx].mbmi.mb_skip_coeff = 0_u8;
     }
-    mip_slice[cur_idx].mbmi.is_4x4 = 0 as uint8_t;
+    mip_slice[cur_idx].mbmi.is_4x4 = 0_u8;
     if pbi.common.frame_type == KEY_FRAME as i32 as u32 {
         read_kf_modes(
             pbi.common.mode_info_stride as usize,

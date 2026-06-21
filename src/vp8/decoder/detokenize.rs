@@ -12,11 +12,8 @@ pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
 pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
 pub type vpx_color_range_t = vpx_color_range;
-pub type int16_t = i16;
-pub type uint8_t = u8;
-pub type uint32_t = u32;
 pub use crate::vp8::common::types::*;
-pub type ProbaArray = *const [[uint8_t; 11]; 3];
+pub type ProbaArray = *const [[u8; 11]; 3];
 pub const CHAR_BIT: i32 = 8_i32;
 pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
 pub fn vp8_reset_mb_tokens_context(
@@ -35,13 +32,13 @@ pub fn vp8_reset_mb_tokens_context(
         l_ctx.y2 = 0;
     }
 }
-static kBands: [uint8_t; 17] = [0, 1, 2, 3, 6, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 0];
-static kCat3: [uint8_t; 3] = [173, 148, 140];
-static kCat4: [uint8_t; 4] = [176, 155, 140, 135];
-static kCat5: [uint8_t; 5] = [180, 157, 141, 134, 130];
-static kCat6: [uint8_t; 11] = [254, 254, 243, 230, 196, 177, 153, 140, 133, 130, 129];
-static kCat3456: [&[uint8_t]; 4] = [&kCat3, &kCat4, &kCat5, &kCat6];
-static kZigzag: [uint8_t; 16] = [0, 1, 4, 8, 5, 2, 3, 6, 9, 12, 13, 10, 7, 11, 14, 15];
+static kBands: [u8; 17] = [0, 1, 2, 3, 6, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 7, 0];
+static kCat3: [u8; 3] = [173, 148, 140];
+static kCat4: [u8; 4] = [176, 155, 140, 135];
+static kCat5: [u8; 5] = [180, 157, 141, 134, 130];
+static kCat6: [u8; 11] = [254, 254, 243, 230, 196, 177, 153, 140, 133, 130, 129];
+static kCat3456: [&[u8]; 4] = [&kCat3, &kCat4, &kCat5, &kCat6];
+static kZigzag: [u8; 16] = [0, 1, 4, 8, 5, 2, 3, 6, 9, 12, 13, 10, 7, 11, 14, 15];
 fn GetSigned(br: &mut crate::vp8::decoder::dboolhuff::SafeBoolDecoder, value_to_sign: i32) -> i32 {
     if br.read_bool(128_i32) != 0 {
         -value_to_sign
@@ -54,7 +51,7 @@ fn GetCoeffs(
     prob: &[[[vp8_prob; 11]; 3]; 8],
     ctx: i32,
     mut n: i32,
-    out: &mut [int16_t],
+    out: &mut [i16],
 ) -> i32 {
     let mut p: &[vp8_prob; 11] = &prob[n as usize][ctx as usize];
     if br.read_bool(p[0] as i32) == 0 {
@@ -98,7 +95,7 @@ fn GetCoeffs(
                 p = &prob[kBands[n as usize] as usize][2];
             }
             j = kZigzag[(n - 1) as usize] as i32;
-            out[j as usize] = GetSigned(br, v) as int16_t;
+            out[j as usize] = GetSigned(br, v) as i16;
             if n == 16 || br.read_bool(p[0] as i32) == 0 {
                 return n;
             }
