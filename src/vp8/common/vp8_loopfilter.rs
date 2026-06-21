@@ -3,11 +3,11 @@ pub type uint32_t = u32;
 
 pub type uint8_t = u8;
 pub type vpx_color_range_t = vpx_color_range;
-pub type vpx_color_range = ::core::ffi::c_uint;
+pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
 pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
 pub type vpx_color_space_t = vpx_color_space;
-pub type vpx_color_space = ::core::ffi::c_uint;
+pub type vpx_color_space = u32;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
 pub const VPX_CS_RESERVED: vpx_color_space = 6;
 pub const VPX_CS_BT_2020: vpx_color_space = 5;
@@ -21,10 +21,10 @@ pub type __darwin_size_t = usize;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info {
-    pub mblim: *const ::core::ffi::c_uchar,
-    pub blim: *const ::core::ffi::c_uchar,
-    pub lim: *const ::core::ffi::c_uchar,
-    pub hev_thr: *const ::core::ffi::c_uchar,
+    pub mblim: *const u8,
+    pub blim: *const u8,
+    pub lim: *const u8,
+    pub hev_thr: *const u8,
 }
 pub const SPLITMV: C2RustUnnamed = 9;
 pub const NEWMV: C2RustUnnamed = 8;
@@ -39,77 +39,63 @@ pub const DC_PRED: C2RustUnnamed = 0;
 pub const MAX_REF_FRAMES: C2RustUnnamed_1 = 4;
 pub const INTRA_FRAME: C2RustUnnamed_1 = 0;
 pub const MB_LVL_ALT_LF: C2RustUnnamed_0 = 1;
-pub type C2RustUnnamed = ::core::ffi::c_uint;
+pub type C2RustUnnamed = u32;
 pub const MB_MODE_COUNT: C2RustUnnamed = 10;
-pub type C2RustUnnamed_0 = ::core::ffi::c_uint;
+pub type C2RustUnnamed_0 = u32;
 pub const MB_LVL_MAX: C2RustUnnamed_0 = 2;
 pub const MB_LVL_ALT_Q: C2RustUnnamed_0 = 0;
-pub type C2RustUnnamed_1 = ::core::ffi::c_uint;
+pub type C2RustUnnamed_1 = u32;
 pub const ALTREF_FRAME: C2RustUnnamed_1 = 3;
 pub const GOLDEN_FRAME: C2RustUnnamed_1 = 2;
 pub const LAST_FRAME: C2RustUnnamed_1 = 1;
-pub const MAX_LOOP_FILTER: ::core::ffi::c_int = 63 as ::core::ffi::c_int;
-pub const PARTIAL_FRAME_FRACTION: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
-pub const SIMD_WIDTH: ::core::ffi::c_int = 1 as ::core::ffi::c_int;
-pub const MAX_MB_SEGMENTS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
-pub const SEGMENT_ABSDATA: ::core::ffi::c_int = 1 as ::core::ffi::c_int;
+pub const MAX_LOOP_FILTER: i32 = 63_i32;
+pub const PARTIAL_FRAME_FRACTION: i32 = 8_i32;
+pub const SIMD_WIDTH: i32 = 1_i32;
+pub const MAX_MB_SEGMENTS: i32 = 4_i32;
+pub const SEGMENT_ABSDATA: i32 = 1_i32;
 fn lf_init_lut(lfi: &mut loop_filter_info_n) {
-    let mut filt_lvl: ::core::ffi::c_int = 0;
-    filt_lvl = 0 as ::core::ffi::c_int;
+    let mut filt_lvl: i32 = 0;
+    filt_lvl = 0_i32;
     while filt_lvl <= MAX_LOOP_FILTER {
-        if filt_lvl >= 40 as ::core::ffi::c_int {
-            lfi.hev_thr_lut[KEY_FRAME as ::core::ffi::c_int as usize][filt_lvl as usize] =
-                2 as ::core::ffi::c_uchar;
-            lfi.hev_thr_lut[INTER_FRAME as ::core::ffi::c_int as usize][filt_lvl as usize] =
-                3 as ::core::ffi::c_uchar;
-        } else if filt_lvl >= 20 as ::core::ffi::c_int {
-            lfi.hev_thr_lut[KEY_FRAME as ::core::ffi::c_int as usize][filt_lvl as usize] =
-                1 as ::core::ffi::c_uchar;
-            lfi.hev_thr_lut[INTER_FRAME as ::core::ffi::c_int as usize][filt_lvl as usize] =
-                2 as ::core::ffi::c_uchar;
-        } else if filt_lvl >= 15 as ::core::ffi::c_int {
-            lfi.hev_thr_lut[KEY_FRAME as ::core::ffi::c_int as usize][filt_lvl as usize] =
-                1 as ::core::ffi::c_uchar;
-            lfi.hev_thr_lut[INTER_FRAME as ::core::ffi::c_int as usize][filt_lvl as usize] =
-                1 as ::core::ffi::c_uchar;
+        if filt_lvl >= 40_i32 {
+            lfi.hev_thr_lut[KEY_FRAME as i32 as usize][filt_lvl as usize] = 2_u8;
+            lfi.hev_thr_lut[INTER_FRAME as i32 as usize][filt_lvl as usize] = 3_u8;
+        } else if filt_lvl >= 20_i32 {
+            lfi.hev_thr_lut[KEY_FRAME as i32 as usize][filt_lvl as usize] = 1_u8;
+            lfi.hev_thr_lut[INTER_FRAME as i32 as usize][filt_lvl as usize] = 2_u8;
+        } else if filt_lvl >= 15_i32 {
+            lfi.hev_thr_lut[KEY_FRAME as i32 as usize][filt_lvl as usize] = 1_u8;
+            lfi.hev_thr_lut[INTER_FRAME as i32 as usize][filt_lvl as usize] = 1_u8;
         } else {
-            lfi.hev_thr_lut[KEY_FRAME as ::core::ffi::c_int as usize][filt_lvl as usize] =
-                0 as ::core::ffi::c_uchar;
-            lfi.hev_thr_lut[INTER_FRAME as ::core::ffi::c_int as usize][filt_lvl as usize] =
-                0 as ::core::ffi::c_uchar;
+            lfi.hev_thr_lut[KEY_FRAME as i32 as usize][filt_lvl as usize] = 0_u8;
+            lfi.hev_thr_lut[INTER_FRAME as i32 as usize][filt_lvl as usize] = 0_u8;
         }
         filt_lvl += 1;
     }
-    lfi.mode_lf_lut[DC_PRED as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_uchar;
-    lfi.mode_lf_lut[V_PRED as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_uchar;
-    lfi.mode_lf_lut[H_PRED as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_uchar;
-    lfi.mode_lf_lut[TM_PRED as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_uchar;
-    lfi.mode_lf_lut[B_PRED as ::core::ffi::c_int as usize] = 0 as ::core::ffi::c_uchar;
-    lfi.mode_lf_lut[ZEROMV as ::core::ffi::c_int as usize] = 1 as ::core::ffi::c_uchar;
-    lfi.mode_lf_lut[NEARESTMV as ::core::ffi::c_int as usize] = 2 as ::core::ffi::c_uchar;
-    lfi.mode_lf_lut[NEARMV as ::core::ffi::c_int as usize] = 2 as ::core::ffi::c_uchar;
-    lfi.mode_lf_lut[NEWMV as ::core::ffi::c_int as usize] = 2 as ::core::ffi::c_uchar;
-    lfi.mode_lf_lut[SPLITMV as ::core::ffi::c_int as usize] = 3 as ::core::ffi::c_uchar;
+    lfi.mode_lf_lut[DC_PRED as i32 as usize] = 1_u8;
+    lfi.mode_lf_lut[V_PRED as i32 as usize] = 1_u8;
+    lfi.mode_lf_lut[H_PRED as i32 as usize] = 1_u8;
+    lfi.mode_lf_lut[TM_PRED as i32 as usize] = 1_u8;
+    lfi.mode_lf_lut[B_PRED as i32 as usize] = 0_u8;
+    lfi.mode_lf_lut[ZEROMV as i32 as usize] = 1_u8;
+    lfi.mode_lf_lut[NEARESTMV as i32 as usize] = 2_u8;
+    lfi.mode_lf_lut[NEARMV as i32 as usize] = 2_u8;
+    lfi.mode_lf_lut[NEWMV as i32 as usize] = 2_u8;
+    lfi.mode_lf_lut[SPLITMV as i32 as usize] = 3_u8;
 }
-pub fn vp8_loop_filter_update_sharpness(
-    lfi: &mut loop_filter_info_n,
-    sharpness_lvl: ::core::ffi::c_int,
-) {
-    let mut i: ::core::ffi::c_int = 0;
-    i = 0 as ::core::ffi::c_int;
+pub fn vp8_loop_filter_update_sharpness(lfi: &mut loop_filter_info_n, sharpness_lvl: i32) {
+    let mut i: i32 = 0;
+    i = 0_i32;
     while i <= MAX_LOOP_FILTER {
-        let mut filt_lvl: ::core::ffi::c_int = i;
-        let mut block_inside_limit: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-        block_inside_limit =
-            filt_lvl >> (sharpness_lvl > 0 as ::core::ffi::c_int) as ::core::ffi::c_int;
-        block_inside_limit >>= (sharpness_lvl > 4 as ::core::ffi::c_int) as ::core::ffi::c_int;
-        if sharpness_lvl > 0 as ::core::ffi::c_int
-            && block_inside_limit > 9 as ::core::ffi::c_int - sharpness_lvl
-        {
-            block_inside_limit = 9 as ::core::ffi::c_int - sharpness_lvl;
+        let mut filt_lvl: i32 = i;
+        let mut block_inside_limit: i32 = 0_i32;
+        block_inside_limit = filt_lvl >> (sharpness_lvl > 0_i32) as i32;
+        block_inside_limit >>= (sharpness_lvl > 4_i32) as i32;
+        if sharpness_lvl > 0_i32 && block_inside_limit > 9_i32 - sharpness_lvl {
+            block_inside_limit = 9_i32 - sharpness_lvl;
         }
-        if block_inside_limit < 1 as ::core::ffi::c_int {
-            block_inside_limit = 1 as ::core::ffi::c_int;
+        if block_inside_limit < 1_i32 {
+            block_inside_limit = 1_i32;
         }
         lfi.lim[i as usize] = [block_inside_limit as u8; 1];
         lfi.blim[i as usize] = [(2 * filt_lvl + block_inside_limit) as u8; 1];
@@ -125,87 +111,66 @@ pub fn vp8_loop_filter_init(cm: &mut VP8_COMMON) {
         cm.lf_info.hev_thr[i] = [i as u8; 1];
     }
 }
-pub fn vp8_loop_filter_frame_init(
-    cm: &mut VP8_COMMON,
-    mbd: &MACROBLOCKD,
-    default_filt_lvl: ::core::ffi::c_int,
-) {
-    let mut seg: ::core::ffi::c_int = 0;
-    let mut ref_0: ::core::ffi::c_int = 0;
-    let mut mode: ::core::ffi::c_int = 0;
+pub fn vp8_loop_filter_frame_init(cm: &mut VP8_COMMON, mbd: &MACROBLOCKD, default_filt_lvl: i32) {
+    let mut seg: i32 = 0;
+    let mut ref_0: i32 = 0;
+    let mut mode: i32 = 0;
     let lfi: &mut loop_filter_info_n = &mut cm.lf_info;
     if cm.last_sharpness_level != cm.sharpness_level {
         vp8_loop_filter_update_sharpness(lfi, cm.sharpness_level);
         cm.last_sharpness_level = cm.sharpness_level;
     }
-    seg = 0 as ::core::ffi::c_int;
+    seg = 0_i32;
     while seg < MAX_MB_SEGMENTS {
-        let mut lvl_seg: ::core::ffi::c_int = default_filt_lvl;
-        let mut lvl_ref: ::core::ffi::c_int = 0;
-        let mut lvl_mode: ::core::ffi::c_int = 0;
+        let mut lvl_seg: i32 = default_filt_lvl;
+        let mut lvl_ref: i32 = 0;
+        let mut lvl_mode: i32 = 0;
         if mbd.segmentation_enabled != 0 {
-            if mbd.mb_segment_abs_delta as ::core::ffi::c_int == SEGMENT_ABSDATA {
-                lvl_seg = mbd.segment_feature_data[MB_LVL_ALT_LF as ::core::ffi::c_int as usize]
-                    [seg as usize] as ::core::ffi::c_int;
+            if mbd.mb_segment_abs_delta as i32 == SEGMENT_ABSDATA {
+                lvl_seg =
+                    mbd.segment_feature_data[MB_LVL_ALT_LF as i32 as usize][seg as usize] as i32;
             } else {
-                lvl_seg += mbd.segment_feature_data[MB_LVL_ALT_LF as ::core::ffi::c_int as usize]
-                    [seg as usize] as ::core::ffi::c_int;
+                lvl_seg +=
+                    mbd.segment_feature_data[MB_LVL_ALT_LF as i32 as usize][seg as usize] as i32;
             }
-            lvl_seg = if lvl_seg > 0 as ::core::ffi::c_int {
-                if lvl_seg > 63 as ::core::ffi::c_int {
-                    63 as ::core::ffi::c_int
-                } else {
-                    lvl_seg
-                }
+            lvl_seg = if lvl_seg > 0_i32 {
+                if lvl_seg > 63_i32 { 63_i32 } else { lvl_seg }
             } else {
-                0 as ::core::ffi::c_int
+                0_i32
             };
         }
         if mbd.mode_ref_lf_delta_enabled == 0 {
             lfi.lvl[seg as usize] = [[lvl_seg as u8; 4]; 4];
         } else {
-            ref_0 = INTRA_FRAME as ::core::ffi::c_int;
-            lvl_ref = lvl_seg + mbd.ref_lf_deltas[ref_0 as usize] as ::core::ffi::c_int;
-            mode = 0 as ::core::ffi::c_int;
-            lvl_mode = lvl_ref + mbd.mode_lf_deltas[mode as usize] as ::core::ffi::c_int;
-            lvl_mode = if lvl_mode > 0 as ::core::ffi::c_int {
-                if lvl_mode > 63 as ::core::ffi::c_int {
-                    63 as ::core::ffi::c_int
-                } else {
-                    lvl_mode
-                }
+            ref_0 = INTRA_FRAME as i32;
+            lvl_ref = lvl_seg + mbd.ref_lf_deltas[ref_0 as usize] as i32;
+            mode = 0_i32;
+            lvl_mode = lvl_ref + mbd.mode_lf_deltas[mode as usize] as i32;
+            lvl_mode = if lvl_mode > 0_i32 {
+                if lvl_mode > 63_i32 { 63_i32 } else { lvl_mode }
             } else {
-                0 as ::core::ffi::c_int
+                0_i32
             };
-            lfi.lvl[seg as usize][ref_0 as usize][mode as usize] = lvl_mode as ::core::ffi::c_uchar;
-            mode = 1 as ::core::ffi::c_int;
-            lvl_mode = if lvl_ref > 0 as ::core::ffi::c_int {
-                if lvl_ref > 63 as ::core::ffi::c_int {
-                    63 as ::core::ffi::c_int
-                } else {
-                    lvl_ref
-                }
+            lfi.lvl[seg as usize][ref_0 as usize][mode as usize] = lvl_mode as u8;
+            mode = 1_i32;
+            lvl_mode = if lvl_ref > 0_i32 {
+                if lvl_ref > 63_i32 { 63_i32 } else { lvl_ref }
             } else {
-                0 as ::core::ffi::c_int
+                0_i32
             };
-            lfi.lvl[seg as usize][ref_0 as usize][mode as usize] = lvl_mode as ::core::ffi::c_uchar;
-            ref_0 = 1 as ::core::ffi::c_int;
-            while ref_0 < MAX_REF_FRAMES as ::core::ffi::c_int {
-                lvl_ref = lvl_seg + mbd.ref_lf_deltas[ref_0 as usize] as ::core::ffi::c_int;
-                mode = 1 as ::core::ffi::c_int;
-                while mode < 4 as ::core::ffi::c_int {
-                    lvl_mode = lvl_ref + mbd.mode_lf_deltas[mode as usize] as ::core::ffi::c_int;
-                    lvl_mode = if lvl_mode > 0 as ::core::ffi::c_int {
-                        if lvl_mode > 63 as ::core::ffi::c_int {
-                            63 as ::core::ffi::c_int
-                        } else {
-                            lvl_mode
-                        }
+            lfi.lvl[seg as usize][ref_0 as usize][mode as usize] = lvl_mode as u8;
+            ref_0 = 1_i32;
+            while ref_0 < MAX_REF_FRAMES as i32 {
+                lvl_ref = lvl_seg + mbd.ref_lf_deltas[ref_0 as usize] as i32;
+                mode = 1_i32;
+                while mode < 4_i32 {
+                    lvl_mode = lvl_ref + mbd.mode_lf_deltas[mode as usize] as i32;
+                    lvl_mode = if lvl_mode > 0_i32 {
+                        if lvl_mode > 63_i32 { 63_i32 } else { lvl_mode }
                     } else {
-                        0 as ::core::ffi::c_int
+                        0_i32
                     };
-                    lfi.lvl[seg as usize][ref_0 as usize][mode as usize] =
-                        lvl_mode as ::core::ffi::c_uchar;
+                    lfi.lvl[seg as usize][ref_0 as usize][mode as usize] = lvl_mode as u8;
                     mode += 1;
                 }
                 ref_0 += 1;
@@ -215,14 +180,14 @@ pub fn vp8_loop_filter_frame_init(
     }
 }
 pub fn vp8_loop_filter_row_normal_safe(
-    mb_cols: ::core::ffi::c_int,
+    mb_cols: i32,
     lf_info: &loop_filter_info_n,
     frame_type: FRAME_TYPE,
     mode_info_slice: &[MODE_INFO],
     mode_info_idx: usize,
-    mb_row: ::core::ffi::c_int,
-    post_ystride: ::core::ffi::c_int,
-    post_uvstride: ::core::ffi::c_int,
+    mb_row: i32,
+    post_ystride: i32,
+    post_uvstride: i32,
     y_slice: &mut [u8],
     y_offset: usize,
     mut u_slice: Option<&mut [u8]>,
@@ -230,10 +195,10 @@ pub fn vp8_loop_filter_row_normal_safe(
     mut v_slice: Option<&mut [u8]>,
     v_offset: usize,
 ) {
-    let mut mb_col: ::core::ffi::c_int = 0;
-    let mut filter_level: ::core::ffi::c_int = 0;
+    let mut mb_col: i32 = 0;
+    let mut filter_level: i32 = 0;
     let lfi_n = lf_info;
-    mb_col = 0 as ::core::ffi::c_int;
+    mb_col = 0_i32;
     let mut cur_mi_idx = mode_info_idx;
     let mut cur_y_offset = y_offset;
     let mut cur_u_offset = u_offset;
@@ -241,21 +206,17 @@ pub fn vp8_loop_filter_row_normal_safe(
 
     while mb_col < mb_cols {
         let mi = &mode_info_slice[cur_mi_idx];
-        let skip_lf: ::core::ffi::c_int = (mi.mbmi.mode as ::core::ffi::c_int
-            != B_PRED as ::core::ffi::c_int
-            && mi.mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int
-            && mi.mbmi.mb_skip_coeff as ::core::ffi::c_int != 0)
-            as ::core::ffi::c_int;
-        let mode_index: ::core::ffi::c_int =
-            lfi_n.mode_lf_lut[mi.mbmi.mode as usize] as ::core::ffi::c_int;
-        let seg: ::core::ffi::c_int = mi.mbmi.segment_id as ::core::ffi::c_int;
-        let ref_frame: ::core::ffi::c_int = mi.mbmi.ref_frame as ::core::ffi::c_int;
-        filter_level =
-            lfi_n.lvl[seg as usize][ref_frame as usize][mode_index as usize] as ::core::ffi::c_int;
+        let skip_lf: i32 = (mi.mbmi.mode as i32 != B_PRED as i32
+            && mi.mbmi.mode as i32 != SPLITMV as i32
+            && mi.mbmi.mb_skip_coeff as i32 != 0) as i32;
+        let mode_index: i32 = lfi_n.mode_lf_lut[mi.mbmi.mode as usize] as i32;
+        let seg: i32 = mi.mbmi.segment_id as i32;
+        let ref_frame: i32 = mi.mbmi.ref_frame as i32;
+        filter_level = lfi_n.lvl[seg as usize][ref_frame as usize][mode_index as usize] as i32;
 
         if filter_level != 0 {
-            let hev_index: ::core::ffi::c_int =
-                lfi_n.hev_thr_lut[frame_type as usize][filter_level as usize] as ::core::ffi::c_int;
+            let hev_index: i32 =
+                lfi_n.hev_thr_lut[frame_type as usize][filter_level as usize] as i32;
 
             let mblim_slice = &lfi_n.mblim[filter_level as usize];
             let blim_slice = &lfi_n.blim[filter_level as usize];
@@ -265,7 +226,7 @@ pub fn vp8_loop_filter_row_normal_safe(
             let y_stride_usize = post_ystride as usize;
             let uv_stride_usize = post_uvstride as usize;
 
-            if mb_col > 0 as ::core::ffi::c_int {
+            if mb_col > 0_i32 {
                 crate::vp8::common::loopfilter_filters::mbloop_filter_vertical_edge_safe(
                     y_slice,
                     cur_y_offset,
@@ -332,7 +293,7 @@ pub fn vp8_loop_filter_row_normal_safe(
                 }
             }
 
-            if mb_row > 0 as ::core::ffi::c_int {
+            if mb_row > 0_i32 {
                 crate::vp8::common::loopfilter_filters::mbloop_filter_horizontal_edge_safe(
                     y_slice,
                     cur_y_offset,
@@ -407,41 +368,37 @@ pub fn vp8_loop_filter_row_normal_safe(
     }
 }
 pub fn vp8_loop_filter_row_simple_safe(
-    mb_cols: ::core::ffi::c_int,
+    mb_cols: i32,
     lf_info: &loop_filter_info_n,
     mode_info_slice: &[MODE_INFO],
     mode_info_idx: usize,
-    mb_row: ::core::ffi::c_int,
-    post_ystride: ::core::ffi::c_int,
+    mb_row: i32,
+    post_ystride: i32,
     y_slice: &mut [u8],
     y_offset: usize,
 ) {
-    let mut mb_col: ::core::ffi::c_int = 0;
-    let mut filter_level: ::core::ffi::c_int = 0;
+    let mut mb_col: i32 = 0;
+    let mut filter_level: i32 = 0;
     let lfi_n = lf_info;
-    mb_col = 0 as ::core::ffi::c_int;
+    mb_col = 0_i32;
     let mut cur_mi_idx = mode_info_idx;
     let mut cur_y_offset = y_offset;
 
     while mb_col < mb_cols {
         let mi = &mode_info_slice[cur_mi_idx];
-        let mut skip_lf: ::core::ffi::c_int = (mi.mbmi.mode as ::core::ffi::c_int
-            != B_PRED as ::core::ffi::c_int
-            && mi.mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int
-            && mi.mbmi.mb_skip_coeff as ::core::ffi::c_int != 0)
-            as ::core::ffi::c_int;
-        let mode_index: ::core::ffi::c_int =
-            lfi_n.mode_lf_lut[mi.mbmi.mode as usize] as ::core::ffi::c_int;
-        let seg: ::core::ffi::c_int = mi.mbmi.segment_id as ::core::ffi::c_int;
-        let ref_frame: ::core::ffi::c_int = mi.mbmi.ref_frame as ::core::ffi::c_int;
-        filter_level =
-            lfi_n.lvl[seg as usize][ref_frame as usize][mode_index as usize] as ::core::ffi::c_int;
+        let mut skip_lf: i32 = (mi.mbmi.mode as i32 != B_PRED as i32
+            && mi.mbmi.mode as i32 != SPLITMV as i32
+            && mi.mbmi.mb_skip_coeff as i32 != 0) as i32;
+        let mode_index: i32 = lfi_n.mode_lf_lut[mi.mbmi.mode as usize] as i32;
+        let seg: i32 = mi.mbmi.segment_id as i32;
+        let ref_frame: i32 = mi.mbmi.ref_frame as i32;
+        filter_level = lfi_n.lvl[seg as usize][ref_frame as usize][mode_index as usize] as i32;
         if filter_level != 0 {
             let mblim_val = lfi_n.mblim[filter_level as usize][0];
             let blim_val = lfi_n.blim[filter_level as usize][0];
             let y_stride_usize = post_ystride as usize;
 
-            if mb_col > 0 as ::core::ffi::c_int {
+            if mb_col > 0_i32 {
                 crate::vp8::common::loopfilter_filters::vp8_loop_filter_simple_vertical_edge_safe(
                     y_slice,
                     cur_y_offset,
@@ -457,7 +414,7 @@ pub fn vp8_loop_filter_row_simple_safe(
                     blim_val,
                 );
             }
-            if mb_row > 0 as ::core::ffi::c_int {
+            if mb_row > 0_i32 {
                 crate::vp8::common::loopfilter_filters::vp8_loop_filter_simple_horizontal_edge_safe(
                     y_slice,
                     cur_y_offset,
@@ -499,9 +456,7 @@ pub fn vp8_loop_filter_frame_safe(cm: &mut VP8_COMMON, mbd: &MACROBLOCKD, frame_
 
     let (y_slice, u_slice, v_slice) = cm.yv12_fb[post_idx].views_mut();
 
-    if cm.filter_type as ::core::ffi::c_uint
-        == NORMAL_LOOPFILTER as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
+    if cm.filter_type == NORMAL_LOOPFILTER as i32 as u32 {
         for mb_row in 0..mb_rows {
             let mode_info_idx = mb_row as usize * mode_info_stride + 1;
             let y_offset = mb_row as usize * 16 * post_ystride as usize;
@@ -547,7 +502,7 @@ pub fn vp8_loop_filter_frame_safe(cm: &mut VP8_COMMON, mbd: &MACROBLOCKD, frame_
 pub fn vp8_loop_filter_frame_yonly_safe(
     cm: &mut VP8_COMMON,
     mbd: &MACROBLOCKD,
-    default_filt_lvl: ::core::ffi::c_int,
+    default_filt_lvl: i32,
 ) {
     let filter_level = default_filt_lvl;
     vp8_loop_filter_frame_init(cm, mbd, filter_level);
@@ -567,9 +522,7 @@ pub fn vp8_loop_filter_frame_yonly_safe(
     let (y_slice, _, _) = cm.yv12_fb[post_idx].views_mut();
     let frame_type = cm.frame_type;
 
-    if cm.filter_type as ::core::ffi::c_uint
-        == NORMAL_LOOPFILTER as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
+    if cm.filter_type == NORMAL_LOOPFILTER as i32 as u32 {
         for mb_row in 0..mb_rows {
             let mode_info_idx = mb_row as usize * mode_info_stride + 1;
             let y_offset = mb_row as usize * 16 * post_ystride as usize;
@@ -613,7 +566,7 @@ pub fn vp8_loop_filter_frame_yonly_safe(
 pub fn vp8_loop_filter_partial_frame_safe(
     cm: &mut VP8_COMMON,
     mbd: &MACROBLOCKD,
-    default_filt_lvl: ::core::ffi::c_int,
+    default_filt_lvl: i32,
 ) {
     let filter_level = default_filt_lvl;
     vp8_loop_filter_frame_init(cm, mbd, filter_level);
@@ -644,9 +597,7 @@ pub fn vp8_loop_filter_partial_frame_safe(
         end_mb_row = mb_rows;
     }
 
-    if cm.filter_type as ::core::ffi::c_uint
-        == NORMAL_LOOPFILTER as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
+    if cm.filter_type == NORMAL_LOOPFILTER as i32 as u32 {
         for mb_row in start_mb_row..end_mb_row {
             let mode_info_idx = mb_row as usize * mode_info_stride + 1;
             let y_offset = mb_row as usize * 16 * post_ystride as usize;

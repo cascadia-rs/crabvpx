@@ -1,11 +1,11 @@
 pub use crate::vp8::common::types::vp8_prob;
-pub type vp8_tree_index = ::core::ffi::c_schar;
+pub type vp8_tree_index = i8;
 #[derive(Copy, Clone, Default)]
 #[repr(C)]
 pub struct vp8_token_struct {
-    pub value: ::core::ffi::c_int,
-    pub Len: ::core::ffi::c_int,
+    pub value: i32,
+    pub Len: i32,
 }
 pub type vp8_token = vp8_token_struct;
 pub type uint64_t = u64;
-pub const vp8_prob_half: vp8_prob = 128 as ::core::ffi::c_int as vp8_prob;
+pub const vp8_prob_half: vp8_prob = 128_i32 as vp8_prob;
