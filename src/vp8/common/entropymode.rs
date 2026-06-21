@@ -1,3 +1,7 @@
+//! Mode entropy tables — port of `vp8/common/entropymode.c`.
+//!
+//! Default intra/inter prediction-mode probabilities and the mode trees.
+
 pub use crate::vp8::common::types::*;
 
 #[derive(Copy, Clone)]
@@ -1541,11 +1545,15 @@ pub static vp8_small_mvtree: [vp8_tree_index; 14] = [
     -6_i32 as vp8_tree_index,
     -7_i32 as vp8_tree_index,
 ];
+/// `vp8_init_mbmode_probs` — vp8/common/entropymode.c:96. Seeds the MB-mode
+/// probability tables in the common context.
 pub fn vp8_init_mbmode_probs(x: &mut VP8_COMMON) {
     x.fc.ymode_prob.copy_from_slice(&vp8_ymode_prob);
     x.fc.uv_mode_prob.copy_from_slice(&vp8_uv_mode_prob);
     x.fc.sub_mv_ref_prob.copy_from_slice(&sub_mv_ref_prob);
 }
+/// `vp8_default_bmode_probs` — vp8/common/entropymode.c:102. Fills the default
+/// 4x4 (B_PRED) intra sub-mode probabilities.
 pub fn vp8_default_bmode_probs(dest: &mut [vp8_prob; 9]) {
     dest.copy_from_slice(&vp8_bmode_prob);
 }

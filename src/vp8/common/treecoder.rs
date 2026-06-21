@@ -1,3 +1,8 @@
+//! Tree-coder probability helpers — port of `vp8/common/treecoder.c`.
+//!
+//! Builds token-tree probabilities/counts (the bool-coded tree machinery shared
+//! by the entropy models).
+
 pub use crate::vp8::common::types::vp8_prob;
 pub type vp8_tree_index = i8;
 #[derive(Copy, Clone, Default)]

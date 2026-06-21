@@ -1,3 +1,9 @@
+//! Loop-filter edge kernels — port of `vp8/common/loopfilter_filters.c`.
+//!
+//! The scalar normal/mbloop/simple horizontal & vertical edge filters (and the
+//! mask/hev helpers). NEON 16-wide s8 variants live in [`crate::vp8::common::simd`]
+//! and stay bit-exact with these.
+
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info {

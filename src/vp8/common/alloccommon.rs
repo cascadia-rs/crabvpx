@@ -1,3 +1,8 @@
+//! Common allocation / lifecycle — port of `vp8/common/alloccommon.c`.
+//!
+//! Allocates and frees the YV12 frame-buffer pool and per-frame structures that
+//! hang off VP8_COMMON, plus version/profile setup.
+
 // FFI imports removed
 use crate::vp8::common::entropymode::{vp8_default_bmode_probs, vp8_init_mbmode_probs};
 use crate::vp8::common::generic::systemdependent::vp8_machine_specific_config;
@@ -63,6 +68,8 @@ pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::co
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 pub const VP8BORDERINPIXELS: i32 = 32_i32;
 pub const NUM_YV12_BUFFERS: i32 = 4_i32;
+/// `vp8_de_alloc_frame_buffers` — vp8/common/alloccommon.c:22. Frees every
+/// heap region attached to VP8_COMMON (frame pool, mode-info, etc.).
 pub fn vp8_de_alloc_frame_buffers(oci: &mut VP8_COMMON) {
     let mut i: i32 = 0;
     i = 0_i32;
@@ -83,6 +90,8 @@ pub fn vp8_de_alloc_frame_buffers(oci: &mut VP8_COMMON) {
     oci.frame_to_show_idx = None;
 }
 
+/// `vp8_alloc_frame_buffers` — vp8/common/alloccommon.c:59. (Re)allocates the
+/// frame-buffer pool and per-frame arrays for a given resolution.
 pub fn vp8_alloc_frame_buffers(oci: &mut VP8_COMMON, mut width: i32, mut height: i32) -> i32 {
     let mut current_block: u64;
     let mut i: i32 = 0;
@@ -142,6 +151,8 @@ pub fn vp8_alloc_frame_buffers(oci: &mut VP8_COMMON, mut width: i32, mut height:
     vp8_de_alloc_frame_buffers(oci);
     1_i32
 }
+/// `vp8_setup_version` — vp8/common/alloccommon.c:134. Sets filter/clamp options
+/// from the bitstream version field.
 pub fn vp8_setup_version(cm: &mut VP8_COMMON) {
     match cm.version {
         0 => {
@@ -176,6 +187,7 @@ pub fn vp8_setup_version(cm: &mut VP8_COMMON) {
         }
     };
 }
+/// `vp8_create_common` — vp8/common/alloccommon.c:169. Initializes a VP8_COMMON.
 pub fn vp8_create_common(oci: &mut VP8_COMMON) {
     vp8_machine_specific_config(oci);
     vp8_init_mbmode_probs(oci);
@@ -192,6 +204,7 @@ pub fn vp8_create_common(oci: &mut VP8_COMMON) {
     oci.copy_buffer_to_arf = 0_i32;
     oci.frame_to_show_idx = None;
 }
+/// `vp8_remove_common` — vp8/common/alloccommon.c:191. Tears down a VP8_COMMON.
 pub fn vp8_remove_common(oci: &mut VP8_COMMON) {
     vp8_de_alloc_frame_buffers(oci);
 }

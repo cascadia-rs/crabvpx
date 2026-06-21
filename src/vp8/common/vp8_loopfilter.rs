@@ -1,3 +1,10 @@
+//! In-loop deblocking driver — port of `vp8/common/vp8_loopfilter.c`.
+//!
+//! Per-frame loop-filter orchestration: builds the level/limit luts and walks
+//! macroblocks applying the edge filters (the kernels live in
+//! loopfilter_filters / simd). Row-granular `_row_` variants serve the threaded
+//! path.
+
 pub use crate::vp8::common::types::*;
 
 pub type vpx_color_range_t = vpx_color_range;
@@ -79,6 +86,8 @@ fn lf_init_lut(lfi: &mut loop_filter_info_n) {
     lfi.mode_lf_lut[NEWMV as i32 as usize] = 2_u8;
     lfi.mode_lf_lut[SPLITMV as i32 as usize] = 3_u8;
 }
+/// `vp8_loop_filter_update_sharpness` — vp8_loopfilter.c:49. Rebuilds the
+/// per-level filter-limit tables when sharpness changes.
 pub fn vp8_loop_filter_update_sharpness(lfi: &mut loop_filter_info_n, sharpness_lvl: i32) {
     let mut i: i32 = 0;
     i = 0_i32;
@@ -99,6 +108,7 @@ pub fn vp8_loop_filter_update_sharpness(lfi: &mut loop_filter_info_n, sharpness_
         i += 1;
     }
 }
+/// `vp8_loop_filter_init` — vp8/common/vp8_loopfilter.c. One-time lut init.
 pub fn vp8_loop_filter_init(cm: &mut VP8_COMMON) {
     vp8_loop_filter_update_sharpness(&mut cm.lf_info, cm.sharpness_level);
     cm.last_sharpness_level = cm.sharpness_level;
@@ -107,6 +117,8 @@ pub fn vp8_loop_filter_init(cm: &mut VP8_COMMON) {
         cm.lf_info.hev_thr[i] = [i as u8; 1];
     }
 }
+/// `vp8_loop_filter_frame_init` — vp8_loopfilter.c:94. Per-frame setup of the
+/// per-MB filter levels from segment/ref/mode adjustments.
 pub fn vp8_loop_filter_frame_init(cm: &mut VP8_COMMON, mbd: &MACROBLOCKD, default_filt_lvl: i32) {
     let mut seg: i32 = 0;
     let mut ref_0: i32 = 0;
@@ -175,6 +187,8 @@ pub fn vp8_loop_filter_frame_init(cm: &mut VP8_COMMON, mbd: &MACROBLOCKD, defaul
         seg += 1;
     }
 }
+/// Row-granular normal-filter walker (one MB row of edge dispatches), factored
+/// from `vp8_loop_filter_frame` (vp8_loopfilter.c:263) for the threaded path.
 pub fn vp8_loop_filter_row_normal_safe(
     mb_cols: i32,
     lf_info: &loop_filter_info_n,
@@ -363,6 +377,8 @@ pub fn vp8_loop_filter_row_normal_safe(
         mb_col += 1;
     }
 }
+/// Row-granular simple-filter walker, factored from `vp8_loop_filter_frame`
+/// (vp8_loopfilter.c:263) for the threaded path.
 pub fn vp8_loop_filter_row_simple_safe(
     mb_cols: i32,
     lf_info: &loop_filter_info_n,
@@ -432,6 +448,8 @@ pub fn vp8_loop_filter_row_simple_safe(
         mb_col += 1;
     }
 }
+/// `vp8_loop_filter_frame` — vp8_loopfilter.c:263. Deblocks a whole frame
+/// (normal or simple filter per the frame's filter type).
 pub fn vp8_loop_filter_frame_safe(cm: &mut VP8_COMMON, mbd: &MACROBLOCKD, frame_type: FRAME_TYPE) {
     let filter_level = cm.filter_level;
     vp8_loop_filter_frame_init(cm, mbd, filter_level);
@@ -495,6 +513,7 @@ pub fn vp8_loop_filter_frame_safe(cm: &mut VP8_COMMON, mbd: &MACROBLOCKD, frame_
     }
 }
 
+/// `vp8_loop_filter_frame_yonly` — vp8_loopfilter.c:384. Luma-only frame deblock.
 pub fn vp8_loop_filter_frame_yonly_safe(
     cm: &mut VP8_COMMON,
     mbd: &MACROBLOCKD,
@@ -559,6 +578,8 @@ pub fn vp8_loop_filter_frame_yonly_safe(
     }
 }
 
+/// `vp8_loop_filter_partial_frame` — vp8_loopfilter.c:474. Deblocks a subset of
+/// MB rows (used by error concealment / partial updates).
 pub fn vp8_loop_filter_partial_frame_safe(
     cm: &mut VP8_COMMON,
     mbd: &MACROBLOCKD,

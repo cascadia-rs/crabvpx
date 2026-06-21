@@ -1,3 +1,8 @@
+//! Inter prediction (motion compensation) — port of `vp8/common/reconinter.c`.
+//!
+//! Builds the predicted MB from reference frames: full-pel block copies and
+//! sub-pel interpolation (the sixtap/bilinear kernels in safe_predict / simd).
+
 pub use crate::vp8::common::types::*;
 
 pub type vpx_color_range_t = vpx_color_range;
@@ -27,6 +32,7 @@ pub const H_PRED: C2RustUnnamed = 2;
 pub const V_PRED: C2RustUnnamed = 1;
 pub const DC_PRED: C2RustUnnamed = 0;
 pub const CHAR_BIT: i32 = 8_i32;
+/// `vp8_copy_mem16x16_c` — vp8/common/reconinter.c:23. 16x16 full-pel block copy.
 pub fn vp8_copy_mem16x16_safe(src: &[u8], src_stride: i32, dst: &mut [u8], dst_stride: i32) {
     let src_stride = src_stride as usize;
     let dst_stride = dst_stride as usize;
@@ -37,6 +43,7 @@ pub fn vp8_copy_mem16x16_safe(src: &[u8], src_stride: i32, dst: &mut [u8], dst_s
     }
 }
 
+/// `vp8_copy_mem8x8_c` — vp8/common/reconinter.c:35. 8x8 full-pel block copy.
 pub fn vp8_copy_mem8x8_safe(src: &[u8], src_stride: i32, dst: &mut [u8], dst_stride: i32) {
     let src_stride = src_stride as usize;
     let dst_stride = dst_stride as usize;
@@ -47,6 +54,7 @@ pub fn vp8_copy_mem8x8_safe(src: &[u8], src_stride: i32, dst: &mut [u8], dst_str
     }
 }
 
+/// `vp8_copy_mem8x4_c` — vp8/common/reconinter.c:47. 8x4 full-pel block copy.
 pub fn vp8_copy_mem8x4_safe(src: &[u8], src_stride: i32, dst: &mut [u8], dst_stride: i32) {
     let src_stride = src_stride as usize;
     let dst_stride = dst_stride as usize;
@@ -256,6 +264,8 @@ fn clamp_uvmv_to_umv_border(
         mv.row as i32
     }) as i16;
 }
+/// `vp8_build_inter16x16_predictors_mb` — vp8/common/reconinter.c:297. Builds the
+/// 16x16 luma + 8x8 chroma inter predictors for a whole-MB motion vector.
 pub fn vp8_build_inter16x16_predictors_mb(
     x: &mut MACROBLOCKD,
     mi: &MODE_INFO,
@@ -725,6 +735,8 @@ fn build_4x4uvmvs(x: &mut MACROBLOCKD, mi: &MODE_INFO) {
         i += 1;
     }
 }
+/// `vp8_build_inter_predictors_mb` — vp8/common/reconinter.c:494. Builds inter
+/// predictors for a split-MV macroblock (per-subblock motion).
 pub fn vp8_build_inter_predictors_mb(
     xd: &mut MACROBLOCKD,
     mi: &MODE_INFO,

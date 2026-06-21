@@ -1,3 +1,8 @@
+//! Coefficient entropy tables — port of `vp8/common/entropy.c`.
+//!
+//! Default DCT-coefficient token probabilities, the coefficient-band map and
+//! zig-zag scan order used by the token decoder.
+
 pub type vp8_tree_index = i8;
 
 #[derive(Copy, Clone)]
@@ -3155,6 +3160,8 @@ static default_coef_probs: [[[[vp8_prob; 11]; 3]; 8]; 4] = [
         ],
     ],
 ];
+/// `vp8_default_coef_probs` — vp8/common/entropy.c:145. Loads the default
+/// coefficient token probabilities into the frame context.
 pub fn vp8_default_coef_probs(probs: &mut [[[[vp8_prob; 11]; 3]; 8]; 4]) {
     *probs = default_coef_probs;
 }
