@@ -1,38 +1,8 @@
-pub static vp8_mode_contexts: [[::core::ffi::c_int; 4]; 6] = [
-    [
-        7 as ::core::ffi::c_int,
-        1 as ::core::ffi::c_int,
-        1 as ::core::ffi::c_int,
-        143 as ::core::ffi::c_int,
-    ],
-    [
-        14 as ::core::ffi::c_int,
-        18 as ::core::ffi::c_int,
-        14 as ::core::ffi::c_int,
-        107 as ::core::ffi::c_int,
-    ],
-    [
-        135 as ::core::ffi::c_int,
-        64 as ::core::ffi::c_int,
-        57 as ::core::ffi::c_int,
-        68 as ::core::ffi::c_int,
-    ],
-    [
-        60 as ::core::ffi::c_int,
-        56 as ::core::ffi::c_int,
-        128 as ::core::ffi::c_int,
-        65 as ::core::ffi::c_int,
-    ],
-    [
-        159 as ::core::ffi::c_int,
-        134 as ::core::ffi::c_int,
-        128 as ::core::ffi::c_int,
-        34 as ::core::ffi::c_int,
-    ],
-    [
-        234 as ::core::ffi::c_int,
-        188 as ::core::ffi::c_int,
-        128 as ::core::ffi::c_int,
-        28 as ::core::ffi::c_int,
-    ],
+pub static vp8_mode_contexts: [[i32; 4]; 6] = [
+    [7_i32, 1_i32, 1_i32, 143_i32],
+    [14_i32, 18_i32, 14_i32, 107_i32],
+    [135_i32, 64_i32, 57_i32, 68_i32],
+    [60_i32, 56_i32, 128_i32, 65_i32],
+    [159_i32, 134_i32, 128_i32, 34_i32],
+    [234_i32, 188_i32, 128_i32, 28_i32],
 ];

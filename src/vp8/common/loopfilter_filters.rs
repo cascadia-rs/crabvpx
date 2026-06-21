@@ -1,12 +1,12 @@
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info {
-    pub mblim: *const ::core::ffi::c_uchar,
-    pub blim: *const ::core::ffi::c_uchar,
-    pub lim: *const ::core::ffi::c_uchar,
-    pub hev_thr: *const ::core::ffi::c_uchar,
+    pub mblim: *const u8,
+    pub blim: *const u8,
+    pub lim: *const u8,
+    pub hev_thr: *const u8,
 }
-pub type uc = ::core::ffi::c_uchar;
+pub type uc = u8;
 
 fn vp8_signed_char_clamp(t: i32) -> i8 {
     t.clamp(-128, 127) as i8

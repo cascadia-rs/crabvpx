@@ -20,11 +20,11 @@ pub type uint32_t = u32;
 
 pub type uint8_t = u8;
 pub type vpx_color_range_t = vpx_color_range;
-pub type vpx_color_range = ::core::ffi::c_uint;
+pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
 pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
 pub type vpx_color_space_t = vpx_color_space;
-pub type vpx_color_space = ::core::ffi::c_uint;
+pub type vpx_color_space = u32;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
 pub const VPX_CS_RESERVED: vpx_color_space = 6;
 pub const VPX_CS_BT_2020: vpx_color_space = 5;
@@ -37,63 +37,56 @@ pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct loop_filter_info {
-    pub mblim: *const ::core::ffi::c_uchar,
-    pub blim: *const ::core::ffi::c_uchar,
-    pub lim: *const ::core::ffi::c_uchar,
-    pub hev_thr: *const ::core::ffi::c_uchar,
+    pub mblim: *const u8,
+    pub blim: *const u8,
+    pub lim: *const u8,
+    pub hev_thr: *const u8,
 }
 
-pub type MV_REFERENCE_FRAME = ::core::ffi::c_uint;
+pub type MV_REFERENCE_FRAME = u32;
 pub const MAX_REF_FRAMES: MV_REFERENCE_FRAME = 4;
 pub const ALTREF_FRAME: MV_REFERENCE_FRAME = 3;
 pub const GOLDEN_FRAME: MV_REFERENCE_FRAME = 2;
 pub const LAST_FRAME: MV_REFERENCE_FRAME = 1;
 pub const INTRA_FRAME: MV_REFERENCE_FRAME = 0;
 
-pub const CHAR_BIT: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
-pub const VP8BORDERINPIXELS: ::core::ffi::c_int = 32 as ::core::ffi::c_int;
-pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
-    ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
-pub const VP8_LOTS_OF_BITS: ::core::ffi::c_int = 0x40000000 as ::core::ffi::c_int;
+pub const CHAR_BIT: i32 = 8_i32;
+pub const VP8BORDERINPIXELS: i32 = 32_i32;
+pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
+pub const VP8_LOTS_OF_BITS: i32 = 0x40000000_i32;
 #[inline]
-fn vp8dx_bool_error(br: &BOOL_DECODER) -> ::core::ffi::c_int {
+fn vp8dx_bool_error(br: &BOOL_DECODER) -> i32 {
     if br.count > VP8_BD_VALUE_SIZE && br.count < VP8_LOTS_OF_BITS {
-        return 1 as ::core::ffi::c_int;
+        return 1_i32;
     }
-    0 as ::core::ffi::c_int
+    0_i32
 }
 #[inline]
-fn vp8dx_safe_bool_error(
-    br: &crate::vp8::decoder::dboolhuff::SafeBoolDecoder,
-) -> ::core::ffi::c_int {
+fn vp8dx_safe_bool_error(br: &crate::vp8::decoder::dboolhuff::SafeBoolDecoder) -> i32 {
     if br.count > VP8_BD_VALUE_SIZE && br.count < VP8_LOTS_OF_BITS {
-        return 1 as ::core::ffi::c_int;
+        return 1_i32;
     }
-    0 as ::core::ffi::c_int
+    0_i32
 }
-pub const SYNC_POLICY_FIFO: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+pub const SYNC_POLICY_FIFO: i32 = 0_i32;
 #[inline]
-fn vpx_atomic_init(atomic: &vpx_atomic_int, value: ::core::ffi::c_int) {
+fn vpx_atomic_init(atomic: &vpx_atomic_int, value: i32) {
     atomic
         .value
         .store(value, core::sync::atomic::Ordering::SeqCst);
 }
 #[inline]
-fn vpx_atomic_store_release(atomic: &vpx_atomic_int, value: ::core::ffi::c_int) {
+fn vpx_atomic_store_release(atomic: &vpx_atomic_int, value: i32) {
     atomic
         .value
         .store(value, core::sync::atomic::Ordering::Release);
 }
 #[inline]
-fn vpx_atomic_load_acquire(atomic: &vpx_atomic_int) -> ::core::ffi::c_int {
+fn vpx_atomic_load_acquire(atomic: &vpx_atomic_int) -> i32 {
     atomic.value.load(core::sync::atomic::Ordering::Acquire)
 }
 #[inline]
-fn vp8_atomic_spin_wait(
-    mb_col: ::core::ffi::c_int,
-    last_row_current_mb_col: &vpx_atomic_int,
-    nsync: ::core::ffi::c_int,
-) {
+fn vp8_atomic_spin_wait(mb_col: i32, last_row_current_mb_col: &vpx_atomic_int, nsync: i32) {
     while mb_col > vpx_atomic_load_acquire(last_row_current_mb_col) - nsync {}
 }
 
@@ -148,7 +141,7 @@ fn mt_decode_macroblock(
     common: &VP8_COMMON,
     safe_decoder: &mut crate::vp8::decoder::dboolhuff::SafeBoolDecoder,
     xd: &mut MACROBLOCKD,
-    _mb_idx: ::core::ffi::c_uint,
+    _mb_idx: u32,
     above_y: Option<&[u8]>,
     above_u: Option<&[u8]>,
     above_v: Option<&[u8]>,
@@ -165,7 +158,7 @@ fn mt_decode_macroblock(
     // the macro-architecture level by atomic column spinlock synchronization. DO NOT REMOVE.
     unsafe {
         let mut mode: MB_PREDICTION_MODE = DC_PRED;
-        let mut i: ::core::ffi::c_int = 0;
+        let mut i: i32 = 0;
         let mut mi = *xd.mode_info(common.mip_slice());
 
         let mb_row = (-xd.mb_to_top_edge / 128) as usize;
@@ -180,7 +173,7 @@ fn mt_decode_macroblock(
             let (above, left) = xd.contexts_mut(above_context_slice, left_context);
             vp8_reset_mb_tokens_context(above, left, is_4x4);
         } else if vp8dx_safe_bool_error(safe_decoder) == 0 {
-            let mut eobtotal: ::core::ffi::c_int = 0;
+            let mut eobtotal: i32 = 0;
             let is_4x4 = mi.mbmi.is_4x4 != 0;
             let above_context_slice =
                 std::slice::from_raw_parts_mut(above_context_raw, common.mb_cols as usize);
@@ -188,7 +181,7 @@ fn mt_decode_macroblock(
                 xd.decode_tokens_inputs_mut(above_context_slice, left_context);
             eobtotal =
                 vp8_decode_mb_tokens(safe_decoder, &common.fc, qcoeff, eobs, above, left, is_4x4);
-            let skip_coeff = (eobtotal == 0 as ::core::ffi::c_int) as ::core::ffi::c_int as uint8_t;
+            let skip_coeff = (eobtotal == 0_i32) as i32 as uint8_t;
             let mip_slice = std::slice::from_raw_parts_mut(mip_raw, common.mip_slice().len());
             mip_slice[xd.mode_info_idx].mbmi.mb_skip_coeff = skip_coeff;
             mi.mbmi.mb_skip_coeff = skip_coeff;
@@ -198,7 +191,7 @@ fn mt_decode_macroblock(
         if xd.segmentation_enabled != 0 {
             vp8_mb_init_dequantizer(common, xd);
         }
-        if mi.mbmi.ref_frame as ::core::ffi::c_int == INTRA_FRAME as ::core::ffi::c_int {
+        if mi.mbmi.ref_frame as i32 == INTRA_FRAME as i32 {
             let uvmode = mi.mbmi.uv_mode as MB_PREDICTION_MODE;
             let left_available = xd.left_available;
             let up_available = xd.up_available;
@@ -263,7 +256,7 @@ fn mt_decode_macroblock(
                 );
             }
 
-            if mode as ::core::ffi::c_uint != B_PRED as ::core::ffi::c_int as ::core::ffi::c_uint {
+            if mode as u32 != B_PRED as i32 as u32 {
                 let dst_y_slice = dst_views.0.as_slice_mut(0, dst_views.0.len());
 
                 let mut yabove = [0u8; 17];
@@ -315,8 +308,8 @@ fn mt_decode_macroblock(
 
                 let dst_y_slice = dst_views.0.as_slice_mut(0, dst_views.0.len());
 
-                i = 0 as ::core::ffi::c_int;
-                while i < 16 as ::core::ffi::c_int {
+                i = 0_i32;
+                while i < 16_i32 {
                     let b_offset = xd.block[i as usize].offset;
                     let b_mode = b_modes[i as usize];
                     let dst_offset = y_buffer_offset + b_offset as usize;
@@ -386,7 +379,7 @@ fn mt_decode_macroblock(
                         let dst_sub_slice =
                             &mut dst_y_slice[dst_slice_offset..dst_slice_offset + dst_sub_len];
 
-                        if xd.eobs[i as usize] as ::core::ffi::c_int > 1 as ::core::ffi::c_int {
+                        if xd.eobs[i as usize] as i32 > 1_i32 {
                             vp8_dequant_idct_add_safe(q_sub, dq_ref, dst_sub_slice, dst_stride);
                         } else {
                             // See decodeframe.rs: wrap to match libvpx's
@@ -425,13 +418,9 @@ fn mt_decode_macroblock(
             + (xd.dst_border / 2) as usize
             + recon_uvoffset;
         if mi.mbmi.mb_skip_coeff == 0 {
-            if mode as ::core::ffi::c_uint != B_PRED as ::core::ffi::c_int as ::core::ffi::c_uint {
-                let dq_y: &[i16; 16] = if mode as ::core::ffi::c_uint
-                    != SPLITMV as ::core::ffi::c_int as ::core::ffi::c_uint
-                {
-                    if xd.eobs[24 as ::core::ffi::c_int as usize] as ::core::ffi::c_int
-                        > 1 as ::core::ffi::c_int
-                    {
+            if mode as u32 != B_PRED as i32 as u32 {
+                let dq_y: &[i16; 16] = if mode as u32 != SPLITMV as i32 as u32 {
+                    if xd.eobs[24_i32 as usize] as i32 > 1_i32 {
                         let qcoeff_slice = &xd.qcoeff[24 * 16..24 * 16 + 16];
                         let dqcoeff_slice = &mut xd.dqcoeff[24 * 16..24 * 16 + 16];
                         vp8_dequantize_b_safe(qcoeff_slice, dqcoeff_slice, &xd.dequant_y2);
@@ -443,8 +432,8 @@ fn mt_decode_macroblock(
                         xd.qcoeff[24 * 16..24 * 16 + 16].fill(0);
                     } else {
                         xd.dqcoeff[24 * 16] = (xd.qcoeff[24 * 16] as i32
-                            * xd.dequant_y2[0 as ::core::ffi::c_int as usize] as ::core::ffi::c_int)
-                            as ::core::ffi::c_short;
+                            * xd.dequant_y2[0_i32 as usize] as i32)
+                            as i16;
                         let dqcoeff_slice = &xd.dqcoeff[24 * 16..24 * 16 + 16];
                         vp8_short_inv_walsh4x4_1_safe(dqcoeff_slice, &mut xd.qcoeff);
                         xd.qcoeff[24 * 16..24 * 16 + 2].fill(0);
@@ -495,19 +484,18 @@ fn mt_decode_mb_rows(
     mbc_raw: *mut vp8_reader,
     mt_sync: &VP8D_MT_SYNC,
     xd: &mut MACROBLOCKD,
-    start_mb_row: ::core::ffi::c_int,
-    decoding_thread_count: ::core::ffi::c_uint,
+    start_mb_row: i32,
+    decoding_thread_count: u32,
     fragments: FRAGMENT_DATA,
 ) -> Result<(), vpx_codec_err_t> {
-    let mut mb_row: ::core::ffi::c_int = 0;
+    let mut mb_row: i32 = 0;
     let pc = common;
-    let nsync: ::core::ffi::c_int = mt_sync.sync_range;
+    let nsync: i32 = mt_sync.sync_range;
     let first_row_no_sync_above: vpx_atomic_int = vpx_atomic_int {
         value: core::sync::atomic::AtomicI32::new(pc.mb_cols + nsync),
     };
-    let mut num_part: ::core::ffi::c_int =
-        (1 as ::core::ffi::c_int) << pc.multi_token_partition as ::core::ffi::c_uint;
-    let mut last_mb_row: ::core::ffi::c_int = start_mb_row;
+    let mut num_part: i32 = 1_i32 << pc.multi_token_partition;
+    let mut last_mb_row: i32 = start_mb_row;
 
     let new_fb_idx = pc.new_fb_idx as usize;
     let lst_fb_idx = pc.lst_fb_idx as usize;
@@ -515,16 +503,14 @@ fn mt_decode_mb_rows(
     let recon_y_stride = pc.yv12_fb[new_fb_idx].y_stride;
     let recon_uv_stride = pc.yv12_fb[new_fb_idx].uv_stride;
 
-    let mut ref_buffer: [[*mut ::core::ffi::c_uchar; 3]; 4] =
-        [[::core::ptr::null_mut::<::core::ffi::c_uchar>(); 3]; 4];
-    let mut dst_buffer: [*mut ::core::ffi::c_uchar; 3] =
-        [::core::ptr::null_mut::<::core::ffi::c_uchar>(); 3];
-    let mut i: ::core::ffi::c_int = 0;
-    let mut ref_fb_corrupted: [::core::ffi::c_int; 4] = [0; 4];
-    ref_fb_corrupted[INTRA_FRAME as ::core::ffi::c_int as usize] = 0 as ::core::ffi::c_int;
+    let mut ref_buffer: [[*mut u8; 3]; 4] = [[::core::ptr::null_mut::<u8>(); 3]; 4];
+    let mut dst_buffer: [*mut u8; 3] = [::core::ptr::null_mut::<u8>(); 3];
+    let mut i: i32 = 0;
+    let mut ref_fb_corrupted: [i32; 4] = [0; 4];
+    ref_fb_corrupted[INTRA_FRAME as i32 as usize] = 0_i32;
 
-    i = 1 as ::core::ffi::c_int;
-    while i < MAX_REF_FRAMES as ::core::ffi::c_int {
+    i = 1_i32;
+    while i < MAX_REF_FRAMES as i32 {
         let fb_idx = match i {
             1 => pc.lst_fb_idx as usize,
             2 => pc.gld_fb_idx as usize,
@@ -532,19 +518,19 @@ fn mt_decode_mb_rows(
             _ => panic!("Invalid ref frame index"),
         };
         let this_fb = &pc.yv12_fb[fb_idx];
-        ref_buffer[i as usize][0 as ::core::ffi::c_int as usize] = this_fb.y_buffer;
-        ref_buffer[i as usize][1 as ::core::ffi::c_int as usize] = this_fb.u_buffer;
-        ref_buffer[i as usize][2 as ::core::ffi::c_int as usize] = this_fb.v_buffer;
+        ref_buffer[i as usize][0_i32 as usize] = this_fb.y_buffer;
+        ref_buffer[i as usize][1_i32 as usize] = this_fb.u_buffer;
+        ref_buffer[i as usize][2_i32 as usize] = this_fb.v_buffer;
         ref_fb_corrupted[i as usize] = this_fb.corrupted;
         i += 1;
     }
 
     let yv12_fb_new = &pc.yv12_fb[new_fb_idx];
-    dst_buffer[0 as ::core::ffi::c_int as usize] = yv12_fb_new.y_buffer;
-    dst_buffer[1 as ::core::ffi::c_int as usize] = yv12_fb_new.u_buffer;
-    dst_buffer[2 as ::core::ffi::c_int as usize] = yv12_fb_new.v_buffer;
+    dst_buffer[0_i32 as usize] = yv12_fb_new.y_buffer;
+    dst_buffer[1_i32 as usize] = yv12_fb_new.u_buffer;
+    dst_buffer[2_i32 as usize] = yv12_fb_new.v_buffer;
 
-    xd.up_available = (start_mb_row != 0 as ::core::ffi::c_int) as ::core::ffi::c_int;
+    xd.up_available = (start_mb_row != 0_i32) as i32;
     xd.mode_info_idx = (pc.mode_info_stride * (start_mb_row + 1) + 1) as usize;
     xd.mode_info_stride = pc.mode_info_stride;
 
@@ -554,10 +540,10 @@ fn mt_decode_mb_rows(
         // and raw context indexing. Concurrency is mathematically synchronized via atomic column
         // spinlocks at the macro-architecture level. DO NOT REMOVE this safety boundary.
         unsafe {
-            let mut recon_yoffset: ::core::ffi::c_int = 0;
-            let mut recon_uvoffset: ::core::ffi::c_int = 0;
-            let mut mb_col: ::core::ffi::c_int = 0;
-            let mut filter_level: ::core::ffi::c_int = 0;
+            let mut recon_yoffset: i32 = 0;
+            let mut recon_uvoffset: i32 = 0;
+            let mut mb_col: i32 = 0;
+            let mut filter_level: i32 = 0;
 
             last_mb_row = mb_row;
             xd.current_bc_idx = (mb_row % num_part) as usize;
@@ -578,12 +564,12 @@ fn mt_decode_mb_rows(
             };
             let current_mb_col: &vpx_atomic_int = &mt_current_mb_col[mb_row as usize];
 
-            recon_yoffset = mb_row * recon_y_stride * 16 as ::core::ffi::c_int;
-            recon_uvoffset = mb_row * recon_uv_stride * 8 as ::core::ffi::c_int;
+            recon_yoffset = mb_row * recon_y_stride * 16_i32;
+            recon_uvoffset = mb_row * recon_uv_stride * 8_i32;
             xd.above_context_idx = 0;
             let mut left_context = ENTROPY_CONTEXT_PLANES::default();
-            xd.left_available = 0 as ::core::ffi::c_int;
-            xd.mb_to_top_edge = -((mb_row * 16 as ::core::ffi::c_int) << 3 as ::core::ffi::c_int);
+            xd.left_available = 0_i32;
+            xd.mb_to_top_edge = -((mb_row * 16_i32) << 3_i32);
             xd.mb_to_bottom_edge = ((pc.mb_rows - 1 - mb_row) * 16) << 3;
 
             let dst_fb = &pc.yv12_fb[xd.dst_fb_idx];
@@ -665,7 +651,7 @@ fn mt_decode_mb_rows(
                     return Err(VPX_CODEC_CORRUPT_FRAME);
                 }
 
-                if cur_ref_frame as ::core::ffi::c_int >= LAST_FRAME as ::core::ffi::c_int {
+                if cur_ref_frame as i32 >= LAST_FRAME as i32 {
                     let ref_0 = cur_ref_frame as MV_REFERENCE_FRAME;
                     let fb_idx = match ref_0 {
                         1 => pc.lst_fb_idx as usize,
@@ -744,17 +730,14 @@ fn mt_decode_mb_rows(
                 if pc.filter_level != 0 {
                     let lfi_n = &pc.lf_info;
                     let cur_mbmi = &xd.mode_info(pc.mip_slice()).mbmi;
-                    let skip_lf = (cur_mbmi.mode as ::core::ffi::c_int
-                        != B_PRED as ::core::ffi::c_int
-                        && cur_mbmi.mode as ::core::ffi::c_int != SPLITMV as ::core::ffi::c_int
-                        && cur_mbmi.mb_skip_coeff as ::core::ffi::c_int != 0)
-                        as ::core::ffi::c_int;
-                    let mode_index =
-                        lfi_n.mode_lf_lut[cur_mbmi.mode as usize] as ::core::ffi::c_int;
+                    let skip_lf = (cur_mbmi.mode as i32 != B_PRED as i32
+                        && cur_mbmi.mode as i32 != SPLITMV as i32
+                        && cur_mbmi.mb_skip_coeff as i32 != 0)
+                        as i32;
+                    let mode_index = lfi_n.mode_lf_lut[cur_mbmi.mode as usize] as i32;
                     let seg = cur_mbmi.segment_id as usize;
                     let ref_frame = cur_mbmi.ref_frame as usize;
-                    filter_level =
-                        lfi_n.lvl[seg][ref_frame][mode_index as usize] as ::core::ffi::c_int;
+                    filter_level = lfi_n.lvl[seg][ref_frame][mode_index as usize] as i32;
 
                     if mb_row != pc.mb_rows - 1 {
                         let border = xd.dst_border as usize;
@@ -789,9 +772,7 @@ fn mt_decode_mb_rows(
 
                     if mb_col != pc.mb_cols - 1 {
                         let next_mbmi = &pc.mip.as_ref().unwrap()[xd.mode_info_idx + 1].mbmi;
-                        if next_mbmi.ref_frame as ::core::ffi::c_int
-                            == INTRA_FRAME as ::core::ffi::c_int
-                        {
+                        if next_mbmi.ref_frame as i32 == INTRA_FRAME as i32 {
                             let border = xd.dst_border as usize;
                             let stride = xd.dst_y_stride as usize;
                             let dst_fb = &pc.yv12_fb[xd.dst_fb_idx];
@@ -829,9 +810,7 @@ fn mt_decode_mb_rows(
                     }
 
                     if filter_level != 0 {
-                        if pc.filter_type as ::core::ffi::c_uint
-                            == NORMAL_LOOPFILTER as ::core::ffi::c_int as ::core::ffi::c_uint
-                        {
+                        if pc.filter_type == NORMAL_LOOPFILTER as i32 as u32 {
                             {
                                 let y_stride = xd.dst_y_stride as usize;
                                 let uv_stride = xd.dst_uv_stride as usize;
@@ -1197,21 +1176,21 @@ fn thread_decoding_proc(
 }
 pub fn vp8_decoder_create_threads(pbi: &mut VP8D_COMP) -> Result<(), &'static str> {
     let pbi_raw = SendPtr(pbi as *const VP8D_COMP);
-    let mut core_count: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-    let mut ithread: ::core::ffi::c_uint = 0;
-    vpx_atomic_init(&pbi.b_multithreaded_rd, 0 as ::core::ffi::c_int);
-    pbi.allocated_decoding_thread_count = 0 as ::core::ffi::c_int;
-    core_count = if pbi.max_threads > 8 as ::core::ffi::c_int {
-        8 as ::core::ffi::c_int
+    let mut core_count: i32 = 0_i32;
+    let mut ithread: u32 = 0;
+    vpx_atomic_init(&pbi.b_multithreaded_rd, 0_i32);
+    pbi.allocated_decoding_thread_count = 0_i32;
+    core_count = if pbi.max_threads > 8_i32 {
+        8_i32
     } else {
         pbi.max_threads
     };
     if core_count > pbi.common.processor_core_count {
         core_count = pbi.common.processor_core_count;
     }
-    if core_count > 1 as ::core::ffi::c_int {
-        vpx_atomic_init(&pbi.b_multithreaded_rd, 1 as ::core::ffi::c_int);
-        pbi.decoding_thread_count = (core_count - 1 as ::core::ffi::c_int) as ::core::ffi::c_uint;
+    if core_count > 1_i32 {
+        vpx_atomic_init(&pbi.b_multithreaded_rd, 1_i32);
+        pbi.decoding_thread_count = (core_count - 1_i32) as u32;
         let count = pbi.decoding_thread_count as usize;
 
         let mut start_semaphores = Vec::with_capacity(count);
@@ -1238,7 +1217,7 @@ pub fn vp8_decoder_create_threads(pbi: &mut VP8D_COMP) -> Result<(), &'static st
         let h_decoding_thread = pbi.mt_sync.h_decoding_thread.as_mut().unwrap();
         let mb_row_di = pbi.mb_row_di.as_mut().unwrap();
 
-        ithread = 0 as ::core::ffi::c_uint;
+        ithread = 0_u32;
         while ithread < pbi.decoding_thread_count {
             let mbrd_arc = std::sync::Arc::clone(&mb_row_di[ithread as usize]);
             let ithread_i32 = ithread as i32;
@@ -1256,9 +1235,9 @@ pub fn vp8_decoder_create_threads(pbi: &mut VP8D_COMP) -> Result<(), &'static st
                 }
             }
         }
-        pbi.allocated_decoding_thread_count = ithread as ::core::ffi::c_int;
-        if pbi.allocated_decoding_thread_count != pbi.decoding_thread_count as ::core::ffi::c_int {
-            if pbi.allocated_decoding_thread_count == 0 as ::core::ffi::c_int {
+        pbi.allocated_decoding_thread_count = ithread as i32;
+        if pbi.allocated_decoding_thread_count != pbi.decoding_thread_count as i32 {
+            if pbi.allocated_decoding_thread_count == 0_i32 {
                 pbi.mt_sync.h_event_end_decoding = None;
             }
             return Err("Failed to create threads");
@@ -1266,7 +1245,7 @@ pub fn vp8_decoder_create_threads(pbi: &mut VP8D_COMP) -> Result<(), &'static st
     }
     Ok(())
 }
-pub fn vp8mt_de_alloc_temp_buffers(pbi: &mut VP8D_COMP, _mb_rows: ::core::ffi::c_int) {
+pub fn vp8mt_de_alloc_temp_buffers(pbi: &mut VP8D_COMP, _mb_rows: i32) {
     pbi.mt_sync.mt_current_mb_col = None;
     pbi.mt_sync.mt_yabove_row = None;
     pbi.mt_sync.mt_uabove_row = None;
@@ -1283,25 +1262,25 @@ pub fn vp8mt_de_alloc_temp_buffers(pbi: &mut VP8D_COMP, _mb_rows: ::core::ffi::c
 }
 pub fn vp8mt_alloc_temp_buffers(
     pbi: &mut VP8D_COMP,
-    mut width: ::core::ffi::c_int,
-    prev_mb_rows: ::core::ffi::c_int,
+    mut width: i32,
+    prev_mb_rows: i32,
 ) -> Result<(), Vp8Bail> {
-    let mut uv_width: ::core::ffi::c_int = 0;
+    let mut uv_width: i32 = 0;
     if vpx_atomic_load_acquire(&pbi.b_multithreaded_rd) != 0 {
         vp8mt_de_alloc_temp_buffers(pbi, prev_mb_rows);
-        if width & 0xf as ::core::ffi::c_int != 0 as ::core::ffi::c_int {
-            width += 16 as ::core::ffi::c_int - (width & 0xf as ::core::ffi::c_int);
+        if width & 0xf_i32 != 0_i32 {
+            width += 16_i32 - (width & 0xf_i32);
         }
-        if width < 640 as ::core::ffi::c_int {
-            pbi.mt_sync.sync_range = 1 as ::core::ffi::c_int;
-        } else if width <= 1280 as ::core::ffi::c_int {
-            pbi.mt_sync.sync_range = 8 as ::core::ffi::c_int;
-        } else if width <= 2560 as ::core::ffi::c_int {
-            pbi.mt_sync.sync_range = 16 as ::core::ffi::c_int;
+        if width < 640_i32 {
+            pbi.mt_sync.sync_range = 1_i32;
+        } else if width <= 1280_i32 {
+            pbi.mt_sync.sync_range = 8_i32;
+        } else if width <= 2560_i32 {
+            pbi.mt_sync.sync_range = 16_i32;
         } else {
-            pbi.mt_sync.sync_range = 32 as ::core::ffi::c_int;
+            pbi.mt_sync.sync_range = 32_i32;
         }
-        uv_width = width >> 1 as ::core::ffi::c_int;
+        uv_width = width >> 1_i32;
         let mb_rows_usize = pbi.common.mb_rows as usize;
 
         let mut current_mb_col_vec = vec![
@@ -1319,7 +1298,7 @@ pub fn vp8mt_alloc_temp_buffers(
         let mut yabove_allocs = Vec::with_capacity(mb_rows_usize);
         let mut yabove_views = Vec::with_capacity(mb_rows_usize);
         for _ in 0..mb_rows_usize {
-            let size = (width + ((32 as ::core::ffi::c_int) << 1 as ::core::ffi::c_int)) as usize;
+            let size = (width + (32_i32 << 1_i32)) as usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(16, size);
             if ab.is_none() {
                 return Err(pbi.common.error.trigger(
@@ -1340,7 +1319,7 @@ pub fn vp8mt_alloc_temp_buffers(
         let mut uabove_allocs = Vec::with_capacity(mb_rows_usize);
         let mut uabove_views = Vec::with_capacity(mb_rows_usize);
         for _ in 0..mb_rows_usize {
-            let size = (uv_width + 32 as ::core::ffi::c_int) as usize;
+            let size = (uv_width + 32_i32) as usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(16, size);
             if ab.is_none() {
                 return Err(pbi.common.error.trigger(
@@ -1361,7 +1340,7 @@ pub fn vp8mt_alloc_temp_buffers(
         let mut vabove_allocs = Vec::with_capacity(mb_rows_usize);
         let mut vabove_views = Vec::with_capacity(mb_rows_usize);
         for _ in 0..mb_rows_usize {
-            let size = (uv_width + 32 as ::core::ffi::c_int) as usize;
+            let size = (uv_width + 32_i32) as usize;
             let mut ab = crate::vpx_mem::vpx_mem::AlignedBox::new(16, size);
             if ab.is_none() {
                 return Err(pbi.common.error.trigger(
@@ -1467,18 +1446,17 @@ pub fn vp8_decoder_remove_threads(pbi: &mut VP8D_COMP) {
         vp8mt_de_alloc_temp_buffers(pbi, mb_rows);
     }
 }
-pub fn vp8mt_decode_mb_rows(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
-    let num_part =
-        (1 as ::core::ffi::c_int) << pbi.common.multi_token_partition as ::core::ffi::c_uint;
+pub fn vp8mt_decode_mb_rows(pbi: &mut VP8D_COMP) -> i32 {
+    let num_part = 1_i32 << pbi.common.multi_token_partition;
     println!(
         "DEBUG: RUNNING MULTITHREADED DECODER! partitions {} threads {}",
         num_part,
         pbi.decoding_thread_count + 1
     );
     let pc_ref = &mut pbi.common;
-    let mut i: ::core::ffi::c_uint = 0;
-    let mut j: ::core::ffi::c_int = 0;
-    let filter_level: ::core::ffi::c_int = pc_ref.filter_level;
+    let mut i: u32 = 0;
+    let mut j: i32 = 0;
+    let filter_level: i32 = pc_ref.filter_level;
 
     let new_fb_idx = pc_ref.new_fb_idx as usize;
     let y_width = pc_ref.yv12_fb[new_fb_idx].y_width;

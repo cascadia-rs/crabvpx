@@ -13,11 +13,11 @@ pub type uint32_t = u32;
 
 pub type uint8_t = u8;
 pub type vpx_color_range_t = vpx_color_range;
-pub type vpx_color_range = ::core::ffi::c_uint;
+pub type vpx_color_range = u32;
 pub const VPX_CR_FULL_RANGE: vpx_color_range = 1;
 pub const VPX_CR_STUDIO_RANGE: vpx_color_range = 0;
 pub type vpx_color_space_t = vpx_color_space;
-pub type vpx_color_space = ::core::ffi::c_uint;
+pub type vpx_color_space = u32;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
 pub const VPX_CS_RESERVED: vpx_color_space = 6;
 pub const VPX_CS_BT_2020: vpx_color_space = 5;
@@ -28,10 +28,10 @@ pub const VPX_CS_BT_601: vpx_color_space = 1;
 pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
 pub type size_t = __darwin_size_t;
 pub type __darwin_size_t = usize;
-pub type __darwin_natural_t = ::core::ffi::c_uint;
+pub type __darwin_natural_t = u32;
 pub type __darwin_mach_port_name_t = __darwin_natural_t;
 pub type __darwin_mach_port_t = __darwin_mach_port_name_t;
-pub type C2RustUnnamed = ::core::ffi::c_uint;
+pub type C2RustUnnamed = u32;
 pub const MAX_REF_FRAMES: C2RustUnnamed = 4;
 pub const ALTREF_FRAME: C2RustUnnamed = 3;
 pub const GOLDEN_FRAME: C2RustUnnamed = 2;
@@ -40,20 +40,20 @@ pub const INTRA_FRAME: C2RustUnnamed = 0;
 #[derive(Copy, Clone)]
 #[repr(C)]
 pub struct vp8_ppflags_t {
-    pub post_proc_flag: ::core::ffi::c_int,
-    pub deblocking_level: ::core::ffi::c_int,
-    pub noise_level: ::core::ffi::c_int,
-    pub display_ref_frame_flag: ::core::ffi::c_int,
-    pub display_mb_modes_flag: ::core::ffi::c_int,
-    pub display_b_modes_flag: ::core::ffi::c_int,
-    pub display_mv_flag: ::core::ffi::c_int,
+    pub post_proc_flag: i32,
+    pub deblocking_level: i32,
+    pub noise_level: i32,
+    pub display_ref_frame_flag: i32,
+    pub display_mb_modes_flag: i32,
+    pub display_b_modes_flag: i32,
+    pub display_mv_flag: i32,
 }
-pub type vpx_ref_frame_type = ::core::ffi::c_uint;
+pub type vpx_ref_frame_type = u32;
 pub const VP8_ALTR_FRAME: vpx_ref_frame_type = 4;
 pub const VP8_GOLD_FRAME: vpx_ref_frame_type = 2;
 pub const VP8_LAST_FRAME: vpx_ref_frame_type = 1;
 pub const __DARWIN_NULL: *mut ::core::ffi::c_void = ::core::ptr::null_mut::<::core::ffi::c_void>();
-pub const NUM_YV12_BUFFERS: ::core::ffi::c_int = 4 as ::core::ffi::c_int;
+pub const NUM_YV12_BUFFERS: i32 = 4_i32;
 
 static INIT: Once = Once::new();
 
@@ -85,18 +85,12 @@ pub fn vp8dx_get_reference(
     sd: &mut YV12_BUFFER_CONFIG,
 ) -> vpx_codec_err_t {
     let cm = &mut pbi.common;
-    let mut ref_fb_idx: ::core::ffi::c_int = 0;
-    if ref_frame_flag as ::core::ffi::c_uint
-        == VP8_LAST_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
+    let mut ref_fb_idx: i32 = 0;
+    if ref_frame_flag == VP8_LAST_FRAME as i32 as u32 {
         ref_fb_idx = cm.lst_fb_idx;
-    } else if ref_frame_flag as ::core::ffi::c_uint
-        == VP8_GOLD_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
+    } else if ref_frame_flag == VP8_GOLD_FRAME as i32 as u32 {
         ref_fb_idx = cm.gld_fb_idx;
-    } else if ref_frame_flag as ::core::ffi::c_uint
-        == VP8_ALTR_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
+    } else if ref_frame_flag == VP8_ALTR_FRAME as i32 as u32 {
         ref_fb_idx = cm.alt_fb_idx;
     } else {
         let _ = cm.error.trigger(VPX_CODEC_ERROR, "Invalid reference frame");
@@ -129,17 +123,11 @@ pub fn vp8dx_set_reference(
     }
     let target: TargetFrame;
 
-    if ref_frame_flag as ::core::ffi::c_uint
-        == VP8_LAST_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
+    if ref_frame_flag == VP8_LAST_FRAME as i32 as u32 {
         target = TargetFrame::Last;
-    } else if ref_frame_flag as ::core::ffi::c_uint
-        == VP8_GOLD_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
+    } else if ref_frame_flag == VP8_GOLD_FRAME as i32 as u32 {
         target = TargetFrame::Gold;
-    } else if ref_frame_flag as ::core::ffi::c_uint
-        == VP8_ALTR_FRAME as ::core::ffi::c_int as ::core::ffi::c_uint
-    {
+    } else if ref_frame_flag == VP8_ALTR_FRAME as i32 as u32 {
         target = TargetFrame::Alt;
     } else {
         let _ = cm.error.trigger(VPX_CODEC_ERROR, "Invalid reference frame");
@@ -177,50 +165,46 @@ pub fn vp8dx_set_reference(
     }
     cm.error.error_code
 }
-fn get_free_fb(cm: &mut VP8_COMMON) -> ::core::ffi::c_int {
-    let mut i: ::core::ffi::c_int = 0;
-    i = 0 as ::core::ffi::c_int;
+fn get_free_fb(cm: &mut VP8_COMMON) -> i32 {
+    let mut i: i32 = 0;
+    i = 0_i32;
     while i < NUM_YV12_BUFFERS {
-        if cm.fb_idx_ref_cnt[i as usize] == 0 as ::core::ffi::c_int {
+        if cm.fb_idx_ref_cnt[i as usize] == 0_i32 {
             break;
         }
         i += 1;
     }
-    cm.fb_idx_ref_cnt[i as usize] = 1 as ::core::ffi::c_int;
+    cm.fb_idx_ref_cnt[i as usize] = 1_i32;
     i
 }
-fn ref_cnt_fb(
-    buf: &mut [::core::ffi::c_int],
-    idx: &mut ::core::ffi::c_int,
-    new_idx: ::core::ffi::c_int,
-) {
-    if buf[*idx as usize] > 0 as ::core::ffi::c_int {
+fn ref_cnt_fb(buf: &mut [i32], idx: &mut i32, new_idx: i32) {
+    if buf[*idx as usize] > 0_i32 {
         buf[*idx as usize] -= 1;
     }
     *idx = new_idx;
     buf[new_idx as usize] += 1;
 }
-fn swap_frame_buffers(cm: &mut VP8_COMMON) -> ::core::ffi::c_int {
-    let mut err: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
+fn swap_frame_buffers(cm: &mut VP8_COMMON) -> i32 {
+    let mut err: i32 = 0_i32;
     if cm.copy_buffer_to_arf != 0 {
-        let mut new_fb: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-        if cm.copy_buffer_to_arf == 1 as ::core::ffi::c_int {
+        let mut new_fb: i32 = 0_i32;
+        if cm.copy_buffer_to_arf == 1_i32 {
             new_fb = cm.lst_fb_idx;
-        } else if cm.copy_buffer_to_arf == 2 as ::core::ffi::c_int {
+        } else if cm.copy_buffer_to_arf == 2_i32 {
             new_fb = cm.gld_fb_idx;
         } else {
-            err = -(1 as ::core::ffi::c_int);
+            err = -1_i32;
         }
         ref_cnt_fb(&mut cm.fb_idx_ref_cnt, &mut cm.alt_fb_idx, new_fb);
     }
     if cm.copy_buffer_to_gf != 0 {
-        let mut new_fb_0: ::core::ffi::c_int = 0 as ::core::ffi::c_int;
-        if cm.copy_buffer_to_gf == 1 as ::core::ffi::c_int {
+        let mut new_fb_0: i32 = 0_i32;
+        if cm.copy_buffer_to_gf == 1_i32 {
             new_fb_0 = cm.lst_fb_idx;
-        } else if cm.copy_buffer_to_gf == 2 as ::core::ffi::c_int {
+        } else if cm.copy_buffer_to_gf == 2_i32 {
             new_fb_0 = cm.alt_fb_idx;
         } else {
-            err = -(1 as ::core::ffi::c_int);
+            err = -1_i32;
         }
         ref_cnt_fb(&mut cm.fb_idx_ref_cnt, &mut cm.gld_fb_idx, new_fb_0);
     }
@@ -241,7 +225,7 @@ fn swap_frame_buffers(cm: &mut VP8_COMMON) -> ::core::ffi::c_int {
     cm.fb_idx_ref_cnt[cm.new_fb_idx as usize] -= 1;
     err
 }
-fn check_fragments_for_errors(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
+fn check_fragments_for_errors(pbi: &mut VP8D_COMP) -> i32 {
     if pbi.ec_active == 0 && pbi.fragments.count <= 1 && pbi.fragments.sizes[0] == 0 {
         let cm = &mut pbi.common;
         if cm.fb_idx_ref_cnt[cm.lst_fb_idx as usize] > 1 {
@@ -264,10 +248,8 @@ fn check_fragments_for_errors(pbi: &mut VP8D_COMP) -> ::core::ffi::c_int {
     }
     1
 }
-pub fn vp8dx_receive_compressed_data_safe(
-    pbi: &mut VP8D_COMP,
-) -> Result<::core::ffi::c_int, Vp8Bail> {
-    let mut retcode: ::core::ffi::c_int;
+pub fn vp8dx_receive_compressed_data_safe(pbi: &mut VP8D_COMP) -> Result<i32, Vp8Bail> {
+    let mut retcode: i32;
     pbi.common.error.error_code = VPX_CODEC_OK;
 
     retcode = check_fragments_for_errors(pbi);
@@ -302,39 +284,35 @@ pub fn vp8dx_receive_compressed_data_safe(
     Ok(retcode)
 }
 
-pub fn vp8dx_get_raw_frame(pbi: &mut VP8D_COMP, sd: &mut YV12_BUFFER_CONFIG) -> ::core::ffi::c_int {
-    let mut ret: ::core::ffi::c_int = -(1 as ::core::ffi::c_int);
-    if pbi.ready_for_new_data == 1 as ::core::ffi::c_int {
+pub fn vp8dx_get_raw_frame(pbi: &mut VP8D_COMP, sd: &mut YV12_BUFFER_CONFIG) -> i32 {
+    let mut ret: i32 = -1_i32;
+    if pbi.ready_for_new_data == 1_i32 {
         return ret;
     }
-    if pbi.common.show_frame == 0 as ::core::ffi::c_int {
+    if pbi.common.show_frame == 0_i32 {
         return ret;
     }
-    pbi.ready_for_new_data = 1 as ::core::ffi::c_int;
+    pbi.ready_for_new_data = 1_i32;
     if let Some(idx) = pbi.common.frame_to_show_idx {
         *sd = pbi.common.yv12_fb[idx];
         sd.y_width = pbi.common.Width;
         sd.y_height = pbi.common.Height;
-        sd.uv_height = pbi.common.Height / 2 as ::core::ffi::c_int;
-        ret = 0 as ::core::ffi::c_int;
+        sd.uv_height = pbi.common.Height / 2_i32;
+        ret = 0_i32;
     } else {
-        ret = -(1 as ::core::ffi::c_int);
+        ret = -1_i32;
     }
     ret
 }
-pub fn vp8dx_references_buffer(
-    oci: &VP8_COMMON,
-    mip_slice: &[MODE_INFO],
-    ref_frame: ::core::ffi::c_int,
-) -> ::core::ffi::c_int {
+pub fn vp8dx_references_buffer(oci: &VP8_COMMON, mip_slice: &[MODE_INFO], ref_frame: i32) -> i32 {
     let stride = oci.mode_info_stride as usize;
     let mut cur_idx = stride + 1;
     let mut mb_row = 0;
     while mb_row < oci.mb_rows {
         let mut mb_col = 0;
         while mb_col < oci.mb_cols {
-            if mip_slice[cur_idx].mbmi.ref_frame as ::core::ffi::c_int == ref_frame {
-                return 1 as ::core::ffi::c_int;
+            if mip_slice[cur_idx].mbmi.ref_frame as i32 == ref_frame {
+                return 1_i32;
             }
             mb_col += 1;
             cur_idx += 1;
@@ -342,15 +320,12 @@ pub fn vp8dx_references_buffer(
         cur_idx += 1;
         mb_row += 1;
     }
-    0 as ::core::ffi::c_int
+    0_i32
 }
-pub fn vp8_create_decoder_instances(
-    fb: &mut frame_buffers,
-    oxcf: &VP8D_CONFIG,
-) -> ::core::ffi::c_int {
+pub fn vp8_create_decoder_instances(fb: &mut frame_buffers, oxcf: &VP8D_CONFIG) -> i32 {
     let mut pbi = match create_decompressor() {
         Some(p) => p,
-        None => return VPX_CODEC_ERROR as ::core::ffi::c_int,
+        None => return VPX_CODEC_ERROR as i32,
     };
     pbi.max_threads = oxcf.max_threads;
 
@@ -367,16 +342,16 @@ pub fn vp8_create_decoder_instances(
         vp8_decoder_remove_threads(&mut pbi);
         remove_decompressor(pbi);
         fb.pbi = [::core::ptr::null_mut(); 32];
-        return VPX_CODEC_ERROR as ::core::ffi::c_int;
+        return VPX_CODEC_ERROR as i32;
     }
 
     fb.pbi[0] = Box::into_raw(pbi);
-    VPX_CODEC_OK as ::core::ffi::c_int
+    VPX_CODEC_OK as i32
 }
-pub fn vp8_remove_decoder_instances(fb: &mut frame_buffers) -> ::core::ffi::c_int {
+pub fn vp8_remove_decoder_instances(fb: &mut frame_buffers) -> i32 {
     let pbi: *mut VP8D_COMP = fb.pbi[0];
     if pbi.is_null() {
-        return VPX_CODEC_ERROR as ::core::ffi::c_int;
+        return VPX_CODEC_ERROR as i32;
     }
     // SAFETY: We safely reclaim exclusive ownership of the heap-allocated decoder context
     // from the raw pointer stored in `fb.pbi[0]` (which was previously created via `Box::into_raw`
@@ -385,9 +360,9 @@ pub fn vp8_remove_decoder_instances(fb: &mut frame_buffers) -> ::core::ffi::c_in
     vp8_decoder_remove_threads(&mut decompressor);
     remove_decompressor(decompressor);
     fb.pbi[0] = ::core::ptr::null_mut::<VP8D_COMP>();
-    VPX_CODEC_OK as ::core::ffi::c_int
+    VPX_CODEC_OK as i32
 }
-pub fn vp8dx_get_quantizer(pbi: &VP8D_COMP) -> ::core::ffi::c_int {
+pub fn vp8dx_get_quantizer(pbi: &VP8D_COMP) -> i32 {
     pbi.common.base_qindex
 }
 pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;

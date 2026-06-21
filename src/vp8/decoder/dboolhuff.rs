@@ -1,10 +1,9 @@
 pub type __darwin_size_t = usize;
 pub type size_t = __darwin_size_t;
 pub use crate::vp8::common::types::*;
-pub const CHAR_BIT: ::core::ffi::c_int = 8 as ::core::ffi::c_int;
-pub const VP8_BD_VALUE_SIZE: ::core::ffi::c_int =
-    ::core::mem::size_of::<VP8_BD_VALUE>() as ::core::ffi::c_int * CHAR_BIT;
-pub const VP8_LOTS_OF_BITS: ::core::ffi::c_int = 0x40000000 as ::core::ffi::c_int;
+pub const CHAR_BIT: i32 = 8_i32;
+pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
+pub const VP8_LOTS_OF_BITS: i32 = 0x40000000_i32;
 pub fn vp8dx_start_decode_safe(
     br: &mut BOOL_DECODER,
     source: &[u8],
