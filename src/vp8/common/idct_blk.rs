@@ -1,3 +1,9 @@
+//! Per-macroblock dequant+IDCT+add dispatch — port of `vp8/common/idct_blk.c`.
+//!
+//! Walks a macroblock's blocks, routing each to the full IDCT, the DC-only
+//! fast path, or skip based on its eob; dispatches to the batched NEON drivers
+//! on aarch64. Per-fn details below.
+
 pub use crate::vp8::common::types::*;
 
 /// Dequant + IDCT + add for the 16 luma blocks. Dispatches to the batched

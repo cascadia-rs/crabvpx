@@ -1,5 +1,12 @@
+//! 4x4 intra prediction — port of `vp8/common/reconintra4x4.c`.
+//!
+//! Per-4x4-subblock intra predictor (the B_PRED mode set) from the local
+//! above/left/above-left neighbour pixels.
+
 pub use crate::vp8::common::types::*;
 
+/// `vp8_intra4x4_predict` — vp8/common/reconintra4x4.c:39. Predicts one 4x4
+/// subblock for the given B_PRED mode from its neighbour pixels.
 pub fn vp8_intra4x4_predict_safe(
     y_slice: &mut [u8],
     dst_offset: usize,

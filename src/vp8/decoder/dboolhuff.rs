@@ -1,7 +1,15 @@
+//! Boolean entropy decoder — port of `vp8/decoder/dboolhuff.{c,h}`.
+//!
+//! VP8's binary arithmetic decoder: a range/value pair refilled from the
+//! bitstream, read one probability-weighted bit at a time. The per-frame
+//! hottest primitive; `read_bool`/`fill` are inlined on `SafeBoolDecoder`.
+
 pub use crate::vp8::common::types::*;
 pub const CHAR_BIT: i32 = 8_i32;
 pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
 pub const VP8_LOTS_OF_BITS: i32 = 0x40000000_i32;
+/// `vp8dx_start_decode` — vp8/decoder/dboolhuff.c:15. Initializes the decoder
+/// over `source` and primes the value register via the first fill.
 pub fn vp8dx_start_decode_safe(
     br: &mut BOOL_DECODER,
     source: &[u8],

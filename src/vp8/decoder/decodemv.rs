@@ -1,3 +1,8 @@
+//! Per-macroblock mode & motion-vector decode — port of `vp8/decoder/decodemv.c`.
+//!
+//! Reads each MB's prediction mode, reference frame, segment id and motion
+//! vectors (with MV prediction from neighbours) for the whole frame.
+
 use crate::vp8::common::entropymode::{
     vp8_bmode_tree, vp8_kf_bmode_prob, vp8_kf_uv_mode_prob, vp8_kf_ymode_prob, vp8_kf_ymode_tree,
     vp8_small_mvtree, vp8_uv_mode_tree, vp8_ymode_tree,
@@ -622,6 +627,8 @@ fn decode_mb_mode_mvs(
         read_mb_modes_mv(pbi, mip_slice, cur_idx, safe_decoder);
     };
 }
+/// `vp8_decode_mode_mvs` — vp8/decoder/decodemv.c:516. Decodes modes, reference
+/// frames and motion vectors for every macroblock of the frame.
 pub fn vp8_decode_mode_mvs(
     pbi: &mut VP8D_COMP,
     mip_slice: &mut [MODE_INFO],

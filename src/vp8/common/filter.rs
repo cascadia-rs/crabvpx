@@ -1,3 +1,9 @@
+//! Sub-pixel filter coefficients — port of `vp8/common/filter.c`.
+//!
+//! The 6-tap and bilinear interpolation coefficient tables (`vp8_sub_pel_filters`
+//! etc.). The interpolation kernels themselves live in [`crate::vp8::common::simd`]
+//! / safe_predict; this module holds the shared coefficients.
+
 pub const VP8_FILTER_WEIGHT: i32 = 128_i32;
 pub const VP8_FILTER_SHIFT: i32 = 7_i32;
 

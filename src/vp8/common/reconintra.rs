@@ -1,3 +1,8 @@
+//! Whole-MB intra prediction — port of `vp8/common/reconintra.c`.
+//!
+//! Builds the 16x16 luma and 8x8 chroma intra predictors (DC/V/H/TM modes)
+//! from the already-reconstructed above/left border pixels.
+
 pub use crate::vp8::common::types::*;
 
 pub type vpx_color_range_t = vpx_color_range;
@@ -15,6 +20,8 @@ pub const VPX_CS_BT_709: vpx_color_space = 2;
 pub const VPX_CS_BT_601: vpx_color_space = 1;
 pub const VPX_CS_UNKNOWN: vpx_color_space = 0;
 
+/// `vp8_build_intra_predictors_mby_s` — vp8/common/reconintra.c:48. 16x16 luma
+/// intra predictor for the selected mode.
 pub fn vp8_build_intra_predictors_mby_safe(
     mode: MB_PREDICTION_MODE,
     left_available: i32,
@@ -79,6 +86,8 @@ pub fn vp8_build_intra_predictors_mby_safe(
         }
     }
 }
+/// `vp8_build_intra_predictors_mbuv_s` — vp8/common/reconintra.c:69. 8x8 U and V
+/// intra predictors for the selected chroma mode.
 pub fn vp8_build_intra_predictors_mbuv_safe(
     uvmode: MB_PREDICTION_MODE,
     left_available: i32,
@@ -179,8 +188,12 @@ pub fn vp8_build_intra_predictors_mbuv_safe(
         }
     }
 }
+/// `vp8_init_intra_predictors` — vp8/common/reconintra.c. One-time predictor
+/// function-table init (a no-op shim in this single-dispatch build).
 pub fn vp8_init_intra_predictors() {}
 
+/// `intra_prediction_down_copy` — vp8/common/reconintra.c. Propagates the
+/// top-right above pixel down the right column for 4x4 intra prediction.
 pub fn intra_prediction_down_copy(
     dst_stride: usize,
     border: usize,

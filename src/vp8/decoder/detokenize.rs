@@ -1,3 +1,9 @@
+//! DCT coefficient token decode — port of `vp8/decoder/detokenize.c`.
+//!
+//! Reads the quantized DCT coefficients for a macroblock from the boolean
+//! decoder via the coefficient token tree (the per-frame hot path). `GetCoeffs`
+//! walks one block; `vp8_decode_mb_tokens` drives all 24/25 blocks.
+
 pub type vpx_color_space = u32;
 pub const VPX_CS_SRGB: vpx_color_space = 7;
 pub const VPX_CS_RESERVED: vpx_color_space = 6;
@@ -16,6 +22,8 @@ pub use crate::vp8::common::types::*;
 pub type ProbaArray = *const [[u8; 11]; 3];
 pub const CHAR_BIT: i32 = 8_i32;
 pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
+/// `vp8_reset_mb_tokens_context` — vp8/decoder/detokenize.c:18. Zeroes the
+/// above/left nonzero-coefficient entropy contexts for a skipped macroblock.
 pub fn vp8_reset_mb_tokens_context(
     a_ctx: &mut ENTROPY_CONTEXT_PLANES,
     l_ctx: &mut ENTROPY_CONTEXT_PLANES,
@@ -46,6 +54,9 @@ fn GetSigned(br: &mut crate::vp8::decoder::dboolhuff::SafeBoolDecoder, value_to_
         value_to_sign
     }
 }
+/// Decode one block's coefficient run from the boolean decoder via the token
+/// tree (the inner loop of `vp8_decode_mb_tokens`). Returns the count of
+/// coefficients written (the block's eob).
 fn GetCoeffs(
     br: &mut crate::vp8::decoder::dboolhuff::SafeBoolDecoder,
     prob: &[[[vp8_prob; 11]; 3]; 8],
@@ -105,6 +116,9 @@ fn GetCoeffs(
         }
     }
 }
+/// `vp8_decode_mb_tokens` — vp8/decoder/detokenize.c:142. Decodes all blocks of
+/// a macroblock (Y2 if present, 16 Y, 8 UV), updating entropy contexts and the
+/// per-block `eobs`. Returns the total nonzero-coefficient count.
 pub fn vp8_decode_mb_tokens(
     mut safe_decoder: &mut crate::vp8::decoder::dboolhuff::SafeBoolDecoder,
     fc_ref: &FRAME_CONTEXT,

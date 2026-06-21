@@ -1,3 +1,8 @@
+//! Motion-vector prediction — port of `vp8/common/findnearmv.{c,h}`.
+//!
+//! Gathers the nearest/near/best MV candidates from neighbouring macroblocks
+//! and derives the mode-probability context used to decode the MV mode.
+
 use crate::vp8::common::modecont::vp8_mode_contexts;
 pub use crate::vp8::common::types::*;
 pub type vpx_color_space = u32;
@@ -43,6 +48,8 @@ fn mv_bias(
 pub const LEFT_TOP_MARGIN: i32 = 16_i32 << 3_i32;
 pub const RIGHT_BOTTOM_MARGIN: i32 = 16_i32 << 3_i32;
 #[inline]
+/// `vp8_clamp_mv2` — vp8/common/findnearmv.h. Clamps an MV to the allowed range
+/// around the macroblock (UMV border limits).
 pub fn vp8_clamp_mv2(mv: &mut MV, xd: &MACROBLOCKD) {
     if (mv.col as i32) < xd.mb_to_left_edge - LEFT_TOP_MARGIN {
         mv.col = (xd.mb_to_left_edge - LEFT_TOP_MARGIN) as i16;
@@ -129,6 +136,8 @@ pub static vp8_mbsplit_offset: [[u8; 16]; 4] = [
         15_i32 as u8,
     ],
 ];
+/// `vp8_find_near_mvs` — vp8/common/findnearmv.c:23. Collects the nearest/near/
+/// best candidate MVs from the above/left/aboveleft neighbours.
 pub fn vp8_find_near_mvs_safe(
     _xd: &MACROBLOCKD,
     above: &MODE_INFO,
@@ -230,6 +239,8 @@ pub fn vp8_find_near_mvs_safe(
     nearby.set_as_int(near_mvs[CNT_NEAR as usize].as_int());
 }
 
+/// `vp8_mv_ref_probs` — vp8/common/findnearmv.c. Derives the 4 mv-ref-mode
+/// probabilities from the neighbour MV-context counts.
 pub fn vp8_mv_ref_probs_safe(p: &mut [vp8_prob; 4], near_mv_ref_ct: &[i32; 4]) {
     p[0] = vp8_mode_contexts[near_mv_ref_ct[0] as usize][0] as vp8_prob;
     p[1] = vp8_mode_contexts[near_mv_ref_ct[1] as usize][1] as vp8_prob;
