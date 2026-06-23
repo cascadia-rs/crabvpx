@@ -42,6 +42,9 @@ fn vp8_hevmask(thresh: u8, p1: u8, p0: u8, q0: u8, q1: u8) -> i8 {
     hev |= -(((q1 as i32 - q0 as i32).abs() > thresh as i32) as i32);
     hev as i8
 }
+// Scalar reference: live on non-aarch64 and in the bit-exact unit tests;
+// the aarch64 *non-test* build uses the NEON path, so allow it dead there.
+#[cfg_attr(target_arch = "aarch64", allow(dead_code))]
 fn vp8_filter(mask: i8, hev: u8, op1: &mut u8, op0: &mut u8, oq0: &mut u8, oq1: &mut u8) {
     let mut filter_value: i8;
     let mut filter1: i8;
@@ -190,6 +193,9 @@ pub(crate) fn mbloop_filter_vertical_edge_uv_safe(
     }
 }
 
+// Scalar reference: live on non-aarch64 and in the bit-exact unit tests;
+// the aarch64 *non-test* build uses the NEON path, so allow it dead there.
+#[cfg_attr(target_arch = "aarch64", allow(dead_code))]
 pub(crate) fn loop_filter_horizontal_edge_scalar(
     s: &mut [u8],
     s_offset: usize,
@@ -257,6 +263,9 @@ pub(crate) fn loop_filter_vertical_edge_safe(
     loop_filter_vertical_edge_scalar(s, s_offset, p, blimit, limit, thresh, count);
 }
 
+// Scalar reference: live on non-aarch64 and in the bit-exact unit tests;
+// the aarch64 *non-test* build uses the NEON path, so allow it dead there.
+#[cfg_attr(target_arch = "aarch64", allow(dead_code))]
 pub(crate) fn loop_filter_vertical_edge_scalar(
     s: &mut [u8],
     s_offset: usize,
@@ -385,6 +394,9 @@ pub(crate) fn mbloop_filter_horizontal_edge_safe(
     mbloop_filter_horizontal_edge_scalar(s, s_offset, p, blimit, limit, thresh, count);
 }
 
+// Scalar reference: live on non-aarch64 and in the bit-exact unit tests;
+// the aarch64 *non-test* build uses the NEON path, so allow it dead there.
+#[cfg_attr(target_arch = "aarch64", allow(dead_code))]
 pub(crate) fn mbloop_filter_horizontal_edge_scalar(
     s: &mut [u8],
     s_offset: usize,
@@ -534,6 +546,9 @@ pub(crate) fn mbloop_filter_vertical_edge_safe(
     mbloop_filter_vertical_edge_scalar(s, s_offset, p, blimit, limit, thresh, count);
 }
 
+// Scalar reference: live on non-aarch64 and in the bit-exact unit tests;
+// the aarch64 *non-test* build uses the NEON path, so allow it dead there.
+#[cfg_attr(target_arch = "aarch64", allow(dead_code))]
 pub(crate) fn mbloop_filter_vertical_edge_scalar(
     s: &mut [u8],
     s_offset: usize,
@@ -628,6 +643,9 @@ pub(crate) fn vp8_loop_filter_simple_horizontal_edge_safe(
     vp8_loop_filter_simple_horizontal_edge_scalar(y, y_offset, y_stride, blimit);
 }
 
+// Scalar reference: live on non-aarch64 and in the bit-exact unit tests;
+// the aarch64 *non-test* build uses the NEON path, so allow it dead there.
+#[cfg_attr(target_arch = "aarch64", allow(dead_code))]
 pub(crate) fn vp8_loop_filter_simple_horizontal_edge_scalar(
     y: &mut [u8],
     y_offset: usize,
@@ -694,6 +712,9 @@ pub(crate) fn vp8_loop_filter_simple_vertical_edge_safe(
     vp8_loop_filter_simple_vertical_edge_scalar(y, y_offset, y_stride, blimit);
 }
 
+// Scalar reference: live on non-aarch64 and in the bit-exact unit tests;
+// the aarch64 *non-test* build uses the NEON path, so allow it dead there.
+#[cfg_attr(target_arch = "aarch64", allow(dead_code))]
 pub(crate) fn vp8_loop_filter_simple_vertical_edge_scalar(
     y: &mut [u8],
     y_offset: usize,

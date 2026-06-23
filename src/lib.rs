@@ -37,8 +37,10 @@
 
 // === Deliberate, documented lint exemptions ===
 // rustc and clippy are otherwise blocking CI gates; everything below is a
-// justified exception. (`unused_mut` / `unused_assignments` — the bulk of the
-// original c2rust noise — were removed, not exempted.)
+// justified exception. (`unused_mut`, `unused_assignments` and `dead_code` — the
+// bulk of the original c2rust noise — were removed, not exempted: the scalar
+// fallback twins that are dead only in the aarch64 NEON build carry a targeted
+// `#[cfg_attr(target_arch = "aarch64", allow(dead_code))]` instead.)
 //
 // Naming: this is a faithful port of libvpx's C and the identifiers are kept
 // byte-for-byte (`MACROBLOCKD`, `vp8_prob`, `QIndex`, `vp8_default_zig_zag1d`,
@@ -48,14 +50,13 @@
 #![allow(non_camel_case_types)]
 #![allow(non_snake_case)]
 #![allow(non_upper_case_globals)]
-// dead_code: a few ported-but-currently-unused helpers/fields kept for structural
-// parity with the C. Deferred cleanup (not principled) — a candidate to remove.
-#![allow(dead_code)]
 // Structural lints that don't fit this libvpx-derived numeric code and are not
 // worth churning the whole tree for. Keep this list small.
 //   - too_many_arguments: kernel/codec signatures inherited from the C source.
-//   - needless_range_loop: index loops over strided / multi-array pixel data
-//     read clearer than iterator chains.
+//   - needless_range_loop: verified — every site is a strided / multi-array
+//     pixel or SIMD load-store loop (`r[i] = load(base + i*p - 4)`) where the
+//     index drives pointer arithmetic; the range form is clearer than the
+//     iterator rewrite (clippy --fix declines all of them).
 //   - type_complexity: function-pointer dispatch-table types.
 //   - module_inception: module layout mirrors libvpx (e.g. vpx_mem::vpx_mem).
 #![allow(clippy::too_many_arguments)]

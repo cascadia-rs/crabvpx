@@ -64,16 +64,13 @@ pub const NULL: *mut ::core::ffi::c_void = __DARWIN_NULL;
 pub const VP8BORDERINPIXELS: i32 = 32_i32;
 pub const NUM_YV12_BUFFERS: i32 = 4_i32;
 pub fn vp8_de_alloc_frame_buffers(oci: &mut VP8_COMMON) {
-    let mut i: i32;
-    i = 0_i32;
-    while i < NUM_YV12_BUFFERS {
+    for i in 0..NUM_YV12_BUFFERS {
         let (fb, alloc) = (
             &mut oci.yv12_fb[i as usize],
             &mut oci.yv12_fb_allocs[i as usize],
         );
         vp8_yv12_de_alloc_frame_buffer_safe(fb, alloc);
         oci.fb_idx_ref_cnt[i as usize] = 0_i32;
-        i += 1;
     }
     let (temp_fb, temp_alloc) = (&mut oci.temp_scale_frame, &mut oci.temp_scale_frame_alloc);
     vp8_yv12_de_alloc_frame_buffer_safe(temp_fb, temp_alloc);

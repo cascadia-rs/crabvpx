@@ -178,19 +178,6 @@ fn filter_block2d_second_pass_safe(
     }
 }
 
-fn filter_block2d_safe(
-    src: &[u8],
-    src_stride: usize,
-    dst: &mut [u8],
-    dst_pitch: usize,
-    h_filter: &[i16; 6],
-    v_filter: &[i16; 6],
-) {
-    let mut f_data = [0i32; 36]; // 4x9
-    filter_block2d_first_pass_safe(src, src_stride, 9, 4, h_filter, &mut f_data);
-    filter_block2d_second_pass_safe(&f_data, 4, dst, dst_pitch, 4, 4, v_filter);
-}
-
 fn filter_block2d_bil_first_pass_safe(
     src: &[u8],
     src_stride: usize,

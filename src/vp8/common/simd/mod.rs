@@ -6,6 +6,9 @@
 //! `impl Simd`. The scalar functions in `loopfilter_filters`/`filter` remain the
 //! bit-exact reference every backend is gated against.
 
+// `kernels` and the `Simd` trait exist only to serve the per-ISA backends, all
+// of which are aarch64-only today, so they are dead on every other target.
+#[cfg(target_arch = "aarch64")]
 pub(crate) mod kernels;
 #[cfg(target_arch = "aarch64")]
 pub(crate) mod neon;
@@ -17,6 +20,7 @@ pub(crate) mod neon;
 /// All arithmetic is safe (intrinsics are safe inside `#[target_feature]` on
 /// Rust >= 1.87, and NEON is aarch64 baseline); only `load_u8`/`store_u8` are
 /// `unsafe` (raw pointer access).
+#[cfg(target_arch = "aarch64")]
 pub(crate) trait Simd {
     type U8: Copy;
     type I16: Copy;

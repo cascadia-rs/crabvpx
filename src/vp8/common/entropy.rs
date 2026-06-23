@@ -1738,39 +1738,6 @@ pub static vp8_coef_tree: [vp8_tree_index; 22] = [
     -DCT_VAL_CATEGORY6 as vp8_tree_index,
 ];
 
-static Pcat1: [vp8_prob; 1] = [159_i32 as vp8_prob];
-static Pcat2: [vp8_prob; 2] = [165_i32 as vp8_prob, 145_i32 as vp8_prob];
-static Pcat3: [vp8_prob; 3] = [
-    173_i32 as vp8_prob,
-    148_i32 as vp8_prob,
-    140_i32 as vp8_prob,
-];
-static Pcat4: [vp8_prob; 4] = [
-    176_i32 as vp8_prob,
-    155_i32 as vp8_prob,
-    140_i32 as vp8_prob,
-    135_i32 as vp8_prob,
-];
-static Pcat5: [vp8_prob; 5] = [
-    180_i32 as vp8_prob,
-    157_i32 as vp8_prob,
-    141_i32 as vp8_prob,
-    134_i32 as vp8_prob,
-    130_i32 as vp8_prob,
-];
-static Pcat6: [vp8_prob; 11] = [
-    254_i32 as vp8_prob,
-    254_i32 as vp8_prob,
-    243_i32 as vp8_prob,
-    230_i32 as vp8_prob,
-    196_i32 as vp8_prob,
-    177_i32 as vp8_prob,
-    153_i32 as vp8_prob,
-    140_i32 as vp8_prob,
-    133_i32 as vp8_prob,
-    130_i32 as vp8_prob,
-    129_i32 as vp8_prob,
-];
 pub static cat1: [vp8_tree_index; 2] = [0_i32 as vp8_tree_index, 0_i32 as vp8_tree_index];
 pub static cat2: [vp8_tree_index; 4] = [
     2_i32 as vp8_tree_index,

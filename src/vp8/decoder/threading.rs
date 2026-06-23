@@ -53,13 +53,6 @@ pub const VP8BORDERINPIXELS: i32 = 32_i32;
 pub const VP8_BD_VALUE_SIZE: i32 = ::core::mem::size_of::<VP8_BD_VALUE>() as i32 * CHAR_BIT;
 pub const VP8_LOTS_OF_BITS: i32 = 0x40000000_i32;
 #[inline]
-fn vp8dx_bool_error(br: &BOOL_DECODER) -> i32 {
-    if br.count > VP8_BD_VALUE_SIZE && br.count < VP8_LOTS_OF_BITS {
-        return 1_i32;
-    }
-    0_i32
-}
-#[inline]
 fn vp8dx_safe_bool_error(br: &crate::vp8::decoder::dboolhuff::SafeBoolDecoder) -> i32 {
     if br.count > VP8_BD_VALUE_SIZE && br.count < VP8_LOTS_OF_BITS {
         return 1_i32;
